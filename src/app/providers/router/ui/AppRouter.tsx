@@ -1,0 +1,25 @@
+import { StartPage } from 'pages/StartPage';
+import { memo, Suspense, lazy } from 'react';
+import { Route, Routes } from 'react-router-dom';
+
+const PageLoader = () => <div>Loading...</div>;
+
+
+function AppRouter() {
+    return (
+        <Routes>
+
+            {/* Главная страница "/" */}
+            <Route
+                path="/"
+                element={
+                    <Suspense fallback={<PageLoader />}>
+                        <StartPage />
+                    </Suspense>
+                }
+            />
+        </Routes>
+    );
+}
+
+export default memo(AppRouter);

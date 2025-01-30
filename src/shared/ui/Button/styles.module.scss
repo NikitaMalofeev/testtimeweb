@@ -1,0 +1,40 @@
+/* Button.module.scss */
+.Button {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    color: #ffffff; /* Fixed text color */
+    font-size: 16px; /* Fixed font size */
+    // padding: 15px; /* Fixed padding for medium size */
+    background-color: #007bff; /* Fixed background color */
+    border: none;
+    border-radius: 7px 0; /* Fixed border radius for partial bordered */
+    transition: opacity 0.2s ease-in-out;
+
+    &:hover {
+        opacity: 0.8;
+    }
+
+    &.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+.partial_bordered {
+    border-radius: 7px 0;
+}
+
+.background {
+    color: #ffffff;
+}
+
+.blue {
+    background-color: #045FDD;
+}
+
+.circle {
+    border-radius: 96px;
+}

@@ -1,0 +1,84 @@
+@import '../../../app/styles/mixins';
+
+/* styles.module.scss */
+
+.header {
+  font-size: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  width: 100%;
+  position: relative; /* Для абсолютного позиционирования бургера */
+
+  @include respond-to('350-500') {
+    font-size: 18px;
+  }
+
+  &.open {
+    /* Здесь можно добавить стили для открытого состояния хедера, если необходимо */
+  }
+}
+
+/* Контейнер бургера */
+.burger__container {
+  position: absolute;
+  top: 19.25;
+  right: 16px;
+  width: 18px;
+  height: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  &.activeOne {
+    /* Стили для активного состояния контейнера, если необходимо */
+  }
+}
+
+/* Основная линия бургера */
+.hamburger {
+  position: relative;
+  width: 18px; /* Ширина полосы */
+  height: 2px; /* Высота полосы */
+  background: #0F0E0E;
+  z-index: 100;
+  transition: transform 0.5s, background 0.5s, box-shadow 0.5s;
+}
+
+.hamburgerOne::before,
+.hamburgerOne::after {
+  content: '';
+  position: absolute;
+  width: 18px; /* Ширина полосы */
+  height: 2px; /* Высота полосы */
+  background: #0F0E0E;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transition: transform 0.5s, top 0.5s, box-shadow 0.5s;
+}
+
+.hamburgerOne::before {
+  top: -4px; /* Отступ сверху для верхней линии */
+}
+
+.hamburgerOne::after {
+  top: 4px; /* Отступ снизу для нижней линии */
+}
+
+/* Активное состояние */
+.activeOne .hamburger {
+  background: rgba(0, 0, 0, 0);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0);
+}
+
+.activeOne .hamburgerOne::before {
+  top: 0;
+  transform: rotate(45deg);
+}
+
+.activeOne .hamburgerOne::after {
+  top: 0;
+  transform: rotate(135deg);
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+}

@@ -1,7 +1,5 @@
+import { UiSchema } from "entities/ui/Ui/types/uiTypes";
 export interface StateSchema {
-    initialization: InitializationSchema;
-}
-
-export interface InitializationSchema {
-    test: string
+    test: string;
+    ui: UiSchema;
 }

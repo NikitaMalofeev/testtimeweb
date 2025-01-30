@@ -12,6 +12,14 @@ select {
     font: inherit;
 }
 
+// body {
+//     height: 100vh;
+// }
+
+// #root {
+//     height: 100vh;
+// }
+
 input[type="date"] {
     &::-webkit-calendar-picker-indicator {
         color: rgb(0 0 0 / 0%);

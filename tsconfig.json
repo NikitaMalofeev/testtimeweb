@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
-     "jsx": "react-jsx",
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "baseUrl": "./src",
     "paths": {
       "app/*": ["app/*"],
@@ -9,8 +11,13 @@
       "pages/*": ["pages/*"],
       "shared/*": ["shared/*"],
       "widgets/*": ["widgets/*"]
-    }
-    // прочие настройки ...
+    },
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "strict": true, // Опционально: включает строгий режим
+    "noEmit": true  // Опционально: не выводит файлы
+    // Добавьте другие необходимые опции
   },
-  "include": ["src"]
+  "include": ["src","public", "src/types/global.d.ts"]
 }

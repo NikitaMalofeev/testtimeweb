@@ -1,0 +1,24 @@
+.modalContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    min-width: 300px;
+    text-align: center;
+}
+
+.stepControls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.stepControls button {
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 16px;
+}

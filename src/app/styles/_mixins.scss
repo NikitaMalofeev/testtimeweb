@@ -1,0 +1,26 @@
+// _mixins.scss
+
+$breakpoints: (
+  '350-500': (350px, 500px),
+  '500-750': (500px, 750px),
+  '750-900': (750px, 900px),
+  '900-1200': (900px, 1200px)
+);
+
+// Миксин для медиазапросов
+@mixin respond-to($breakpoint) {
+  @if map-has-key($breakpoints, $breakpoint) {
+    $value: map-get($breakpoints, $breakpoint);
+    @if type-of($value) == 'number' or type-of($value) == 'string' {
+      @media (min-width: #{$value}) {
+        @content;
+      }
+    } @else if type-of($value) == 'list' and length($value) == 2 {
+      @media (min-width: nth($value, 1)) and (max-width: nth($value, 2)) {
+        @content;
+      }
+    }
+  } @else {
+    @warn "Брейкпоинт `#{$breakpoint}` не определен.";
+  }
+}

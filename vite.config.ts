@@ -1,10 +1,17 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import * as path from 'path';
+import svgr from 'vite-plugin-svgr';
 
 export default defineConfig({
-  plugins: [react()],
-
+  plugins: [react(), svgr({
+    svgrOptions: {
+      icon: true, // Позволяет использовать SVG как иконки
+      svgo: false, // Отключает оптимизацию, если она вызывает ошибки
+    },
+  }),],
+  publicDir: 'public',
+  root: '.',
   resolve: {
     alias: {
       // Пример: import App from 'app/SomeApp'

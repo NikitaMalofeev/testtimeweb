@@ -1,0 +1,40 @@
+.Modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: end;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease-in-out;
+
+    &.open {
+        opacity: 1;
+        pointer-events: all;
+    }
+
+    .content {
+        background: white;
+        padding: 16px 30px;
+        height: calc(100vh - 66.5px);
+        width: 100%;
+        min-width: 300px;
+        min-height: 150px;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+}
+
+/* Анимация слева */
+.left {
+    .content {
+        transform: translateX(-100%);
+    }
+
+    &.open .content {
+        transform: translateX(0);
+    }
+}

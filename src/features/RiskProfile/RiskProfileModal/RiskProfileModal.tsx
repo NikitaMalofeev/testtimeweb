@@ -7,11 +7,11 @@ import styles from './styles.module.scss';
 import { RootState } from 'app/providers/store/config/store';
 
 const steps = [
-    "Шаг 1: Введение",
-    "Шаг 2: Финансовые цели",
-    "Шаг 3: Уровень риска",
-    "Шаг 4: Опыт инвестирования",
-    "Шаг 5: Подтверждение",
+    "Шаг 1 из 5",
+    "Шаг 2 из 5",
+    "Шаг 3 из 5",
+    "Шаг 4 из 5",
+    "Шаг 5 из 5",
 ];
 
 export const RiskProfileModal = memo(() => {
@@ -34,7 +34,15 @@ export const RiskProfileModal = memo(() => {
     return (
         <Modal isOpen={isOpen} onClose={() => dispatch(closeModal())} animation={animation}>
             <div className={styles.modalContent}>
-                <h2>{steps[currentStep]}</h2>
+                {/* Полоска прогресса */}
+                <div className={styles.progressBar}>
+                    {steps.map((_, index) => (
+                        <div
+                            key={index}
+                            className={`${styles.progressStep} ${index <= currentStep ? styles.active : ''}`}
+                        />
+                    ))}
+                </div>
 
                 <div className={styles.stepControls}>
                     <Button onClick={prevStep} disabled={currentStep === 0}>

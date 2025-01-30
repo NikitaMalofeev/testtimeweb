@@ -2,11 +2,32 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
     background: white;
     border-radius: 8px;
     min-width: 300px;
     text-align: center;
+    position: relative;
+}
+
+/* Полоска прогресса */
+.progressBar {
+    display: flex;
+    width: 100vw;
+    height: 4px;
+    background: #B4CFF5;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.progressStep {
+    font-size: 12px;
+    flex: 1;
+    transition: background 0.3s ease-in-out;
+}
+
+.progressStep.active {
+    background: #045FDD;
 }
 
 .stepControls {

@@ -1,9 +1,9 @@
 .Modal {
     position: fixed;
-    top: 0;
+    bottom: 0;
     left: 0;
     width: 100vw;
-    height: 100vh;
+    height: calc(100vh - 50.5px);
     background: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
@@ -19,8 +19,8 @@
 
     .content {
         background: white;
-        padding: 16px 30px;
-        height: calc(100vh - 66.5px);
+        padding: 0 16px 30px;
+        height: 100%;
         width: 100%;
         min-width: 300px;
         min-height: 150px;

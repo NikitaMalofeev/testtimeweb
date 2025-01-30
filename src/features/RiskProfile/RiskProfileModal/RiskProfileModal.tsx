@@ -52,6 +52,9 @@ export const RiskProfileModal = memo(() => {
                     <Button onClick={nextStep} disabled={currentStep === steps.length - 1}>
                         Далее
                     </Button>
+                    <Button onClick={() => dispatch(closeModal())} disabled={currentStep === steps.length - 1}>
+                        Закрыть
+                    </Button>
                 </div>
 
                 {currentStep === steps.length - 1 && (

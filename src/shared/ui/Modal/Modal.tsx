@@ -1,7 +1,7 @@
 import React, { ReactNode, memo } from 'react';
 import ReactDOM from 'react-dom';
+import { motion } from 'framer-motion';
 import styles from './styles.module.scss';
-import { classNames, Mods } from 'shared/lib/helpers/classNames/classNames';
 import { ModalAnimation } from 'entities/ui/Ui/slice/uiSlice';
 
 interface ModalProps {
@@ -15,17 +15,32 @@ interface ModalProps {
 export const Modal = memo(({ className, isOpen, onClose, animation = ModalAnimation.SCALE, children }: ModalProps) => {
     if (!isOpen) return null;
 
-    const mods: Mods = {
-        [styles.open]: isOpen,
-        [styles[animation]]: true,
-    };
-
     return ReactDOM.createPortal(
-        <div className={classNames(styles.Modal, mods, [className])} onClick={onClose}>
-            <div className={styles.content} onClick={(e) => e.stopPropagation()}>
+        <motion.div
+            className={styles.Modal}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            onClick={onClose}
+        >
+            <motion.div
+                className={`${styles.content} ${className}`}
+                initial={{
+                    transform: animation === ModalAnimation.LEFT ? 'translateY(100%)' : 'scale(0.9)',
+                    opacity: 0,
+                }}
+                animate={{ transform: 'translateY(0)', opacity: 1 }}
+                exit={{
+                    transform: animation === ModalAnimation.LEFT ? 'translateY(100%)' : 'scale(0.9)',
+                    opacity: 0,
+                }}
+                transition={{ duration: 0.3 }}
+                onClick={(e) => e.stopPropagation()}
+            >
                 {children}
-            </div>
-        </div>,
+            </motion.div>
+        </motion.div>,
         document.body
     );
 });

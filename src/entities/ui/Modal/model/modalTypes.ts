@@ -1,4 +1,4 @@
-import { ModalAnimation } from "shared/ui/Modal/Modal";
+import { ModalAnimation } from "entities/ui/Ui/slice/uiSlice";
 
 export interface ModalState {
     isOpen: boolean;

@@ -27,14 +27,3 @@
         transition: transform 0.3s ease, opacity 0.3s ease;
     }
 }
-
-/* Анимация слева */
-.left {
-    .content {
-        transform: translateX(-100%);
-    }
-
-    &.open .content {
-        transform: translateX(0);
-    }
-}

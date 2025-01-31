@@ -1,10 +1,7 @@
 import React, { useState, memo } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { Modal } from 'shared/ui/Modal/Modal';
-import { closeModal } from 'entities/ui/Ui/slice/uiSlice';
 import { Button } from 'shared/ui/Button/Button';
 import styles from './styles.module.scss';
-import { RootState } from 'app/providers/store/config/store';
 
 const steps = [
     "Шаг 1 из 5",
@@ -14,9 +11,12 @@ const steps = [
     "Шаг 5 из 5",
 ];
 
-export const RiskProfileModal = memo(() => {
-    const dispatch = useDispatch();
-    const { isOpen, animation } = useSelector((state: RootState) => state.ui.modals);
+interface RiskProfileModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+}
+
+export const RiskProfileModal = memo(({ isOpen, onClose }: RiskProfileModalProps) => {
     const [currentStep, setCurrentStep] = useState(0);
 
     const nextStep = () => {
@@ -32,7 +32,7 @@ export const RiskProfileModal = memo(() => {
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={() => dispatch(closeModal())} animation={animation}>
+        <Modal isOpen={isOpen} onClose={onClose}>
             <div className={styles.modalContent}>
                 {/* Полоска прогресса */}
                 <div className={styles.progressBar}>
@@ -52,13 +52,13 @@ export const RiskProfileModal = memo(() => {
                     <Button onClick={nextStep} disabled={currentStep === steps.length - 1}>
                         Далее
                     </Button>
-                    <Button onClick={() => dispatch(closeModal())} disabled={currentStep === steps.length - 1}>
+                    <Button onClick={onClose}>
                         Закрыть
                     </Button>
                 </div>
 
                 {currentStep === steps.length - 1 && (
-                    <Button onClick={() => dispatch(closeModal())}>Завершить</Button>
+                    <Button onClick={onClose}>Завершить</Button>
                 )}
             </div>
         </Modal>

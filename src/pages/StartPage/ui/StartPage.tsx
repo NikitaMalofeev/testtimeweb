@@ -3,12 +3,11 @@ import styles from './styles.module.scss';
 import { Button } from 'shared/ui/Button/Button';
 import { Icon } from 'shared/ui/Icon/Icon';
 import ArrowIcon from 'shared/assets/svg/arrowTop-right.svg';
-import { useDispatch } from 'react-redux';
-import { ModalAnimation, openModal } from 'entities/ui/Ui/slice/uiSlice';
+import { useState } from 'react';
 import { RiskProfileModal } from 'features/RiskProfile/RiskProfileModal/RiskProfileModal';
 
 function StartPage() {
-    const dispatch = useDispatch();
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     return (
         <div className={styles.page}>
@@ -28,10 +27,7 @@ function StartPage() {
                     <span className={styles.page__subtitle__text}>
                         «Ranks autopilot» Высокая доходность, индивидуальный подход, минимальные риски
                     </span>
-                    <Button
-                        className={styles.button}
-                        onClick={() => dispatch(openModal(ModalAnimation.LEFT))}
-                    >
+                    <Button className={styles.button} onClick={() => setIsModalOpen(true)}>
                         <h3 className={styles.button__text}>Начать инвестировать</h3>
                         <div className={styles.button__icon}>
                             <Icon Svg={ArrowIcon} width={16} height={16} />
@@ -40,7 +36,7 @@ function StartPage() {
                 </div>
             </div>
 
-            <RiskProfileModal/>
+            <RiskProfileModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
         </div>
     );
 }

@@ -1,5 +1,4 @@
 import React, { useState, memo } from 'react';
-import { motion } from 'framer-motion';
 import { Modal } from 'shared/ui/Modal/Modal';
 import { Button } from 'shared/ui/Button/Button';
 import styles from './styles.module.scss';
@@ -16,12 +15,6 @@ interface RiskProfileModalProps {
     isOpen: boolean;
     onClose: () => void;
 }
-
-const modalVariants = {
-    hidden: { x: "100%", opacity: 0 }, // Начальное состояние (справа)
-    visible: { x: "0%", opacity: 1, transition: { duration: 0.3, ease: "easeOut" } }, // Появление
-    exit: { x: "100%", opacity: 0, transition: { duration: 0.3, ease: "easeIn" } }, // Исчезновение
-};
 
 export const RiskProfileModal = memo(({ isOpen, onClose }: RiskProfileModalProps) => {
     const [currentStep, setCurrentStep] = useState(0);
@@ -40,13 +33,7 @@ export const RiskProfileModal = memo(({ isOpen, onClose }: RiskProfileModalProps
 
     return (
         <Modal isOpen={isOpen} onClose={onClose}>
-            <motion.div
-                className={styles.modalContent}
-                initial="hidden"
-                animate={isOpen ? "visible" : "hidden"}
-                exit="exit"
-                variants={modalVariants}
-            >
+            <div className={styles.modalContent}>
                 {/* Полоска прогресса */}
                 <div className={styles.progressBar}>
                     {steps.map((_, index) => (
@@ -73,7 +60,7 @@ export const RiskProfileModal = memo(({ isOpen, onClose }: RiskProfileModalProps
                 {currentStep === steps.length - 1 && (
                     <Button onClick={onClose}>Завершить</Button>
                 )}
-            </motion.div>
+            </div>
         </Modal>
     );
 });

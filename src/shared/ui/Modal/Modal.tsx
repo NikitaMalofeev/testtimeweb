@@ -12,7 +12,7 @@ interface ModalProps {
     children: ReactNode;
 }
 
-export const Modal = memo(({ className, isOpen, onClose, animation = ModalAnimation.SCALE, children }: ModalProps) => {
+export const Modal = memo(({ className, isOpen, onClose, animation = ModalAnimation.LEFT, children }: ModalProps) => {
     if (!isOpen) return null;
 
     return ReactDOM.createPortal(
@@ -26,16 +26,10 @@ export const Modal = memo(({ className, isOpen, onClose, animation = ModalAnimat
         >
             <motion.div
                 className={`${styles.content} ${className}`}
-                initial={{
-                    transform: animation === ModalAnimation.LEFT ? 'translateY(100%)' : 'scale(0.9)',
-                    opacity: 0,
-                }}
-                animate={{ transform: 'translateY(0)', opacity: 1 }}
-                exit={{
-                    transform: animation === ModalAnimation.LEFT ? 'translateY(100%)' : 'scale(0.9)',
-                    opacity: 0,
-                }}
-                transition={{ duration: 0.3 }}
+                initial={{ x: animation === ModalAnimation.LEFT ? "100%" : 0 }}
+                animate={{ x: 0 }}
+                exit={{ x: animation === ModalAnimation.LEFT ? "100%" : 0 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
                 onClick={(e) => e.stopPropagation()}
             >
                 {children}

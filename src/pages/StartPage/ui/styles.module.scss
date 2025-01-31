@@ -39,11 +39,13 @@
         line-height: 14.52px;
         text-align: center;
         margin: 0 auto;
+        padding: 0 16px;
+        
 
         &__text {
             display: inline-block;
-            max-width: 278px;
             text-align: center;
+            max-width: 400px;
             margin: 0 auto;
         }
     }
@@ -85,12 +87,13 @@
 .profitability {
 
     &__container {
-        position: absolute;
-        left: 81px;
-        top: 114px;
+       position: relative;
     }
 
     &__subtitle {
+        position: absolute;
+        left: 78px;
+        top: 114px;
         font-family: var(--font-inter);
         font-size: 10px;
         font-weight: 400;
@@ -101,6 +104,9 @@
     }
 
     &__value {
+        position: absolute;
+        left: 83px;
+        top: 142px;
         font-family: var(--font-inter);
         font-size: 42px;
         font-weight: 500;
@@ -114,10 +120,8 @@
 .button {
     display: flex;
     justify-content: space-between;
-    max-width: 320px;
     width: 100%;
     margin: 0 auto;
-    
 
     &__text {
         padding: 18px 19px 19px 23px;
@@ -135,5 +139,6 @@
         height: 50px;
         background-color: #FFFFFF;
         border-radius: 50%;
+        margin-right: 6px;
     }
 }

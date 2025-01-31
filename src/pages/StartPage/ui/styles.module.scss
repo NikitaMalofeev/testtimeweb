@@ -73,7 +73,8 @@
     &__profitability {
         position: relative;
         height: 47%;
-        min-height: 285px;
+        max-height: 285px;
+        height: 100%;
         width: 100%;
         background-repeat: no-repeat;
         max-width: 300px;

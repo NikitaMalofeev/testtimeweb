@@ -15,7 +15,7 @@ interface ModalProps {
 export const Modal = memo(({ className, isOpen, onClose, animation = ModalAnimation.LEFT, children }: ModalProps) => {
     if (!isOpen) return null;
 
-    return ReactDOM.createPortal(
+    return (
         <motion.div
             className={styles.Modal}
             initial={{ opacity: 0 }}
@@ -34,7 +34,6 @@ export const Modal = memo(({ className, isOpen, onClose, animation = ModalAnimat
             >
                 {children}
             </motion.div>
-        </motion.div>,
-        document.body
+        </motion.div>
     );
 });

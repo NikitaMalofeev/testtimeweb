@@ -1,9 +1,9 @@
 .Modal {
     position: fixed;
-    bottom: 0;
+    top: 50.5px;
     left: 0;
     width: 100vw;
-    height: calc(100vh - 50.5px);
+    height: 100%;
     background: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;

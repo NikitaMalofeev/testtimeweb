@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
     "jsx": "react-jsx",
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Node",
     "baseUrl": "./src",
     "paths": {
       "app/*": ["app/*"],
@@ -12,12 +13,13 @@
       "shared/*": ["shared/*"],
       "widgets/*": ["widgets/*"]
     },
-    "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "strict": true, // Опционально: включает строгий режим
-    "noEmit": true  // Опционально: не выводит файлы
-    // Добавьте другие необходимые опции
+    "strict": true,
+    "noEmit": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
   },
-  "include": ["src","public", "src/types/global.d.ts"]
+  "include": ["src", "public", "src/types/global.d.ts"]
 }

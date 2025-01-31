@@ -21,7 +21,7 @@ export const Modal = memo(({ className, isOpen, onClose, animation = ModalAnimat
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.1 }}
             onClick={onClose}
         >
             <motion.div
@@ -29,7 +29,7 @@ export const Modal = memo(({ className, isOpen, onClose, animation = ModalAnimat
                 initial={{ x: animation === ModalAnimation.LEFT ? "100%" : 0 }}
                 animate={{ x: 0 }}
                 exit={{ x: animation === ModalAnimation.LEFT ? "100%" : 0 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
+                transition={{ duration: 0.1, ease: "linear" }}
                 onClick={(e) => e.stopPropagation()}
             >
                 {children}

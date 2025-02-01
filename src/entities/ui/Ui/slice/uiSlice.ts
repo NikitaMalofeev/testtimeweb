@@ -1,11 +1,11 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export enum ModalAnimation {
-    SCALE = 'scale',
-    LEFT = 'left',
-    RIGHT = 'right',
-    TOP = 'top',
-    BOTTOM = 'bottom',
+    SCALE = "scale",
+    LEFT = "left",
+    RIGHT = "right",
+    TOP = "top",
+    BOTTOM = "bottom",
 }
 
 interface ModalState {
@@ -15,6 +15,9 @@ interface ModalState {
 
 interface UiState {
     modals: ModalState;
+    additionalMenu: {
+        currentStep: number;
+    };
 }
 
 const initialState: UiState = {
@@ -22,10 +25,13 @@ const initialState: UiState = {
         isOpen: false,
         animation: ModalAnimation.SCALE,
     },
+    additionalMenu: {
+        currentStep: 0,
+    },
 };
 
 const uiSlice = createSlice({
-    name: 'ui',
+    name: "ui",
     initialState,
     reducers: {
         openModal: (state, action: PayloadAction<ModalAnimation>) => {
@@ -35,8 +41,21 @@ const uiSlice = createSlice({
         closeModal: (state) => {
             state.modals.isOpen = false;
         },
+        nextStep: (state) => {
+            if (state.additionalMenu.currentStep < 4) {
+                state.additionalMenu.currentStep += 1;
+            }
+        },
+        prevStep: (state) => {
+            if (state.additionalMenu.currentStep > 0) {
+                state.additionalMenu.currentStep -= 1;
+            }
+        },
+        resetStep: (state) => {
+            state.additionalMenu.currentStep = 0;
+        },
     },
 });
 
-export const { openModal, closeModal } = uiSlice.actions;
+export const { openModal, closeModal, nextStep, prevStep, resetStep } = uiSlice.actions;
 export default uiSlice.reducer;

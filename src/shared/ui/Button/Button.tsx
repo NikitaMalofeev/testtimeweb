@@ -9,6 +9,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     children?: ReactNode;
     theme?: ButtonTheme;
     buttonForm?: ButtonForm;
+    onClick?: () => void;
 }
 
 export enum ButtonForm {
@@ -27,6 +28,7 @@ export const Button = memo((props: ButtonProps) => {
         buttonForm = ButtonForm.CIRCLE,
         square = false,
         disabled = false,
+        onClick,
         ...otherProps
     } = props;
 
@@ -53,6 +55,7 @@ export const Button = memo((props: ButtonProps) => {
             className={classNames(styles.Button, mods, [className, buttonClasses])} // Исправлено здесь
             disabled={disabled}
             {...otherProps}
+            onClick={onClick}
         >
             {children}
         </button>

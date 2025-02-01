@@ -43,7 +43,7 @@
   width: 18px; /* Ширина полосы */
   height: 2px; /* Высота полосы */
   background: #0F0E0E;
-  z-index: 100;
+  z-index: 99;
   transition: transform 0.5s, background 0.5s, box-shadow 0.5s;
 }
 

@@ -1,0 +1,34 @@
+  
+  /* Полоска прогресса */
+  .progressBar {
+    display: flex;
+    width: 100vw;
+    height: 4px;
+    background: #b4cff5;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  
+  .progressStep {
+    flex: 1;
+    transition: background 0.3s ease-in-out;
+  }
+  
+  .progressStep.active {
+    background: #045fdd;
+  }
+  
+  .stepControls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-top: 20px;
+  }
+  
+  .stepControls button {
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 16px;
+  }

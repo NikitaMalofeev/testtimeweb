@@ -4,6 +4,7 @@
     height: 100%;
     display: flex;
     padding: 0 16px 16px 16px;
+    z-index: 10;
 
     & h1 {
         font-family: var(--font-inter);

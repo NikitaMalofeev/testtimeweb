@@ -10,7 +10,7 @@ export const Cover = () => {
         // Таймер исчезновения через 2.7 секунды
         const hideTimer = setTimeout(() => {
             setIsVisible(false);
-        }, 400);
+        }, 800);
 
         return () => clearTimeout(hideTimer);
     }, []);

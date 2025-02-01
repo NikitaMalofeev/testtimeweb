@@ -1,8 +1,5 @@
-// store.ts
 import { configureStore } from '@reduxjs/toolkit';
 import uiReducer from 'entities/ui/Ui/slice/uiSlice';
-// Импортируем редьюсеры, если есть (пример: userReducer)
-// import userReducer from 'entities/User';
 
 export const store = configureStore({
     reducer: {

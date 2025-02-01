@@ -1,6 +1,7 @@
 import React, { ReactElement } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
+import IdentificationProfileForm from "features/RiskProfile/IdentificationForm/ui/IdentificationForm";
 
 interface WithStepContentProps {
     onClose: () => void;
@@ -15,7 +16,7 @@ const stepTitles = [
 ];
 
 const stepContents = [
-    <p>Введите свои данные для идентификации</p>,
+    <IdentificationProfileForm />,
     <p>Выберите тип картошки</p>,
     <p>Заполните информацию о себе</p>,
     <p>Настройте параметры</p>,

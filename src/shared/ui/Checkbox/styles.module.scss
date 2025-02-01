@@ -1,0 +1,69 @@
+.checkboxWrapper {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 16px;
+    width: 100%;
+
+    &.error .checkboxLabel {
+        color: #FF3C53;
+    }
+
+    .errorText {
+        margin-top: 4px;
+        color: #FF3C53;
+        font-size: 12px;
+    }
+}
+
+.checkboxLabel {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    text-align: start;
+    cursor: pointer;
+    font-size: 14px;
+    color: #333;
+}
+
+.checkboxInput {
+    display: none;
+}
+.checkboxCustom {
+    min-width: 18px;
+    height: 18px;
+    border: 2px solid #cdcdd3;
+    border-radius: 4px;
+    transition: background 0.3s ease;
+    position: relative;
+
+    &:after {
+        content: "";
+        display: block;
+        width: 4px; /* ширина галочки */
+        height: 8px; /* высота галочки */
+        border: solid white; /* цвет галочки */
+        border-width: 0 2px 2px 0; /* задаем стиль галочки */
+        position: absolute;
+        top: 5px;
+        left: 7px;
+        transform: translate(-50%, -50%) rotate(45deg); /* центрируем и поворачиваем */
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+}
+
+.checkboxInput:checked + .checkboxCustom {
+    background: #0666EB; /* синий фон */
+    border-color: #0666EB;
+
+    &:after {
+        opacity: 1; /* показываем галочку при выборе */
+    }
+}
+
+
+.checkboxInput:disabled + .checkboxCustom {
+    background: #f5f5f5;
+    border-color: #ddd;
+    cursor: not-allowed;
+}

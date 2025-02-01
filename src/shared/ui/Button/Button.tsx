@@ -52,7 +52,7 @@ export const Button = memo((props: ButtonProps) => {
     return (
         <button
             type="button"
-            className={classNames(styles.Button, mods, [className, buttonClasses])} // Исправлено здесь
+            className={classNames(styles.Button, mods, [className, buttonClasses])}
             disabled={disabled}
             {...otherProps}
             onClick={onClick}

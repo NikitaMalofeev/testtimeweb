@@ -1,5 +1,6 @@
 /* Button.module.scss */
 .Button {
+    width: 100%;
     display: inline-flex;
     justify-content: space-between;
     align-items: center;
@@ -18,6 +19,7 @@
     }
 
     &.disabled {
+        background-color: #82AFEE;
         opacity: 0.5;
         cursor: not-allowed;
     }

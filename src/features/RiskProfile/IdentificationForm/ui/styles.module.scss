@@ -1,0 +1,30 @@
+.checkbox__text {
+    font-family: var(--font-inter);
+    font-size: 12px;
+    line-height: 16px;
+    color: #121B2F;
+}
+
+.checkbox__link {
+    font-family: var(--font-inter);
+    font-size: 12px;
+    color: #005BD9;
+    text-decoration: underline;
+}
+
+.button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 19px 60px;
+    font-family: var(--font-inter);
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 21.78px;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 35px;
+}

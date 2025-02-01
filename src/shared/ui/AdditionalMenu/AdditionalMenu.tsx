@@ -14,7 +14,6 @@ interface AdditionalMenuProps {
 }
 
 export const AdditionalMenu: React.FC<AdditionalMenuProps> = ({ onClose, title, content }) => {
-    const dispatch = useDispatch();
     const currentStep = useSelector((state: RootState) => state.ui.additionalMenu.currentStep);
 
     return (
@@ -31,27 +30,13 @@ export const AdditionalMenu: React.FC<AdditionalMenuProps> = ({ onClose, title, 
                 })}
             </div>
 
-            <div className={styles.header}>
-                <h2>{steps[currentStep]} - {title}</h2>
-            </div>
+            <div className={styles.additionalMenu__container}>
+                <div className={styles.header}>
+                    <span className={styles.header__steps}>{steps[currentStep]} </span>
+                    <h2 className={styles.header__title}>{title}</h2>
+                </div>
 
-            <div>{content}</div>
-
-            <div className={styles.stepControls}>
-                <Button onClick={() => dispatch(prevStep())} disabled={currentStep === 0}>
-                    Назад
-                </Button>
-                <Button onClick={() => {
-                    dispatch(nextStep())
-                    console.log('нажатие')
-                }} disabled={currentStep === steps.length - 1}>
-                    Далее
-                </Button>
-                {currentStep === steps.length - 1 ? (
-                    <Button onClick={onClose}>Завершить</Button>
-                ) : (
-                    <Button onClick={onClose}>Закрыть</Button>
-                )}
+                <div>{content}</div>
             </div>
         </div>
     );

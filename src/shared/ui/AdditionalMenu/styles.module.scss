@@ -1,5 +1,37 @@
-  
-  /* Полоска прогресса */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  &__steps {
+    color: #5A5A5A;
+    font-family: var(--font-inter);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 14.52px;
+    text-align: start;
+  }
+
+  &__title {
+    font-family: var(--font-inter);
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 24px;
+    color: #0F0E0E;
+    text-align: start;
+  }
+}  
+
+.additionalMenu {
+
+  &__container {
+    padding: 16px 32px;
+    display: flex;
+    gap: 40px;
+    flex-direction: column;
+  }
+}
+
   .progressBar {
     display: flex;
     width: 100vw;
@@ -7,7 +39,6 @@
     background: #b4cff5;
     border-radius: 4px;
     overflow: hidden;
-    margin-bottom: 20px;
   }
   
   .progressStep {

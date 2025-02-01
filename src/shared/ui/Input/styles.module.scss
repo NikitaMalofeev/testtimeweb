@@ -38,10 +38,14 @@
     padding: 10px 30px 10px 0;
     border: none;
     border-bottom: 1px solid #cdcdd3;
+    border-radius: none;
     font-size: 16px;
     outline: none;
     background: transparent;
     color: #000;
+    appearance: none; // Отключает нативные стили Safari
+    -webkit-appearance: none; // Для Safari
+    -moz-appearance: none;
 
     &:focus {
         border-bottom-color: #0F0E0E;

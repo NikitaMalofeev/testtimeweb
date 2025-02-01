@@ -18,15 +18,22 @@ export const Modal = memo(({ className, isOpen, onClose, animation = ModalAnimat
     // 🔹 1. Блокируем/разблокируем скролл страницы
     useEffect(() => {
         if (isOpen) {
+            document.body.style.position = 'fixed';
             document.body.style.overflow = 'hidden';
+            document.documentElement.style.overflow = 'hidden'; // Добавляем блокировку на `html`
         } else {
             document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.documentElement.style.overflow = ''; // Разблокируем `html`
         }
 
         return () => {
-            document.body.style.overflow = ''; // Возвращаем скролл при размонтировании
+            document.body.style.position = '';
+            document.body.style.overflow = '';
+            document.documentElement.style.overflow = '';
         };
     }, [isOpen]);
+
 
     // 🔹 2. Закрываем модалку при нажатии `Escape`
     useEffect(() => {
@@ -75,11 +82,11 @@ export const Modal = memo(({ className, isOpen, onClose, animation = ModalAnimat
                 exit={{ x: animation === ModalAnimation.LEFT ? "100%" : 0 }}
                 transition={{ duration: 0.1, ease: "linear" }}
                 onClick={(e) => e.stopPropagation()}
-                tabIndex={-1} // Фокус на модальном окне
+                tabIndex={-1}
             >
                 {children}
             </motion.div>
         </motion.div>,
-        modalRoot // 🚀 Рендерим в `modal-root`
+        modalRoot
     );
 });

@@ -18,18 +18,21 @@ export const Modal = memo(({ className, isOpen, onClose, animation = ModalAnimat
     // 🔹 1. Блокируем/разблокируем скролл страницы
     useEffect(() => {
         if (isOpen) {
-            document.body.style.position = 'fixed';
             document.body.style.overflow = 'hidden';
-            document.documentElement.style.overflow = 'hidden'; // Добавляем блокировку на `html`
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+            document.documentElement.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = '';
             document.body.style.position = '';
-            document.documentElement.style.overflow = ''; // Разблокируем `html`
+            document.body.style.width = '';
+            document.documentElement.style.overflow = '';
         }
 
         return () => {
-            document.body.style.position = '';
             document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.width = '';
             document.documentElement.style.overflow = '';
         };
     }, [isOpen]);
@@ -50,11 +53,11 @@ export const Modal = memo(({ className, isOpen, onClose, animation = ModalAnimat
     }, [isOpen, onClose]);
 
     // 🔹 3. Фокус остается в модалке
-    useEffect(() => {
-        if (isOpen && modalRef.current) {
-            modalRef.current.focus();
-        }
-    }, [isOpen]);
+    // useEffect(() => {
+    //     if (isOpen && modalRef.current) {
+    //         modalRef.current.focus();
+    //     }
+    // }, [isOpen]);
 
     if (!isOpen) return null;
 
@@ -82,7 +85,8 @@ export const Modal = memo(({ className, isOpen, onClose, animation = ModalAnimat
                 exit={{ x: animation === ModalAnimation.LEFT ? "100%" : 0 }}
                 transition={{ duration: 0.1, ease: "linear" }}
                 onClick={(e) => e.stopPropagation()}
-                tabIndex={-1}
+                style={{ pointerEvents: 'auto' }}
+            // tabIndex={-1}
             >
                 {children}
             </motion.div>

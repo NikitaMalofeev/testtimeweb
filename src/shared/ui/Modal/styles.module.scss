@@ -27,5 +27,9 @@
         min-width: 300px;
         min-height: 150px;
         transition: transform 0.3s ease, opacity 0.3s ease;
+
+        overflow-y: auto; // Включаем вертикальный скролл внутри модалки
+        max-height: 100vh; // Ограничиваем высоту модального контента
+        -webkit-overflow-scrolling: touch; 
     }
 }

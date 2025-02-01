@@ -31,3 +31,12 @@ input[type="date"] {
         border-width: thin;
     }
 }
+
+progress {
+    appearance: none;
+    -webkit-appearance: none;
+    background: none;
+    border: none;
+    height: 0;
+    overflow: hidden;
+}

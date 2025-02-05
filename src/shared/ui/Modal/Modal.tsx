@@ -14,6 +14,7 @@ interface ModalProps {
     onClose: () => void;
     withCloseIcon?: boolean;
     withTitle?: string;
+    titleWidth?: string;
     /** Тип анимации (LEFT / BOTTOM) */
     animation?: ModalAnimation;
     /** Размер модалки (FULL / MIDDLE / MINI) */
@@ -28,6 +29,7 @@ export const Modal = memo(({
     withCloseIcon,
     withTitle,
     animation,
+    titleWidth,
     size,
     children,
 }: ModalProps) => {
@@ -123,7 +125,7 @@ export const Modal = memo(({
                     <Icon Svg={CloseIcon} className={styles.closeIcon} onClick={onClose} />
                 )}
                 {withTitle && (
-                    <h2 className={styles.title}>{withTitle}</h2>
+                    <h2 className={styles.title} style={{ maxWidth: `${titleWidth}` }}>{withTitle}</h2>
                 )}
                 {children}
             </motion.div>

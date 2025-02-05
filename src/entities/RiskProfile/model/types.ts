@@ -9,3 +9,17 @@ export interface IdentificationProfileData {
     is_agreement: boolean;
     g_recaptcha: string;
 }
+
+export interface ConfirmationCodeData {
+    user_id: string;
+    code: string;
+    type: "phone" | "type_doc_EDS_agreement";
+}
+
+export interface NeedHelpData {
+    user_id: string;
+    screen: string;
+    email: string;
+    phone: string;
+    description: string;
+}

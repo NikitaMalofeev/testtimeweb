@@ -10,6 +10,13 @@ import { Input } from "shared/ui/Input/Input";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { Checkbox } from "shared/ui/Checkbox/Checkbox";
 import { Button, ButtonForm, ButtonTheme } from "shared/ui/Button/Button";
+import { openModal } from "entities/ui/Modal/slice/modalSlice";
+import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
+import { useSelector } from "react-redux";
+import { RootState } from "app/providers/store/config/store";
+import { nextStep } from "entities/ui/Ui/slice/uiSlice";
+import { Icon } from "shared/ui/Icon/Icon";
+import SuccessIcon from 'shared/assets/svg/success.svg'
 
 const IdentificationProfileForm: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -18,6 +25,8 @@ const IdentificationProfileForm: React.FC = () => {
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
     const recaptchaRef = useRef<ReCAPTCHA | null>(null);
     const [captchaVerified, setCaptchaVerified] = useState(false);
+
+    const checkConfirmmationSuccess = useSelector((state: RootState) => state.ui.confirmationStatusSuccess)
 
     const formik = useFormik({
         initialValues: {
@@ -63,7 +72,11 @@ const IdentificationProfileForm: React.FC = () => {
     };
 
     const openNextModal = () => {
-        alert("Открываем другое модальное окно или что-то ещё делаем!");
+        dispatch(openModal({
+            type: ModalType.CONFIRM_CODE,
+            size: ModalSize.MIDDLE,
+            animation: ModalAnimation.BOTTOM
+        }));
     };
 
     const handleSubmitForm = async () => {
@@ -191,17 +204,37 @@ const IdentificationProfileForm: React.FC = () => {
             {formik.touched.g_recaptcha && formik.errors.g_recaptcha && (
                 <div className={styles.error}>{formik.errors.g_recaptcha}</div>
             )}
+            {checkConfirmmationSuccess ? (
+                <div className={styles.form__success}>
+                    <div className={styles.form__success__container}>
+                        <Icon Svg={SuccessIcon} width={16} height={16} />
+                        <span className={styles.form__success__description}>Данные подтверждены</span>
+                    </div>
+                    <Button
+                        onClick={() => {
+                            dispatch(nextStep())
+                        }}
+                        theme={ButtonTheme.BLUE}
+                        form={ButtonForm.CIRCLE}
+                        className={styles.button}
+                    >
+                        Продолжить
+                    </Button>
+                </div>
+            ) : (
+                <Button
+                    onClick={handleSubmitForm}
+                    theme={ButtonTheme.BLUE}
+                    form={ButtonForm.CIRCLE}
+                    disabled={isButtonDisabled}
+                    className={styles.button}
+                >
+                    Подтвердить данные
+                </Button>
+            )
+            }
 
-            <Button
-                onClick={handleSubmitForm}
-                theme={ButtonTheme.BLUE}
-                form={ButtonForm.CIRCLE}
-                disabled={isButtonDisabled}
-                className={styles.button}
-            >
-                Подтвердить данные
-            </Button>
-        </form>
+        </form >
     );
 };
 

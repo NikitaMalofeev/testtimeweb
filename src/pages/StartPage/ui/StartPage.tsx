@@ -11,6 +11,7 @@ import { closeModal, openModal } from 'entities/ui/Modal/slice/modalSlice';
 import { useSelector } from 'react-redux';
 import { StateSchema } from 'app/providers/store/config/StateSchema';
 import { ConfirmInfoModal } from 'features/RiskProfile/ConfirmInfoModal/ConfirmInfoModal';
+import { ProblemsCodeModal } from 'features/RiskProfile/ProblemsCodeModal/ProblemsCodeModal';
 
 function StartPage() {
     const dispatch = useAppDispatch()
@@ -37,9 +38,9 @@ function StartPage() {
                         </span>
                         <Button className={styles.button} onClick={() => {
                             dispatch(openModal({
-                                type: ModalType.CONFIRM_CODE,
-                                size: ModalSize.MIDDLE,
-                                animation: ModalAnimation.BOTTOM
+                                type: ModalType.IDENTIFICATION,
+                                size: ModalSize.FULL,
+                                animation: ModalAnimation.LEFT
                             }));
                         }}>
                             <h3 className={styles.button__text}>Начать инвестировать</h3>
@@ -59,6 +60,9 @@ function StartPage() {
             }} />
             <ConfirmInfoModal isOpen={modalState.confirmCodeModal.isOpen} onClose={() => {
                 dispatch(closeModal(ModalType.CONFIRM_CODE));
+            }} />
+            <ProblemsCodeModal isOpen={modalState.problemWithCodeModal.isOpen} onClose={() => {
+                dispatch(closeModal(ModalType.PROBLEM_WITH_CODE));
             }} />
         </>
     );

@@ -3,12 +3,14 @@ interface UiState {
     additionalMenu: {
         currentStep: number;
     };
+    confirmationStatusSuccess: boolean;
 }
 
 const initialState: UiState = {
     additionalMenu: {
         currentStep: 0,
     },
+    confirmationStatusSuccess: false,
 };
 
 const uiSlice = createSlice({
@@ -28,8 +30,11 @@ const uiSlice = createSlice({
         resetStep: (state) => {
             state.additionalMenu.currentStep = 0;
         },
+        setConfirmationStatusSuccess: (state, action: PayloadAction<boolean>) => {
+            state.confirmationStatusSuccess = action.payload;
+        },
     },
 });
 
-export const { nextStep, prevStep, resetStep } = uiSlice.actions;
+export const { nextStep, prevStep, resetStep, setConfirmationStatusSuccess } = uiSlice.actions;
 export default uiSlice.reducer;

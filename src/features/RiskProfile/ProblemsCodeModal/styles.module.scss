@@ -1,0 +1,30 @@
+.modalContent {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: calc(100% - 151px);
+    background: white;
+    border-radius: 8px;
+    padding: 0 24px;
+    min-width: 300px;
+    text-align: center;
+    position: relative;
+}
+
+.submitButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 19px 60.5px;
+    width: 100%;
+    font-family: var(--font-inter);
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 21.78px;
+}
+
+@media (max-width: 450px) {
+    .submitButton {
+      padding: 19px 40.5px;
+    }
+  }

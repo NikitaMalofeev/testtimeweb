@@ -1,35 +1,69 @@
-.Modal {
+/* shared/ui/Modal/styles.module.scss */
+  
+  /* 
+    Модалка во весь экран без затемнения (например, для FULL)
+    Можно адаптировать по своему UI
+  */
+  .ModalFull {
     position: fixed;
     top: 50.5px;
     left: 0;
     width: 100vw;
-    height: 100%;
+    height: 100vh;
+    z-index: var(--modal-z-index);
+    /* фон не нужен, но если хотите
+     background: rgba(0, 0, 0, 0.3);
+    */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* Модалка с затемнением */
+  .ModalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: var(--modal-z-index);
     background: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
-    align-items: end;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease-in-out;
-    z-index: var(--modal-z-index);
-    pointer-events: all;
-
-    &.open {
-        opacity: 1;
-        pointer-events: all;
-    }
-
-    .content {
-        background: white;
-        padding: 0 16px 30px;
-        height: 100%;
-        width: 100%;
-        min-width: 300px;
-        min-height: 150px;
-        transition: transform 0.3s ease, opacity 0.3s ease;
-
-        overflow-y: auto; // Включаем вертикальный скролл внутри модалки
-        max-height: 100vh; // Ограничиваем высоту модального контента
-        -webkit-overflow-scrolling: touch; 
-    }
-}
+    align-items: flex-end; // чтобы "снизу" при BOTTOM
+  }
+  
+  /* Контейнер контента внутри */
+  .content {
+    background: #fff;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+  
+  /* Размеры */
+  
+  .full {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+ // если нужно
+  }
+  
+  .middle {
+    width: 500px;
+    max-height: 80vh;
+    border-radius: 8px;
+    margin: 0 auto; // при желании
+  }
+  
+  .mini {
+    position: fixed;
+    width: 300px;
+    max-height: 60vh;
+    border-radius: 8px;
+    bottom: 30px;
+    margin: 0 auto;
+  }
+  
+  

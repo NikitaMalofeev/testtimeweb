@@ -1,21 +1,33 @@
+// shared/ui/Modal/Modal.tsx
 import React, { ReactNode, memo, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { motion } from 'framer-motion';
+import { classNames, Mods } from 'shared/lib/helpers/classNames/classNames';
 import styles from './styles.module.scss';
-import { ModalAnimation } from 'entities/ui/Ui/slice/uiSlice';
+import { ModalAnimation, ModalSize } from 'entities/ui/Modal/model/modalTypes';
 
 interface ModalProps {
     className?: string;
     isOpen: boolean;
     onClose: () => void;
+    /** Тип анимации (LEFT / BOTTOM) */
     animation?: ModalAnimation;
+    /** Размер модалки (FULL / MIDDLE / MINI) */
+    size?: ModalSize;
     children: ReactNode;
 }
 
-export const Modal = memo(({ className, isOpen, onClose, animation = ModalAnimation.LEFT, children }: ModalProps) => {
+export const Modal = memo(({
+    className,
+    isOpen,
+    onClose,
+    animation,
+    size,
+    children,
+}: ModalProps) => {
     const modalRef = useRef<HTMLDivElement>(null);
 
-    // 🔹 1. Блокируем/разблокируем скролл страницы
+    // 1. Блокируем/разблокируем скролл страницы
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
@@ -37,11 +49,9 @@ export const Modal = memo(({ className, isOpen, onClose, animation = ModalAnimat
         };
     }, [isOpen]);
 
-
-    // 🔹 2. Закрываем модалку при нажатии `Escape`
+    // 2. Закрываем модалку по ESC
     useEffect(() => {
         if (!isOpen) return;
-
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
                 onClose();
@@ -52,25 +62,41 @@ export const Modal = memo(({ className, isOpen, onClose, animation = ModalAnimat
         return () => document.removeEventListener('keydown', handleKeyDown);
     }, [isOpen, onClose]);
 
-    // 🔹 3. Фокус остается в модалке
-    // useEffect(() => {
-    //     if (isOpen && modalRef.current) {
-    //         modalRef.current.focus();
-    //     }
-    // }, [isOpen]);
-
     if (!isOpen) return null;
 
-    // 🔹 4. Создаем `modal-root`, если его нет
+    // 3. Создаём /modal-root, если его нет
     const modalRoot = document.getElementById('modal-root') || document.createElement('div');
     if (!document.getElementById('modal-root')) {
         modalRoot.id = 'modal-root';
         document.body.appendChild(modalRoot);
     }
 
+    // 4. Настраиваем анимационные параметры
+    //    Для анимации LEFT => x = 100%; BOTTOM => y = 100%
+    const initialPosition = animation === ModalAnimation.LEFT
+        ? { x: '100%', y: 0 }
+        : { x: 0, y: '100%' };
+
+    const exitPosition = animation === ModalAnimation.LEFT
+        ? { x: '100%', y: 0 }
+        : { x: 0, y: '100%' };
+
+    // 5. Формируем классы через mods
+
+    // Обёртка (фон) — если size === FULL, может быть без затемнения.
+    // Если size !== FULL, используем затемняющий фон (Overlay).
+    const wrapperMods: Mods = {
+        [styles.ModalFull]: size === ModalSize.FULL,
+        [styles.ModalOverlay]: size !== ModalSize.FULL,
+    };
+
+    const mods: Mods = {
+        [styles[size || ModalSize.FULL]]: true,
+    };
+
     return ReactDOM.createPortal(
         <motion.div
-            className={styles.Modal}
+            className={classNames('', wrapperMods)}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -79,14 +105,13 @@ export const Modal = memo(({ className, isOpen, onClose, animation = ModalAnimat
         >
             <motion.div
                 ref={modalRef}
-                className={`${styles.content} ${className}`}
-                initial={{ x: animation === ModalAnimation.LEFT ? "100%" : 0 }}
-                animate={{ x: 0 }}
-                exit={{ x: animation === ModalAnimation.LEFT ? "100%" : 0 }}
-                transition={{ duration: 0.1, ease: "linear" }}
+                className={classNames(styles.content, mods, [className])}
+                initial={initialPosition}
+                animate={{ x: 0, y: 0 }}
+                exit={exitPosition}
+                transition={{ duration: 0.1, ease: 'linear' }}
                 onClick={(e) => e.stopPropagation()}
                 style={{ pointerEvents: 'auto' }}
-            // tabIndex={-1}
             >
                 {children}
             </motion.div>

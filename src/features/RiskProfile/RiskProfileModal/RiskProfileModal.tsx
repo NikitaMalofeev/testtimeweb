@@ -16,7 +16,7 @@ const AdditionalMenuWithContent = withStepContent(AdditionalMenu);
 export const RiskProfileModal = memo(({ isOpen, onClose }: RiskProfileModalProps) => {
     const modalState = useSelector((state: StateSchema) => state.modal);
     return (
-        <Modal isOpen={isOpen} onClose={onClose} animation={modalState.animation} size={modalState.size}>
+        <Modal isOpen={isOpen} onClose={onClose} animation={modalState.identificationModal.animation} size={modalState.identificationModal.size}>
             <div className={styles.modalContent}>
                 <AdditionalMenuWithContent onClose={onClose} />
             </div>

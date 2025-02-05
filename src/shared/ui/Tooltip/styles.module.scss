@@ -1,0 +1,62 @@
+.tooltip__container {
+    position: absolute;
+    right: 28px;
+    top: 10px;
+    display: inline-block;
+    max-width: 20px;
+  }
+  
+  .tooltip__icon {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #e3e3f0;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+
+    &__svg {
+        position: absolute;
+        top: 9.5px;
+        transform: translate(-50%, -50%);
+    }
+  }
+  
+  .tooltip__icon--hovered {
+    background-color: #79798d;
+  }
+  
+  .tooltip__box {
+    position: absolute;
+    top: 26px;
+    left: -264px; // Смещение для появления прямоугольника слева
+    transform: translateY(-50%);
+    width: 250px;
+    padding: 10px;
+    background-color: white;
+    box-shadow: 0px 4px 20px 0px #00000029;
+    border-radius: 10px;
+    z-index: 10;
+  }
+  
+  .tooltip__content {
+    font-family: var(--font-inter);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 18.9px;
+    text-align: left;
+    color: #121B2F;
+  }
+  
+  .tooltip__square {
+    position: absolute;
+    width: 12.49px;
+    height: 12.49px;
+    top: 15px; // Замените на динамическое положение, если необходимо
+    left: 241px; // Замените на динамическое положение, если необходимо
+    border-radius: 0px 0px 1.5px 0px;
+    background-color: white; // Цвет квадрата, измените при необходимости
+    transform: rotate(-45deg);
+    opacity: 1;
+  }
+  

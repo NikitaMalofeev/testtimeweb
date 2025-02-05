@@ -1,34 +1,31 @@
 // store/modalSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { ModalAnimation, ModalSize } from '../model/modalTypes';
+import { ModalType, ModalSize, ModalAnimation, ModalState } from '../model/modalTypes';
 
-interface ModalState {
-    isOpen: boolean;
-    size: ModalSize;
-    animation: ModalAnimation;
-}
-
+// Начальное состояние для всех модалок
 const initialState: ModalState = {
-    isOpen: false,
-    size: ModalSize.FULL,
-    animation: ModalAnimation.LEFT,
+    [ModalType.IDENTIFICATION]: { isOpen: false, size: ModalSize.FULL, animation: ModalAnimation.LEFT },
+    [ModalType.CONFIRM_CODE]: { isOpen: false, size: ModalSize.MIDDLE, animation: ModalAnimation.BOTTOM },
+    [ModalType.PROBLEM_WITH_CODE]: { isOpen: false, size: ModalSize.MINI, animation: ModalAnimation.LEFT },
 };
 
 const modalSlice = createSlice({
     name: 'modal',
     initialState,
     reducers: {
-        // Позволяем открыть модалку с нужным размером и анимацией
+        /** Открыть конкретную модалку с переданными параметрами */
         openModal: (
             state,
-            action: PayloadAction<{ size: ModalSize; animation: ModalAnimation }>
+            action: PayloadAction<{ type: ModalType; size: ModalSize; animation: ModalAnimation }>
         ) => {
-            state.isOpen = true;
-            state.size = action.payload.size;
-            state.animation = action.payload.animation;
+            const { type, size, animation } = action.payload;
+            state[type] = { isOpen: true, size, animation };
         },
-        closeModal: (state) => {
-            state.isOpen = false;
+
+        /** Закрыть конкретную модалку */
+        closeModal: (state, action: PayloadAction<ModalType>) => {
+            const type = action.payload;
+            state[type].isOpen = false;
         },
     },
 });

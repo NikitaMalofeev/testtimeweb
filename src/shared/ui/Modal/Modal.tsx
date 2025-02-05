@@ -5,11 +5,15 @@ import { motion } from 'framer-motion';
 import { classNames, Mods } from 'shared/lib/helpers/classNames/classNames';
 import styles from './styles.module.scss';
 import { ModalAnimation, ModalSize } from 'entities/ui/Modal/model/modalTypes';
+import { Icon } from '../Icon/Icon';
+import CloseIcon from 'shared/assets/svg/close.svg'
 
 interface ModalProps {
     className?: string;
     isOpen: boolean;
     onClose: () => void;
+    withCloseIcon?: boolean;
+    withTitle?: string;
     /** Тип анимации (LEFT / BOTTOM) */
     animation?: ModalAnimation;
     /** Размер модалки (FULL / MIDDLE / MINI) */
@@ -21,6 +25,8 @@ export const Modal = memo(({
     className,
     isOpen,
     onClose,
+    withCloseIcon,
+    withTitle,
     animation,
     size,
     children,
@@ -113,6 +119,12 @@ export const Modal = memo(({
                 onClick={(e) => e.stopPropagation()}
                 style={{ pointerEvents: 'auto' }}
             >
+                {withCloseIcon && (
+                    <Icon Svg={CloseIcon} className={styles.closeIcon} onClick={onClose} />
+                )}
+                {withTitle && (
+                    <h2 className={styles.title}>{withTitle}</h2>
+                )}
                 {children}
             </motion.div>
         </motion.div>,

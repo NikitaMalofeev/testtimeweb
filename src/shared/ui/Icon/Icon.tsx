@@ -15,6 +15,7 @@ interface IconProps {
     height?: number | string; // Поддержка % и px
     maxWidth?: number; // Ограничение ширины
     maxHeight?: number; // Ограничение высоты
+    onClick?: () => void;
     objectFit?: 'contain' | 'cover' | 'fill'; // Контроль за fit
 }
 
@@ -26,6 +27,7 @@ export const Icon = memo(({
     height = '100%',
     maxWidth,
     maxHeight,
+    onClick,
     objectFit = 'contain',
 }: IconProps) => {
 
@@ -42,6 +44,7 @@ export const Icon = memo(({
                     maxHeight,
                     objectFit
                 }}
+                onClick={onClick}
             />
         );
     }

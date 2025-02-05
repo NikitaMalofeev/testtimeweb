@@ -5,11 +5,12 @@ import { Icon } from 'shared/ui/Icon/Icon';
 import ArrowIcon from 'shared/assets/svg/arrowTop-right.svg';
 import { useState } from 'react';
 import { RiskProfileModal } from 'features/RiskProfile/RiskProfileModal/RiskProfileModal';
-import { ModalAnimation, ModalSize } from 'entities/ui/Modal/model/modalTypes';
+import { ModalAnimation, ModalSize, ModalType } from 'entities/ui/Modal/model/modalTypes';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
 import { closeModal, openModal } from 'entities/ui/Modal/slice/modalSlice';
 import { useSelector } from 'react-redux';
 import { StateSchema } from 'app/providers/store/config/StateSchema';
+import { ConfirmInfoModal } from 'features/RiskProfile/ConfirmInfoModal/ConfirmInfoModal';
 
 function StartPage() {
     const dispatch = useAppDispatch()
@@ -35,7 +36,11 @@ function StartPage() {
                             «Ranks autopilot» Высокая доходность, индивидуальный подход, минимальные риски
                         </span>
                         <Button className={styles.button} onClick={() => {
-                            dispatch(openModal({ size: ModalSize.FULL, animation: ModalAnimation.LEFT }));
+                            dispatch(openModal({
+                                type: ModalType.CONFIRM_CODE,
+                                size: ModalSize.MIDDLE,
+                                animation: ModalAnimation.BOTTOM
+                            }));
                         }}>
                             <h3 className={styles.button__text}>Начать инвестировать</h3>
                             <div className={styles.button__icon}>
@@ -47,8 +52,13 @@ function StartPage() {
 
 
             </div>
-            <RiskProfileModal isOpen={modalState.isOpen} onClose={() => {
-                dispatch(closeModal())
+
+            {/* Модальные окна */}
+            <RiskProfileModal isOpen={modalState.identificationModal.isOpen} onClose={() => {
+                dispatch(closeModal(ModalType.IDENTIFICATION));
+            }} />
+            <ConfirmInfoModal isOpen={modalState.confirmCodeModal.isOpen} onClose={() => {
+                dispatch(closeModal(ModalType.CONFIRM_CODE));
             }} />
         </>
     );

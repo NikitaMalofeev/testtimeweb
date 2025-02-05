@@ -34,8 +34,32 @@
 }
 
 .blue {
-    background-color: #045FDD;
+    background-color: #0666EB;
 }
+
+.green {
+    background-color: white;
+    color: #1CC15A;
+    border: 1px solid #1CC15A;
+
+    &.disabled {
+        background-color: white;
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+  }
+  
+.underline {
+    background: none;
+    color: #0666EB;
+    border: 1px solid #0666EB;
+
+    &.disabled {
+        background-color: white;
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+  }
 
 .circle {
     border-radius: 96px;

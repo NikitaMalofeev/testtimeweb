@@ -51,19 +51,43 @@
   }
   
   .middle {
-    width: 500px;
-    max-height: 80vh;
-    border-radius: 8px;
-    margin: 0 auto; // при желании
+    position: fixed;
+    top: 50.5px;
+    width: calc(100% - 32px);
+    margin: 0 auto;
+    height: 100%;
+    max-height: calc(100vh - 65.5px);
+    border-radius: 10px 10px 40px 40px;
+    transform: translate(-50%, -50%);
   }
   
   .mini {
     position: fixed;
-    width: 300px;
-    max-height: 60vh;
-    border-radius: 8px;
-    bottom: 30px;
-    margin: 0 auto;
+    height: 100%;
+    width: calc(100% - 32px);
+    max-height: 50vh;
+    border-radius: 10px 10px 40px 40px;
+    bottom: 16px;
+    transform: translate(-50%, -50%);
+  }
+
+  .closeIcon {
+    position: fixed;
+    max-width: 20px;
+    max-height: 20px;
+    top: 16px;
+    right: 16px;
+  }
+
+  .title {
+    font-family: var(--font-inter);
+    font-size: 24px;
+    font-weight: 500;
+    max-width: 195px;
+    line-height: 26.4px;
+    text-align: left;
+    color: #0F0E0E;
+    margin: 32px 0 16px 24px;
   }
   
   

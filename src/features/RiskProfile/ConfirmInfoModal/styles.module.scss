@@ -1,0 +1,103 @@
+.modalContent {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: calc(100% - 124px);
+    gap: 72px;
+    background: white;
+    border-radius: 8px;
+    padding: 0 24px;
+    min-width: 300px;
+    text-align: center;
+    position: relative;
+
+    &__head {
+        flex-direction: column;
+        width: 100%;
+        display: flex;
+        justify-content: start;
+    }
+
+    &__description {
+        font-family: var(--font-inter);
+        font-size: 16px;
+        font-weight: 400;
+        max-width: 260px;
+        line-height: 21.6px;
+        text-align: left;
+        color: #121B2F;
+    }
+
+    &__problems {
+        font-family: var(--font-inter);
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 16.94px;
+        text-align: left;
+        color: #0666EB;
+    }
+  }
+
+  .codeInput__container {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 16px 0;
+    width: 100%;
+  }
+  
+  .codeInput__box {
+    min-width: 64px;
+    width: 25vw;
+    height: 64px;
+    text-align: center;
+    font-family: var(--font-inter);
+    font-size: 43px;
+    font-weight: 300;
+    line-height: 58.05px;
+    text-align: center;
+    color: #121B2F;
+    border: none;
+    border-bottom: 2px solid #D4D4E8;
+    outline: none;
+    transition: border-color 0.3s ease;
+  
+    &:focus {
+      border-color: #007bff;
+    }
+  }
+  
+  .buttonGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 4px;
+  }
+  
+  
+
+  .button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 19px 60.5px;
+    width: 100%;
+    font-family: var(--font-inter);
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 21.78px;
+  }
+
+  .timer {
+    color: #5A5A5A;
+    font-family: var(--font-inter);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 18.9px;
+  }
+
+  @media (max-width: 450px) {
+    .button {
+      padding: 19px 40.5px;
+    }
+  }

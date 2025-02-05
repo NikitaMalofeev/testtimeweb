@@ -17,8 +17,11 @@ export enum ButtonForm {
 }
 
 export enum ButtonTheme {
-    BLUE = 'blue',
+    BLUE = "blue",
+    GREEN = "green",
+    UNDERLINE = "underline",
 }
+
 
 export const Button = memo((props: ButtonProps) => {
     const {

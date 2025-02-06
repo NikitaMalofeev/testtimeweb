@@ -1,10 +1,10 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import {
     IdentificationProfileData,
     ConfirmationCodeData,
     NeedHelpData
 } from "../model/types";
-import { postConfirmationCode, postIdentificationData, postNeedHelpRequest } from "shared/api/RiskProfileApi/riskProfileApi";
+import { getAllSelects, postConfirmationCode, postIdentificationData, postNeedHelpRequest } from "shared/api/RiskProfileApi/riskProfileApi";
 import { setUserId } from "entities/User/slice/userSlice";
 import { setConfirmationStatusSuccess } from "entities/ui/Ui/slice/uiSlice";
 
@@ -12,12 +12,26 @@ interface RiskProfileFormState {
     loading: boolean;
     error: string | null;
     success: boolean;
+    riskProfileSelectors: RiskProfileSelectors | null
+    formValues: Record<string, string>;
+    stepsFirstForm: {
+        currentStep: number;
+    };
+}
+
+interface RiskProfileSelectors {
+    [key: string]: Record<string, string>;
 }
 
 const initialState: RiskProfileFormState = {
     loading: false,
     error: null,
     success: false,
+    riskProfileSelectors: null,
+    formValues: {},
+    stepsFirstForm: {
+        currentStep: 0
+    }
 };
 
 export const createRiskProfile = createAsyncThunk<
@@ -34,6 +48,24 @@ export const createRiskProfile = createAsyncThunk<
         } catch (error: any) {
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке данных"
+            );
+        }
+    }
+);
+
+export const fetchAllSelects = createAsyncThunk<
+    any,
+    void,
+    { rejectValue: string }
+>(
+    "riskProfile/fetchAllSelects",
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await getAllSelects();
+            return response;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message || "Ошибка при загрузке данных"
             );
         }
     }
@@ -81,7 +113,22 @@ export const requestNeedHelp = createAsyncThunk<
 const riskProfileSlice = createSlice({
     name: "riskProfile",
     initialState,
-    reducers: {},
+    reducers: {
+        updateFieldValue: (state, action: PayloadAction<{ name: string; value: string }>) => {
+            state.formValues[action.payload.name] = action.payload.value;
+        },
+        nextStep(state) {
+            state.stepsFirstForm.currentStep += 1;
+        },
+        prevStep(state) {
+            if (state.stepsFirstForm.currentStep > 0) {
+                state.stepsFirstForm.currentStep -= 1;
+            }
+        },
+        setStep(state, action) {
+            state.stepsFirstForm.currentStep = action.payload;
+        },
+    },
     extraReducers: (builder) => {
         builder
             .addCase(createRiskProfile.pending, (state) => {
@@ -120,8 +167,22 @@ const riskProfileSlice = createSlice({
             .addCase(requestNeedHelp.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
+            })
+            .addCase(fetchAllSelects.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchAllSelects.fulfilled, (state, action) => {
+                state.loading = false;
+                state.success = true;
+                state.riskProfileSelectors = action.payload;
+            })
+            .addCase(fetchAllSelects.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
             });
     },
 });
 
+export const { updateFieldValue } = riskProfileSlice.actions;
 export default riskProfileSlice.reducer;

@@ -2,7 +2,7 @@ import React, { memo, useState, useRef, useEffect } from "react";
 import { Modal } from "shared/ui/Modal/Modal";
 import styles from "./styles.module.scss";
 import { useSelector } from "react-redux";
-import Tooltip from "shared/ui/Tooltip/Tooltip";
+import { Tooltip } from "shared/ui/Tooltip/Tooltip";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { sendConfirmationCode } from "entities/RiskProfile/slice/riskProfileSlice";
@@ -107,7 +107,10 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                     <span className={styles.modalContent__description}>
                         Код направлен на номер, указанный при идентификации
                     </span>
-                    <Tooltip />
+                    <Tooltip
+                        className={styles.modalContent__tooltip}
+                        description='Настройка параметров защиты цифрового профиля от несанкционированного доступа'
+                    />
 
                     <div className={styles.codeInput__container}>
                         {smsCode.map((digit, index) => (

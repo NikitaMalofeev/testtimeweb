@@ -17,6 +17,11 @@
         justify-content: start;
     }
 
+    &__tooltip {
+      right: 28px;
+      top: 10px;
+    }
+
     &__description {
         font-family: var(--font-inter);
         font-size: 16px;

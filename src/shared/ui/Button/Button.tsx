@@ -18,6 +18,7 @@ export enum ButtonForm {
 
 export enum ButtonTheme {
     BLUE = "blue",
+    EMPTYBLUE = 'emptyblue',
     GREEN = "green",
     UNDERLINE = "underline",
 }

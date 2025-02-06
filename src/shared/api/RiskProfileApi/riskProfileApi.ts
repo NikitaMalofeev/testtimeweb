@@ -32,3 +32,12 @@ export const postNeedHelpRequest = async (data: NeedHelpData) => {
     });
     return response.data;
 };
+
+export const getAllSelects = async () => {
+    const response = await axios.get(`${apiUrl}create_doc_user/get_all_selects/`, {
+        headers: {
+            "Accept-Language": "ru",
+        },
+    });
+    return response.data;
+};

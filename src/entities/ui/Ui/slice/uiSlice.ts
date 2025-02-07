@@ -4,6 +4,7 @@ interface UiState {
         currentStep: number;
     };
     confirmationStatusSuccess: boolean;
+    isScrollToBottom: boolean;
 }
 
 const initialState: UiState = {
@@ -11,6 +12,7 @@ const initialState: UiState = {
         currentStep: 1,
     },
     confirmationStatusSuccess: false,
+    isScrollToBottom: false
 };
 
 const uiSlice = createSlice({
@@ -33,8 +35,11 @@ const uiSlice = createSlice({
         setConfirmationStatusSuccess: (state, action: PayloadAction<boolean>) => {
             state.confirmationStatusSuccess = action.payload;
         },
+        setIsBottom: (state, action: PayloadAction<boolean>) => { // Добавляем экшен
+            state.isScrollToBottom = action.payload;
+        },
     },
 });
 
-export const { nextStep, prevStep, resetStep, setConfirmationStatusSuccess } = uiSlice.actions;
+export const { nextStep, prevStep, resetStep, setIsBottom, setConfirmationStatusSuccess } = uiSlice.actions;
 export default uiSlice.reducer;

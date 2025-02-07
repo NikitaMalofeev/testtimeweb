@@ -27,6 +27,9 @@ export const RiskProfileFirstForm: React.FC = () => {
     const { loading, error, riskProfileSelectors, formValues } = useSelector(
         (state: RootState) => state.riskProfile
     );
+    const isBottom = useSelector(
+        (state: RootState) => state.ui.isScrollToBottom
+    );
     const [currentStep, setCurrentStep] = useState(0);
 
     useEffect(() => {
@@ -197,7 +200,7 @@ export const RiskProfileFirstForm: React.FC = () => {
                     )}
                 </div>
 
-                <div className={styles.buttons}>
+                <div className={`${styles.buttons} ${!isBottom && styles.shadow}`}>
                     <Button
                         type="button"
                         theme={ButtonTheme.EMPTYBLUE}

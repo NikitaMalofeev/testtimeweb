@@ -3,6 +3,8 @@ import { useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
 import { Tooltip } from "../Tooltip/Tooltip";
 import styles from "./styles.module.scss";
+import { setIsBottom } from "entities/ui/Ui/slice/uiSlice";
+import { useAppDispatch } from "shared/hooks/useAppDispatch";
 
 const steps = ["Шаг 1 из 5", "Шаг 2 из 5", "Шаг 3 из 5", "Шаг 4 из 5", "Шаг 5 из 5"];
 
@@ -17,11 +19,16 @@ export const AdditionalMenu: React.FC<AdditionalMenuProps> = ({ onClose, title, 
     const currentStep = useSelector((state: RootState) => state.ui.additionalMenu.currentStep);
     const containerRef = useRef<HTMLDivElement>(null);
     const [hasScrolled, setHasScrolled] = useState(false);
+    const dispatch = useAppDispatch()
 
     useEffect(() => {
         const handleScroll = () => {
             if (containerRef.current) {
-                setHasScrolled(containerRef.current.scrollTop > 0);
+                const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+                setHasScrolled(scrollTop > 0);
+
+                const isAtBottom = scrollTop + clientHeight >= scrollHeight - 1; // -1 для учета округления
+                dispatch(setIsBottom(isAtBottom));
             }
         };
 

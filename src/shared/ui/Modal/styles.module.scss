@@ -36,7 +36,6 @@
   /* Контейнер контента внутри */
   .content {
     background: #fff;
-    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     transition: transform 0.3s ease, opacity 0.3s ease;
   }

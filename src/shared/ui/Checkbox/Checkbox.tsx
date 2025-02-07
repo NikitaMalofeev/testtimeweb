@@ -3,36 +3,61 @@ import styles from "./styles.module.scss";
 
 interface CheckboxProps {
     name: string;
-    value: boolean;
+    /** Состояние "отмечен ли чекбокс" */
+    checked: boolean;
+    /**
+     * Строковое значение, которое будет устанавливаться в e.target.value
+     * (например, когда это радиокнопки).
+     */
+    value?: string;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onBlur?: (e: FocusEvent<HTMLInputElement>) => void;
     label: ReactElement;
     error?: string | boolean;
     disabled?: boolean;
+    /**
+     * Если `true`, используем стили "radio",
+     * иначе классические стили "чекбокс".
+     */
+    isRadio?: boolean;
 }
 
 export const Checkbox: React.FC<CheckboxProps> = ({
     name,
+    checked,
     value,
     onChange,
     onBlur,
     label,
     error,
+    isRadio,
     disabled = false,
 }) => {
     return (
         <div className={`${styles.checkboxWrapper} ${error ? styles.error : ""}`}>
-            <label className={styles.checkboxLabel}>
+            <label
+                className={
+                    isRadio
+                        ? styles.checkboxLabelRadio
+                        : styles.checkboxLabel
+                }>
                 <input
                     type="checkbox"
                     name={name}
-                    checked={value}
+                    checked={checked}
+                    value={value}
                     onChange={onChange}
                     onBlur={onBlur}
                     disabled={disabled}
                     className={styles.checkboxInput}
                 />
-                <span className={styles.checkboxCustom}></span>
+                <span
+                    className={
+                        isRadio
+                            ? styles.checkboxCustomRadio
+                            : styles.checkboxCustom
+                    }
+                />
                 {label}
             </label>
             {error && <div className={styles.errorText}>{error}</div>}

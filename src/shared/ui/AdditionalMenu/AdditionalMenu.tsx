@@ -1,10 +1,8 @@
-import React, { ReactElement } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { Button } from "shared/ui/Button/Button";
-import styles from "./styles.module.scss";
+import React, { ReactElement, useEffect, useState, useRef } from "react";
+import { useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
-import { nextStep, prevStep } from "entities/ui/Ui/slice/uiSlice";
 import { Tooltip } from "../Tooltip/Tooltip";
+import styles from "./styles.module.scss";
 
 const steps = ["Шаг 1 из 5", "Шаг 2 из 5", "Шаг 3 из 5", "Шаг 4 из 5", "Шаг 5 из 5"];
 
@@ -17,29 +15,47 @@ interface AdditionalMenuProps {
 
 export const AdditionalMenu: React.FC<AdditionalMenuProps> = ({ onClose, title, content, description }) => {
     const currentStep = useSelector((state: RootState) => state.ui.additionalMenu.currentStep);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [hasScrolled, setHasScrolled] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            if (containerRef.current) {
+                setHasScrolled(containerRef.current.scrollTop > 0);
+            }
+        };
+
+        const container = containerRef.current;
+        if (container) {
+            container.addEventListener("scroll", handleScroll);
+        }
+
+        return () => {
+            if (container) {
+                container.removeEventListener("scroll", handleScroll);
+            }
+        };
+    }, []);
 
     return (
         <div className={styles.additionalMenu}>
             <div className={styles.progressBar}>
-                {steps.map((_, index) => {
-                    const isActive = index <= currentStep;
-                    return (
-                        <div
-                            key={index}
-                            className={`${styles.progressStep} ${isActive ? styles.active : ""}`}
-                        />
-                    );
-                })}
+                {steps.map((_, index) => (
+                    <div
+                        key={index}
+                        className={`${styles.progressStep} ${index <= currentStep ? styles.active : ""}`}
+                    />
+                ))}
             </div>
 
-            <div className={styles.additionalMenu__container}>
-                <div className={styles.header}>
-                    <span className={styles.header__steps}>{steps[currentStep]} </span>
+            <div ref={containerRef} className={`${styles.additionalMenu__container} ${hasScrolled ? styles.additionalMenu__container_scrolled : ""}`}>
+                <div className={`${styles.header} ${hasScrolled ? styles.shadow : ""}`}>
+                    <span className={styles.header__steps}>{steps[currentStep]}</span>
                     <h2 className={styles.header__title}>{title}</h2>
-                    <Tooltip description={description} className={styles.header__tooltip}/>
+                    <Tooltip description={description} className={`${styles.header__tooltip} ${hasScrolled ? styles.header__tooltip_scrolled : ""}`} />
                 </div>
 
-                <div>{content}</div>
+                {content}
             </div>
         </div>
     );

@@ -2,15 +2,23 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useFormik } from "formik";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
-import { fetchAllSelects, updateFieldValue } from "entities/RiskProfile/slice/riskProfileSlice";
-import styles from './styles.module.scss'
+import {
+    fetchAllSelects,
+    updateFieldValue,
+} from "entities/RiskProfile/slice/riskProfileSlice";
+import styles from "./styles.module.scss";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
 import { closeModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalType } from "entities/ui/Modal/model/modalTypes";
+import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 
 interface Question {
     name: string;
     label: string;
+    /**
+     * Если вопрос подразумевает выбор из вариантов,
+     * тут лежит объект { [value]: label }
+     */
     options?: Record<string, string>;
 }
 
@@ -26,7 +34,7 @@ export const RiskProfileFirstForm: React.FC = () => {
     }, [dispatch]);
 
     /**
-     * Функция, которая для каждого ключа возвращает 
+     * Функция, которая для каждого ключа возвращает
      * более «читаемую» подпись вопроса.
      */
     const getLabelByKey = (key: string) => {
@@ -38,25 +46,27 @@ export const RiskProfileFirstForm: React.FC = () => {
             gender: "Ваш пол",
             income_investments_intended: "Доход от Ваших инвестиций предназначен для",
             invest_target: "Цель инвестирования",
-            investment_experience: "Как Вы оцениваете свой опыт (знания) в области инвестирования?",
+            investment_experience:
+                "Как Вы оцениваете свой опыт (знания) в области инвестирования?",
             investment_period: "Срок инвестирования",
-            monthly_expense: "Информация о Ваших среднемесячных расходах (за последние 12 месяцев)",
-            monthly_income: "Объём Ваших среднемесячных доходов (за последние 12 месяцев)",
+            monthly_expense:
+                "Информация о Ваших среднемесячных расходах (за последние 12 месяцев)",
+            monthly_income:
+                "Объём Ваших среднемесячных доходов (за последние 12 месяцев)",
             obligations_invest_horizon: "Ваши обязательства на период инвестирования",
             planned_future_income: "Планируемые будущие изменения дохода",
-            practical_investment_experience: "Практический опыт в области инвестирования",
+            practical_investment_experience:
+                "Практический опыт в области инвестирования",
             profit_expect: "Желаемая доходность и допустимые риски",
-            question_assets_losing_value: "Как Вы поступите, если активы потеряют более 20% стоимости?",
+            question_assets_losing_value:
+                "Как Вы поступите, если активы потеряют более 20% стоимости?",
             risk_profiling_int: "Результирующий риск-профиль",
             savings_level: "Информация о наличии и сумме сбережений",
         };
         return map[key] || key;
     };
 
-    useEffect(() => {
-        console.log(riskProfileSelectors);
-    }, [riskProfileSelectors]);
-
+    // Генерация списка вопросов
     const questions: Question[] = useMemo(() => {
         if (!riskProfileSelectors) return [];
 
@@ -71,18 +81,30 @@ export const RiskProfileFirstForm: React.FC = () => {
 
         // Дополнительные (текстовые) вопросы
         const extraTextQuestions: Question[] = [
-            { name: "extraField1", label: "Введите ваш адрес" },
-            { name: "extraField2", label: "Укажите место работы" },
-            { name: "extraField3", label: "Дополнительная информация" },
-            { name: "extraField4", label: "Уточните, при необходимости, ваши комментарии" },
+            {
+                name: "citizenship",
+                label: "Гражданство, в том числе ВНЖ",
+            },
+            {
+                name: "trusted_person",
+                label:
+                    "Доверенное лицо. Пожалуйста, укажите:\n• ФИО \n• Контактные данные",
+            },
+            {
+                name: "expected_return_investment",
+                label:
+                    "Ожидаемая доходность по результатам инвестирования( % годовых)",
+            },
+            {
+                name: "max_allowable_drawdown",
+                label: "Максимальная допустимая просадка",
+            },
         ];
 
-        return [
-            ...extraTextQuestions,
-            ...serverQuestions,
-        ];
+        return [...extraTextQuestions, ...serverQuestions];
     }, [riskProfileSelectors]);
 
+    // Инициализация формы (Formik)
     const formik = useFormik({
         enableReinitialize: true,
         initialValues: formValues,
@@ -91,7 +113,20 @@ export const RiskProfileFirstForm: React.FC = () => {
         },
     });
 
-    const handleChange = (e: React.ChangeEvent<any>) => {
+    useEffect(() => {
+        if (formik.values) {
+            console.log("Formik Values: ", formik.values);
+        }
+    }, [formik.values]);
+
+    // Обработчик изменения для single choice (CheckboxGroup)
+    const handleCheckboxGroupChange = (name: string, selectedValue: string) => {
+        formik.setFieldValue(name, selectedValue);
+        dispatch(updateFieldValue({ name, value: selectedValue }));
+    };
+
+    // Обработчик для обычных текстовых инпутов
+    const handleTextInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         formik.handleChange(e);
         dispatch(updateFieldValue({ name: e.target.name, value: e.target.value }));
     };
@@ -126,34 +161,38 @@ export const RiskProfileFirstForm: React.FC = () => {
             <p className={styles.form__steps}>
                 Вопрос {currentStep + 1} из {totalSteps}
             </p>
+
             <form onSubmit={formik.handleSubmit} className={styles.form__form}>
                 <div className={styles.form__container}>
-                    <label htmlFor={currentQuestion.name} className={styles.form__question}>
+                    <label
+                        htmlFor={currentQuestion.name}
+                        className={styles.form__question}
+                    >
                         {currentQuestion.label}
                     </label>
+
                     {currentQuestion.options ? (
-                        <select
-                            id={currentQuestion.name}
+                        // Если есть варианты ответа, показываем CheckboxGroup (одиночный выбор)
+                        <CheckboxGroup
                             name={currentQuestion.name}
-                            value={formik.values[currentQuestion.name] || ""}
-                            onChange={handleChange}
-                        >
-                            <option value="">— Выберите —</option>
-                            {Object.entries(currentQuestion.options).map(
-                                ([optValue, optLabel]) => (
-                                    <option key={optValue} value={optValue}>
-                                        {optLabel}
-                                    </option>
-                                )
+                            options={Object.entries(currentQuestion.options).map(
+                                ([optValue, optLabel]) => ({
+                                    label: optLabel,
+                                    value: optValue,
+                                })
                             )}
-                        </select>
+                            // Здесь в formValues для этого поля у нас лежит одна строка
+                            value={formik.values[currentQuestion.name] || ""}
+                            onChange={handleCheckboxGroupChange}
+                        />
                     ) : (
+                        // Если вариантов нет, значит это просто текстовый вопрос
                         <input
                             id={currentQuestion.name}
                             name={currentQuestion.name}
                             type="text"
                             value={formik.values[currentQuestion.name] || ""}
-                            onChange={handleChange}
+                            onChange={handleTextInputChange}
                         />
                     )}
                 </div>
@@ -167,13 +206,14 @@ export const RiskProfileFirstForm: React.FC = () => {
                     >
                         Вернуться
                     </Button>
+
                     <Button
                         type="button"
                         theme={ButtonTheme.BLUE}
                         onClick={goNext}
                         className={styles.button}
                     >
-                        {isLastStep ? "Продолжить" : "Далее"}
+                        {isLastStep ? "Продолжить" : "Продолжить"}
                     </Button>
                 </div>
             </form>

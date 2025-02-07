@@ -21,14 +21,12 @@
     font-size: 18px;
     font-weight: 500;
     line-height: 21.78px;
-    margin-bottom: 42px;
 }
 
 .form {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    overflow: auto;
 
     &__success {
         display: flex;

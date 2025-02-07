@@ -47,7 +47,12 @@ export const createRiskProfile = createAsyncThunk<
             const { id } = response;
             dispatch(setUserId(id));
         } catch (error: any) {
-            dispatch(setError(error.response.data.password))
+            if (error.response.data.password) {
+                dispatch(setError(error.response.data.password))
+            }
+            if (error.response.data.phone) {
+                dispatch(setError(error.response.data.phone))
+            }
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке данных"
             );

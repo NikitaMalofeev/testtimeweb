@@ -4,6 +4,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
 import {
     fetchAllSelects,
+    nextStep,
+    prevStep,
     updateFieldValue,
 } from "entities/RiskProfile/slice/riskProfileSlice";
 import styles from "./styles.module.scss";
@@ -147,6 +149,7 @@ export const RiskProfileFirstForm: React.FC = () => {
             formik.handleSubmit();
         } else {
             setCurrentStep((prev) => prev + 1);
+            dispatch(nextStep())
         }
     };
 
@@ -156,6 +159,7 @@ export const RiskProfileFirstForm: React.FC = () => {
             dispatch(closeModal(ModalType.IDENTIFICATION));
         } else {
             setCurrentStep((prev) => prev - 1);
+            dispatch(prevStep())
         }
     };
 
@@ -174,34 +178,36 @@ export const RiskProfileFirstForm: React.FC = () => {
                         {currentQuestion.label}
                     </label>
 
-                    {currentQuestion.options ? (
-                        // Если есть варианты ответа, показываем CheckboxGroup (одиночный выбор)
-                        <CheckboxGroup
-                            name={currentQuestion.name}
-                            options={Object.entries(currentQuestion.options).map(
-                                ([optValue, optLabel]) => ({
-                                    label: optLabel,
-                                    value: optValue,
-                                })
-                            )}
-                            // Здесь в formValues для этого поля у нас лежит одна строка
-                            value={formik.values[currentQuestion.name] || ""}
-                            onChange={handleCheckboxGroupChange}
-                        />
-                    ) : (
-                        // Если вариантов нет, значит это просто текстовый вопрос
-                        <input
-                            id={currentQuestion.name}
-                            name={currentQuestion.name}
-                            type="text"
-                            value={formik.values[currentQuestion.name] || ""}
-                            onChange={handleTextInputChange}
-                        />
-                    )}
+                    <div style={{ marginBottom: '32px' }}>
+                        {currentQuestion.options ? (
+                            // Если есть варианты ответа, показываем CheckboxGroup (одиночный выбор)
+                            <CheckboxGroup
+                                name={currentQuestion.name}
+                                options={Object.entries(currentQuestion.options).map(
+                                    ([optValue, optLabel]) => ({
+                                        label: optLabel,
+                                        value: optValue,
+                                    })
+                                )}
+                                // Здесь в formValues для этого поля у нас лежит одна строка
+                                value={formik.values[currentQuestion.name] || ""}
+                                onChange={handleCheckboxGroupChange}
+                            />
+                        ) : (
+                            // Если вариантов нет, значит это просто текстовый вопрос
+                            <input
+                                id={currentQuestion.name}
+                                name={currentQuestion.name}
+                                type="text"
+                                value={formik.values[currentQuestion.name] || ""}
+                                onChange={handleTextInputChange}
+                            />
+                        )}
+                    </div>
                 </div>
                 <div></div>
 
-                <div className={`${styles.buttons} ${!isBottom && styles.shadow}`}>
+                <div className={`${styles.buttons} ${isBottom ? '' : styles.shadow}`}>
                     <Button
                         type="button"
                         theme={ButtonTheme.EMPTYBLUE}

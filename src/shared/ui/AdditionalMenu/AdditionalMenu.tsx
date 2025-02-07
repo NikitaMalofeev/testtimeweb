@@ -17,6 +17,7 @@ interface AdditionalMenuProps {
 
 export const AdditionalMenu: React.FC<AdditionalMenuProps> = ({ onClose, title, content, description }) => {
     const currentStep = useSelector((state: RootState) => state.ui.additionalMenu.currentStep);
+    const currentStepFirstForm = useSelector((state: RootState) => state.riskProfile.stepsFirstForm)
     const containerRef = useRef<HTMLDivElement>(null);
     const [hasScrolled, setHasScrolled] = useState(false);
     const dispatch = useAppDispatch()
@@ -43,6 +44,27 @@ export const AdditionalMenu: React.FC<AdditionalMenuProps> = ({ onClose, title, 
             }
         };
     }, []);
+
+    //очищаю контейнер кнопок от скрола
+    useEffect(() => {
+        dispatch(setIsBottom(true));
+    }, [currentStepFirstForm])
+
+
+    useEffect(() => {
+        // При монтировании проверяем, есть ли скролл чтобы накинуть на кнопки скролл эффект
+        if (containerRef.current) {
+            const { scrollHeight, clientHeight } = containerRef.current;
+
+
+            if (scrollHeight > clientHeight) {
+                console.log(
+                    'пытаюсь установить скролл'
+                )
+                dispatch(setIsBottom(false))
+            }
+        }
+    }, [currentStepFirstForm]);
 
     return (
         <div className={styles.additionalMenu}>

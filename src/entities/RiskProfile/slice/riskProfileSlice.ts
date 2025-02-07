@@ -184,5 +184,5 @@ const riskProfileSlice = createSlice({
     },
 });
 
-export const { updateFieldValue } = riskProfileSlice.actions;
+export const { updateFieldValue, nextStep, prevStep } = riskProfileSlice.actions;
 export default riskProfileSlice.reducer;

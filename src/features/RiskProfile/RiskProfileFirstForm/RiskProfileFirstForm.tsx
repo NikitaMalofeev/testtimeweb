@@ -199,6 +199,7 @@ export const RiskProfileFirstForm: React.FC = () => {
                         />
                     )}
                 </div>
+                <div></div>
 
                 <div className={`${styles.buttons} ${!isBottom && styles.shadow}`}>
                     <Button

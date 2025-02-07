@@ -12,7 +12,7 @@ const initialState: UiState = {
         currentStep: 1,
     },
     confirmationStatusSuccess: false,
-    isScrollToBottom: false
+    isScrollToBottom: true
 };
 
 const uiSlice = createSlice({

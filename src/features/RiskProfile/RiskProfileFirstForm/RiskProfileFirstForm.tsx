@@ -233,6 +233,7 @@ export const RiskProfileFirstForm: React.FC = () => {
                         theme={ButtonTheme.BLUE}
                         onClick={goNext}
                         className={styles.button}
+                        disabled={!formik.values[currentQuestion.name]}
                     >
                         {isLastStep ? "Продолжить" : "Продолжить"}
                     </Button>

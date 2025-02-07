@@ -112,3 +112,18 @@ input:-moz-autofill {
     color: inherit !important; /* Наследуем цвет текста */
 }
 
+.textarea {
+    border-radius: 10px;
+    padding: 8px 18px;
+    color: #121B2F;
+    border: 1px solid #C1C0C0;
+    scrollbar-width: 0;
+    min-height: 40px; 
+    height: auto;
+    overflow: hidden;
+
+    &:focus {
+        border-color: #0F0E0E;
+    }
+}
+

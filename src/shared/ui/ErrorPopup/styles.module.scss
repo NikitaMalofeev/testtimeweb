@@ -1,0 +1,18 @@
+.errorModal {
+    position: fixed;
+    max-width: calc(100dvw - 48px);
+    top: 0;
+    left: 24px;
+    background-color: #FFDCE0;
+    color: #FF3C53;
+    height: auto; // Позволяет блоку расти по высоте
+    padding: 16px 25px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    z-index: 10000;
+    word-wrap: break-word; // Гарантирует перенос длинных слов
+    overflow-wrap: break-word; // Дополнительно для современных браузеров
+    white-space: normal; // Разрешает перенос строк
+  }
+  

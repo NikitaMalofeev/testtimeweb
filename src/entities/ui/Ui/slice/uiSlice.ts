@@ -9,7 +9,7 @@ interface UiState {
 
 const initialState: UiState = {
     additionalMenu: {
-        currentStep: 1,
+        currentStep: 0,
     },
     confirmationStatusSuccess: false,
     isScrollToBottom: true

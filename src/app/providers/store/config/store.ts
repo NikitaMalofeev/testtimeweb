@@ -2,6 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import uiReducer from 'entities/ui/Ui/slice/uiSlice';
 import modalReducer from 'entities/ui/Modal/slice/modalSlice';
 import userReducer from 'entities/User/slice/userSlice';
+import errorReducer from 'entities/Error/slice/errorSlice';
 import riskProfileReducer from 'entities/RiskProfile/slice/riskProfileSlice'
 
 export const store = configureStore({
@@ -10,6 +11,7 @@ export const store = configureStore({
         user: userReducer,
         modal: modalReducer,
         riskProfile: riskProfileReducer,
+        error: errorReducer
     },
 });
 

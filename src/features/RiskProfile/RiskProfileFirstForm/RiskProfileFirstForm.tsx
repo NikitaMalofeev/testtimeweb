@@ -13,10 +13,13 @@ import { Button, ButtonTheme } from "shared/ui/Button/Button";
 import { closeModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalType } from "entities/ui/Modal/model/modalTypes";
 import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
+import { Input } from "shared/ui/Input/Input";
 
 interface Question {
     name: string;
     label: string;
+    placeholder?: string;
+    needTextField?: boolean;
     /**
      * Если вопрос подразумевает выбор из вариантов,
      * тут лежит объект { [value]: label }
@@ -89,20 +92,28 @@ export const RiskProfileFirstForm: React.FC = () => {
             {
                 name: "citizenship",
                 label: "Гражданство, в том числе ВНЖ",
+                needTextField: true,
+                placeholder: "Ответ",
             },
             {
                 name: "trusted_person",
                 label:
                     "Доверенное лицо. Пожалуйста, укажите:\n• ФИО \n• Контактные данные",
+                needTextField: true,
+                placeholder: "Ответ",
             },
             {
                 name: "expected_return_investment",
                 label:
                     "Ожидаемая доходность по результатам инвестирования( % годовых)",
+                placeholder: "Укажите ожидаемую доходность, %",
+                needTextField: false
             },
             {
                 name: "max_allowable_drawdown",
                 label: "Максимальная допустимая просадка",
+                placeholder: "Укажите допустимую просадку, %",
+                needTextField: false
             },
         ];
 
@@ -131,7 +142,7 @@ export const RiskProfileFirstForm: React.FC = () => {
     };
 
     // Обработчик для обычных текстовых инпутов
-    const handleTextInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleTextInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         formik.handleChange(e);
         dispatch(updateFieldValue({ name: e.target.name, value: e.target.value }));
     };
@@ -195,10 +206,10 @@ export const RiskProfileFirstForm: React.FC = () => {
                             />
                         ) : (
                             // Если вариантов нет, значит это просто текстовый вопрос
-                            <input
-                                id={currentQuestion.name}
+                            <Input
+                                placeholder={currentQuestion.placeholder}
                                 name={currentQuestion.name}
-                                type="text"
+                                type={currentQuestion.needTextField ? "textarea" : "text"}
                                 value={formik.values[currentQuestion.name] || ""}
                                 onChange={handleTextInputChange}
                             />

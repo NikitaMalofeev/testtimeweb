@@ -7,6 +7,7 @@ import {
 import { getAllSelects, postConfirmationCode, postIdentificationData, postNeedHelpRequest } from "shared/api/RiskProfileApi/riskProfileApi";
 import { setUserId } from "entities/User/slice/userSlice";
 import { setConfirmationStatusSuccess } from "entities/ui/Ui/slice/uiSlice";
+import { setError } from "entities/Error/slice/errorSlice";
 
 interface RiskProfileFormState {
     loading: boolean;
@@ -46,6 +47,7 @@ export const createRiskProfile = createAsyncThunk<
             const { id } = response;
             dispatch(setUserId(id));
         } catch (error: any) {
+            dispatch(setError(error.response.data.password))
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке данных"
             );
@@ -89,6 +91,8 @@ export const sendConfirmationCode = createAsyncThunk<
             }
 
         } catch (error: any) {
+            dispatch(setError(error.response.data.errorText))
+            console.log(error.response.data)
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке кода"
             );

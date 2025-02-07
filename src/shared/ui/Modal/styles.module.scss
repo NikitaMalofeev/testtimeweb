@@ -9,7 +9,7 @@
     top: 50.5px;
     left: 0;
     width: 100vw;
-    height: 100vh;
+    height: 100dvh;
     z-index: var(--modal-z-index);
     /* фон не нужен, но если хотите
      background: rgba(0, 0, 0, 0.3);
@@ -25,7 +25,7 @@
     top: 0;
     left: 0;
     width: 100vw;
-    height: 100vh;
+    height: 100dvh;
     z-index: var(--modal-z-index);
     background: rgba(0, 0, 0, 0.5);
     display: flex;
@@ -45,7 +45,7 @@
   
   .full {
     width: 100vw;
-    height: 100vh;
+    height: 100dvh;
     border-radius: 0;
  // если нужно
   }
@@ -56,7 +56,7 @@
     width: calc(100% - 32px);
     margin: 0 auto;
     height: 100%;
-    max-height: calc(100vh - 65.5px);
+    max-height: calc(100dvh - 65.5px);
     border-radius: 10px 10px 40px 40px;
     transform: translate(-50%, -50%);
   }
@@ -65,7 +65,7 @@
     position: fixed;
     height: 100%;
     width: calc(100% - 32px);
-    max-height: 50vh;
+    max-height: 50dvh;
     border-radius: 10px 10px 40px 40px;
     bottom: 16px;
     transform: translate(-50%, -50%);

@@ -1,13 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 .page__wrapper {
-    min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
     position: relative;
 }
 
 body {
-    min-height: 100vh;
+    min-height: 100dvh;
     min-height: calc(var(--vh, 1vh) * 100);
     font-family: var(--font-inter);
 }

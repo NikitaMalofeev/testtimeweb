@@ -4,11 +4,12 @@ import styles from "./styles.module.scss";
 interface CheckboxProps {
     name: string;
     /** Состояние "отмечен ли чекбокс" */
+    checked: boolean;
     /**
      * Строковое значение, которое будет устанавливаться в e.target.value
      * (например, когда это радиокнопки).
      */
-    value?: boolean;
+    value?: string;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onBlur?: (e: FocusEvent<HTMLInputElement>) => void;
     label: ReactElement;
@@ -20,8 +21,9 @@ interface CheckboxProps {
      */
 }
 
-export const Checkbox: React.FC<CheckboxProps> = ({
+export const CheckboxRadio: React.FC<CheckboxProps> = ({
     name,
+    checked,
     value,
     onChange,
     onBlur,
@@ -32,18 +34,19 @@ export const Checkbox: React.FC<CheckboxProps> = ({
     return (
         <div className={`${styles.checkboxWrapper} ${error ? styles.error : ""}`}>
             <label
-                className={styles.checkboxLabel}>
+                className={styles.checkboxLabelRadio}>
                 <input
                     type="checkbox"
                     name={name}
-                    checked={value}
+                    checked={checked}
+                    value={value}
                     onChange={onChange}
                     onBlur={onBlur}
                     disabled={disabled}
                     className={styles.checkboxInput}
                 />
                 <span
-                    className={styles.checkboxCustom}
+                    className={styles.checkboxCustomRadio}
                 />
                 {label}
             </label>

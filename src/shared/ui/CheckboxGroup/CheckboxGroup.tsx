@@ -1,6 +1,7 @@
 import React from "react";
 import { Checkbox } from "shared/ui/Checkbox/Checkbox";
 import styles from "./styles.module.scss";
+import { CheckboxRadio } from "../CheckboxRadio/CheckboxRadio";
 
 interface CheckboxOption {
     label: string;
@@ -36,7 +37,7 @@ export const CheckboxGroup: React.FC<CheckboxGroupProps> = ({
     return (
         <div className={styles.checkboxGroup}>
             {options.map((option) => (
-                <Checkbox
+                <CheckboxRadio
                     key={option.value}
                     name={name}
                     /** 
@@ -48,7 +49,6 @@ export const CheckboxGroup: React.FC<CheckboxGroupProps> = ({
                     checked={option.value === value}
                     onChange={handleChange}
                     label={<span>{option.label}</span>}
-                    isRadio
                 />
             ))}
         </div>

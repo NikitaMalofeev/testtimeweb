@@ -8,7 +8,7 @@ interface UiState {
 
 const initialState: UiState = {
     additionalMenu: {
-        currentStep: 0,
+        currentStep: 1,
     },
     confirmationStatusSuccess: false,
 };

@@ -7,6 +7,8 @@ import styles from './styles.module.scss';
 import { ModalAnimation, ModalSize } from 'entities/ui/Modal/model/modalTypes';
 import { Icon } from '../Icon/Icon';
 import CloseIcon from 'shared/assets/svg/close.svg'
+import { useSelector } from 'react-redux';
+import { selectIsAnyModalOpen } from 'entities/ui/Modal/selectors/selectorsModals';
 
 interface ModalProps {
     className?: string;
@@ -36,26 +38,27 @@ export const Modal = memo(({
     const modalRef = useRef<HTMLDivElement>(null);
 
     // 1. Блокируем/разблокируем скролл страницы
+    const isAnyModalOpen = useSelector(selectIsAnyModalOpen);
+
+    // Блокируем/разблокируем скролл страницы
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
             document.body.style.position = 'fixed';
             document.body.style.width = '100%';
             document.documentElement.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
-            document.body.style.position = '';
-            document.body.style.width = '';
-            document.documentElement.style.overflow = '';
         }
 
         return () => {
-            document.body.style.overflow = '';
-            document.body.style.position = '';
-            document.body.style.width = '';
-            document.documentElement.style.overflow = '';
+            // Перед сбросом стилей проверяем, есть ли еще открытые модалки
+            if (!isAnyModalOpen) {
+                document.body.style.overflow = '';
+                document.body.style.position = '';
+                document.body.style.width = '';
+                document.documentElement.style.overflow = '';
+            }
         };
-    }, [isOpen]);
+    }, [isOpen, isAnyModalOpen]);
 
     // 2. Закрываем модалку по ESC
     useEffect(() => {

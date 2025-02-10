@@ -15,10 +15,17 @@ interface InputProps {
     placeholder?: string;
     disabled?: boolean;
     needValue?: boolean;
-    type?: "text" | "password" | "phone" | "textarea";
+    /** Вместо "typeProgramm" можно назвать "variant" или "mode" */
+    typeProgramm?: "text" | "password" | "phone" | "textarea";
     error?: string | boolean | undefined;
-}
 
+    /** Добавляем поля, которых не хватает */
+    type?: string;
+    inputMode?: string;
+    pattern?: string;
+    maxLength?: number;
+    // и т.д.
+}
 export const Input: React.FC<InputProps> = ({
     theme = "default",
     value,
@@ -92,14 +99,27 @@ export const Input: React.FC<InputProps> = ({
                             return (
                                 <InputMask
                                     mask="+7 999 999 99 99"
+                                    maskPlaceholder=""
+                                    alwaysShowMask={false}
                                     name={name}
                                     value={value}
                                     onChange={onChange}
-                                    onFocus={handleFocus}
-                                    onBlur={handleBlur}
+                                    onFocus={(e) => {
+                                        if (!e.target.value) {
+                                            e.target.value = "+7 "; // Авто-подстановка +7 при фокусе
+                                        }
+                                    }}
+                                    onBlur={(e) => {
+                                        if (e.target.value === "+7 ") {
+                                            e.target.value = ""; // Очищаем поле, если ничего не введено
+                                        }
+                                    }}
                                     disabled={disabled}
                                     className={`${styles.input} ${needValue && !value.length ? styles.error : ""}`}
                                 />
+
+
+
                             );
                         case "textarea":
                             return (

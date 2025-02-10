@@ -61,10 +61,16 @@
     line-height: 58.05px;
     text-align: center;
     color: #121B2F;
-    border: none;
     border-bottom: 2px solid #D4D4E8;
     outline: none;
+    border-radius: 0px;
     transition: border-color 0.3s ease;
+
+    -webkit-appearance: none; 
+    -webkit-border-radius: 0 !important; // Отключаем сафари-стили
+    appearance: none;      // Убираем закругление
+    outline: none;
+  /* остальной нужный вам минимальный стиль */
   
     &:focus {
       border-color: #007bff;

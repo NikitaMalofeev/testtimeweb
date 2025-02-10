@@ -39,11 +39,12 @@
     padding: 10px 30px 10px 0;
     border: none;
     border-bottom: 1px solid #cdcdd3;
-    border-radius: none;
+    border-radius: 0px;
     font-size: 16px;
     outline: none;
     background: transparent;
     color: #000;
+    -webkit-border-radius: 0 !important;
     appearance: none; // Отключает нативные стили Safari
     -webkit-appearance: none; // Для Safari
     -moz-appearance: none;

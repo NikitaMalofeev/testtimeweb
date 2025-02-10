@@ -5,6 +5,14 @@
     display: flex;
     padding: 0 16px 16px 16px;
 
+    &__content {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
+        padding-bottom: 16px;
+    }
+
     & h1 {
         font-family: var(--font-inter);
     }

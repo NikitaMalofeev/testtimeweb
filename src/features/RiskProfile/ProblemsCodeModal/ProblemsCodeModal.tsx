@@ -3,7 +3,7 @@ import { Modal } from "shared/ui/Modal/Modal";
 import styles from "./styles.module.scss";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
 import { Checkbox } from "shared/ui/Checkbox/Checkbox";
-import { ModalSize } from "entities/ui/Modal/model/modalTypes";
+import { ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { useSelector } from "react-redux";
 
 interface ConfirmInfoModalProps {
@@ -43,6 +43,7 @@ export const ProblemsCodeModal = memo(({ isOpen, onClose }: ConfirmInfoModalProp
             animation={modalState.problemWithCodeModal.animation}
             withCloseIcon
             titleWidth={"250px"}
+            type={ModalType.PROBLEM_WITH_CODE}
             withTitle="Проблемы с получением кода"
         >
             <div className={styles.modalContent}>

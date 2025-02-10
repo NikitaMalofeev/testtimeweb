@@ -1,4 +1,4 @@
-import React, { memo, useState, useRef, useEffect } from "react";
+import React, { memo, useState, useRef, useEffect, useLayoutEffect } from "react";
 import { Modal } from "shared/ui/Modal/Modal";
 import styles from "./styles.module.scss";
 import { useSelector } from "react-redux";
@@ -86,23 +86,22 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
     };
 
     // Отслеживаем скролл в контейнере, чтобы установить тень сверху (через redux) и снизу (локально)
-    useEffect(() => {
+    useLayoutEffect(() => {
         const handleScroll = () => {
             if (contentRef.current) {
-                const { scrollTop, scrollHeight, clientHeight } = contentRef.current;
+                const { scrollTop } = contentRef.current;
                 dispatch(setModalScrolled({
                     type: ModalType.CONFIRM_CODE,
                     isScrolled: scrollTop > 0
                 }));
                 // Если нижняя граница не достигнута – показываем нижнюю тень
-                setHasBottomShadow(scrollTop + clientHeight < scrollHeight);
+                // setHasBottomShadow(scrollTop + clientHeight < scrollHeight);
             }
         };
 
         const content = contentRef.current;
         if (content) {
             content.addEventListener("scroll", handleScroll);
-            // Выполним первичную проверку
             handleScroll();
         }
 
@@ -113,10 +112,19 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
         };
     }, [dispatch]);
 
+    useLayoutEffect(() => {
+        if (contentRef.current) {
+            const { scrollTop, scrollHeight, clientHeight } = contentRef.current;
+            setHasBottomShadow(scrollTop + clientHeight < scrollHeight);
+        }
+    });
+
     const handleResetTimer = () => {
         setTimeLeft(60);
         setTimerActive(true);
     };
+
+
 
     const isCodeEntered = smsCode.every((digit) => digit !== "");
 

@@ -23,6 +23,20 @@ export const postConfirmationCode = async (data: ConfirmationCodeData) => {
     return response.data;
 };
 
+export const postResendConfirmationCode = async (data: any) => {
+    const response = await axios.post(
+        `${apiUrl}create_doc_user/update_confirmation_code_id/`,
+        data,
+        {
+            headers: {
+                "Accept-Language": "ru",
+                "Content-Type": "application/json",
+            },
+        }
+    );
+    return response.data;
+};
+
 export const postNeedHelpRequest = async (data: NeedHelpData) => {
     const response = await axios.post(`${apiUrl}create_doc_user/need_help/`, data, {
         headers: {

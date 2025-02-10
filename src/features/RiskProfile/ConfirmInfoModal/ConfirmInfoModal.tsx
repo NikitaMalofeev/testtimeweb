@@ -171,7 +171,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                     <span className={styles.modalContent__description}>
                         Код направлен на{" "}
                         {confirmationMethod === 'email'
-                            ? 'E-mail'
+                            ? 'указанный e-mail'
                             : 'номер, указанный при идентификации'}
                     </span>
                     <Tooltip

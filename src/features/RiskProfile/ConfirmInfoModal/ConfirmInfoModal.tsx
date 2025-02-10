@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { Tooltip } from "shared/ui/Tooltip/Tooltip";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
-import { sendConfirmationCode } from "entities/RiskProfile/slice/riskProfileSlice";
+import { resendConfirmationCode, sendConfirmationCode } from "entities/RiskProfile/slice/riskProfileSlice";
 import { RootState } from "app/providers/store/config/store";
 import {
     openModal,
@@ -142,6 +142,9 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
 
     // Сброс таймера
     const handleResetTimer = () => {
+        if (userId && confirmationMethod) {
+            dispatch(resendConfirmationCode({ user_id: userId, method: confirmationMethod }));
+        }
         setTimeLeft(60);
         setTimerActive(true);
     };

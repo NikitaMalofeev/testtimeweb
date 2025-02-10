@@ -254,7 +254,7 @@ const IdentificationProfileForm: React.FC = () => {
                 </div>
             </div>
 
-            <div>
+            <div style={{ minHeight: '74px' }}>
                 <ReCAPTCHA
                     ref={recaptchaRef}
                     sitekey={`${gcaptchaSiteKey}`}

@@ -4,7 +4,7 @@ import {
     ConfirmationCodeData,
     NeedHelpData
 } from "../model/types";
-import { getAllSelects, postConfirmationCode, postIdentificationData, postNeedHelpRequest } from "shared/api/RiskProfileApi/riskProfileApi";
+import { getAllSelects, postConfirmationCode, postIdentificationData, postNeedHelpRequest, postResendConfirmationCode } from "shared/api/RiskProfileApi/riskProfileApi";
 import { setUserId } from "entities/User/slice/userSlice";
 import { setConfirmationStatusSuccess } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
@@ -107,6 +107,37 @@ export const sendConfirmationCode = createAsyncThunk<
     }
 );
 
+export const resendConfirmationCode = createAsyncThunk<
+    void,
+    { user_id: string; method: "whatsapp" | "phone" | "email" },
+    { rejectValue: string }
+>(
+    "riskProfile/resendConfirmationCode",
+    async ({ user_id, method }, { rejectWithValue, dispatch }) => {
+        try {
+            // Подготовим разные поля под конкретный метод
+            let payload: Record<string, any> = { user_id };
+            if (method === "whatsapp") {
+                payload.type = "type_doc_EDS_agreement";
+                payload.type_sms_message = "WHATSAPP";
+            } else if (method === "phone") {
+                payload.type = "phone";
+            } else if (method === "email") {
+                payload.type = "email";
+            }
+
+            const response = await postResendConfirmationCode(payload);
+
+            // Если нужно - обработайте ответ, например, показать уведомление
+            console.log("Resend response:", response);
+
+        } catch (error: any) {
+            // Замените обработку под ваш сценарий
+            return rejectWithValue(error.response?.data?.message || "Ошибка при повторной отправке кода");
+        }
+    }
+);
+
 export const requestNeedHelp = createAsyncThunk<
     void,
     NeedHelpData,
@@ -192,6 +223,7 @@ const riskProfileSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload as string;
             });
+
     },
 });
 

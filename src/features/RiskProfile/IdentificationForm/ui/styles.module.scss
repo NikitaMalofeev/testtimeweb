@@ -23,6 +23,32 @@
     line-height: 21.78px;
 }
 
+.buttons {
+    max-width: 100%;
+    width: 100%;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+
+    &__title {
+        display: block;
+        width: 100%;
+        font-family: var(--font-inter);
+        font-size: 12px;
+        text-align: start;
+        line-height: 16px;
+        color: #121B2F;
+        margin-bottom: 10px;
+    }
+}
+
+.button_select {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+}
+
 .form {
     display: flex;
     flex-direction: column;

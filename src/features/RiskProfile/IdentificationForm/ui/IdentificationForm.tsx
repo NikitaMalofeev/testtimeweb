@@ -21,7 +21,7 @@ import SuccessIcon from 'shared/assets/svg/success.svg'
 const IdentificationProfileForm: React.FC = () => {
     const dispatch = useAppDispatch();
     const gcaptchaSiteKey = import.meta.env.VITE_RANKS_GRCAPTCHA_SITE_KEY;
-
+    const [selectedMethod, setSelectedMethod] = useState<'phone' | 'email' | 'whatsapp' | ''>('phone');
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
     const recaptchaRef = useRef<ReCAPTCHA | null>(null);
     const [captchaVerified, setCaptchaVerified] = useState(false);
@@ -39,6 +39,7 @@ const IdentificationProfileForm: React.FC = () => {
             password2: "",
             is_agreement: false,
             g_recaptcha: "",
+            type_sms_message: "",
         },
         validationSchema: Yup.object({
             lastName: Yup.string().required("Фамилия обязательна"),
@@ -71,6 +72,15 @@ const IdentificationProfileForm: React.FC = () => {
         setCaptchaVerified(!!value);
     };
 
+    const handleMethodChange = (method: 'phone' | 'email' | 'whatsapp') => {
+        if (selectedMethod === method) {
+            setSelectedMethod("")
+        } else {
+            setSelectedMethod(method);
+            formik.setFieldValue("type_sms_message", method === 'whatsapp' ? "WHATSAPP" : "");
+        }
+    };
+
     const openNextModal = () => {
         dispatch(openModal({
             type: ModalType.CONFIRM_CODE,
@@ -92,6 +102,7 @@ const IdentificationProfileForm: React.FC = () => {
             password2: formik.values.password2,
             is_agreement: formik.values.is_agreement,
             g_recaptcha: formik.values.g_recaptcha,
+            type_sms_message: formik.values.type_sms_message || undefined,
         };
 
         try {
@@ -195,12 +206,48 @@ const IdentificationProfileForm: React.FC = () => {
                     error={formik.touched.is_agreement && formik.errors.is_agreement}
                 />
             </div>
+            <div>
+                <span className={styles.buttons__title}>Отправить на:</span>
+                <div className={styles.buttons}>
+                    <Button
+                        theme={selectedMethod === 'whatsapp' ? ButtonTheme.GREEN : ButtonTheme.GREENuNDERLINE}
+                        className={styles.button_select}
+                        onClick={() => handleMethodChange('whatsapp')}
+                    >
+                        WhatsApp
+                    </Button>
+                    <Button
+                        theme={selectedMethod === 'phone' ? ButtonTheme.BLUE : ButtonTheme.UNDERLINE}
+                        className={styles.button_select}
+                        onClick={() => handleMethodChange('phone')}
+                    >
+                        телефон
+                    </Button>
+                    <Button
+                        // onClick={() => {
+                        //     dispatch(sendConfirmationCode({
+                        //         user_id: userId ?? "",
+                        //         code: smsCode.join(""),
+                        //         type: "email"
+                        //     }));
+                        //     onClose();
+                        // }}
+                        theme={selectedMethod === 'phone' ? ButtonTheme.BLUE : ButtonTheme.UNDERLINE}
+                        className={styles.button_select}
+                        onClick={() => handleMethodChange('phone')}
+                    >
+                        e-mail
+                    </Button>
+                </div>
+            </div>
 
-            <ReCAPTCHA
-                ref={recaptchaRef}
-                sitekey={`${gcaptchaSiteKey}`}
-                onChange={handleCaptchaChange}
-            />
+            <div>
+                <ReCAPTCHA
+                    ref={recaptchaRef}
+                    sitekey={`${gcaptchaSiteKey}`}
+                    onChange={handleCaptchaChange}
+                />
+            </div>
             {formik.touched.g_recaptcha && formik.errors.g_recaptcha && (
                 <div className={styles.error}>{formik.errors.g_recaptcha}</div>
             )}

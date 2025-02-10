@@ -44,15 +44,27 @@
 }
 
 .green {
-    background-color: white;
-    color: #1CC15A;
-    border: 1.4px solid #1CC15A;
+    background-color: #1CC15A;
+    color: white;
+    border: 1.4px solid none;
 
     &.disabled {
         background-color: white;
         opacity: 0.5;
         cursor: not-allowed;
     }
+  }
+
+  .green__underline {
+    background-color: white;
+        color: #1CC15A;
+        border: 1.4px solid #1CC15A;
+    
+        &.disabled {
+            background-color: white;
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
   }
   
 .underline {

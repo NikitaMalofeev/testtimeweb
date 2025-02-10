@@ -204,28 +204,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                         >
                             Отправить код снова
                         </Button>
-                        <Button
-                            theme={ButtonTheme.GREEN}
-                            className={styles.button}
-                            disabled={timerActive}
-                        >
-                            Отправить код в WhatsApp
-                        </Button>
-                        <Button
-                            // onClick={() => {
-                            //     dispatch(sendConfirmationCode({
-                            //         user_id: userId ?? "",
-                            //         code: smsCode.join(""),
-                            //         type: "email"
-                            //     }));
-                            //     onClose();
-                            // }}
-                            theme={ButtonTheme.UNDERLINE}
-                            className={styles.button}
-                            disabled={timerActive}
-                        >
-                            Отправить на e-mail
-                        </Button>
+
                         <Button
                             onClick={() => {
                                 dispatch(sendConfirmationCode({

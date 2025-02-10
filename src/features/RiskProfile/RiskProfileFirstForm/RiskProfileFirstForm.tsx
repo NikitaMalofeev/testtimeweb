@@ -14,6 +14,7 @@ import { closeModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalType } from "entities/ui/Modal/model/modalTypes";
 import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { Input } from "shared/ui/Input/Input";
+import { Loader } from "shared/ui/Loader/Loader";
 
 interface Question {
     name: string;
@@ -147,7 +148,7 @@ export const RiskProfileFirstForm: React.FC = () => {
         dispatch(updateFieldValue({ name: e.target.name, value: e.target.value }));
     };
 
-    if (loading) return <p>Загрузка...</p>;
+    if (loading) return <Loader />;
     if (error) return <p style={{ color: "red" }}>{error}</p>;
     if (!riskProfileSelectors || questions.length === 0) return null;
 

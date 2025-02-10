@@ -23,6 +23,7 @@ export interface ModalStateItem {
     isOpen: boolean;
     size: ModalSize;
     animation: ModalAnimation;
+    isScrolled: boolean;
 }
 
 /** Полное состояние для всех модалок */

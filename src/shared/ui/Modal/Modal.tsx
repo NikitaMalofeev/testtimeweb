@@ -1,14 +1,15 @@
-// shared/ui/Modal/Modal.tsx
 import React, { ReactNode, memo, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { motion } from 'framer-motion';
 import { classNames, Mods } from 'shared/lib/helpers/classNames/classNames';
 import styles from './styles.module.scss';
-import { ModalAnimation, ModalSize } from 'entities/ui/Modal/model/modalTypes';
+import { ModalAnimation, ModalSize, ModalType } from 'entities/ui/Modal/model/modalTypes';
 import { Icon } from '../Icon/Icon';
-import CloseIcon from 'shared/assets/svg/close.svg'
-import { useSelector } from 'react-redux';
-import { selectIsAnyModalOpen } from 'entities/ui/Modal/selectors/selectorsModals';
+import CloseIcon from 'shared/assets/svg/close.svg';
+import { useSelector, useDispatch } from 'react-redux';
+import { selectIsAnyModalOpen, selectModalState, } from 'entities/ui/Modal/selectors/selectorsModals';
+import { setModalScrolled } from 'entities/ui/Modal/slice/modalSlice';
+import { RootState } from 'app/providers/store/config/store';
 
 interface ModalProps {
     className?: string;
@@ -17,11 +18,10 @@ interface ModalProps {
     withCloseIcon?: boolean;
     withTitle?: string;
     titleWidth?: string;
-    /** Тип анимации (LEFT / BOTTOM) */
     animation?: ModalAnimation;
-    /** Размер модалки (FULL / MIDDLE / MINI) */
     size?: ModalSize;
     children: ReactNode;
+    type: ModalType; // Исправлено с string на ModalType
 }
 
 export const Modal = memo(({
@@ -34,13 +34,15 @@ export const Modal = memo(({
     titleWidth,
     size,
     children,
+    type,
 }: ModalProps) => {
     const modalRef = useRef<HTMLDivElement>(null);
 
-    // 1. Блокируем/разблокируем скролл страницы
-    const isAnyModalOpen = useSelector(selectIsAnyModalOpen);
+    const dispatch = useDispatch();
 
-    // Блокируем/разблокируем скролл страницы
+    const isAnyModalOpen = useSelector(selectIsAnyModalOpen);
+    const isScrolled = useSelector((state: RootState) => selectModalState(state, type)?.isScrolled);
+
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
@@ -50,7 +52,6 @@ export const Modal = memo(({
         }
 
         return () => {
-            // Перед сбросом стилей проверяем, есть ли еще открытые модалки
             if (!isAnyModalOpen) {
                 document.body.style.overflow = '';
                 document.body.style.position = '';
@@ -60,7 +61,6 @@ export const Modal = memo(({
         };
     }, [isOpen, isAnyModalOpen]);
 
-    // 2. Закрываем модалку по ESC
     useEffect(() => {
         if (!isOpen) return;
         const handleKeyDown = (event: KeyboardEvent) => {
@@ -68,10 +68,10 @@ export const Modal = memo(({
                 onClose();
             }
         };
-
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
     }, [isOpen, onClose]);
+
 
     if (!isOpen) return null;
 
@@ -124,12 +124,14 @@ export const Modal = memo(({
                 onClick={(e) => e.stopPropagation()}
                 style={{ pointerEvents: 'auto' }}
             >
-                {withCloseIcon && (
-                    <Icon Svg={CloseIcon} className={styles.closeIcon} onClick={onClose} />
-                )}
-                {withTitle && (
-                    <h2 className={styles.title} style={{ maxWidth: `${titleWidth}` }}>{withTitle}</h2>
-                )}
+                <div className={`${styles.header} ${isScrolled ? styles.shadow : ''}`}>
+                    {withCloseIcon && (
+                        <Icon Svg={CloseIcon} className={styles.closeIcon} onClick={onClose} />
+                    )}
+                    {withTitle && (
+                        <h2 className={styles.title} style={{ maxWidth: titleWidth }}>{withTitle}</h2>
+                    )}
+                </div>
                 {children}
             </motion.div>
         </motion.div>,

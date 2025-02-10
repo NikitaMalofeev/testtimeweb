@@ -7,8 +7,9 @@ import { Button, ButtonTheme } from "shared/ui/Button/Button";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { sendConfirmationCode } from "entities/RiskProfile/slice/riskProfileSlice";
 import { RootState } from "app/providers/store/config/store";
-import { openModal } from "entities/ui/Modal/slice/modalSlice";
+import { openModal, setModalScrolled } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
+import { selectModalState } from "entities/ui/Modal/selectors/selectorsModals";
 
 interface ConfirmInfoModalProps {
     isOpen: boolean;
@@ -20,9 +21,13 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
     const [smsCode, setSmsCode] = useState(["", "", "", ""]);
     const [timeLeft, setTimeLeft] = useState(60);
     const [timerActive, setTimerActive] = useState(true);
+    // Локальное состояние для вычисления наличия нижней тени
+    const [hasBottomShadow, setHasBottomShadow] = useState(false);
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
     const userId = useSelector((state: RootState) => state.user.userId);
     const dispatch = useAppDispatch();
+    const contentRef = useRef<HTMLDivElement>(null);
+    const isScrolled = useSelector((state: RootState) => selectModalState(state, ModalType.CONFIRM_CODE)?.isScrolled);
 
     useEffect(() => {
         let timer: NodeJS.Timeout;
@@ -63,28 +68,50 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
         }
     };
 
-    // Важно: реализуем handlePaste, чтобы "раскидать" скопированные 4 символа по разным инпутам
+    // Обрабатываем вставку, чтобы распределить скопированные символы по инпутам
     const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
         e.preventDefault();
 
-        // Получаем вставленный текст
         const pasteData = e.clipboardData.getData("text");
-
-        // Берём максимум 4 символа
         const pasteValue = pasteData.slice(0, 4).split("");
-
-        // Создаём копию текущего массива smsCode
         const newCode = [...smsCode];
         for (let i = 0; i < 4; i++) {
             newCode[i] = pasteValue[i] || "";
         }
         setSmsCode(newCode);
 
-        // Если вставили меньше 4 символов, сфокусируемся на инпуте, где ещё пусто
         if (pasteValue.length < 4) {
             inputRefs.current[pasteValue.length]?.focus();
         }
     };
+
+    // Отслеживаем скролл в контейнере, чтобы установить тень сверху (через redux) и снизу (локально)
+    useEffect(() => {
+        const handleScroll = () => {
+            if (contentRef.current) {
+                const { scrollTop, scrollHeight, clientHeight } = contentRef.current;
+                dispatch(setModalScrolled({
+                    type: ModalType.CONFIRM_CODE,
+                    isScrolled: scrollTop > 0
+                }));
+                // Если нижняя граница не достигнута – показываем нижнюю тень
+                setHasBottomShadow(scrollTop + clientHeight < scrollHeight);
+            }
+        };
+
+        const content = contentRef.current;
+        if (content) {
+            content.addEventListener("scroll", handleScroll);
+            // Выполним первичную проверку
+            handleScroll();
+        }
+
+        return () => {
+            if (content) {
+                content.removeEventListener("scroll", handleScroll);
+            }
+        };
+    }, [dispatch]);
 
     const handleResetTimer = () => {
         setTimeLeft(60);
@@ -101,15 +128,24 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
             size={modalState.confirmCodeModal.size}
             withCloseIcon
             withTitle="Подтверждение данных"
+            type={ModalType.CONFIRM_CODE}
         >
-            <div className={styles.modalContent}>
+            <div
+                className={`
+                    ${styles.modalContent} 
+                    ${isScrolled && styles.modalContent__shadow_top} 
+                    ${hasBottomShadow && styles.modalContent__shadow_bottom}
+                `}
+                ref={contentRef}
+                style={{ overflow: 'auto' }}
+            >
                 <div className={styles.modalContent__head}>
                     <span className={styles.modalContent__description}>
                         Код направлен на номер, указанный при идентификации
                     </span>
                     <Tooltip
                         className={styles.modalContent__tooltip}
-                        description='Настройка параметров защиты цифрового профиля от несанкционированного доступа'
+                        description="Настройка параметров защиты цифрового профиля от несанкционированного доступа"
                     />
 
                     <div className={styles.codeInput__container}>
@@ -125,8 +161,6 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                 name={`otp-${index}`}
                                 onChange={(e) => handleInputChange(e.target.value, index)}
                                 onKeyDown={(e) => handleKeyDown(e, index)}
-                                // Добавляем handlePaste на каждый инпут
-                                // или достаточно на первый, как вариант
                                 onPaste={handlePaste}
                                 ref={(el) => (inputRefs.current[index] = el)}
                                 className={styles.codeInput__box}
@@ -176,7 +210,22 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                 dispatch(sendConfirmationCode({
                                     user_id: userId ?? "",
                                     code: smsCode.join(""),
-                                    type: 'phone'
+                                    type: "email"
+                                }));
+                                onClose();
+                            }}
+                            theme={ButtonTheme.UNDERLINE}
+                            className={styles.button}
+                            disabled={timerActive}
+                        >
+                            Отправить на e-mail
+                        </Button>
+                        <Button
+                            onClick={() => {
+                                dispatch(sendConfirmationCode({
+                                    user_id: userId ?? "",
+                                    code: smsCode.join(""),
+                                    type: "phone"
                                 }));
                                 onClose();
                             }}

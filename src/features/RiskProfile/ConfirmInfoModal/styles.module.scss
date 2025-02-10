@@ -4,7 +4,8 @@
     justify-content: space-between;
     height: calc(100% - 124px);
     background: white;
-    border-radius: 8px;
+    gap: 32px;
+    border-radius: 14px;
     padding: 0 24px;
     min-width: 300px;
     text-align: center;
@@ -108,6 +109,24 @@
 
   @media (max-width: 450px) {
     .button {
-      padding: 19px 40.5px;
+      padding: 19px 15.5px;
+    }
+
+    .modalContent {
+      padding: 16px;
+    }
+
+    .modalContent__head {
+      padding: 0 8px;
     }
   }
+
+  .modalContent__shadow_top {
+
+    border-radius: 0 0 14px 14px;
+    box-shadow: inset 0px 10px 13.4px -5px rgba(0, 0, 0, 0.15);
+}
+
+.modalContent__shadow_bottom {
+    box-shadow: inset 0px -10px 13.4px -5px rgba(0, 0, 0, 0.15);
+}

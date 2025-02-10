@@ -12,6 +12,7 @@ import { useSelector } from 'react-redux';
 import { StateSchema } from 'app/providers/store/config/StateSchema';
 import { ConfirmInfoModal } from 'features/RiskProfile/ConfirmInfoModal/ConfirmInfoModal';
 import { ProblemsCodeModal } from 'features/RiskProfile/ProblemsCodeModal/ProblemsCodeModal';
+import { Loader } from 'shared/ui/Loader/Loader';
 
 function StartPage() {
     const dispatch = useAppDispatch()
@@ -39,8 +40,8 @@ function StartPage() {
                             </span>
                             <Button className={styles.button} onClick={() => {
                                 dispatch(openModal({
-                                    type: ModalType.IDENTIFICATION,
-                                    size: ModalSize.FULL,
+                                    type: ModalType.CONFIRM_CODE,
+                                    size: ModalSize.MIDDLE,
                                     animation: ModalAnimation.LEFT
                                 }));
                             }}>

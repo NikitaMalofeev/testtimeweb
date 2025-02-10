@@ -13,7 +13,7 @@ export interface IdentificationProfileData {
 export interface ConfirmationCodeData {
     user_id: string;
     code: string;
-    type: "phone" | "type_doc_EDS_agreement";
+    type: "phone" | "type_doc_EDS_agreement" | 'email';
 }
 
 export interface NeedHelpData {

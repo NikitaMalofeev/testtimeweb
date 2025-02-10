@@ -22,7 +22,6 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
     const [timeLeft, setTimeLeft] = useState(60);
     const [timerActive, setTimerActive] = useState(true);
     // Локальное состояние для вычисления наличия нижней тени
-    const [hasBottomShadow, setHasBottomShadow] = useState(false);
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
     const userId = useSelector((state: RootState) => state.user.userId);
     const dispatch = useAppDispatch();
@@ -112,12 +111,12 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
         };
     }, [dispatch]);
 
-    useLayoutEffect(() => {
-        if (contentRef.current) {
-            const { scrollTop, scrollHeight, clientHeight } = contentRef.current;
-            setHasBottomShadow(scrollTop + clientHeight < scrollHeight);
-        }
-    });
+    // useLayoutEffect(() => {
+    //     if (contentRef.current) {
+    //         const { scrollTop, scrollHeight, clientHeight } = contentRef.current;
+    //         setHasBottomShadow(scrollTop + clientHeight < scrollHeight);
+    //     }
+    // });
 
     const handleResetTimer = () => {
         setTimeLeft(60);
@@ -142,7 +141,6 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                 className={`
                     ${styles.modalContent} 
                     ${isScrolled && styles.modalContent__shadow_top} 
-                    ${hasBottomShadow && styles.modalContent__shadow_bottom}
                 `}
                 ref={contentRef}
                 style={{ overflow: 'auto' }}

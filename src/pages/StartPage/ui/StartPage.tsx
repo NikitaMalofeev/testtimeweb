@@ -50,6 +50,18 @@ function StartPage() {
                                     <Icon Svg={ArrowIcon} width={16} height={16} />
                                 </div>
                             </Button>
+                            <Button className={styles.button} onClick={() => {
+                                dispatch(openModal({
+                                    type: ModalType.CONFIRM_CODE,
+                                    size: ModalSize.MIDDLE,
+                                    animation: ModalAnimation.LEFT
+                                }));
+                            }}>
+                                <h3 className={styles.button__text}>Начать инвестировать</h3>
+                                <div className={styles.button__icon}>
+                                    <Icon Svg={ArrowIcon} width={16} height={16} />
+                                </div>
+                            </Button>
                         </div>
                     </div>
                 </div>

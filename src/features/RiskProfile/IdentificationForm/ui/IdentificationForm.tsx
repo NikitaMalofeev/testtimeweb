@@ -232,9 +232,9 @@ const IdentificationProfileForm: React.FC = () => {
                         //     }));
                         //     onClose();
                         // }}
-                        theme={selectedMethod === 'phone' ? ButtonTheme.BLUE : ButtonTheme.UNDERLINE}
+                        theme={selectedMethod === 'email' ? ButtonTheme.BLUE : ButtonTheme.UNDERLINE}
                         className={styles.button_select}
-                        onClick={() => handleMethodChange('phone')}
+                        onClick={() => handleMethodChange('email')}
                     >
                         e-mail
                     </Button>

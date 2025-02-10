@@ -20,6 +20,12 @@ const modalSlice = createSlice({
             const { type, size, animation } = action.payload;
             state[type] = { ...state[type], isOpen: true, size, animation };
         },
+        setCurrentConfirmModalType: (
+            state,
+            action: PayloadAction<string>
+        ) => {
+            const state = action.payload;
+        },
 
         /** Закрыть конкретную модалку */
         closeModal: (state, action: PayloadAction<ModalType>) => {

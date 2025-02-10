@@ -10,23 +10,31 @@ import { Input } from "shared/ui/Input/Input";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { Checkbox } from "shared/ui/Checkbox/Checkbox";
 import { Button, ButtonForm, ButtonTheme } from "shared/ui/Button/Button";
-import { openModal } from "entities/ui/Modal/slice/modalSlice";
-import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
+import {
+    openModal,
+    setCurrentConfirmModalType
+} from "entities/ui/Modal/slice/modalSlice";
+import {
+    ModalAnimation,
+    ModalSize,
+    ModalType
+} from "entities/ui/Modal/model/modalTypes";
 import { useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
 import { nextStep } from "entities/ui/Ui/slice/uiSlice";
 import { Icon } from "shared/ui/Icon/Icon";
-import SuccessIcon from 'shared/assets/svg/success.svg'
+import SuccessIcon from 'shared/assets/svg/success.svg';
 
 const IdentificationProfileForm: React.FC = () => {
     const dispatch = useAppDispatch();
     const gcaptchaSiteKey = import.meta.env.VITE_RANKS_GRCAPTCHA_SITE_KEY;
+
     const [selectedMethod, setSelectedMethod] = useState<'phone' | 'email' | 'whatsapp' | ''>('phone');
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
     const recaptchaRef = useRef<ReCAPTCHA | null>(null);
     const [captchaVerified, setCaptchaVerified] = useState(false);
 
-    const checkConfirmmationSuccess = useSelector((state: RootState) => state.ui.confirmationStatusSuccess)
+    const checkConfirmmationSuccess = useSelector((state: RootState) => state.ui.confirmationStatusSuccess);
 
     const formik = useFormik({
         initialValues: {
@@ -59,8 +67,7 @@ const IdentificationProfileForm: React.FC = () => {
             g_recaptcha: Yup.string().required("Подтвердите, что вы не робот"),
         }),
         validateOnMount: true,
-        onSubmit: () => {
-        },
+        onSubmit: () => { },
     });
 
     useEffect(() => {
@@ -72,13 +79,26 @@ const IdentificationProfileForm: React.FC = () => {
         setCaptchaVerified(!!value);
     };
 
+    /**
+     * Устанавливаем локальное состояние выбранного метода (whatsapp, phone, email).
+     * Одновременно диспатчим экшен setCurrentConfirmModalType для записи
+     * в Redux, чтобы ConfirmInfoModal знал, какой тип показывать.
+     */
     const handleMethodChange = (method: 'phone' | 'email' | 'whatsapp') => {
         if (selectedMethod === method) {
-            setSelectedMethod("")
+            setSelectedMethod("");
+            dispatch(setCurrentConfirmModalType(""));
+            formik.setFieldValue("type_sms_message", "");
         } else {
             setSelectedMethod(method);
+            dispatch(setCurrentConfirmModalType(method));
             formik.setFieldValue("type_sms_message", method === 'whatsapp' ? "WHATSAPP" : "");
         }
+
+        // Сбрасываем капчу и статус верификации
+        setCaptchaVerified(false);
+        formik.setFieldValue("g_recaptcha", "");
+        recaptchaRef.current?.reset();
     };
 
     const openNextModal = () => {
@@ -106,13 +126,13 @@ const IdentificationProfileForm: React.FC = () => {
         };
 
         try {
-            // .unwrap() вернет промис и попадет в try, если все ОК
+            // Если все данные верны, сервер вернёт результат без ошибок
             await dispatch(createRiskProfile(payload)).unwrap();
 
-            // Если всё прошло успешно, открываем другое модальное окно
+            // Открываем модалку с подтверждением кода
             openNextModal();
-
         } catch (error) {
+            // Обработка ошибки
         }
     };
 
@@ -206,6 +226,7 @@ const IdentificationProfileForm: React.FC = () => {
                     error={formik.touched.is_agreement && formik.errors.is_agreement}
                 />
             </div>
+
             <div>
                 <span className={styles.buttons__title}>Отправить на:</span>
                 <div className={styles.buttons}>
@@ -224,14 +245,6 @@ const IdentificationProfileForm: React.FC = () => {
                         телефон
                     </Button>
                     <Button
-                        // onClick={() => {
-                        //     dispatch(sendConfirmationCode({
-                        //         user_id: userId ?? "",
-                        //         code: smsCode.join(""),
-                        //         type: "email"
-                        //     }));
-                        //     onClose();
-                        // }}
                         theme={selectedMethod === 'email' ? ButtonTheme.BLUE : ButtonTheme.UNDERLINE}
                         className={styles.button_select}
                         onClick={() => handleMethodChange('email')}
@@ -251,15 +264,18 @@ const IdentificationProfileForm: React.FC = () => {
             {formik.touched.g_recaptcha && formik.errors.g_recaptcha && (
                 <div className={styles.error}>{formik.errors.g_recaptcha}</div>
             )}
+
             {checkConfirmmationSuccess ? (
                 <div className={styles.form__success}>
                     <div className={styles.form__success__container}>
                         <Icon Svg={SuccessIcon} width={16} height={16} />
-                        <span className={styles.form__success__description}>Данные подтверждены</span>
+                        <span className={styles.form__success__description}>
+                            Данные подтверждены
+                        </span>
                     </div>
                     <Button
                         onClick={() => {
-                            dispatch(nextStep())
+                            dispatch(nextStep());
                         }}
                         theme={ButtonTheme.BLUE}
                         form={ButtonForm.CIRCLE}
@@ -278,10 +294,8 @@ const IdentificationProfileForm: React.FC = () => {
                 >
                     Подтвердить данные
                 </Button>
-            )
-            }
-
-        </form >
+            )}
+        </form>
     );
 };
 

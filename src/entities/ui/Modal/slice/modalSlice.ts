@@ -1,11 +1,36 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { ModalType, ModalSize, ModalAnimation, ModalState } from '../model/modalTypes';
+import { ModalType, ModalSize, ModalAnimation, ModalState, ModalStateItem } from '../model/modalTypes';
 
-// Начальное состояние для всех модалок
-const initialState: ModalState = {
-    [ModalType.IDENTIFICATION]: { isOpen: false, size: ModalSize.FULL, animation: ModalAnimation.LEFT, isScrolled: false },
-    [ModalType.CONFIRM_CODE]: { isOpen: false, size: ModalSize.MIDDLE, animation: ModalAnimation.BOTTOM, isScrolled: false },
-    [ModalType.PROBLEM_WITH_CODE]: { isOpen: false, size: ModalSize.MINI, animation: ModalAnimation.LEFT, isScrolled: false },
+/**
+ * Расширяем исходный тип `ModalState` (Record<ModalType, ModalStateItem>)
+ * дополнительным полем `confirmationMethod`.
+ */
+interface ExtendedModalState extends ModalState {
+    confirmationMethod: 'phone' | 'email' | 'whatsapp' | '';
+}
+
+// Начальное состояние для всех модалок + новое поле `confirmationMethod`
+const initialState: ExtendedModalState = {
+    [ModalType.IDENTIFICATION]: {
+        isOpen: false,
+        size: ModalSize.FULL,
+        animation: ModalAnimation.LEFT,
+        isScrolled: false
+    },
+    [ModalType.CONFIRM_CODE]: {
+        isOpen: false,
+        size: ModalSize.MIDDLE,
+        animation: ModalAnimation.BOTTOM,
+        isScrolled: false
+    },
+    [ModalType.PROBLEM_WITH_CODE]: {
+        isOpen: false,
+        size: ModalSize.MINI,
+        animation: ModalAnimation.LEFT,
+        isScrolled: false
+    },
+    // Новое поле
+    confirmationMethod: '',
 };
 
 const modalSlice = createSlice({
@@ -20,11 +45,13 @@ const modalSlice = createSlice({
             const { type, size, animation } = action.payload;
             state[type] = { ...state[type], isOpen: true, size, animation };
         },
-        setCurrentConfirmModalType: (
-            state,
-            action: PayloadAction<string>
-        ) => {
-            const state = action.payload;
+
+        /**
+         * Устанавливаем текущий способ подтверждения (phone, email, whatsapp),
+         * чтобы потом считать его в ConfirmInfoModal
+         */
+        setCurrentConfirmModalType: (state, action: PayloadAction<'phone' | 'email' | 'whatsapp' | ''>) => {
+            state.confirmationMethod = action.payload;
         },
 
         /** Закрыть конкретную модалку */
@@ -41,5 +68,11 @@ const modalSlice = createSlice({
     },
 });
 
-export const { openModal, closeModal, setModalScrolled } = modalSlice.actions;
+export const {
+    openModal,
+    closeModal,
+    setModalScrolled,
+    setCurrentConfirmModalType, // экспортируем наш новый экшен
+} = modalSlice.actions;
+
 export default modalSlice.reducer;

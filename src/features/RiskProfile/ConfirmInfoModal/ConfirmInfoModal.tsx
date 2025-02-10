@@ -7,8 +7,15 @@ import { Button, ButtonTheme } from "shared/ui/Button/Button";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { sendConfirmationCode } from "entities/RiskProfile/slice/riskProfileSlice";
 import { RootState } from "app/providers/store/config/store";
-import { openModal, setModalScrolled } from "entities/ui/Modal/slice/modalSlice";
-import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
+import {
+    openModal,
+    setModalScrolled
+} from "entities/ui/Modal/slice/modalSlice";
+import {
+    ModalAnimation,
+    ModalSize,
+    ModalType
+} from "entities/ui/Modal/model/modalTypes";
 import { selectModalState } from "entities/ui/Modal/selectors/selectorsModals";
 
 interface ConfirmInfoModalProps {
@@ -17,17 +24,39 @@ interface ConfirmInfoModalProps {
 }
 
 export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps) => {
-    const modalState = useSelector((state: any) => state.modal);
-    const [smsCode, setSmsCode] = useState(["", "", "", ""]);
+    // Достаем состояние модалки
+    const modalState = useSelector((state: RootState) => state.modal);
+
+    // Отслеживаем, какой метод подтверждения выбрал пользователь (phone, email, whatsapp).
+    const confirmationMethod = modalState.confirmationMethod;
+
     const [timeLeft, setTimeLeft] = useState(60);
     const [timerActive, setTimerActive] = useState(true);
-    // Локальное состояние для вычисления наличия нижней тени
-    const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
     const userId = useSelector((state: RootState) => state.user.userId);
     const dispatch = useAppDispatch();
     const contentRef = useRef<HTMLDivElement>(null);
-    const isScrolled = useSelector((state: RootState) => selectModalState(state, ModalType.CONFIRM_CODE)?.isScrolled);
 
+    const isScrolled = useSelector((state: RootState) =>
+        selectModalState(state, ModalType.CONFIRM_CODE)?.isScrolled
+    );
+
+    /**
+     * Определяем, сколько полей для ввода кода нужно показать.
+     * Если phone или whatsapp - 2 поля, иначе (например, email) - 4.
+     * пока оставляю 4 4
+     */
+    const codeLength = confirmationMethod === 'phone' || confirmationMethod === 'whatsapp' ? 4 : 4;
+    const [smsCode, setSmsCode] = useState<string[]>(Array(codeLength).fill(""));
+
+    const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+    // Сброс кода при смене метода подтверждения
+    useEffect(() => {
+        setSmsCode(Array(codeLength).fill(""));
+    }, [confirmationMethod, codeLength]);
+
+    // Таймер
     useEffect(() => {
         let timer: NodeJS.Timeout;
         if (isOpen && timerActive) {
@@ -46,18 +75,19 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
         return () => clearInterval(timer);
     }, [isOpen, timerActive]);
 
+    // Обработка ввода по одному символу
     const handleInputChange = (value: string, index: number) => {
         const newCode = [...smsCode];
-        // Берём только один символ из инпута
         newCode[index] = value.slice(0, 1);
         setSmsCode(newCode);
 
-        // Если ввели символ — фокусируем следующий инпут
+        // Если ввели символ — фокус на следующий
         if (value && index < inputRefs.current.length - 1) {
             inputRefs.current[index + 1]?.focus();
         }
     };
 
+    // Обработка Backspace
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
         if (e.key === "Backspace" && !smsCode[index] && index > 0) {
             const newCode = [...smsCode];
@@ -67,34 +97,33 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
         }
     };
 
-    // Обрабатываем вставку, чтобы распределить скопированные символы по инпутам
+    // Обработка "Вставить" (paste)
     const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
         e.preventDefault();
-
         const pasteData = e.clipboardData.getData("text");
-        const pasteValue = pasteData.slice(0, 4).split("");
+        const pasteValue = pasteData.slice(0, codeLength).split("");
         const newCode = [...smsCode];
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < codeLength; i++) {
             newCode[i] = pasteValue[i] || "";
         }
         setSmsCode(newCode);
 
-        if (pasteValue.length < 4) {
+        if (pasteValue.length < codeLength) {
             inputRefs.current[pasteValue.length]?.focus();
         }
     };
 
-    // Отслеживаем скролл в контейнере, чтобы установить тень сверху (через redux) и снизу (локально)
+    // Отслеживание скролла, чтобы добавить тень сверху
     useLayoutEffect(() => {
         const handleScroll = () => {
             if (contentRef.current) {
                 const { scrollTop } = contentRef.current;
-                dispatch(setModalScrolled({
-                    type: ModalType.CONFIRM_CODE,
-                    isScrolled: scrollTop > 0
-                }));
-                // Если нижняя граница не достигнута – показываем нижнюю тень
-                // setHasBottomShadow(scrollTop + clientHeight < scrollHeight);
+                dispatch(
+                    setModalScrolled({
+                        type: ModalType.CONFIRM_CODE,
+                        isScrolled: scrollTop > 0
+                    })
+                );
             }
         };
 
@@ -111,28 +140,21 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
         };
     }, [dispatch]);
 
-    // useLayoutEffect(() => {
-    //     if (contentRef.current) {
-    //         const { scrollTop, scrollHeight, clientHeight } = contentRef.current;
-    //         setHasBottomShadow(scrollTop + clientHeight < scrollHeight);
-    //     }
-    // });
-
+    // Сброс таймера
     const handleResetTimer = () => {
         setTimeLeft(60);
         setTimerActive(true);
     };
 
-
-
+    // Проверяем, все ли поля заполнены
     const isCodeEntered = smsCode.every((digit) => digit !== "");
 
     return (
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            animation={modalState.confirmCodeModal.animation}
-            size={modalState.confirmCodeModal.size}
+            animation={modalState[ModalType.CONFIRM_CODE].animation}
+            size={modalState[ModalType.CONFIRM_CODE].size}
             withCloseIcon
             withTitle="Подтверждение данных"
             type={ModalType.CONFIRM_CODE}
@@ -147,7 +169,10 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
             >
                 <div className={styles.modalContent__head}>
                     <span className={styles.modalContent__description}>
-                        Код направлен на номер, указанный при идентификации
+                        Код направлен на{" "}
+                        {confirmationMethod === 'email'
+                            ? 'E-mail'
+                            : 'номер, указанный при идентификации'}
                     </span>
                     <Tooltip
                         className={styles.modalContent__tooltip}
@@ -210,10 +235,15 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                 dispatch(sendConfirmationCode({
                                     user_id: userId ?? "",
                                     code: smsCode.join(""),
-                                    type: "phone",
+                                    /**
+                                     * Если выбраны phone или whatsapp — отправляем тип "phone",
+                                     * иначе (email) — "email"
+                                     */
+                                    type: confirmationMethod === 'phone' || confirmationMethod === 'whatsapp'
+                                        ? 'phone'
+                                        : 'email',
                                     onSuccess: onClose,
                                 }));
-                                // onClose();
                             }}
                             theme={ButtonTheme.BLUE}
                             className={styles.button}

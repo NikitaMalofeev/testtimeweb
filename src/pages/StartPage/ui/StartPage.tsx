@@ -39,7 +39,7 @@ function StartPage() {
                             </span>
                             <Button className={styles.button} onClick={() => {
                                 dispatch(openModal({
-                                    type: ModalType.CONFIRM_CODE    ,
+                                    type: ModalType.IDENTIFICATION,
                                     size: ModalSize.FULL,
                                     animation: ModalAnimation.LEFT
                                 }));

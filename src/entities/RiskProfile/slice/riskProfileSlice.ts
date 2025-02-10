@@ -81,23 +81,25 @@ export const fetchAllSelects = createAsyncThunk<
 
 export const sendConfirmationCode = createAsyncThunk<
     void,
-    ConfirmationCodeData,
+    ConfirmationCodeData & { onSuccess?: () => void }, // Добавляем колбэк
     { rejectValue: string }
 >(
     "riskProfile/sendConfirmationCode",
-    async (data, { rejectWithValue, dispatch }) => {
+    async ({ onSuccess, ...data }, { rejectWithValue, dispatch }) => {
         try {
             const response = await postConfirmationCode(data);
 
-            // Проверяем поле status в ответе
             if (response.status === "success") {
-                // Если success, выставляем флажок
                 dispatch(setConfirmationStatusSuccess(true));
-            }
 
+                // Вызываем колбэк при успешном ответе
+                if (onSuccess) {
+                    onSuccess();
+                }
+            }
         } catch (error: any) {
-            dispatch(setError(error.response.data.errorText))
-            console.log(error.response.data)
+            dispatch(setError(error.response?.data?.errorText || "Ошибка при отправке кода"));
+            console.log(error.response?.data);
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке кода"
             );

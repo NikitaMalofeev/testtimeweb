@@ -212,14 +212,14 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                             Отправить код в WhatsApp
                         </Button>
                         <Button
-                            onClick={() => {
-                                dispatch(sendConfirmationCode({
-                                    user_id: userId ?? "",
-                                    code: smsCode.join(""),
-                                    type: "email"
-                                }));
-                                onClose();
-                            }}
+                            // onClick={() => {
+                            //     dispatch(sendConfirmationCode({
+                            //         user_id: userId ?? "",
+                            //         code: smsCode.join(""),
+                            //         type: "email"
+                            //     }));
+                            //     onClose();
+                            // }}
                             theme={ButtonTheme.UNDERLINE}
                             className={styles.button}
                             disabled={timerActive}
@@ -231,9 +231,10 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                 dispatch(sendConfirmationCode({
                                     user_id: userId ?? "",
                                     code: smsCode.join(""),
-                                    type: "phone"
+                                    type: "phone",
+                                    onSuccess: onClose,
                                 }));
-                                onClose();
+                                // onClose();
                             }}
                             theme={ButtonTheme.BLUE}
                             className={styles.button}

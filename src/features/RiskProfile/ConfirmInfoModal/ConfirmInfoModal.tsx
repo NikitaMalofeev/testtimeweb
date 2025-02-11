@@ -5,7 +5,10 @@ import { useSelector } from "react-redux";
 import { Tooltip } from "shared/ui/Tooltip/Tooltip";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
-import { resendConfirmationCode, sendConfirmationCode } from "entities/RiskProfile/slice/riskProfileSlice";
+import {
+    resendConfirmationCode,
+    sendConfirmationCode
+} from "entities/RiskProfile/slice/riskProfileSlice";
 import { RootState } from "app/providers/store/config/store";
 import {
     openModal,
@@ -28,24 +31,28 @@ interface ConfirmInfoModalProps {
 
 /**
  * Компонент модального окна подтверждения данных.
- * Теперь у нас два типа подтверждения:
- * 1) 'whatsapp' — показываем только одну форму для ввода кода
- * 2) 'phone' (т.е. phone + email) — показываем две формы для ввода кода (первая для номера, вторая для e-mail)
+ * 
+ * Теперь:
+ * - И при `whatsapp`, и при `phone` показываем две формы
+ *   (первая: код по телефону/WhatsApp, вторая: код по e-mail).
  */
 export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps) => {
     // Достаем из Redux состояние модалки
     const modalState = useSelector((state: RootState) => state.modal);
-    const codeError = useSelector((state: RootState) => state.error.error)
-    const phoneSuccess = useSelector((state: RootState) => state.ui.confirmationPhoneSuccess)
-    const emailSuccess = useSelector((state: RootState) => state.ui.confirmationEmailSuccess)
-    const whatsappSuccess = useSelector((state: RootState) => state.ui.confirmationWhatsappSuccess)
-    const [loadingConfirmationCode, setLoadingConfirmationCode] = useState(false)
+    const codeError = useSelector((state: RootState) => state.error.error);
+    const phoneSuccess = useSelector((state: RootState) => state.ui.confirmationPhoneSuccess);
+    const emailSuccess = useSelector((state: RootState) => state.ui.confirmationEmailSuccess);
+    const whatsappSuccess = useSelector((state: RootState) => state.ui.confirmationWhatsappSuccess);
+    const [loadingConfirmationCode, setLoadingConfirmationCode] = useState(false);
 
     // Определяем, каким методом пользователь подтверждает данные: 'whatsapp' или 'phone'
     const confirmationMethod = modalState.confirmationMethod;
-    const hasEmailConfirmationError = emailSuccess === 'не пройдено'
-    const hasWhatsAppConfirmationError = whatsappSuccess === 'не пройдено'
-    const hasPhoneConfirmationError = phoneSuccess === 'не пройдено'
+
+    // Проверяем ошибки
+    const hasEmailConfirmationError = emailSuccess === "не пройдено";
+    const hasWhatsAppConfirmationError = whatsappSuccess === "не пройдено";
+    const hasPhoneConfirmationError = phoneSuccess === "не пройдено";
+
     // Данные пользователя (номер телефона и e-mail)
     const { phone, email } = useSelector((state: RootState) => state.user.user);
 
@@ -70,22 +77,12 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
     // Длина кода — в данном случае фиксированная (4)
     const codeLength = 4;
 
-    /**
-     * Первый код для "первой" формы ввода.
-     * При confirmationMethod === 'whatsapp' будет только эта форма.
-     * При confirmationMethod === 'phone' это форма для номера телефона.
-     */
+    // Две формы: первая — для телефона/WhatsApp, вторая — для e-mail
     const [smsCodeFirst, setSmsCodeFirst] = useState<string[]>(Array(codeLength).fill(""));
-
-    /**
-     * Второй код для "второй" формы ввода.
-     * Используется только если confirmationMethod === 'phone' (для e-mail).
-     */
     const [smsCodeSecond, setSmsCodeSecond] = useState<string[]>(Array(codeLength).fill(""));
 
-    // Рефы на инпуты, чтобы управлять фокусом (первая форма)
+    // Рефы на инпуты, чтобы управлять фокусом
     const inputRefsFirst = useRef<(HTMLInputElement | null)[]>([]);
-    // Рефы на инпуты (вторая форма)
     const inputRefsSecond = useRef<(HTMLInputElement | null)[]>([]);
 
     // Сброс содержимого инпутов при смене метода подтверждения
@@ -114,24 +111,19 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
     }, [isOpen, timerActive]);
 
     /**
-     * Обработчик изменения символа в инпуте для первой формы.
-     * @param value значение, которое пользователь ввел
-     * @param index индекс инпута
+     * Обработчики для первой формы
      */
     const handleInputChangeFirst = (value: string, index: number) => {
         const newCode = [...smsCodeFirst];
         newCode[index] = value.slice(0, 1);
         setSmsCodeFirst(newCode);
 
-        // Автоматический фокус на следующий инпут, если ввели символ
+        // Фокус на следующий инпут, если ввели символ
         if (value && index < inputRefsFirst.current.length - 1) {
             inputRefsFirst.current[index + 1]?.focus();
         }
     };
 
-    /**
-     * Обработчик Backspace для первой формы.
-     */
     const handleKeyDownFirst = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
         if (e.key === "Backspace" && !smsCodeFirst[index] && index > 0) {
             const newCode = [...smsCodeFirst];
@@ -141,9 +133,6 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
         }
     };
 
-    /**
-     * Обработчик вставки из буфера обмена (Ctrl+V) для первой формы.
-     */
     const handlePasteFirst = (e: React.ClipboardEvent<HTMLInputElement>) => {
         e.preventDefault();
         const pasteData = e.clipboardData.getData("text");
@@ -160,13 +149,14 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
     };
 
     /**
-     * Аналогичные обработчики для второй формы (если есть e-mail).
+     * Обработчики для второй формы (почта)
      */
     const handleInputChangeSecond = (value: string, index: number) => {
         const newCode = [...smsCodeSecond];
         newCode[index] = value.slice(0, 1);
         setSmsCodeSecond(newCode);
 
+        // Фокус на следующий инпут, если ввели символ
         if (value && index < inputRefsSecond.current.length - 1) {
             inputRefsSecond.current[index + 1]?.focus();
         }
@@ -196,10 +186,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
         }
     };
 
-    /**
-     * Отслеживание скролла внутри модалки, чтобы при скролле
-     * менять состояние (для отображения тени сверху).
-     */
+    // Отслеживание скролла внутри модалки, чтобы поднимать/убирать тень
     useLayoutEffect(() => {
         const handleScroll = () => {
             if (contentRef.current) {
@@ -228,35 +215,49 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
 
     /**
      * Обработчик повторной отправки кода.
-     * Сбрасываем таймер и отправляем запрос.
      */
     const handleResetTimer = () => {
         if (userId && confirmationMethod) {
-            // Отправляем запрос повторной отправки кода с нужным методом
             dispatch(resendConfirmationCode({ user_id: userId, method: confirmationMethod }));
         }
         setTimeLeft(60);
         setTimerActive(true);
     };
 
-    /**
-     * Проверка, заполнены ли все поля в первой форме
-     */
+    // Проверяем заполненность форм
     const isFirstFormFilled = smsCodeFirst.every((digit) => digit !== "");
-
-    /**
-     * Проверка, заполнены ли все поля во второй форме (только если метод phone + email)
-     */
     const isSecondFormFilled = smsCodeSecond.every((digit) => digit !== "");
 
-    /**
-     * Если у нас whatsapp, нужна только одна форма, соответственно проверяем
-     * только первую форму, заполнена ли она.
-     * Если у нас phone (phone + email), проверяем обе формы.
-     */
-    const canSubmit = confirmationMethod === "whatsapp"
-        ? isFirstFormFilled
-        : isFirstFormFilled && isSecondFormFilled;
+    // И 'phone', и 'whatsapp' требуют два кода
+    const isDoubleConfirmationMethod = confirmationMethod === "phone" || confirmationMethod === "whatsapp";
+
+    // Можем ли нажать "Подтвердить"
+    const canSubmit = isDoubleConfirmationMethod
+        ? (isFirstFormFilled && isSecondFormFilled)
+        : isFirstFormFilled;
+
+    // Для первой формы при `whatsapp` считаем ошибку в whatsappSuccess, при `phone` — phoneSuccess
+    const hasFirstFormError =
+        confirmationMethod === "whatsapp"
+            ? hasWhatsAppConfirmationError
+            : hasPhoneConfirmationError;
+
+    // Генерация текста для первой формы
+    const renderFirstFormText = () => {
+        if (confirmationMethod === "whatsapp") {
+            return (
+                <span className={styles.modalContent__description}>
+                    Код направлен в WhatsApp <b>{phone}</b>, указанный при идентификации
+                </span>
+            );
+        }
+        // Иначе (phone)
+        return (
+            <span className={styles.modalContent__description}>
+                Код направлен на телефон <b>{phone}</b>, указанный при идентификации
+            </span>
+        );
+    };
 
     return (
         <Modal
@@ -270,23 +271,15 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
         >
             <div
                 className={`
-                    ${styles.modalContent} 
-                    ${isScrolled && styles.modalContent__shadow_top} 
-                `}
+          ${styles.modalContent} 
+          ${isScrolled && styles.modalContent__shadow_top} 
+        `}
                 ref={contentRef}
-                style={{ overflow: 'auto' }}
+                style={{ overflow: "auto" }}
             >
-                {/**
-                 * --- БЛОК 1 ---
-                 * Показ кода (первая форма).
-                 * Если у нас whatsapp — это единственная форма.
-                 * Если у нас phone — это форма для номера телефона.
-                 */}
+                {/** --- ПЕРВАЯ ФОРМА (телефон / WhatsApp) --- */}
                 <div className={styles.modalContent__head}>
-                    <span className={styles.modalContent__description}>
-                        Код направлен {confirmationMethod === "whatsapp" ? 'в WhatsApp' : 'на телефон'} <b>{phone}</b>, указанный при идентификации
-                    </span>
-
+                    {renderFirstFormText()}
 
                     <Tooltip
                         className={styles.modalContent__tooltip}
@@ -309,7 +302,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                 onPaste={handlePasteFirst}
                                 ref={(el) => (inputRefsFirst.current[index] = el)}
                                 className={styles.codeInput__box}
-                                style={hasPhoneConfirmationError || hasWhatsAppConfirmationError ? { borderColor: '#FF3C53' } : {}}
+                                style={hasFirstFormError ? { borderColor: "#FF3C53" } : {}}
                             />
                         ))}
                     </div>
@@ -328,12 +321,8 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                     </span>
                 </div>
 
-                {/**
-                 * --- БЛОК 2 ---
-                 * Эта часть рендерится только если confirmationMethod === 'phone' (т.е. phone + email).
-                 * Вторая форма для e-mail.
-                 */}
-                {confirmationMethod === "phone" && (
+                {/** --- ВТОРАЯ ФОРМА (e-mail) --- */}
+                {isDoubleConfirmationMethod && (
                     <div className={styles.modalContent__head}>
                         <span className={styles.modalContent__description}>
                             Код направлен на <b>{email}</b>, указанный при идентификации
@@ -360,7 +349,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                     onPaste={handlePasteSecond}
                                     ref={(el) => (inputRefsSecond.current[index] = el)}
                                     className={styles.codeInput__box}
-                                    style={hasEmailConfirmationError ? { borderColor: '#FF3C53' } : {}}
+                                    style={hasEmailConfirmationError ? { borderColor: "#FF3C53" } : {}}
                                 />
                             ))}
                         </div>
@@ -380,9 +369,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                     </div>
                 )}
 
-                {/**
-                 * --- НИЖНЯЯ ЧАСТЬ С КНОПКАМИ И ТАЙМЕРОМ ---
-                 */}
+                {/** --- НИЖНЯЯ ЧАСТЬ: таймер и кнопки --- */}
                 <div>
                     {timerActive && (
                         <div className={styles.timer}>
@@ -402,19 +389,16 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
 
                         <Button
                             onClick={() => {
-                                // Собираем payload для Thunk
                                 dispatch(
                                     sendConfirmationCode({
                                         user_id: userId ?? "",
                                         codeFirst: smsCodeFirst.join(""),
-                                        codeSecond: confirmationMethod === "phone"
-                                            ? smsCodeSecond.join("")
-                                            : undefined,
+                                        codeSecond: isDoubleConfirmationMethod ? smsCodeSecond.join("") : undefined,
                                         method: confirmationMethod,
-                                        onSuccess: onClose,
+                                        onSuccess: onClose
                                     })
                                 );
-                                setLoadingConfirmationCode(true)
+                                setLoadingConfirmationCode(true);
                             }}
                             theme={ButtonTheme.BLUE}
                             className={styles.button}

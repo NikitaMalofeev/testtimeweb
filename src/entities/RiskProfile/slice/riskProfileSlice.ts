@@ -97,88 +97,81 @@ export const sendConfirmationCode = createAsyncThunk<
     "riskProfile/sendConfirmationCode",
     async ({ user_id, codeFirst, codeSecond, method, onSuccess }, { rejectWithValue, dispatch }) => {
         try {
-            // Очистим старые ошибки и (опционально) сбросим частичные успехи, если нужно
-            // dispatch(setConfirmationPhoneSuccess(false));
-            // dispatch(setConfirmationEmailSuccess(false));
-            // dispatch(setConfirmationWhatsappSuccess(false));
-
-            if (method === "whatsapp") {
-                // 1) Если выбрали подтверждение WhatsApp, отправляем код как `type: 'phone'`
-                const response = await postConfirmationCode({
-                    user_id,
-                    code: codeFirst,
-                    type: "phone",
-                });
-
-                if (response.status === "success") {
-                    // Отдельный флаг для WhatsApp
-                    dispatch(setConfirmationWhatsappSuccess('пройдено'));
-                    // Общий флаг
-                    dispatch(setConfirmationStatusSuccess(true));
-                    if (onSuccess) {
-                        onSuccess();
-                    }
-                } else {
-                    const errMsg = response.error_text || "Ошибка при отправке кода (WhatsApp)";
-                    dispatch(setError(errMsg));
-                    // При желании сбрасываем флаг
-                    dispatch(setConfirmationWhatsappSuccess('не пройдено'));
-                    return rejectWithValue(errMsg);
-                }
-
-            } else if (method === "phone") {
-                // 2) Если выбрали подтверждение телефоном (т.е. код телефона + код e-mail)
+            if (method === "whatsapp" || method === "phone") {
+                // И в случае 'phone', и в случае 'whatsapp' нам нужны ОДИН код для телефона + ОДИН код для e-mail
                 if (!codeSecond) {
-                    const msg = "Отсутствует код для e-mail, а метод 'phone' требует два кода";
+                    const msg = "Отсутствует код для e-mail, а метод требует два кода";
                     dispatch(setError(msg));
                     return rejectWithValue(msg);
                 }
 
                 // Делаем два параллельных запроса
                 const [resPhone, resEmail] = await Promise.allSettled([
-                    postConfirmationCode({ user_id, code: codeFirst, type: "phone" }),
-                    postConfirmationCode({ user_id, code: codeSecond, type: "email" }),
+                    postConfirmationCode({
+                        user_id,
+                        code: codeFirst,
+                        type: "phone"
+                    }),
+                    postConfirmationCode({
+                        user_id,
+                        code: codeSecond,
+                        type: "email"
+                    })
                 ]);
 
                 let isPhoneOk = false;
                 let isEmailOk = false;
 
-                // Проверяем телефон
+                // Проверяем телефон/WhatsApp (на самом деле запрос одинаковый "type: phone")
                 if (resPhone.status === "fulfilled") {
                     if (resPhone.value.status === "success") {
                         isPhoneOk = true;
-                        dispatch(setConfirmationPhoneSuccess('пройдено'));
+                        // Если метод == whatsapp, ставим whatsappSuccess, иначе phoneSuccess
+                        if (method === "whatsapp") {
+                            dispatch(setConfirmationWhatsappSuccess("пройдено"));
+                        } else {
+                            dispatch(setConfirmationPhoneSuccess("пройдено"));
+                        }
                     } else {
-                        const phoneError = resPhone.value.error_text || "Ошибка верификации телефона";
+                        const phoneError =
+                            resPhone.value.error_text || "Ошибка верификации телефона/WhatsApp";
                         dispatch(setError(phoneError));
-                        dispatch(setConfirmationPhoneSuccess('не пройдено'));
+                        if (method === "whatsapp") {
+                            dispatch(setConfirmationWhatsappSuccess("не пройдено"));
+                        } else {
+                            dispatch(setConfirmationPhoneSuccess("не пройдено"));
+                        }
                     }
                 } else {
-                    // Сеть/сервер упал для телефона
+                    // Если упал запрос на телефон
                     const phoneError =
                         resPhone.reason?.response?.data?.error_text ||
-                        "Ошибка при отправке кода на телефон (сеть/сервер)";
+                        "Ошибка при отправке кода (телефон/whatsapp)";
                     dispatch(setError(phoneError));
-                    dispatch(setConfirmationPhoneSuccess('не пройдено'));
+                    if (method === "whatsapp") {
+                        dispatch(setConfirmationWhatsappSuccess("не пройдено"));
+                    } else {
+                        dispatch(setConfirmationPhoneSuccess("не пройдено"));
+                    }
                 }
 
                 // Проверяем e-mail
                 if (resEmail.status === "fulfilled") {
                     if (resEmail.value.status === "success") {
                         isEmailOk = true;
-                        dispatch(setConfirmationEmailSuccess('пройдено'));
+                        dispatch(setConfirmationEmailSuccess("пройдено"));
                     } else {
                         const emailError = resEmail.value.error_text || "Ошибка верификации e-mail";
                         dispatch(setError(emailError));
-                        dispatch(setConfirmationEmailSuccess('не пройдено'));
+                        dispatch(setConfirmationEmailSuccess("не пройдено"));
                     }
                 } else {
-                    // Сеть/сервер упал для e-mail
+                    // Упал запрос e-mail
                     const emailError =
                         resEmail.reason?.response?.data?.error_text ||
-                        "Ошибка при отправке кода на e-mail (сеть/сервер)";
+                        "Ошибка при отправке кода на e-mail";
                     dispatch(setError(emailError));
-                    dispatch(setConfirmationEmailSuccess('не пройдено'));
+                    dispatch(setConfirmationEmailSuccess("не пройдено"));
                 }
 
                 // Если оба ОК, включаем общий success
@@ -188,19 +181,42 @@ export const sendConfirmationCode = createAsyncThunk<
                         onSuccess();
                     }
                 } else {
-                    // Общее сообщение, если нужно:
+                    // Общая ошибка, если нужно
                     const combinedError = [
-                        !isPhoneOk ? "Телефон не подтверждён" : "",
-                        !isEmailOk ? "E-mail не подтверждён" : "",
-                    ].filter(Boolean).join(" | ");
+                        !isPhoneOk ? "Телефон (WhatsApp) не подтверждён" : "",
+                        !isEmailOk ? "E-mail не подтверждён" : ""
+                    ]
+                        .filter(Boolean)
+                        .join(" | ");
 
                     if (combinedError) {
                         return rejectWithValue(combinedError);
                     }
                 }
+            }
+            else if (method === "email") {
+                // Пример для метода "email" (один код)
+                const response = await postConfirmationCode({
+                    user_id,
+                    code: codeFirst,
+                    type: "email"
+                });
 
-            } else {
-                // 3) Пример: метод 'email' или 'type_doc_EDS_agreement'
+                if (response.status === "success") {
+                    dispatch(setConfirmationEmailSuccess("пройдено"));
+                    dispatch(setConfirmationStatusSuccess(true));
+                    if (onSuccess) {
+                        onSuccess();
+                    }
+                } else {
+                    const errMsg = response.error_text || `Ошибка при отправке кода (email)`;
+                    dispatch(setError(errMsg));
+                    dispatch(setConfirmationEmailSuccess("не пройдено"));
+                    return rejectWithValue(errMsg);
+                }
+            }
+            else {
+                // Пример: любые другие методы
                 const response = await postConfirmationCode({
                     user_id,
                     code: codeFirst,
@@ -208,15 +224,6 @@ export const sendConfirmationCode = createAsyncThunk<
                 });
 
                 if (response.status === "success") {
-                    if (method === "email") {
-                        dispatch(setConfirmationEmailSuccess('пройдено'));
-                    } else if (method === "type_doc_EDS_agreement") {
-                        // У вас может быть своя логика
-                        // например, ставим общий success
-                        // или заводим отдельный флаг EDS
-                    }
-
-                    // Общий флаг
                     dispatch(setConfirmationStatusSuccess(true));
                     if (onSuccess) {
                         onSuccess();
@@ -224,22 +231,19 @@ export const sendConfirmationCode = createAsyncThunk<
                 } else {
                     const errMsg = response.error_text || `Ошибка при отправке кода (${method})`;
                     dispatch(setError(errMsg));
-
-                    // Если хотим сбрасывать — сбрасываем
-                    if (method === "email") {
-                        dispatch(setConfirmationEmailSuccess('не пройдено'));
-                    }
                     return rejectWithValue(errMsg);
                 }
             }
-
         } catch (error: any) {
-            const msg = error.response?.data?.error_text || "Ошибка при отправке кода (непредвиденная)";
+            const msg =
+                error.response?.data?.error_text ||
+                "Ошибка при отправке кода (непредвиденная)";
             dispatch(setError(msg));
             return rejectWithValue(msg);
         }
     }
 );
+
 
 
 export const resendConfirmationCode = createAsyncThunk<
@@ -262,9 +266,7 @@ export const resendConfirmationCode = createAsyncThunk<
             }
 
             const response = await postResendConfirmationCode(payload);
-
-            // Если нужно - обработайте ответ, например, показать уведомление
-            console.log("Resend response:", response);
+            const responseEmail = await postResendConfirmationCode('email');
 
         } catch (error: any) {
             // Замените обработку под ваш сценарий

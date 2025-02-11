@@ -239,7 +239,7 @@ const IdentificationProfileForm: React.FC = () => {
             </div>
 
             <div>
-                <span className={styles.buttons__title}>Отправить на:</span>
+                <span className={styles.buttons__title}>Отправить код подтверждения на:</span>
                 <div className={styles.buttons}>
                     <Button
                         theme={selectedMethod === 'whatsapp' ? ButtonTheme.GREEN : ButtonTheme.GREENuNDERLINE}
@@ -253,7 +253,7 @@ const IdentificationProfileForm: React.FC = () => {
                         className={styles.button_select}
                         onClick={() => handleMethodChange('phone')}
                     >
-                        телефон и email
+                        SMS
                     </Button>
                 </div>
             </div>

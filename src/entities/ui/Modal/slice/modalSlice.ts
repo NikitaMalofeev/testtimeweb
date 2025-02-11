@@ -6,7 +6,7 @@ import { ModalType, ModalSize, ModalAnimation, ModalState, ModalStateItem } from
  * дополнительным полем `confirmationMethod`.
  */
 interface ExtendedModalState extends ModalState {
-    confirmationMethod: 'phone' | 'email' | 'whatsapp' | '';
+    confirmationMethod: 'phone' | 'email' | 'whatsapp' | 'type_doc_EDS_agreement';
 }
 
 // Начальное состояние для всех модалок + новое поле `confirmationMethod`
@@ -30,7 +30,7 @@ const initialState: ExtendedModalState = {
         isScrolled: false
     },
     // Новое поле
-    confirmationMethod: '',
+    confirmationMethod: 'phone',
 };
 
 const modalSlice = createSlice({
@@ -50,7 +50,7 @@ const modalSlice = createSlice({
          * Устанавливаем текущий способ подтверждения (phone, email, whatsapp),
          * чтобы потом считать его в ConfirmInfoModal
          */
-        setCurrentConfirmModalType: (state, action: PayloadAction<'phone' | 'email' | 'whatsapp' | ''>) => {
+        setCurrentConfirmModalType: (state, action: PayloadAction<'phone' | 'email' | 'whatsapp' | 'type_doc_EDS_agreement'>) => {
             state.confirmationMethod = action.payload;
         },
 

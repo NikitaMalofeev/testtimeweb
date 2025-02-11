@@ -54,7 +54,6 @@ const IdentificationProfileForm: React.FC = () => {
         validationSchema: Yup.object({
             lastName: Yup.string().required("Фамилия обязательна"),
             firstName: Yup.string().required("Имя обязательно"),
-            middleName: Yup.string().required("Отчество обязательно"),
             email: Yup.string().required("E-mail обязательно"),
             phone: Yup.string()
                 .matches(/^\+7 \d{3} \d{3} \d{2} \d{2}$/, "Некорректный номер телефона")
@@ -89,7 +88,7 @@ const IdentificationProfileForm: React.FC = () => {
     const handleMethodChange = (method: 'phone' | 'email' | 'whatsapp') => {
         if (selectedMethod === method) {
             setSelectedMethod("");
-            dispatch(setCurrentConfirmModalType(""));
+            dispatch(setCurrentConfirmModalType("phone"));
             formik.setFieldValue("type_sms_message", "");
         } else {
             setSelectedMethod(method);
@@ -176,7 +175,6 @@ const IdentificationProfileForm: React.FC = () => {
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     placeholder="Отчество"
-                    needValue
                     type="text"
                 />
                 <Input

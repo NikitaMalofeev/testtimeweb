@@ -20,6 +20,14 @@ interface RiskProfileFormState {
     };
 }
 
+interface SendCodePayload {
+    user_id: string;
+    codeFirst: string;        // Код из первой формы
+    codeSecond?: string;      // Код из второй формы (при методе 'phone' + email)
+    method: 'phone' | 'email' | 'whatsapp' | 'type_doc_EDS_agreement'  // Как в вашем modalSlice
+    onSuccess?: () => void;
+}
+
 interface RiskProfileSelectors {
     [key: string]: Record<string, string>;
 }
@@ -80,36 +88,92 @@ export const fetchAllSelects = createAsyncThunk<
 
 
 export const sendConfirmationCode = createAsyncThunk<
-    void,
-    ConfirmationCodeData & { onSuccess?: () => void }, // Добавляем колбэк
-    { rejectValue: string }
+    void,                   // что возвращаем при успехе (ничего)
+    SendCodePayload,        // что принимаем в payload
+    { rejectValue: string } // что возвращаем при ошибке
 >(
     "riskProfile/sendConfirmationCode",
-    async ({ onSuccess, ...data }, { rejectWithValue, dispatch }) => {
+    async ({ user_id, codeFirst, codeSecond, method, onSuccess }, { rejectWithValue, dispatch }) => {
         try {
-            const response = await postConfirmationCode(data);
+            if (method === "whatsapp") {
+                // 1) Если выбрали подтверждение через WhatsApp:
+                //    — отправляем один запрос с type = 'phone' (т.к. бэкенд не знает "whatsapp").
+                const response = await postConfirmationCode({
+                    user_id,
+                    code: codeFirst,
+                    type: "phone",
+                });
 
-            if (response.status === "success") {
-                dispatch(setConfirmationStatusSuccess(true));
+                if (response.status === "success") {
+                    // Успешно => ставим confirmationStatusSuccess = true и вызываем onSuccess
+                    dispatch(setConfirmationStatusSuccess(true));
+                    if (onSuccess) {
+                        onSuccess();
+                    }
+                } else {
+                    // Ошибка — диспатчим сообщение об ошибке, если пришло с сервера
+                    dispatch(setError(response.message || "Ошибка при отправке кода (WhatsApp)"));
+                    return rejectWithValue(response.message || "Ошибка при отправке кода (WhatsApp)");
+                }
+            } else {
+                // 2) Если выбрали подтверждение 'phone' (т.е. phone + email):
+                //    => делаем два параллельных запроса
+                //    (первый для телефона, второй для e-mail)
+                if (!codeSecond) {
+                    // Если по какой-то причине второго кода нет,
+                    // можно выбросить ошибку, т.к. ожидается 2 кода
+                    const msg = "Отсутствует код для e-mail, а метод 'phone' требует два кода";
+                    dispatch(setError(msg));
+                    return rejectWithValue(msg);
+                }
 
-                // Вызываем колбэк при успешном ответе
-                if (onSuccess) {
-                    onSuccess();
+                const [responsePhone, responseEmail] = await Promise.all([
+                    postConfirmationCode({
+                        user_id,
+                        code: codeFirst,
+                        type: "phone",
+                    }),
+                    postConfirmationCode({
+                        user_id,
+                        code: codeSecond,
+                        type: "email",
+                    }),
+                ]);
+
+                // Проверяем, что оба запроса отработали "success"
+                const isPhoneOk = responsePhone.status === "success";
+                const isEmailOk = responseEmail.status === "success";
+
+                if (isPhoneOk && isEmailOk) {
+                    // Оба запроса удачные => ставим success + onSuccess
+                    dispatch(setConfirmationStatusSuccess(true));
+                    if (onSuccess) {
+                        onSuccess();
+                    }
+                } else {
+                    // Если хоть один вернул ошибку, выдаём ошибку
+                    const errorTextPhone = responsePhone.message || "";
+                    const errorTextEmail = responseEmail.message || "";
+                    const combinedError = `Ошибка при отправке кода. 
+                        ${errorTextPhone ? "Телефон: " + errorTextPhone : ""} 
+                        ${errorTextEmail ? "Email: " + errorTextEmail : ""}`;
+
+                    dispatch(setError(combinedError));
+                    return rejectWithValue(combinedError);
                 }
             }
         } catch (error: any) {
-            dispatch(setError(error.response?.data?.errorText || "Ошибка при отправке кода"));
-            console.log(error.response?.data);
-            return rejectWithValue(
-                error.response?.data?.message || "Ошибка при отправке кода"
-            );
+            // Ловим исключения типа "сеть упала" и т.п.
+            const msg = error.response?.data?.message || "Ошибка при отправке кода";
+            dispatch(setError(msg));
+            return rejectWithValue(msg);
         }
     }
 );
 
 export const resendConfirmationCode = createAsyncThunk<
     void,
-    { user_id: string; method: "whatsapp" | "phone" | "email" },
+    { user_id: string; method: "whatsapp" | "phone" | "email" | 'type_doc_EDS_agreement' },
     { rejectValue: string }
 >(
     "riskProfile/resendConfirmationCode",

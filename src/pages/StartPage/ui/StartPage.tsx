@@ -53,8 +53,6 @@ function StartPage() {
                         </div>
                     </div>
                 </div>
-
-
             </div>
 
             {/* Модальные окна */}

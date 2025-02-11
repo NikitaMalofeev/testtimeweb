@@ -277,11 +277,9 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                  */}
                 <div className={styles.modalContent__head}>
                     <span className={styles.modalContent__description}>
-                        {confirmationMethod === "whatsapp"
-                            ? `Код направлен в WhatsApp, на ${<b>{phone}</b>}`
-                            : `Код направлен на ${<b>{phone}</b>}, указанный при идентификации`
-                        }
+                        Код направлен {confirmationMethod === "whatsapp" ? 'в WhatsApp' : 'на телефон'} <b>{phone}</b>, указанный при идентификации
                     </span>
+
 
                     <Tooltip
                         className={styles.modalContent__tooltip}

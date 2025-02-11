@@ -9,7 +9,7 @@ import OffPasswordIcon from 'shared/assets/svg/visibility_off.svg';
 interface InputProps {
     theme?: "default" | "primary" | "secondary";
     value: string;
-    name: string;
+    name?: string;
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
     onBlur?: (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
     placeholder?: string;

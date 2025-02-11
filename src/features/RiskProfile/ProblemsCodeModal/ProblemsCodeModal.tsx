@@ -4,7 +4,13 @@ import styles from "./styles.module.scss";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
 import { Checkbox } from "shared/ui/Checkbox/Checkbox";
 import { ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "app/providers/store/config/store";
+import { Input } from "shared/ui/Input/Input";
+import { sendProblems } from "entities/User/slice/userSlice";
+import { ProblemsRequestData } from "shared/api/userApi/userApi";
+import { useAppDispatch } from "shared/hooks/useAppDispatch";
+import { setTooltipActive } from "entities/ui/Ui/slice/uiSlice";
 
 interface ConfirmInfoModalProps {
     isOpen: boolean;
@@ -12,15 +18,20 @@ interface ConfirmInfoModalProps {
 }
 
 export const ProblemsCodeModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps) => {
-    const modalState = useSelector((state: any) => state.modal);
+    const dispatch = useAppDispatch();
+    const modalState = useSelector((state: RootState) => state.modal);
+    const { phone, email } = useSelector((state: RootState) => state.user.user);
+    const userId = useSelector((state: RootState) => state.user.userId);
+
     const [checkboxes, setCheckboxes] = useState({
         phoneCode: false,
         whatsappCode: false,
         invalidCode: false,
     });
 
-    type CheckboxKey = "phoneCode" | "whatsappCode" | "invalidCode";
+    const [description, setDescription] = useState("");
 
+    type CheckboxKey = "phoneCode" | "whatsappCode" | "invalidCode";
 
     const handleCheckboxChange = (name: CheckboxKey) => {
         setCheckboxes((prev) => ({
@@ -30,8 +41,24 @@ export const ProblemsCodeModal = memo(({ isOpen, onClose }: ConfirmInfoModalProp
     };
 
     const handleSubmit = () => {
-        console.log("Selected problems:", checkboxes);
+        if (!userId) {
+            console.error("User ID отсутствует");
+            return;
+        }
 
+        const requestData: ProblemsRequestData = {
+            user_id: userId,
+            screen: 'code_confirmation',
+            email,
+            phone,
+            is_phone_code_not_received: checkboxes.phoneCode,
+            is_email_code_not_received: checkboxes.whatsappCode,
+            is_invalid_code_received: checkboxes.invalidCode,
+            description,
+        };
+
+        dispatch(sendProblems(requestData));
+        dispatch(setTooltipActive({ active: false, message: 'Уже спешим помочь вам, ожидайте ответа команды Ranks' }))
         onClose();
     };
 
@@ -52,7 +79,6 @@ export const ProblemsCodeModal = memo(({ isOpen, onClose }: ConfirmInfoModalProp
                     value={checkboxes.phoneCode}
                     onChange={() => handleCheckboxChange("phoneCode")}
                     label={<span>Не приходит код на телефон</span>}
-
                 />
                 <Checkbox
                     name="whatsappCode"
@@ -65,6 +91,14 @@ export const ProblemsCodeModal = memo(({ isOpen, onClose }: ConfirmInfoModalProp
                     value={checkboxes.invalidCode}
                     onChange={() => handleCheckboxChange("invalidCode")}
                     label={<span>Код неверный</span>}
+                />
+
+                <Input
+                    type="textarea"
+                    typeProgramm="textarea"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Опишите проблему"
                 />
 
                 <Button

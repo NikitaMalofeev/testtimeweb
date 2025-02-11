@@ -321,7 +321,6 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                     </span>
                 </div>
 
-                {/** --- ВТОРАЯ ФОРМА (e-mail) --- */}
                 {isDoubleConfirmationMethod && (
                     <div className={styles.modalContent__head}>
                         <span className={styles.modalContent__description}>

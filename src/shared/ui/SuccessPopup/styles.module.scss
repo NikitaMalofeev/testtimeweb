@@ -1,0 +1,19 @@
+.popup {
+    position: fixed;
+    max-width: calc(100dvw - 48px);
+    width: 100%;
+    top: 0;
+    left: 24px;
+    background-color: #DFFFD8 ;
+    color: #3CFF5A ;
+    height: auto; // Позволяет блоку расти по высоте
+    padding: 16px 25px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    z-index: 10000;
+    word-wrap: break-word; // Гарантирует перенос длинных слов
+    overflow-wrap: break-word; // Дополнительно для современных браузеров
+    white-space: normal; // Разрешает перенос строк
+  }
+  

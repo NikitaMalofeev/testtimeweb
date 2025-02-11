@@ -1,33 +1,33 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-
 interface UiState {
     additionalMenu: {
         currentStep: number;
     };
-    /** Старый общий статус — "все нужные подтверждения пройдены" */
     confirmationStatusSuccess: boolean;
-
-    /** Новые отдельные флаги */
     confirmationPhoneSuccess: string;
     confirmationEmailSuccess: string;
     confirmationWhatsappSuccess: string;
-
     isScrollToBottom: boolean;
+    isTooltipActive: {
+        active: boolean
+        message: string
+    }
 }
-
 const initialState: UiState = {
     additionalMenu: {
         currentStep: 0,
     },
     confirmationStatusSuccess: false,
-
-    // Изначально все отдельные статусы — false
     confirmationPhoneSuccess: '',
     confirmationEmailSuccess: '',
     confirmationWhatsappSuccess: '',
-
     isScrollToBottom: true,
+    isTooltipActive: {
+        active: false,
+        message: ''
+    }
 };
+
 
 const uiSlice = createSlice({
     name: "ui",
@@ -46,13 +46,9 @@ const uiSlice = createSlice({
         resetStep: (state) => {
             state.additionalMenu.currentStep = 0;
         },
-
-        // Старый общий статус — оставляем
         setConfirmationStatusSuccess: (state, action: PayloadAction<boolean>) => {
             state.confirmationStatusSuccess = action.payload;
         },
-
-        // Новые экшены для управления флагами
         setConfirmationPhoneSuccess: (state, action: PayloadAction<string>) => {
             state.confirmationPhoneSuccess = action.payload;
         },
@@ -62,7 +58,9 @@ const uiSlice = createSlice({
         setConfirmationWhatsappSuccess: (state, action: PayloadAction<string>) => {
             state.confirmationWhatsappSuccess = action.payload;
         },
-
+        setTooltipActive: (state, action: PayloadAction<{ active: boolean; message: string }>) => {
+            state.isTooltipActive = action.payload;
+        },
         setIsBottom: (state, action: PayloadAction<boolean>) => {
             state.isScrollToBottom = action.payload;
         },
@@ -77,7 +75,8 @@ export const {
     setConfirmationStatusSuccess,
     setConfirmationPhoneSuccess,
     setConfirmationEmailSuccess,
-    setConfirmationWhatsappSuccess
+    setConfirmationWhatsappSuccess,
+    setTooltipActive
 } = uiSlice.actions;
 
 export default uiSlice.reducer;

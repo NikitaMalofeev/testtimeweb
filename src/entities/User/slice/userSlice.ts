@@ -1,6 +1,7 @@
 // userSlice.ts
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { userType } from "../types/userTypes";
+import { ProblemsRequestData, sendProblemsRequest } from "shared/api/userApi/userApi";
 
 interface UserState {
     userId: string | null;
@@ -18,6 +19,21 @@ const initialState: UserState = {
         is_agreement: false,
     }
 };
+
+export const sendProblems = createAsyncThunk<
+    void,
+    ProblemsRequestData,
+    { rejectValue: string }
+>(
+    "user/sendProblems",
+    async (data, { rejectWithValue }) => {
+        try {
+            await sendProblemsRequest(data);
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || "Ошибка при отправке данных");
+        }
+    }
+);
 
 export const userSlice = createSlice({
     name: "user",

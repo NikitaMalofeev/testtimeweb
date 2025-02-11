@@ -7,6 +7,8 @@ import { Cover } from 'shared/ui/Cover/Cover'
 import { ErrorPopup } from 'shared/ui/ErrorPopup/ErrorPopup'
 import { useSelector } from 'react-redux'
 import { RootState } from './providers/store/config/store'
+import { Tooltip } from 'shared/ui/Tooltip/Tooltip'
+import { SuccessPopup } from 'shared/ui/SuccessPopup/SuccessPopup'
 
 function App() {
 
@@ -20,7 +22,10 @@ function App() {
       <Header />
       <Cover />
       <AppRouter />
+
+      
       <ErrorPopup />
+      <SuccessPopup />
     </div>
   )
 }

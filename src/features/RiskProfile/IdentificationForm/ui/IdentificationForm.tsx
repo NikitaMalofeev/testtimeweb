@@ -24,6 +24,8 @@ import { RootState } from "app/providers/store/config/store";
 import { nextStep } from "entities/ui/Ui/slice/uiSlice";
 import { Icon } from "shared/ui/Icon/Icon";
 import SuccessIcon from 'shared/assets/svg/success.svg';
+import { userType } from "entities/User/types/userTypes";
+import { setUserData } from "entities/User/slice/userSlice";
 
 const IdentificationProfileForm: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -124,6 +126,17 @@ const IdentificationProfileForm: React.FC = () => {
             g_recaptcha: formik.values.g_recaptcha,
             type_sms_message: formik.values.type_sms_message || undefined,
         };
+
+        const userForRedux: userType = {
+            phone: formik.values.phone,
+            email: formik.values.email,
+            first_name: formik.values.firstName,
+            middle_name: formik.values.middleName,
+            last_name: formik.values.lastName,
+            is_agreement: formik.values.is_agreement,
+        }
+
+        dispatch(setUserData(userForRedux))
 
         try {
             // Если все данные верны, сервер вернёт результат без ошибок
@@ -242,14 +255,7 @@ const IdentificationProfileForm: React.FC = () => {
                         className={styles.button_select}
                         onClick={() => handleMethodChange('phone')}
                     >
-                        телефон
-                    </Button>
-                    <Button
-                        theme={selectedMethod === 'email' ? ButtonTheme.BLUE : ButtonTheme.UNDERLINE}
-                        className={styles.button_select}
-                        onClick={() => handleMethodChange('email')}
-                    >
-                        e-mail
+                        телефон и email
                     </Button>
                 </div>
             </div>

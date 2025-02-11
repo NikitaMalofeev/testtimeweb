@@ -30,6 +30,8 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
     // Отслеживаем, какой метод подтверждения выбрал пользователь (phone, email, whatsapp).
     const confirmationMethod = modalState.confirmationMethod;
 
+    const { phone, email } = useSelector((state: RootState) => state.user.user)
+
     const [timeLeft, setTimeLeft] = useState(60);
     const [timerActive, setTimerActive] = useState(true);
 
@@ -176,6 +178,51 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                         {confirmationMethod === 'email'
                             ? 'указанный e-mail'
                             : 'номер, указанный при идентификации'}
+                    </span>
+                    <Tooltip
+                        className={styles.modalContent__tooltip}
+                        description="Настройка параметров защиты цифрового профиля от несанкционированного доступа"
+                    />
+
+                    <div className={styles.codeInput__container}>
+                        {smsCode.map((digit, index) => (
+                            <input
+                                key={index}
+                                type="text"
+                                maxLength={1}
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                value={digit}
+                                autoComplete="one-time-code"
+                                name={`otp-${index}`}
+                                onChange={(e) => handleInputChange(e.target.value, index)}
+                                onKeyDown={(e) => handleKeyDown(e, index)}
+                                onPaste={handlePaste}
+                                ref={(el) => (inputRefs.current[index] = el)}
+                                className={styles.codeInput__box}
+                            />
+                        ))}
+                    </div>
+
+                    <span
+                        className={styles.modalContent__problems}
+                        onClick={() => {
+                            dispatch(openModal({
+                                type: ModalType.PROBLEM_WITH_CODE,
+                                size: ModalSize.MINI,
+                                animation: ModalAnimation.BOTTOM
+                            }));
+                        }}
+                    >
+                        Проблемы с получением кода
+                    </span>
+                </div>
+                <div className={styles.modalContent__head}>
+                    <span className={styles.modalContent__description}>
+                        Код направлен на{" "}
+                        {confirmationMethod === 'email'
+                            ? `${email}`
+                            : `${phone}, указанный при идентификации`}
                     </span>
                     <Tooltip
                         className={styles.modalContent__tooltip}

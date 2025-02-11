@@ -9,7 +9,7 @@ const initialState: ErrorState = {
 };
 
 const errorSlice = createSlice({
-    name: "riskProfile",
+    name: "error",
     initialState,
     reducers: {
         setError: (state, action: PayloadAction<string>) => {

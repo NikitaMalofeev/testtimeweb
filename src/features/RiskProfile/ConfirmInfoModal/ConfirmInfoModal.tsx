@@ -35,10 +35,17 @@ interface ConfirmInfoModalProps {
 export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps) => {
     // Достаем из Redux состояние модалки
     const modalState = useSelector((state: RootState) => state.modal);
+    const codeError = useSelector((state: RootState) => state.error.error)
+    const phoneSuccess = useSelector((state: RootState) => state.ui.confirmationPhoneSuccess)
+    const emailSuccess = useSelector((state: RootState) => state.ui.confirmationEmailSuccess)
+    const whatsappSuccess = useSelector((state: RootState) => state.ui.confirmationWhatsappSuccess)
+    const [loadingConfirmationCode, setLoadingConfirmationCode] = useState(false)
 
     // Определяем, каким методом пользователь подтверждает данные: 'whatsapp' или 'phone'
     const confirmationMethod = modalState.confirmationMethod;
-
+    const hasEmailConfirmationError = emailSuccess === 'не пройдено'
+    const hasWhatsAppConfirmationError = whatsappSuccess === 'не пройдено'
+    const hasPhoneConfirmationError = phoneSuccess === 'не пройдено'
     // Данные пользователя (номер телефона и e-mail)
     const { phone, email } = useSelector((state: RootState) => state.user.user);
 
@@ -302,6 +309,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                 onPaste={handlePasteFirst}
                                 ref={(el) => (inputRefsFirst.current[index] = el)}
                                 className={styles.codeInput__box}
+                                style={hasPhoneConfirmationError || hasWhatsAppConfirmationError ? { borderColor: '#FF3C53' } : {}}
                             />
                         ))}
                     </div>
@@ -352,6 +360,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                     onPaste={handlePasteSecond}
                                     ref={(el) => (inputRefsSecond.current[index] = el)}
                                     className={styles.codeInput__box}
+                                    style={hasEmailConfirmationError ? { borderColor: '#FF3C53' } : {}}
                                 />
                             ))}
                         </div>
@@ -405,6 +414,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                         onSuccess: onClose,
                                     })
                                 );
+                                setLoadingConfirmationCode(true)
                             }}
                             theme={ButtonTheme.BLUE}
                             className={styles.button}

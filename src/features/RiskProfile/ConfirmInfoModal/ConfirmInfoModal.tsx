@@ -6,7 +6,6 @@ import { Tooltip } from "shared/ui/Tooltip/Tooltip";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import {
-    nextStep,
     resendConfirmationCode,
     sendConfirmationCode
 } from "entities/RiskProfile/slice/riskProfileSlice";
@@ -22,7 +21,7 @@ import {
     ModalType
 } from "entities/ui/Modal/model/modalTypes";
 import { selectModalState } from "entities/ui/Modal/selectors/selectorsModals";
-import { setTooltipActive } from "entities/ui/Ui/slice/uiSlice";
+import { nextStep, setTooltipActive } from "entities/ui/Ui/slice/uiSlice";
 
 /**
  * Интерфейс для пропсов модального окна

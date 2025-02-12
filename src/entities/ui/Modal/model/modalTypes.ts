@@ -14,6 +14,7 @@ export enum ModalAnimation {
 /** Все типы модалок в приложении */
 export enum ModalType {
     IDENTIFICATION = 'identificationModal',
+    SELECT = 'select',
     CONFIRM_CODE = 'confirmCodeModal',
     PROBLEM_WITH_CODE = 'problemWithCodeModal',
 }

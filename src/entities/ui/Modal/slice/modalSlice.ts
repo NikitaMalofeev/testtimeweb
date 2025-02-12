@@ -1,15 +1,11 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ModalType, ModalSize, ModalAnimation, ModalState, ModalStateItem } from '../model/modalTypes';
 
-/**
- * Расширяем исходный тип `ModalState` (Record<ModalType, ModalStateItem>)
- * дополнительным полем `confirmationMethod`.
- */
 interface ExtendedModalState extends ModalState {
     confirmationMethod: 'phone' | 'email' | 'whatsapp' | 'type_doc_EDS_agreement';
+    selectedCountry: string; // Добавляем поле для хранения выбранной страны
 }
 
-// Начальное состояние для всех модалок + новое поле `confirmationMethod`
 const initialState: ExtendedModalState = {
     [ModalType.IDENTIFICATION]: {
         isOpen: false,
@@ -29,15 +25,20 @@ const initialState: ExtendedModalState = {
         animation: ModalAnimation.LEFT,
         isScrolled: false
     },
-    // Новое поле
+    [ModalType.SELECT]: { // Добавлена модалка для селекта
+        isOpen: false,
+        size: ModalSize.MIDDLE,
+        animation: ModalAnimation.BOTTOM,
+        isScrolled: false
+    },
     confirmationMethod: 'phone',
+    selectedCountry: "", // Начальное состояние для выбранной страны
 };
 
 const modalSlice = createSlice({
     name: 'modal',
     initialState,
     reducers: {
-        /** Открыть конкретную модалку с переданными параметрами */
         openModal: (
             state,
             action: PayloadAction<{ type: ModalType; size: ModalSize; animation: ModalAnimation }>
@@ -46,25 +47,24 @@ const modalSlice = createSlice({
             state[type] = { ...state[type], isOpen: true, size, animation };
         },
 
-        /**
-         * Устанавливаем текущий способ подтверждения (phone, email, whatsapp),
-         * чтобы потом считать его в ConfirmInfoModal
-         */
         setCurrentConfirmModalType: (state, action: PayloadAction<'phone' | 'email' | 'whatsapp' | 'type_doc_EDS_agreement'>) => {
             state.confirmationMethod = action.payload;
         },
 
-        /** Закрыть конкретную модалку */
         closeModal: (state, action: PayloadAction<ModalType>) => {
             const type = action.payload;
             state[type].isOpen = false;
         },
 
-        /** Обновить состояние скролла для конкретной модалки */
         setModalScrolled: (state, action: PayloadAction<{ type: ModalType; isScrolled: boolean }>) => {
             const { type, isScrolled } = action.payload;
             state[type].isScrolled = isScrolled;
-        }
+        },
+
+        // ✅ Экшен для установки выбранной страны
+        setSelectedCountry: (state, action: PayloadAction<string>) => {
+            state.selectedCountry = action.payload;
+        },
     },
 });
 
@@ -72,7 +72,9 @@ export const {
     openModal,
     closeModal,
     setModalScrolled,
-    setCurrentConfirmModalType, // экспортируем наш новый экшен
+    setCurrentConfirmModalType,
+    setSelectedCountry,
+    // Экспортируем экшен для открытия селекта
 } = modalSlice.actions;
 
 export default modalSlice.reducer;

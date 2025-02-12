@@ -15,6 +15,7 @@ interface InputProps {
     placeholder?: string;
     disabled?: boolean;
     needValue?: boolean;
+    className?: string;
     /** Вместо "typeProgramm" можно назвать "variant" или "mode" */
     typeProgramm?: "text" | "password" | "phone" | "textarea";
     error?: string | boolean | undefined;
@@ -95,32 +96,34 @@ export const Input: React.FC<InputProps> = ({
                                     </button>
                                 </>
                             );
-                        case "phone":
+                        case "number":
                             return (
-                                <InputMask
-                                    mask="+7 999 999 99 99"
-                                    maskPlaceholder=""
-                                    alwaysShowMask={false}
-                                    name={name}
-                                    value={value}
-                                    onChange={onChange}
-                                    onFocus={(e) => {
-                                        if (!e.target.value) {
-                                            e.target.value = "+7 "; // Авто-подстановка +7 при фокусе
-                                        }
-                                    }}
-                                    onBlur={(e) => {
-                                        if (e.target.value === "+7 ") {
-                                            e.target.value = ""; // Очищаем поле, если ничего не введено
-                                        }
-                                    }}
-                                    disabled={disabled}
-                                    className={`${styles.input} ${needValue && !value.length ? styles.error : ""}`}
-                                />
-
-
-
+                                <>
+                                    <input
+                                        type="number"
+                                        name={name}
+                                        value={value}
+                                        onChange={(e) => {
+                                            // Оставляем только цифры
+                                            const numericValue = e.target.value.replace(/\D/g, "");
+                                            onChange({ ...e, target: { ...e.target, value: numericValue } });
+                                        }}
+                                        onFocus={handleFocus}
+                                        onBlur={handleBlur}
+                                        disabled={disabled}
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
+                                        className={`${styles.input} ${needValue && !value.length ? styles.error : ""}`}
+                                    />
+                                    {error && (
+                                        <div className={styles.input__error}>
+                                            <Icon Svg={ErrorIcon} className={styles.input__error__icon} width={16} height={16} />
+                                            <span>{error}</span>
+                                        </div>
+                                    )}
+                                </>
                             );
+
                         case "textarea":
                             return (
                                 <textarea

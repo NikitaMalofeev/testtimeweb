@@ -6,11 +6,13 @@ import { Tooltip } from "shared/ui/Tooltip/Tooltip";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import {
+    nextStep,
     resendConfirmationCode,
     sendConfirmationCode
 } from "entities/RiskProfile/slice/riskProfileSlice";
 import { RootState } from "app/providers/store/config/store";
 import {
+    closeModal,
     openModal,
     setModalScrolled
 } from "entities/ui/Modal/slice/modalSlice";
@@ -20,6 +22,7 @@ import {
     ModalType
 } from "entities/ui/Modal/model/modalTypes";
 import { selectModalState } from "entities/ui/Modal/selectors/selectorsModals";
+import { setTooltipActive } from "entities/ui/Ui/slice/uiSlice";
 
 /**
  * Интерфейс для пропсов модального окна
@@ -132,6 +135,12 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
             inputRefsFirst.current[index - 1]?.focus();
         }
     };
+
+    const handleSuccessConfirmation = () => {
+        onClose()
+        dispatch(setTooltipActive({ active: true, message: 'Данные успешно подтверждены' }))
+        dispatch(nextStep())
+    }
 
     const handlePasteFirst = (e: React.ClipboardEvent<HTMLInputElement>) => {
         e.preventDefault();
@@ -394,7 +403,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                         codeFirst: smsCodeFirst.join(""),
                                         codeSecond: isDoubleConfirmationMethod ? smsCodeSecond.join("") : undefined,
                                         method: confirmationMethod,
-                                        onSuccess: onClose
+                                        onSuccess: handleSuccessConfirmation
                                     })
                                 );
                                 setLoadingConfirmationCode(true);

@@ -8,15 +8,15 @@ import styles from './styles.module.scss'
 
 export const ErrorPopup = () => {
     const [visible, setVisible] = useState(false);
-    const { active, message: tooltipMessage } = useSelector((state: RootState) => state.ui.isTooltipActive)
+    const error = useSelector((state: RootState) => state.error.error)
 
     useEffect(() => {
-        if (tooltipMessage) {
+        if (error) {
             setVisible(true);
             const timer = setTimeout(() => setVisible(false), 4000);
             return () => clearTimeout(timer);
         }
-    }, [tooltipMessage]);
+    }, [error]);
 
     return (
         <motion.div
@@ -25,7 +25,7 @@ export const ErrorPopup = () => {
             transition={{ duration: 0.5, ease: "easeInOut" }}
             className={styles.errorModal}
         >
-            {tooltipMessage}
+            {error}
         </motion.div>
     );
 }

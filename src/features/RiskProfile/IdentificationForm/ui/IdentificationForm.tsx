@@ -56,15 +56,14 @@ const IdentificationProfileForm: React.FC = () => {
             firstName: Yup.string().required("Имя обязательно"),
             email: Yup.string().required("E-mail обязательно"),
             phone: Yup.string()
-                .matches(/^\+7 \d{3} \d{3} \d{2} \d{2}$/, "Некорректный номер телефона")
-                .required("Телефон обязателен"),
+                .matches(/^\+7\d{10}$/, "Некорректный номер телефона")
+                .required("Номер в формате +"),
             password: Yup.string()
                 .min(8, "Пароль минимум 8 символов")
                 .required("Пароль обязателен"),
             password2: Yup.string()
                 .oneOf([Yup.ref("password")], "Пароли не совпадают")
                 .required("Подтверждение обязательно"),
-            is_agreement: Yup.boolean().oneOf([true], "Необходимо согласиться с условиями"),
             g_recaptcha: Yup.string().required("Подтвердите, что вы не робот"),
         }),
         validateOnMount: true,
@@ -180,12 +179,21 @@ const IdentificationProfileForm: React.FC = () => {
                 <Input
                     name="phone"
                     value={formik.values.phone}
-                    onChange={formik.handleChange}
+                    onChange={(e) => {
+                        let value = e.target.value.replace(/[^\d+]/g, ""); // Убираем все символы, кроме цифр и "+"
+
+                        if (!value.startsWith("+")) {
+                            value = "+" + value; // Добавляем "+" в начало, если его нет
+                        }
+
+                        formik.setFieldValue("phone", value);
+                    }}
                     onBlur={formik.handleBlur}
                     placeholder="Номер телефона"
                     needValue
-                    type="phone"
-                    error={formik.errors.phone}
+                    type="text"
+                    inputMode="numeric"
+                    error={formik.touched.phone && formik.errors.phone}
                 />
                 <Input
                     name="email"

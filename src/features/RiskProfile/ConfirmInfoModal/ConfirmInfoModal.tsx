@@ -54,6 +54,9 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
     const hasEmailConfirmationError = emailSuccess === "не пройдено";
     const hasWhatsAppConfirmationError = whatsappSuccess === "не пройдено";
     const hasPhoneConfirmationError = phoneSuccess === "не пройдено";
+    const noEmailConfirmationError = emailSuccess === "пройдено";
+    const noWhatsAppConfirmationError = whatsappSuccess === "пройдено";
+    const noPhoneConfirmationError = phoneSuccess === "пройдено";
 
     // Данные пользователя (номер телефона и e-mail)
     const { phone, email } = useSelector((state: RootState) => state.user.user);
@@ -224,7 +227,10 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
     /**
      * Обработчик повторной отправки кода.
      */
-    const handleResetTimer = () => {
+    const handleResetTimer = (nativeMethod?: "phone" | "email" | "whatsapp") => {
+        if (nativeMethod && userId && confirmationMethod) {
+            dispatch(resendConfirmationCode({ user_id: userId, method: nativeMethod }));
+        }
         if (userId && confirmationMethod) {
             dispatch(resendConfirmationCode({ user_id: userId, method: confirmationMethod }));
         }
@@ -249,6 +255,11 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
         confirmationMethod === "whatsapp"
             ? hasWhatsAppConfirmationError
             : hasPhoneConfirmationError;
+
+    const noFirstFormError =
+        confirmationMethod === "whatsapp"
+            ? noWhatsAppConfirmationError
+            : noPhoneConfirmationError;
 
     // Генерация текста для первой формы
     const renderFirstFormText = () => {
@@ -310,23 +321,30 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                 onPaste={handlePasteFirst}
                                 ref={(el) => (inputRefsFirst.current[index] = el)}
                                 className={styles.codeInput__box}
-                                style={hasFirstFormError ? { borderColor: "#FF3C53" } : {}}
+                                style={{
+                                    ...(hasFirstFormError && { borderColor: "#FF3C53" }),
+                                    ...(noFirstFormError && { borderColor: "#1CC15A" }),
+                                }}
+
                             />
                         ))}
                     </div>
 
-                    <span
+                    <div
                         className={styles.modalContent__problems}
                         onClick={() => {
-                            dispatch(openModal({
-                                type: ModalType.PROBLEM_WITH_CODE,
-                                size: ModalSize.MINI,
-                                animation: ModalAnimation.BOTTOM
-                            }));
+                            if (timerActive) {
+                                return
+                            } else {
+                                handleResetTimer()
+                            }
                         }}
                     >
-                        Проблемы с получением кода
-                    </span>
+                        <div className={styles.timer} style={!timerActive ? { color: '#0666EB' } : {}}>
+                            Отправить код снова через: 0{Math.floor(timeLeft / 60)}:
+                            {String(timeLeft % 60).padStart(2, "0")}
+                        </div>
+                    </div>
                 </div>
 
                 {isDoubleConfirmationMethod && (
@@ -356,13 +374,37 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                     onPaste={handlePasteSecond}
                                     ref={(el) => (inputRefsSecond.current[index] = el)}
                                     className={styles.codeInput__box}
-                                    style={hasEmailConfirmationError ? { borderColor: "#FF3C53" } : {}}
+                                    style={{
+                                        ...(hasEmailConfirmationError && { borderColor: "#FF3C53" }),
+                                        ...(noEmailConfirmationError && { borderColor: "#1CC15A" }),
+                                    }}
                                 />
                             ))}
                         </div>
 
-                        <span
+                        <div
                             className={styles.modalContent__problems}
+                            onClick={() => {
+                                if (timerActive) {
+                                    return
+                                } else {
+                                    handleResetTimer('email')
+                                }
+                            }}
+                        >
+                            <div className={styles.timer} style={!timerActive ? { color: '#0666EB' } : {}}>
+                                Отправить код снова через: 0{Math.floor(timeLeft / 60)}:
+                                {String(timeLeft % 60).padStart(2, "0")}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/** --- НИЖНЯЯ ЧАСТЬ: таймер и кнопки --- */}
+                <div>
+                    <div className={styles.buttonGroup}>
+                        <Button
+                            theme={ButtonTheme.UNDERLINE}
                             onClick={() => {
                                 dispatch(openModal({
                                     type: ModalType.PROBLEM_WITH_CODE,
@@ -370,28 +412,9 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                     animation: ModalAnimation.BOTTOM
                                 }));
                             }}
+                            className={styles.button}
                         >
                             Проблемы с получением кода
-                        </span>
-                    </div>
-                )}
-
-                {/** --- НИЖНЯЯ ЧАСТЬ: таймер и кнопки --- */}
-                <div>
-                    {timerActive && (
-                        <div className={styles.timer}>
-                            Будет активна через: 0{Math.floor(timeLeft / 60)}:
-                            {String(timeLeft % 60).padStart(2, "0")}
-                        </div>
-                    )}
-                    <div className={styles.buttonGroup}>
-                        <Button
-                            theme={ButtonTheme.UNDERLINE}
-                            onClick={handleResetTimer}
-                            className={styles.button}
-                            disabled={timerActive}
-                        >
-                            Отправить код снова
                         </Button>
 
                         <Button

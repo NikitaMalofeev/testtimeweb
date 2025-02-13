@@ -1,32 +1,64 @@
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { closeModal, setSelectedCountry } from "entities/ui/Modal/slice/modalSlice";
-import { RootState } from "app/providers/store/config/store";
 import { Modal } from "shared/ui/Modal/Modal";
-import { ModalType } from "entities/ui/Modal/model/modalTypes";
+import { Button } from "shared/ui/Button/Button";
 import styles from "./styles.module.scss";
+import { ModalAnimation, ModalType } from "entities/ui/Modal/model/modalTypes";
 
-const countries = [
-    "Китай", "Российская Федерация", "США", "Япония", "Индия",
-    "Великобритания", "Тайвань", "Канада", "Южная Корея", "Австралия"
-];
+interface SelectItem {
+    value: string;
+    label: string;
+}
 
-export const SelectModal = () => {
-    const dispatch = useDispatch();
-    const isOpen = useSelector((state: RootState) => state.modal[ModalType.SELECT].isOpen);
+interface SelectModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    title: string;
+    items: SelectItem[];
+    /**
+     * Колбэк, через который мы отдаём выбранный value
+     * (ключ страны) в родительский компонент.
+     */
+    onChoose: (value: string) => void;
+}
 
+export const SelectModal: React.FC<SelectModalProps> = ({
+    isOpen,
+    title,
+    items,
+    onClose,
+    onChoose,
+}) => {
     const [search, setSearch] = useState("");
-    const filteredOptions = countries.filter(country => country.toLowerCase().includes(search.toLowerCase()));
+    const [localSelectedValue, setLocalSelectedValue] = useState<string>("");
 
-    const handleSelect = (country: string) => {
-        dispatch(setSelectedCountry(country));
-        dispatch(closeModal(ModalType.SELECT));
+    // Фильтруем по поиску по label
+    const filteredOptions = items.filter((item) =>
+        item.label.toLowerCase().includes(search.toLowerCase())
+    );
+
+    // Когда кликнули по конкретной опции — запоминаем её value
+    const handleSelectOption = (optionValue: string) => {
+        setLocalSelectedValue(optionValue);
+    };
+
+    // Нажатие на "Выбрать"
+    const handleChoose = () => {
+        // Отдаём выбранную value родителю
+        onChoose(localSelectedValue);
+        // Закрываем модалку
+        onClose();
+    };
+
+    // Нажатие на "Назад"
+    const handleBack = () => {
+        onClose();
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={() => dispatch(closeModal(ModalType.SELECT))} type={ModalType.SELECT}>
+        <Modal type={ModalType.SELECT} animation={ModalAnimation.LEFT} isOpen={isOpen} onClose={onClose}>
             <div className={styles.modalContent}>
-                <h2 className="text-lg font-semibold mb-4">Выбор страны</h2>
+                <h2 className="text-lg font-semibold mb-4">{title}</h2>
+
                 <input
                     type="text"
                     placeholder="Поиск"
@@ -34,17 +66,30 @@ export const SelectModal = () => {
                     onChange={(e) => setSearch(e.target.value)}
                     className="w-full p-2 border rounded-md mb-4"
                 />
-                <ul className="border rounded-md">
+
+                <ul className="border rounded-md max-h-60 overflow-y-auto">
                     {filteredOptions.map((option) => (
                         <li
-                            key={option}
-                            className="p-3 border-b last:border-none cursor-pointer hover:bg-gray-100"
-                            onClick={() => handleSelect(option)}
+                            key={option.value}
+                            className={`p-3 border-b last:border-none cursor-pointer hover:bg-gray-100
+                                ${localSelectedValue === option.value
+                                    ? "bg-blue-100"
+                                    : ""
+                                }
+                            `}
+                            onClick={() => handleSelectOption(option.value)}
                         >
-                            {option}
+                            {option.label}
                         </li>
                     ))}
                 </ul>
+
+                <div className="flex justify-end gap-3 mt-4">
+                    <Button onClick={handleBack}>Назад</Button>
+                    <Button onClick={handleChoose} disabled={!localSelectedValue}>
+                        Выбрать
+                    </Button>
+                </div>
             </div>
         </Modal>
     );

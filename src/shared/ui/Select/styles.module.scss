@@ -1,0 +1,130 @@
+.inputWrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+
+
+    &.default {
+        font-family: "Inter", sans-serif;
+    }
+}
+
+.label {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    z-index: 1;
+    transform: translateY(-50%);
+    transition: all 0.2s ease-in-out;
+    color: #989898;
+    font-size: 16px;
+    pointer-events: none;
+}
+
+.label.active {
+    top: -2px;
+    z-index: 1;
+    left: 0;
+    font-size: 14px;
+    color: #989898;
+}
+
+.inputContainer {
+    position: relative;
+    width: 100%;
+    height: 40px;
+}
+
+.input {
+    width: 100%;
+    height: 40px;
+    padding: 10px 30px 10px 0;
+    text-align: left;
+    border: none;
+    border-bottom: 1px solid #cdcdd3;
+    border-radius: 0px;
+    font-size: 16px;
+    outline: none;
+    background: transparent;
+    color: #000;
+    -webkit-border-radius: 0 !important;
+    appearance: none; // Отключает нативные стили Safari
+    -webkit-appearance: none; // Для Safari
+    -moz-appearance: none;
+
+    &:focus {
+        border-bottom-color: #0F0E0E;
+    }
+
+    &__error {
+        position: absolute;
+        top: -2px;
+        right: 0;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        color: #FF3C53;
+        font-family: var(--font-inter);
+        font-size: 12px;
+        font-weight: 400;
+        line-height: 16px;
+    }
+
+    &__error__icon {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+.error {
+    
+}
+
+.required {
+    color: red;
+    margin-left: 3px;
+}
+
+.toggleButton {
+    position: absolute;
+    right: 0;
+    top: 24px;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    color: #007bff;
+    transition: transform 0.2s linear;
+}
+
+.toggleButton.rotated {
+    transform: translateY(-50%) rotate(90deg);
+}
+
+
+// фикс автозаполнения
+input:-webkit-autofill {
+    position: relative;
+    z-index: 0;
+    box-shadow: 0 0 0 1000px transparent inset !important; /* Прозрачный фон */
+    -webkit-box-shadow: 0 0 0 1000px transparent inset !important; /* Для WebKit */
+    -webkit-text-fill-color: inherit !important; /* Наследуем цвет текста */
+    transition: background-color 5000s ease-in-out 0s !important; /* Убираем анимацию */
+}
+
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+    box-shadow: 0 0 0 1000px transparent inset !important; /* Прозрачный фон при фокусе */
+    -webkit-box-shadow: 0 0 0 1000px transparent inset !important; /* Для WebKit */
+}
+
+input:-moz-autofill {
+    background: transparent !important; /* Убираем фон для Firefox */
+    color: inherit !important; /* Наследуем цвет текста */
+}
+
+
+

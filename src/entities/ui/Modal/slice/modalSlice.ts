@@ -27,8 +27,8 @@ const initialState: ExtendedModalState = {
     },
     [ModalType.SELECT]: { // Добавлена модалка для селекта
         isOpen: false,
-        size: ModalSize.MIDDLE,
-        animation: ModalAnimation.BOTTOM,
+        size: ModalSize.FULL,
+        animation: ModalAnimation.LEFT,
         isScrolled: false
     },
     confirmationMethod: 'phone',

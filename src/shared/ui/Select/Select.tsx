@@ -76,6 +76,7 @@ export const Select: React.FC<CustomSelectProps> = ({
             )}
             <SelectModal
                 title={title}
+                withCloseIcon
                 items={items}
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}

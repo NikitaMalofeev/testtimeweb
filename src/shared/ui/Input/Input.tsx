@@ -5,6 +5,7 @@ import { Icon } from "../Icon/Icon";
 import ErrorIcon from 'shared/assets/svg/errorCircle.svg';
 import OnPasswordIcon from 'shared/assets/svg/visibility_on.svg';
 import OffPasswordIcon from 'shared/assets/svg/visibility_off.svg';
+import SearchIcon from 'shared/assets/svg/searchIcon.svg'
 
 interface InputProps {
     theme?: "default" | "primary" | "secondary";
@@ -17,7 +18,7 @@ interface InputProps {
     needValue?: boolean;
     className?: string;
     /** Вместо "typeProgramm" можно назвать "variant" или "mode" */
-    typeProgramm?: "text" | "password" | "phone" | "textarea";
+    typeProgramm?: "text" | "password" | "phone" | "textarea" | 'search';
     error?: string | boolean | undefined;
 
     /** Добавляем поля, которых не хватает */
@@ -65,6 +66,9 @@ export const Input: React.FC<InputProps> = ({
         <div className={`${styles.inputWrapper} ${styles[theme]}`}>
             {type !== 'textarea' && (
                 <label className={`${styles.label} ${isFocused || value ? styles.active : ""}`}>
+                    {type === 'search' && (
+                        <Icon className={styles.input__search__icon} Svg={SearchIcon} width={18} height={18} />
+                    )}
                     {placeholder}
                     {needValue && !value.length && <span className={styles.required}>*</span>}
                 </label>
@@ -123,7 +127,27 @@ export const Input: React.FC<InputProps> = ({
                                     )}
                                 </>
                             );
-
+                        case "search":
+                            return (
+                                <div className={styles.input_search}>
+                                    <input
+                                        type="text"
+                                        name={name}
+                                        value={value}
+                                        onChange={onChange}
+                                        onFocus={handleFocus}
+                                        onBlur={handleBlur}
+                                        disabled={disabled}
+                                        className={`${styles.input} ${needValue && !value.length ? styles.error : ""}`}
+                                    />
+                                    {error && (
+                                        <div className={styles.input__error}>
+                                            <Icon Svg={ErrorIcon} width={16} height={16} className={styles.input__error__icon} />
+                                            <span>{error}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            );
                         case "textarea":
                             return (
                                 <textarea

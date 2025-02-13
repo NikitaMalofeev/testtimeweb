@@ -1,0 +1,96 @@
+.modalContent {
+    position: relative;
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    // при необходимости ширина/высота и т.д.
+    padding: 0 24px 24px 24px;
+    background-color: #fff;
+    border-radius: 8px;
+    overflow-y: auto;
+}
+
+.form__steps {
+    // Как пример, аналогично первому коду
+    display: inline-block;
+    max-height: 20px;
+    font-family: var(--font-inter);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 14.52px;
+    color: white;
+    background-color: #2977e2;
+    border-radius: 10px;
+    padding: 2.5px 10px;
+    margin-bottom: 12px;
+}
+
+.title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.searchInput {
+    width: 100%;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.scrollContainer {
+    height: 100%;/* или любую другую, какая подходит */
+    margin-bottom: 20px;
+ 
+}
+
+.list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.listItem {
+    position: relative;
+    left: -24px;
+    width: 100vw;
+    padding: 12px 24px 12px 24px;
+    position: relative;
+    cursor: pointer;
+
+    &:hover {
+        background-color: #E1ECFB;
+    }
+}
+
+.activeItem {
+    background-color: #E1ECFB;
+}
+
+.buttons {
+    // Делаем нижнюю панель «залипающей» при прокрутке,
+    // аналогично вашему .buttons
+    position: sticky; /* или fixed в зависимости от верстки */
+    bottom: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px;
+    z-index: 10;
+    background-color: #fff;
+    // z-index, если нужно перекрывать остальное
+}
+
+.button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18.5px 23px;
+}
+
+.shadow {
+    // Тень для «не доскролено до низа»
+    box-shadow: 0px -1px 13.4px 0px #00000026;
+}

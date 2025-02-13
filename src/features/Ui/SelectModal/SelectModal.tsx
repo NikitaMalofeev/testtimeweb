@@ -1,95 +1,160 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Modal } from "shared/ui/Modal/Modal";
-import { Button } from "shared/ui/Button/Button";
-import styles from "./styles.module.scss";
+import { Button, ButtonTheme } from "shared/ui/Button/Button";
+import styles from "./styles.module.scss"; // Подключаем ваши стили
 import { ModalAnimation, ModalType } from "entities/ui/Modal/model/modalTypes";
+import { Input } from "shared/ui/Input/Input";
 
 interface SelectItem {
     value: string;
     label: string;
 }
 
+const countries: SelectItem[] = [
+    { value: "us", label: "United States" },
+    { value: "ca", label: "Canada" },
+    { value: "gb", label: "United Kingdom" },
+    { value: "de", label: "Germany" },
+    { value: "fr", label: "France" },
+    { value: "it", label: "Italy" },
+    { value: "es", label: "Spain" },
+    { value: "au", label: "Australia" },
+    { value: "jp", label: "Japan" },
+    { value: "cn", label: "China" },
+    { value: "br", label: "Brazil" },
+    { value: "in", label: "India" },
+    { value: "mx", label: "Mexico" },
+    { value: "ru", label: "Russia" },
+    { value: "za", label: "South Africa" },
+    { value: "kr", label: "South Korea" },
+    { value: "ar", label: "Argentina" },
+    { value: "nl", label: "Netherlands" },
+    { value: "se", label: "Sweden" },
+    { value: "ch", label: "Switzerland" }
+];
+
 interface SelectModalProps {
     isOpen: boolean;
     onClose: () => void;
     title: string;
+    withCloseIcon: boolean;
     items: SelectItem[];
-    /**
-     * Колбэк, через который мы отдаём выбранный value
-     * (ключ страны) в родительский компонент.
-     */
     onChoose: (value: string) => void;
 }
 
 export const SelectModal: React.FC<SelectModalProps> = ({
     isOpen,
     title,
+    withCloseIcon,
     items,
     onClose,
     onChoose,
 }) => {
     const [search, setSearch] = useState("");
     const [localSelectedValue, setLocalSelectedValue] = useState<string>("");
+    const [isBottom, setIsBottom] = useState(false);
 
-    // Фильтруем по поиску по label
-    const filteredOptions = items.filter((item) =>
+    // Реф на прокручиваемый контейнер, чтобы отслеживать scroll
+    const scrollableRef = useRef<HTMLDivElement | null>(null);
+
+    // Фильтрация списка по полю search
+    const filteredOptions = countries.filter((item) =>
         item.label.toLowerCase().includes(search.toLowerCase())
     );
 
-    // Когда кликнули по конкретной опции — запоминаем её value
+    // При выборе опции — запоминаем значение
     const handleSelectOption = (optionValue: string) => {
         setLocalSelectedValue(optionValue);
     };
 
-    // Нажатие на "Выбрать"
+    // Нажатие на «Выбрать»
     const handleChoose = () => {
-        // Отдаём выбранную value родителю
         onChoose(localSelectedValue);
-        // Закрываем модалку
         onClose();
     };
 
-    // Нажатие на "Назад"
+    // Нажатие на «Назад»
     const handleBack = () => {
         onClose();
     };
 
-    return (
-        <Modal type={ModalType.SELECT} animation={ModalAnimation.LEFT} isOpen={isOpen} onClose={onClose}>
-            <div className={styles.modalContent}>
-                <h2 className="text-lg font-semibold mb-4">{title}</h2>
+    // Функция определения, достигли ли низа контейнера
+    const handleScroll = () => {
+        if (!scrollableRef.current) {
+            return;
+        }
+        const { scrollTop, scrollHeight, clientHeight } = scrollableRef.current;
+        const atBottom = scrollTop + clientHeight >= scrollHeight;
+        setIsBottom(atBottom);
+    };
 
-                <input
-                    type="text"
+    // Вешаем и снимаем обработчик скролла
+    useEffect(() => {
+        const scrollEl = scrollableRef.current;
+        if (scrollEl) {
+            scrollEl.addEventListener("scroll", handleScroll);
+        }
+        return () => {
+            if (scrollEl) {
+                scrollEl.removeEventListener("scroll", handleScroll);
+            }
+        };
+    }, []);
+
+    return (
+        <Modal
+            type={ModalType.SELECT}
+            animation={ModalAnimation.LEFT}
+            isOpen={isOpen}
+            withTitle='Выбор страны'
+            onClose={onClose}
+            withCloseIcon
+        >
+            <div className={styles.modalContent} >
+                <Input
+                    type="search"
                     placeholder="Поиск"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full p-2 border rounded-md mb-4"
+                    className={styles.searchInput}
                 />
 
-                <ul className="border rounded-md max-h-60 overflow-y-auto">
-                    {filteredOptions.map((option) => (
-                        <li
-                            key={option.value}
-                            className={`p-3 border-b last:border-none cursor-pointer hover:bg-gray-100
-                                ${localSelectedValue === option.value
-                                    ? "bg-blue-100"
-                                    : ""
-                                }
-                            `}
-                            onClick={() => handleSelectOption(option.value)}
-                        >
-                            {option.label}
-                        </li>
-                    ))}
-                </ul>
+                {/* Прокручиваемая зона */}
+                <div
 
-                <div className="flex justify-end gap-3 mt-4">
-                    <Button onClick={handleBack}>Назад</Button>
-                    <Button onClick={handleChoose} disabled={!localSelectedValue}>
-                        Выбрать
-                    </Button>
+                    className={styles.scrollContainer}
+                >
+                    <ul className={styles.list}>
+                        {filteredOptions.map((option) => (
+                            <li
+                                key={option.value}
+                                className={`${styles.listItem} ${localSelectedValue === option.value
+                                    ? styles.activeItem
+                                    : ""
+                                    }`}
+                                onClick={() => handleSelectOption(option.value)}
+                            >
+                                {option.label}
+                            </li>
+                        ))}
+                    </ul>
                 </div>
+
+                {/* Блок кнопок. Если не дошли до низа — добавляем тень. */}
+
+            </div>
+            <div
+                className={`${styles.buttons} ${!isBottom ? styles.shadow : ""
+                    }`}
+            >
+                <Button className={styles.button} theme={ButtonTheme.EMPTYBLUE} onClick={handleBack}>Вернуться</Button>
+                <Button
+                    className={styles.button}
+                    onClick={handleChoose}
+                    disabled={!localSelectedValue}
+                >
+                    Продолжить
+                </Button>
             </div>
         </Modal>
     );

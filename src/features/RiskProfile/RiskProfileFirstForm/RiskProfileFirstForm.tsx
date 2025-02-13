@@ -70,7 +70,7 @@ export const RiskProfileFirstForm: React.FC = () => {
                 "Как Вы поступите, если активы потеряют более 20% стоимости?",
             risk_profiling_int: "Результирующий риск-профиль",
             savings_level: "Информация о наличии и сумме сбережений",
-            is_qualified_investor_status: 'Есть ли у Вас статус квалифицированного инвестора?'
+
         };
         return map[key] || key;
     };
@@ -107,6 +107,15 @@ export const RiskProfileFirstForm: React.FC = () => {
                 needTextField: true,
                 placeholder: "Ответ",
                 fieldType: "textarea",
+            },
+            {
+                name: "is_qualified_investor_status",
+                label: "Есть ли у Вас статус квалифицированного инвестора?",
+                fieldType: "checkboxGroup",
+                options: {
+                    "Да": 'true',
+                    "Нет": 'false',
+                },
             },
             {
                 name: "expected_return_investment",
@@ -309,17 +318,21 @@ export const RiskProfileFirstForm: React.FC = () => {
             return (
                 <CheckboxGroup
                     name={question.name}
-                    options={Object.entries(question.options).map(
-                        ([optValue, optLabel]) => ({
-                            label: optLabel,
-                            value: optValue,
-                        })
-                    )}
-                    value={formik.values[question.name] || ""}
-                    onChange={handleCheckboxGroupChange}
+                    options={Object.entries(question.options).map(([label, value]) => ({
+                        label,
+                        value,
+                    }))}
+                    value={String(formik.values[question.name])}
+                    onChange={(name, selectedValue) => {
+                        formik.setFieldValue(name, selectedValue);
+                        dispatch(updateFieldValue({ name, value: selectedValue }));
+                    }}
                 />
             );
         }
+
+
+
 
         // 4) Текстовое поле или textarea
         if (question.fieldType === "text" || question.fieldType === "textarea") {
@@ -399,7 +412,7 @@ export const RiskProfileFirstForm: React.FC = () => {
                         theme={ButtonTheme.BLUE}
                         onClick={goNext}
                         className={styles.button}
-                        disabled={!isQuestionAnswered(currentQuestion)}
+                        disabled={!isQuestionAnswered(currentQuestion) && questions[currentStep].name !== 'trusted_person'}
                     >
                         {isLastStep ? "Продолжить" : "Продолжить"}
                     </Button>

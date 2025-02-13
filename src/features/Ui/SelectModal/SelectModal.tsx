@@ -1,37 +1,19 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { Modal } from "shared/ui/Modal/Modal";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
 import styles from "./styles.module.scss"; // Подключаем ваши стили
 import { ModalAnimation, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { Input } from "shared/ui/Input/Input";
+import { useAppDispatch } from "shared/hooks/useAppDispatch";
+import { setModalScrolled } from "entities/ui/Modal/slice/modalSlice";
+import { useSelector } from "react-redux";
+import { RootState } from "app/providers/store/config/store";
+import { selectModalState } from "entities/ui/Modal/selectors/selectorsModals";
 
 interface SelectItem {
     value: string;
     label: string;
 }
-
-const countries: SelectItem[] = [
-    { value: "us", label: "United States" },
-    { value: "ca", label: "Canada" },
-    { value: "gb", label: "United Kingdom" },
-    { value: "de", label: "Germany" },
-    { value: "fr", label: "France" },
-    { value: "it", label: "Italy" },
-    { value: "es", label: "Spain" },
-    { value: "au", label: "Australia" },
-    { value: "jp", label: "Japan" },
-    { value: "cn", label: "China" },
-    { value: "br", label: "Brazil" },
-    { value: "in", label: "India" },
-    { value: "mx", label: "Mexico" },
-    { value: "ru", label: "Russia" },
-    { value: "za", label: "South Africa" },
-    { value: "kr", label: "South Korea" },
-    { value: "ar", label: "Argentina" },
-    { value: "nl", label: "Netherlands" },
-    { value: "se", label: "Sweden" },
-    { value: "ch", label: "Switzerland" }
-];
 
 interface SelectModalProps {
     isOpen: boolean;
@@ -52,15 +34,51 @@ export const SelectModal: React.FC<SelectModalProps> = ({
 }) => {
     const [search, setSearch] = useState("");
     const [localSelectedValue, setLocalSelectedValue] = useState<string>("");
+    const isScrolled = useSelector((state: RootState) =>
+        selectModalState(state, ModalType.SELECT)?.isScrolled
+    );
     const [isBottom, setIsBottom] = useState(false);
-
+    const dispatch = useAppDispatch()
+    const contentRef = useRef<HTMLDivElement>(null);
     // Реф на прокручиваемый контейнер, чтобы отслеживать scroll
     const scrollableRef = useRef<HTMLDivElement | null>(null);
 
     // Фильтрация списка по полю search
-    const filteredOptions = countries.filter((item) =>
+    const filteredOptions = items.filter((item) =>
         item.label.toLowerCase().includes(search.toLowerCase())
     );
+
+
+
+    useEffect(() => {
+        const handleScroll = () => {
+            if (contentRef.current) {
+                const { scrollTop, scrollHeight, clientHeight } = contentRef.current;
+                const atBottom = Math.abs(scrollTop + clientHeight - scrollHeight) < 1;
+
+                setIsBottom(atBottom); // Обновляем состояние
+                dispatch(
+                    setModalScrolled({
+                        type: ModalType.SELECT,
+                        isScrolled: scrollTop > 0,
+                    })
+                );
+            }
+        };
+
+        const content = contentRef.current;
+        if (content) {
+            content.addEventListener("scroll", handleScroll);
+            handleScroll(); // Проверяем сразу после открытия модалки
+        }
+
+        return () => {
+            if (content) {
+                content.removeEventListener("scroll", handleScroll);
+            }
+        };
+    }, [dispatch]);
+
 
     // При выборе опции — запоминаем значение
     const handleSelectOption = (optionValue: string) => {
@@ -78,28 +96,6 @@ export const SelectModal: React.FC<SelectModalProps> = ({
         onClose();
     };
 
-    // Функция определения, достигли ли низа контейнера
-    const handleScroll = () => {
-        if (!scrollableRef.current) {
-            return;
-        }
-        const { scrollTop, scrollHeight, clientHeight } = scrollableRef.current;
-        const atBottom = scrollTop + clientHeight >= scrollHeight;
-        setIsBottom(atBottom);
-    };
-
-    // Вешаем и снимаем обработчик скролла
-    useEffect(() => {
-        const scrollEl = scrollableRef.current;
-        if (scrollEl) {
-            scrollEl.addEventListener("scroll", handleScroll);
-        }
-        return () => {
-            if (scrollEl) {
-                scrollEl.removeEventListener("scroll", handleScroll);
-            }
-        };
-    }, []);
 
     return (
         <Modal
@@ -110,7 +106,13 @@ export const SelectModal: React.FC<SelectModalProps> = ({
             onClose={onClose}
             withCloseIcon
         >
-            <div className={styles.modalContent} >
+            <div
+                className={`
+          ${styles.modalContent} 
+          ${isScrolled && styles.modalContent__shadow_top} 
+            `}
+                ref={contentRef}
+                style={{ overflow: "auto" }}>
                 <Input
                     type="search"
                     placeholder="Поиск"

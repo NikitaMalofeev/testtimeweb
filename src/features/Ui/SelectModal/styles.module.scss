@@ -94,3 +94,9 @@
     // Тень для «не доскролено до низа»
     box-shadow: 0px -1px 13.4px 0px #00000026;
 }
+
+.modalContent__shadow_top {
+
+    border-radius: 0 0 40px 40px;
+    box-shadow: inset 0px 10px 13.4px -5px rgba(0, 0, 0, 0.15);
+}

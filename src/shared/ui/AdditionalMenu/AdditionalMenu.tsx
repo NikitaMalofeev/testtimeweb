@@ -58,9 +58,6 @@ export const AdditionalMenu: React.FC<AdditionalMenuProps> = ({ onClose, title, 
 
 
             if (scrollHeight > clientHeight) {
-                console.log(
-                    'пытаюсь установить скролл'
-                )
                 dispatch(setIsBottom(false))
             }
         }

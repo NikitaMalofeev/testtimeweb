@@ -4,8 +4,8 @@ import {
     ConfirmationCodeData,
     NeedHelpData
 } from "../model/types";
-import { getAllSelects, postConfirmationCode, postIdentificationData, postNeedHelpRequest, postResendConfirmationCode } from "shared/api/RiskProfileApi/riskProfileApi";
-import { setUserId } from "entities/User/slice/userSlice";
+import { getAllSelects, postConfirmationCode, postFirstRiskProfile, postIdentificationData, postNeedHelpRequest, postResendConfirmationCode } from "shared/api/RiskProfileApi/riskProfileApi";
+import { setUserId, setUserToken } from "entities/User/slice/userSlice";
 import { setConfirmationEmailSuccess, setConfirmationPhoneSuccess, setConfirmationStatusSuccess, setConfirmationWhatsappSuccess } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
 import { RootState } from "app/providers/store/config/store";
@@ -53,8 +53,9 @@ export const createRiskProfile = createAsyncThunk<
     async (data, { dispatch, rejectWithValue }) => {
         try {
             const response = await postIdentificationData(data);
-            const { id } = response;
+            const { id, token } = response;
             dispatch(setUserId(id));
+            dispatch(setUserToken(token));
         } catch (error: any) {
             if (error.response.data.password) {
                 dispatch(setError(error.response.data.password))
@@ -71,6 +72,25 @@ export const createRiskProfile = createAsyncThunk<
         }
     }
 );
+
+export const postFirstRiskProfileForm = createAsyncThunk<
+    void,
+    Record<string, string>,
+    { state: RootState; rejectValue: string }
+>("riskProfile/requestNeedHelp", async (data, { getState, rejectWithValue }) => {
+    try {
+        const token = getState().user.token;
+        if (!token) {
+            return rejectWithValue("Отсутствует токен авторизации");
+        }
+        await postFirstRiskProfile(data, token);
+    } catch (error: any) {
+        return rejectWithValue(
+            error.response?.data?.message || "Ошибка при отправке данных"
+        );
+    }
+});
+
 
 export const fetchAllSelects = createAsyncThunk<
     any,
@@ -362,10 +382,10 @@ const riskProfileSlice = createSlice({
         updateFieldValue: (state, action: PayloadAction<{ name: string; value: string }>) => {
             state.formValues[action.payload.name] = action.payload.value;
         },
-        nextStep(state) {
+        nextRiskProfileStep(state) {
             state.stepsFirstForm.currentStep += 1;
         },
-        prevStep(state) {
+        prevRiskProfileStep(state) {
             if (state.stepsFirstForm.currentStep > 0) {
                 state.stepsFirstForm.currentStep -= 1;
             }
@@ -430,5 +450,5 @@ const riskProfileSlice = createSlice({
     },
 });
 
-export const { updateFieldValue, nextStep, prevStep } = riskProfileSlice.actions;
+export const { updateFieldValue, nextRiskProfileStep, prevRiskProfileStep } = riskProfileSlice.actions;
 export default riskProfileSlice.reducer;

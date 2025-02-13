@@ -47,6 +47,21 @@ export const postNeedHelpRequest = async (data: NeedHelpData) => {
     return response.data;
 };
 
+export const postFirstRiskProfile = async (data: Record<string, string>, token: string) => {
+    const response = await axios.post(
+        `${apiUrl}create_doc_user/second_risk_profiling/`,
+        data,
+        {
+            headers: {
+                "Accept-Language": "ru",
+                "Content-Type": "application/json",
+                "Authorization": `Token ${token}`,
+            },
+        }
+    );
+    return response.data;
+};
+
 export const getAllSelects = async () => {
     const response = await axios.get(`${apiUrl}create_doc_user/get_all_selects/`, {
         headers: {

@@ -5,11 +5,13 @@ import { ProblemsRequestData, sendProblemsRequest } from "shared/api/userApi/use
 
 interface UserState {
     userId: string | null;
+    token: string,
     user: userType
 }
 
 const initialState: UserState = {
     userId: null,
+    token: '',
     user: {
         phone: '',
         email: '',
@@ -43,11 +45,14 @@ export const userSlice = createSlice({
         setUserId: (state, action: PayloadAction<string>) => {
             state.userId = action.payload;
         },
+        setUserToken: (state, action: PayloadAction<string>) => {
+            state.token = action.payload;
+        },
         setUserData: (state, action: PayloadAction<userType>) => {
             state.user = action.payload
         }
     },
 });
 
-export const { setUserId, setUserData } = userSlice.actions;
+export const { setUserId, setUserData, setUserToken } = userSlice.actions;
 export default userSlice.reducer;

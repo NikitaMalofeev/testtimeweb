@@ -4,8 +4,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
 import {
     fetchAllSelects,
-    nextStep,
-    prevStep,
+    nextRiskProfileStep,
+    postFirstRiskProfileForm,
+    prevRiskProfileStep,
     updateFieldValue,
 } from "entities/RiskProfile/slice/riskProfileSlice";
 import styles from "./styles.module.scss";
@@ -16,6 +17,8 @@ import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { Input } from "shared/ui/Input/Input";
 import { Loader } from "shared/ui/Loader/Loader";
 import { Select } from "shared/ui/Select/Select";
+import { nextStep } from "entities/ui/Ui/slice/uiSlice";
+import { useAppDispatch } from "shared/hooks/useAppDispatch";
 
 interface Question {
     name: string;
@@ -27,7 +30,7 @@ interface Question {
 }
 
 export const RiskProfileFirstForm: React.FC = () => {
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const { loading, error, riskProfileSelectors, formValues } = useSelector(
         (state: RootState) => state.riskProfile
     );
@@ -162,10 +165,11 @@ export const RiskProfileFirstForm: React.FC = () => {
 
     const goNext = () => {
         if (isLastStep) {
-            formik.handleSubmit();
+            dispatch(postFirstRiskProfileForm(formik.values))
+            dispatch(nextStep())
         } else {
             setCurrentStep((prev) => prev + 1);
-            dispatch(nextStep());
+            dispatch(nextRiskProfileStep());
         }
     };
 
@@ -174,7 +178,7 @@ export const RiskProfileFirstForm: React.FC = () => {
             dispatch(closeModal(ModalType.IDENTIFICATION));
         } else {
             setCurrentStep((prev) => prev - 1);
-            dispatch(prevStep());
+            dispatch(prevRiskProfileStep());
         }
     };
 

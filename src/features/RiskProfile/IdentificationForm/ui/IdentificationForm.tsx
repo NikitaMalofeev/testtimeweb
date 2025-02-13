@@ -56,7 +56,6 @@ const IdentificationProfileForm: React.FC = () => {
             firstName: Yup.string().required("Имя обязательно"),
             email: Yup.string().required("E-mail обязательно"),
             phone: Yup.string()
-                .matches(/^\+7\d{10}$/, "Некорректный номер телефона")
                 .required("Номер в формате +"),
             password: Yup.string()
                 .min(8, "Пароль минимум 8 символов")

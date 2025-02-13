@@ -15,7 +15,7 @@ interface UiState {
 }
 const initialState: UiState = {
     additionalMenu: {
-        currentStep: 0,
+        currentStep: 2,
     },
     confirmationStatusSuccess: false,
     confirmationPhoneSuccess: '',

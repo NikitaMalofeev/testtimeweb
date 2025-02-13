@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { ReactElement, useState } from "react";
 import styles from "./styles.module.scss";
 import { Icon } from "shared/ui/Icon/Icon";
 import QuestionIcon from 'shared/assets/svg/question.svg';
@@ -6,11 +6,27 @@ import WhiteQuestionIcon from 'shared/assets/svg/questionWhite.svg';
 import { classNames, Mods } from "shared/lib/helpers/classNames/classNames";
 
 interface TooltipProps {
-    description: string | boolean;
+    description: string | boolean | ReactElement;
     className?: string;
+    positionBox: {
+        top: string,
+        left?: string,
+        right?: string
+    }
+    topForCenteringIcons: string;
+    squerePosition?: {
+        top: string,
+        left?: string,
+        right?: string
+    }
+    bigContentSquerePosition?: {
+        top: string,
+        left?: string,
+        right?: string
+    }
 }
 
-export const Tooltip = ({ description, className }: TooltipProps) => {
+export const Tooltip = ({ description, className, positionBox, topForCenteringIcons, bigContentSquerePosition, squerePosition }: TooltipProps) => {
     const [isHovered, setIsHovered] = useState(false);
 
     const mods: Mods = {
@@ -31,9 +47,9 @@ export const Tooltip = ({ description, className }: TooltipProps) => {
             )}
 
             {isHovered && (
-                <div className={styles.tooltip__box}>
+                <div className={styles.tooltip__box} style={positionBox}>
                     <div className={styles.tooltip__content}>{description}</div>
-                    <div className={styles.tooltip__square} />
+                    <div className={styles.tooltip__square} style={squerePosition ?? bigContentSquerePosition} />
                 </div>
             )}
         </div>

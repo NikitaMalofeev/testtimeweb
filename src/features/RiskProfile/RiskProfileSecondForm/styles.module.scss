@@ -1,0 +1,61 @@
+.buttons {
+    position: fixed;
+    background-color: white;
+    padding: 16px 20px;
+    bottom: 51px;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    gap: 23px;
+    width: 100%;
+    z-index: 1;
+}
+
+.button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18.5px 23px;
+    max-width: 40vw;
+    width: 100%;
+}
+
+.button_back {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18.5px 23px;
+    max-width: 40vw;
+    width: 100%;
+    font-weight: 500;
+    color: #045FDD;
+}
+
+.balans {
+    margin-right: 4px;
+}
+
+.form {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    justify-content: start;
+    flex-grow: 1;
+    scrollbar-width: none;
+}
+
+.form__form {
+    display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        width: 100%;
+        flex-grow: 1;
+        margin-bottom: 67px;
+}
+
+.form__container {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+}

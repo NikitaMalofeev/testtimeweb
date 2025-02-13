@@ -14,7 +14,7 @@ export interface ProblemsRequestData {
 const apiUrl = import.meta.env.VITE_RANKS_TEST_API_URL;
 
 export const sendProblemsRequest = async (data: ProblemsRequestData) => {
-    const response = await axios.post(`${apiUrl}create_doc_user/check_confirmation_code/`, data, {
+    const response = await axios.post(`${apiUrl}create_doc_user/need_help/`, data, {
         headers: {
             "Accept-Language": "ru",
             "Content-Type": "application/json",

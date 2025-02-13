@@ -1,0 +1,30 @@
+.description {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.description__container {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.description__title {
+    font-family: var(--font-inter);
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 14.52px;
+    letter-spacing: 0%;
+    color: #989898;
+
+}
+
+.description__value {
+    font-family: var(--font-inter);
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 16.94px;
+    letter-spacing: 0%;
+    color: #0F0E0E;
+}

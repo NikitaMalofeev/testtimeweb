@@ -12,7 +12,7 @@ interface AdditionalMenuProps {
     onClose: () => void;
     title: string;
     content: ReactElement;
-    description: string | boolean;
+    description: string | boolean | ReactElement;
 }
 
 export const AdditionalMenu: React.FC<AdditionalMenuProps> = ({ onClose, title, content, description }) => {
@@ -78,7 +78,7 @@ export const AdditionalMenu: React.FC<AdditionalMenuProps> = ({ onClose, title, 
                 <div className={`${styles.header} ${hasScrolled ? styles.shadow : ""}`}>
                     <span className={styles.header__steps}>{steps[currentStep]}</span>
                     <h2 className={styles.header__title}>{title}</h2>
-                    <Tooltip description={description} className={`${styles.header__tooltip} ${hasScrolled ? styles.header__tooltip_scrolled : ""}`} />
+                    <Tooltip positionBox={{ top: '26px', left: '-264px' }} bigContentSquerePosition={currentStep === 2 ? { top: '32px', left: '241px' } : { top: '15px', left: '241px' }} topForCenteringIcons='24px' description={description} className={`${styles.header__tooltip} ${hasScrolled ? styles.header__tooltip_scrolled : ""}`} />
                 </div>
 
                 {content}

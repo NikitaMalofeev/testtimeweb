@@ -4,6 +4,7 @@ import { RootState } from "app/providers/store/config/store";
 import IdentificationProfileForm from "features/RiskProfile/IdentificationForm/ui/IdentificationForm";
 import { RiskProfileFirstForm } from "features/RiskProfile/RiskProfileFirstForm/RiskProfileFirstForm";
 import styles from './styles.module.scss'
+import { RiskProfileSecondForm } from "features/RiskProfile/RiskProfileSecondForm/RiskProfileSecondForm";
 
 interface WithStepContentProps {
     onClose: () => void;
@@ -12,7 +13,7 @@ interface WithStepContentProps {
 const stepTitles = [
     "Идентификация",
     "Риск-профилирование",
-    "Данные пользователя",
+    "Уточнение риск профиля",
     "Выбор настроек",
     "Подтверждение"
 ];
@@ -20,7 +21,7 @@ const stepTitles = [
 const stepContents = [
     <IdentificationProfileForm />,
     <RiskProfileFirstForm />,
-    <p>Заполните информацию о себе</p>,
+    <RiskProfileSecondForm />,
     <p>Настройте параметры</p>,
     <p>Подтвердите и завершите</p>
 ];
@@ -28,14 +29,23 @@ const stepContents = [
 const stepTooltipDescriptions = [
     'Настройка параметров защиты цифрового профиля от несанкционированного доступа',
     'Пройдите анкетирование для определения вашего инвестиционного профиля',
-    '',
+    <div className={styles.description}>
+        <div className={styles.description__container}>
+            <span className={styles.description__title}>Текущий риск профиль</span>
+            <span className={styles.description__value}>Консервативный</span>
+        </div>
+        <div className={styles.description__container}>
+            <span className={styles.description__title}>Максимально допустимый риск профиль</span>
+            <span className={styles.description__value}>Значение с бека</span>
+        </div>
+    </ div>,
     '',
     ''
 ]
 
 
 
-const withStepContent = (Component: React.FC<{ onClose: () => void; title: string; content: ReactElement, description: string | boolean }>) => {
+const withStepContent = (Component: React.FC<{ onClose: () => void; title: string; content: ReactElement, description: string | boolean | ReactElement }>) => {
     return ({ onClose }: WithStepContentProps) => {
         const currentStep = useSelector((state: RootState) => state.ui.additionalMenu.currentStep);
 

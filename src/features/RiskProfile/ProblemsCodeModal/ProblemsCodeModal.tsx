@@ -24,14 +24,14 @@ export const ProblemsCodeModal = memo(({ isOpen, onClose }: ConfirmInfoModalProp
     const userId = useSelector((state: RootState) => state.user.userId);
 
     const [checkboxes, setCheckboxes] = useState({
-        phoneCode: false,
-        whatsappCode: false,
-        invalidCode: false,
+        is_phone_code_not_received: false,
+        is_email_code_not_received: false,
+        is_invalid_code_received: false,
     });
 
     const [description, setDescription] = useState("");
 
-    type CheckboxKey = "phoneCode" | "whatsappCode" | "invalidCode";
+    type CheckboxKey = "is_phone_code_not_received" | "is_email_code_not_received" | "is_invalid_code_received";
 
     const handleCheckboxChange = (name: CheckboxKey) => {
         setCheckboxes((prev) => ({
@@ -51,9 +51,9 @@ export const ProblemsCodeModal = memo(({ isOpen, onClose }: ConfirmInfoModalProp
             screen: 'code_confirmation',
             email,
             phone,
-            is_phone_code_not_received: checkboxes.phoneCode,
-            is_email_code_not_received: checkboxes.whatsappCode,
-            is_invalid_code_received: checkboxes.invalidCode,
+            is_phone_code_not_received: checkboxes.is_phone_code_not_received,
+            is_email_code_not_received: checkboxes.is_email_code_not_received,
+            is_invalid_code_received: checkboxes.is_invalid_code_received,
             description,
         };
 
@@ -76,20 +76,20 @@ export const ProblemsCodeModal = memo(({ isOpen, onClose }: ConfirmInfoModalProp
             <div className={styles.modalContent}>
                 <Checkbox
                     name="phoneCode"
-                    value={checkboxes.phoneCode}
-                    onChange={() => handleCheckboxChange("phoneCode")}
+                    value={checkboxes.is_phone_code_not_received}
+                    onChange={() => handleCheckboxChange("is_phone_code_not_received")}
                     label={<span>Не приходит код на телефон</span>}
                 />
                 <Checkbox
                     name="whatsappCode"
-                    value={checkboxes.whatsappCode}
-                    onChange={() => handleCheckboxChange("whatsappCode")}
-                    label={<span>Не приходит код на WhatsApp</span>}
+                    value={checkboxes.is_email_code_not_received}
+                    onChange={() => handleCheckboxChange("is_email_code_not_received")}
+                    label={<span>Не приходит код на почту</span>}
                 />
                 <Checkbox
                     name="invalidCode"
-                    value={checkboxes.invalidCode}
-                    onChange={() => handleCheckboxChange("invalidCode")}
+                    value={checkboxes.is_invalid_code_received}
+                    onChange={() => handleCheckboxChange("is_invalid_code_received")}
                     label={<span>Код неверный</span>}
                 />
 

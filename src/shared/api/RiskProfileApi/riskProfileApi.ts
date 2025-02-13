@@ -47,7 +47,7 @@ export const postNeedHelpRequest = async (data: NeedHelpData) => {
     return response.data;
 };
 
-export const postFirstRiskProfile = async (data: Record<string, string>, token: string) => {
+export const postFirstRiskProfile = async (data: Record<string, string | boolean>, token: string) => {
     const response = await axios.post(
         `${apiUrl}create_doc_user/second_risk_profiling/`,
         data,

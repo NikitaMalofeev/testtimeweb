@@ -77,19 +77,31 @@ export const postFirstRiskProfileForm = createAsyncThunk<
     void,
     Record<string, string>,
     { state: RootState; rejectValue: string }
->("riskProfile/requestNeedHelp", async (data, { getState, rejectWithValue }) => {
-    try {
-        const token = getState().user.token;
-        if (!token) {
-            return rejectWithValue("Отсутствует токен авторизации");
+>(
+    "riskProfile/requestNeedHelp",
+    async (data, { getState, rejectWithValue }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+
+            // Приводим значение "true"/"false" к булевому значению:
+            const transformedData = {
+                ...data,
+                // Здесь, если строка равна "true", получим true, иначе – false.
+                is_qualified_investor_status: data.is_qualified_investor_status === "true",
+            };
+
+            await postFirstRiskProfile(transformedData, token);
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message || "Ошибка при отправке данных"
+            );
         }
-        await postFirstRiskProfile(data, token);
-    } catch (error: any) {
-        return rejectWithValue(
-            error.response?.data?.message || "Ошибка при отправке данных"
-        );
     }
-});
+);
+
 
 
 export const fetchAllSelects = createAsyncThunk<

@@ -334,6 +334,9 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                     {renderFirstFormText()}
 
                     <Tooltip
+                        positionBox={{ top: '26px', left: '-264px' }}
+                        squerePosition={{ top: '15px', left: '241px' }}
+                        topForCenteringIcons="24px"
                         className={styles.modalContent__tooltip}
                         description="Настройка параметров защиты цифрового профиля от несанкционированного доступа"
                     />
@@ -392,6 +395,9 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                         </span>
 
                         <Tooltip
+                            positionBox={{ top: '26px', left: '-264px' }}
+                            squerePosition={{ top: '15px', left: '241px' }}
+                            topForCenteringIcons="24px"
                             className={styles.modalContent__tooltip}
                             description="Настройка параметров защиты цифрового профиля от несанкционированного доступа"
                         />

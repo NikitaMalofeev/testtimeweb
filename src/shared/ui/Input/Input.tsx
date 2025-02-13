@@ -108,9 +108,20 @@ export const Input: React.FC<InputProps> = ({
                                         name={name}
                                         value={value}
                                         onChange={(e) => {
-                                            // Оставляем только цифры
+                                            const { name: fieldName } = e.target;
                                             const numericValue = e.target.value.replace(/\D/g, "");
-                                            onChange({ ...e, target: { ...e.target, value: numericValue } });
+
+                                            // Формируем новый объект события:
+                                            const newEvent = {
+                                                ...e,
+                                                target: {
+                                                    ...e.target,
+                                                    name: fieldName,    // <- ЯВНО передаём name
+                                                    value: numericValue,
+                                                },
+                                            };
+                                            // Передаём его дальше
+                                            onChange(newEvent as React.ChangeEvent<HTMLInputElement>);
                                         }}
                                         onFocus={handleFocus}
                                         onBlur={handleBlur}

@@ -173,7 +173,7 @@ const IdentificationProfileForm: React.FC = () => {
                     value={formik.values.middleName}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
-                    placeholder="Отчество"
+                    placeholder="Отчество (при наличии)"
                     type="text"
                 />
                 <Input

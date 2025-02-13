@@ -24,8 +24,8 @@
 }
 
 .label.active {
+    position: absolute;
     top: -2px;
-    z-index: 1;
     left: 0;
     font-size: 14px;
     color: #989898;
@@ -85,8 +85,10 @@
 }
 
 .input_search {
+    position: relative;
     display: flex;
     align-items: center;
+
 }
 
 .input__search__icon {

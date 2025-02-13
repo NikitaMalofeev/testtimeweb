@@ -16,7 +16,6 @@ import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { Input } from "shared/ui/Input/Input";
 import { Loader } from "shared/ui/Loader/Loader";
 import { Select } from "shared/ui/Select/Select";
-import { SelectModal } from "features/Ui/SelectModal/SelectModal";
 
 interface Question {
     name: string;
@@ -24,19 +23,15 @@ interface Question {
     placeholder?: string;
     needTextField?: boolean;
     options?: Record<string, string>;
-    fieldType?: "text" | "textarea" | "checkboxGroup" | "customSelect";
+    fieldType?: "text" | "textarea" | "checkboxGroup" | "customSelect" | "numberinput";
 }
-
-// ...
 
 export const RiskProfileFirstForm: React.FC = () => {
     const dispatch = useDispatch();
     const { loading, error, riskProfileSelectors, formValues } = useSelector(
         (state: RootState) => state.riskProfile
     );
-    const isBottom = useSelector(
-        (state: RootState) => state.ui.isScrollToBottom
-    );
+    const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
     const [currentStep, setCurrentStep] = useState(0);
 
     useEffect(() => {
@@ -76,13 +71,7 @@ export const RiskProfileFirstForm: React.FC = () => {
     const questions: Question[] = useMemo(() => {
         if (!riskProfileSelectors) return [];
 
-        /**
-         * 1) Сначала вставим вопрос про гражданство (customSelect):
-         *    - name: 'citizenship'
-         *    - label: 'Гражданство, в том числе ВНЖ'
-         *    - options: riskProfileSelectors.countries
-         *    - fieldType: 'customSelect'
-         */
+        // 1) Вопрос про гражданство (customSelect)
         const citizenshipQuestion: Question = {
             name: "citizenship",
             label: "Гражданство, в том числе ВНЖ",
@@ -91,12 +80,7 @@ export const RiskProfileFirstForm: React.FC = () => {
             options: riskProfileSelectors.countries,
         };
 
-        /**
-         * 2) Все остальные вопросы, идущие из объекта,
-         *    кроме 'countries', нам нужно обработать как раньше.
-         *    (Проверяем, что key !== 'countries', т.к. 'countries'
-         *    мы используем только для гражданства.)
-         */
+        // 2) Вопросы с сервера (кроме countries), обрабатываем как checkboxGroup
         const serverQuestions: Question[] = Object.entries(riskProfileSelectors)
             .filter(([key]) => key !== "countries")
             .map(([key, value]) => ({
@@ -104,10 +88,9 @@ export const RiskProfileFirstForm: React.FC = () => {
                 label: getLabelByKey(key),
                 options: value,
                 fieldType: "checkboxGroup",
-                // Для простоты считаем, что всё остальное — чекбокс-группа
             }));
 
-        // Дополнительные текстовые вопросы
+        // 3) Дополнительные вопросы (trusted_person и т.д.)
         const extraTextQuestions: Question[] = [
             {
                 name: "trusted_person",
@@ -122,17 +105,16 @@ export const RiskProfileFirstForm: React.FC = () => {
                 label:
                     "Ожидаемая доходность по результатам инвестирования (% годовых)",
                 placeholder: "Укажите ожидаемую доходность, %",
-                fieldType: "text",
+                fieldType: "numberinput",
             },
             {
                 name: "max_allowable_drawdown",
                 label: "Максимальная допустимая просадка",
                 placeholder: "Укажите допустимую просадку, %",
-                fieldType: "text",
+                fieldType: "numberinput",
             },
         ];
 
-        // Формируем итоговый массив, где первым идёт вопрос о гражданстве
         return [
             citizenshipQuestion,
             ...extraTextQuestions,
@@ -155,16 +137,19 @@ export const RiskProfileFirstForm: React.FC = () => {
         }
     }, [formik.values]);
 
+    // Для чекбоксов
     const handleCheckboxGroupChange = (name: string, selectedValue: string) => {
         formik.setFieldValue(name, selectedValue);
         dispatch(updateFieldValue({ name, value: selectedValue }));
     };
 
+    // Для остальных полей
     const handleTextInputChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => {
-        formik.handleChange(e);
-        dispatch(updateFieldValue({ name: e.target.name, value: e.target.value }));
+        const { name, value } = e.target;
+        formik.setFieldValue(name, value);
+        dispatch(updateFieldValue({ name, value }));
     };
 
     if (loading) return <Loader />;
@@ -193,34 +178,124 @@ export const RiskProfileFirstForm: React.FC = () => {
         }
     };
 
-    // Функция рендера поля вопроса
+    // Проверка, заполнен ли вопрос
+    const isQuestionAnswered = (question: Question) => {
+        // Если "trusted_person" — смотрим три вложенных поля
+        if (question.name === "trusted_person") {
+            return (
+                formik.values.trusted_person_fio &&
+                formik.values.trusted_person_phone &&
+                formik.values.trusted_person_other_contact
+            );
+        }
+
+        // Если чекбокс-группа — проверяем наличие выбранного значения
+        if (question.fieldType === "checkboxGroup") {
+            return (
+                formik.values[question.name] &&
+                formik.values[question.name].length > 0
+            );
+        }
+
+        // Если кастомный селект
+        if (question.fieldType === "customSelect") {
+            return formik.values[question.name];
+        }
+
+        // Если numberinput
+        if (question.fieldType === "numberinput") {
+            return (
+                formik.values[question.name] !== undefined &&
+                formik.values[question.name] !== ""
+            );
+        }
+
+        // Иначе — просто проверяем, что поле заполнено
+        return !!formik.values[question.name];
+    };
+
+    // Рендер поля вопроса
     const renderQuestionField = (question: Question) => {
-        // 1. Если вопрос — кастомный селект (citizenship)
-        if (question.fieldType === "customSelect" && question.options) {
-            // Преобразуем { key: value } -> [{value: key, label: value}, ...]
-            const selectItems = Object.entries(question.options).map(
-                ([optKey, optLabel]) => ({
-                    value: optKey,
-                    label: optLabel,
+        // 1) Вопрос "trusted_person" => 3 инпута
+        if (question.name === "trusted_person") {
+            return (
+                <>
+                    <Input
+                        placeholder="Введите ФИО"
+                        name="trusted_person_fio"
+                        type="text"
+                        value={formik.values.trusted_person_fio || ""}
+                        onChange={handleTextInputChange}
+                    />
+                    <Input
+                        placeholder="Введите номер телефона"
+                        name="trusted_person_phone"
+                        type="text"
+                        value={formik.values.trusted_person_phone || ""}
+                        onChange={handleTextInputChange}
+                    />
+                    <Input
+                        placeholder="Дополнительная контактная информация"
+                        name="trusted_person_other_contact"
+                        type="text"
+                        value={formik.values.trusted_person_other_contact || ""}
+                        onChange={handleTextInputChange}
+                    />
+                </>
+            );
+        }
+
+        // 2) Вопрос гражданства (customSelect) => 2 селекта
+        if (question.name === "citizenship") {
+            const countryOptions = Object.entries(question.options || {}).map(
+                ([key, value]) => ({
+                    value: key,
+                    label: value,
                 })
             );
 
             return (
-                <Select
-                    label={question.label}
-                    value={formik.values[question.name] || ""}
-                    title="Выберите страну"
-                    needValue={question.name === 'citizenship'}
-                    items={selectItems}
-                    onChange={(selectedVal) => {
-                        formik.setFieldValue(question.name, selectedVal);
-                        dispatch(updateFieldValue({ name: question.name, value: selectedVal }));
-                    }}
-                />
+                <>
+                    <Select
+                        label="Гражданство"
+                        needValue
+                        value={formik.values.citizenship || ""}
+                        title="Выберите страну"
+                        items={countryOptions}
+                        onChange={(selectedVal) => {
+                            formik.setFieldValue("citizenship", selectedVal);
+                            dispatch(
+                                updateFieldValue({
+                                    name: "citizenship",
+                                    value: selectedVal,
+                                })
+                            );
+                        }}
+                    />
+                    <Select
+                        needValue={false}
+                        label="Вид на жительство"
+                        value={formik.values.residence_permit || ""}
+                        title="Выберите статус"
+                        items={countryOptions}
+                        onChange={(selectedVal) => {
+                            formik.setFieldValue(
+                                "residence_permit",
+                                selectedVal
+                            );
+                            dispatch(
+                                updateFieldValue({
+                                    name: "residence_permit",
+                                    value: selectedVal,
+                                })
+                            );
+                        }}
+                    />
+                </>
             );
         }
 
-        // 2. Если вопрос — группа чекбоксов (варианты)
+        // 3) Если вопрос — чекбокс-группа
         if (question.fieldType === "checkboxGroup" && question.options) {
             return (
                 <CheckboxGroup
@@ -237,20 +312,35 @@ export const RiskProfileFirstForm: React.FC = () => {
             );
         }
 
-        // 3. Если вопрос — текстовое поле/textarea
+        // 4) Текстовое поле или textarea
         if (question.fieldType === "text" || question.fieldType === "textarea") {
             return (
                 <Input
                     placeholder={question.placeholder}
                     name={question.name}
-                    type={question.fieldType === "textarea" ? "textarea" : "text"}
+                    type={
+                        question.fieldType === "textarea" ? "textarea" : "text"
+                    }
                     value={formik.values[question.name] || ""}
                     onChange={handleTextInputChange}
                 />
             );
         }
 
-        // Фолбэк — простой Input
+        // 5) Поле для ввода чисел (numberinput)
+        if (question.fieldType === "numberinput") {
+            return (
+                <Input
+                    placeholder={question.placeholder}
+                    name={question.name}
+                    type="number"
+                    value={formik.values[question.name] || ""}
+                    onChange={handleTextInputChange}
+                />
+            );
+        }
+
+        // 6) Фолбэк — обычный Input
         return (
             <Input
                 placeholder={question.placeholder}
@@ -281,10 +371,10 @@ export const RiskProfileFirstForm: React.FC = () => {
                         {renderQuestionField(currentQuestion)}
                     </div>
                 </div>
-                <div></div>
 
                 <div
-                    className={`${styles.buttons} ${isBottom ? "" : styles.shadow}`}
+                    className={`${styles.buttons} ${isBottom ? "" : styles.shadow
+                        }`}
                 >
                     <Button
                         type="button"
@@ -300,7 +390,7 @@ export const RiskProfileFirstForm: React.FC = () => {
                         theme={ButtonTheme.BLUE}
                         onClick={goNext}
                         className={styles.button}
-                        disabled={!formik.values[currentQuestion.name]}
+                        disabled={!isQuestionAnswered(currentQuestion)}
                     >
                         {isLastStep ? "Продолжить" : "Продолжить"}
                     </Button>
@@ -309,4 +399,3 @@ export const RiskProfileFirstForm: React.FC = () => {
         </div>
     );
 };
-

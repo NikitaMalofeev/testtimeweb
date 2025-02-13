@@ -293,7 +293,7 @@ export const sendConfirmationCode = createAsyncThunk<
                     return rejectWithValue(errMsg);
                 }
             }
-            // ----- СЛУЧАЙ 3: любой другой метод (например, type_doc_EDS_agreement) -----
+            // ----- СЛУЧАЙ 3: любой другой метод (например, йц5988888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888880000000                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       я_agreement) -----
             else {
                 // Если у вас для этого метода нет отдельного флага, просто отправляем один код
                 // (или делайте отдельный флаг - зависит от вашей логики)
@@ -338,10 +338,13 @@ export const resendConfirmationCode = createAsyncThunk<
     { rejectValue: string }
 >(
     "riskProfile/resendConfirmationCode",
-    async ({ user_id, method }, { rejectWithValue, dispatch }) => {
+    async ({ user_id, method }, { rejectWithValue }) => {
         try {
-            // Подготовим разные поля под конкретный метод
-            let payload: Record<string, any> = { user_id };
+            // Подготовим body в зависимости от типа кода
+            const payload: Record<string, any> = {
+                user_id,
+            };
+
             if (method === "whatsapp") {
                 payload.type = "phone";
                 payload.type_sms_message = "WHATSAPP";
@@ -351,15 +354,18 @@ export const resendConfirmationCode = createAsyncThunk<
                 payload.type = "email";
             }
 
-            const response = await postResendConfirmationCode(payload);
-            const responseEmail = await postResendConfirmationCode('email');
+            // Единственный вызов, без второго
+            await postResendConfirmationCode(payload);
 
         } catch (error: any) {
-            // Замените обработку под ваш сценарий
-            return rejectWithValue(error.response?.data?.message || "Ошибка при повторной отправке кода");
+            return rejectWithValue(
+                error.response?.data?.message ||
+                "Ошибка при повторной отправке кода"
+            );
         }
     }
 );
+
 
 export const requestNeedHelp = createAsyncThunk<
     void,

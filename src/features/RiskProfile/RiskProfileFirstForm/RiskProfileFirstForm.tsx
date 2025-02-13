@@ -41,6 +41,10 @@ export const RiskProfileFirstForm: React.FC = () => {
         dispatch(fetchAllSelects() as any);
     }, [dispatch]);
 
+    useEffect(() => {
+        console.log(riskProfileSelectors)
+    }, [riskProfileSelectors])
+
     const getLabelByKey = (key: string) => {
         const map: Record<string, string> = {
             age_parameters: "Ваш возраст",
@@ -66,6 +70,7 @@ export const RiskProfileFirstForm: React.FC = () => {
                 "Как Вы поступите, если активы потеряют более 20% стоимости?",
             risk_profiling_int: "Результирующий риск-профиль",
             savings_level: "Информация о наличии и сумме сбережений",
+            is_qualified_investor_status: 'Есть ли у Вас статус квалифицированного инвестора?'
         };
         return map[key] || key;
     };

@@ -1,4 +1,10 @@
-import React, { memo, useState, useRef, useEffect, useLayoutEffect } from "react";
+import React, {
+    memo,
+    useState,
+    useRef,
+    useEffect,
+    useLayoutEffect
+} from "react";
 import { Modal } from "shared/ui/Modal/Modal";
 import styles from "./styles.module.scss";
 import { useSelector } from "react-redux";
@@ -31,81 +37,72 @@ interface ConfirmInfoModalProps {
     onClose: () => void;
 }
 
-/**
- * Компонент модального окна подтверждения данных.
- * 
- * Теперь:
- * - И при `whatsapp`, и при `phone` показываем две формы
- *   (первая: код по телефону/WhatsApp, вторая: код по e-mail).
- */
 export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps) => {
-    // Достаем из Redux состояние модалки
     const modalState = useSelector((state: RootState) => state.modal);
     const codeError = useSelector((state: RootState) => state.error.error);
+
+    // Состояния успеха/неуспеха подтверждения
     const phoneSuccess = useSelector((state: RootState) => state.ui.confirmationPhoneSuccess);
     const emailSuccess = useSelector((state: RootState) => state.ui.confirmationEmailSuccess);
     const whatsappSuccess = useSelector((state: RootState) => state.ui.confirmationWhatsappSuccess);
-    const [loadingConfirmationCode, setLoadingConfirmationCode] = useState(false);
 
-    // Определяем, каким методом пользователь подтверждает данные: 'whatsapp' или 'phone'
+    // Определяем метод подтверждения
     const confirmationMethod = modalState.confirmationMethod;
 
-    // Проверяем ошибки
+    // Проверяем флаги (ошибка / успех)
     const hasEmailConfirmationError = emailSuccess === "не пройдено";
     const hasWhatsAppConfirmationError = whatsappSuccess === "не пройдено";
     const hasPhoneConfirmationError = phoneSuccess === "не пройдено";
+
     const noEmailConfirmationError = emailSuccess === "пройдено";
     const noWhatsAppConfirmationError = whatsappSuccess === "пройдено";
     const noPhoneConfirmationError = phoneSuccess === "пройдено";
 
-    // Данные пользователя (номер телефона и e-mail)
+    // Данные пользователя
     const { phone, email } = useSelector((state: RootState) => state.user.user);
-
-    // Состояние таймера и оставшегося времени
-    const [timeLeft, setTimeLeft] = useState(60);
-    const [timerActive, setTimerActive] = useState(true);
-
-    // ID пользователя
     const userId = useSelector((state: RootState) => state.user.userId);
 
-    // Хук для отправки экшенов
-    const dispatch = useAppDispatch();
+    // Флаги о двойном подтверждении (телефон/whatsapp + email)
+    const isDoubleConfirmationMethod =
+        confirmationMethod === "phone" || confirmationMethod === "whatsapp";
 
-    // Реф-контейнер для отслеживания скролла внутри модалки
-    const contentRef = useRef<HTMLDivElement>(null);
+    // --------------------- 2 ТАЙМЕРА ---------------------
+    // 1) Таймер для телефона / WhatsApp
+    const [phoneTimeLeft, setPhoneTimeLeft] = useState(60);
+    const [phoneTimerActive, setPhoneTimerActive] = useState(false);
 
-    // Смотрим, заскроллена ли модалка (для теней сверху/снизу)
-    const isScrolled = useSelector((state: RootState) =>
-        selectModalState(state, ModalType.CONFIRM_CODE)?.isScrolled
-    );
+    // 2) Таймер для e-mail
+    const [emailTimeLeft, setEmailTimeLeft] = useState(60);
+    const [emailTimerActive, setEmailTimerActive] = useState(false);
 
-    // Длина кода — в данном случае фиксированная (4)
-    const codeLength = 4;
-
-    // Две формы: первая — для телефона/WhatsApp, вторая — для e-mail
-    const [smsCodeFirst, setSmsCodeFirst] = useState<string[]>(Array(codeLength).fill(""));
-    const [smsCodeSecond, setSmsCodeSecond] = useState<string[]>(Array(codeLength).fill(""));
-
-    // Рефы на инпуты, чтобы управлять фокусом
-    const inputRefsFirst = useRef<(HTMLInputElement | null)[]>([]);
-    const inputRefsSecond = useRef<(HTMLInputElement | null)[]>([]);
-
-    // Сброс содержимого инпутов при смене метода подтверждения
+    // При открытии модалки — запускаем нужные таймеры
     useEffect(() => {
-        setSmsCodeFirst(Array(codeLength).fill(""));
-        setSmsCodeSecond(Array(codeLength).fill(""));
-    }, [confirmationMethod, codeLength]);
+        if (isOpen) {
+            // Запускаем таймер для телефона/WhatsApp
+            setPhoneTimeLeft(60);
+            setPhoneTimerActive(true);
 
-    // Таймер, который отсчитывает 60 секунд
+            // Если метод двойной, сразу запускаем и таймер e-mail
+            if (isDoubleConfirmationMethod) {
+                setEmailTimeLeft(60);
+                setEmailTimerActive(true);
+            }
+        } else {
+            // Если модалка закрылась — обнуляем
+            setPhoneTimerActive(false);
+            setEmailTimerActive(false);
+        }
+    }, [isOpen, isDoubleConfirmationMethod]);
+
+    // Отсчитываем для телефона / WhatsApp
     useEffect(() => {
         let timer: NodeJS.Timeout;
-        if (isOpen && timerActive) {
-            setTimeLeft(60);
+        if (phoneTimerActive) {
             timer = setInterval(() => {
-                setTimeLeft((prev) => {
+                setPhoneTimeLeft((prev) => {
                     if (prev <= 1) {
                         clearInterval(timer);
-                        setTimerActive(false);
+                        setPhoneTimerActive(false);
                         return 0;
                     }
                     return prev - 1;
@@ -113,17 +110,83 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
             }, 1000);
         }
         return () => clearInterval(timer);
-    }, [isOpen, timerActive]);
+    }, [phoneTimerActive]);
 
-    /**
-     * Обработчики для первой формы
-     */
+    // Отсчитываем для email
+    useEffect(() => {
+        let timer: NodeJS.Timeout;
+        if (emailTimerActive) {
+            timer = setInterval(() => {
+                setEmailTimeLeft((prev) => {
+                    if (prev <= 1) {
+                        clearInterval(timer);
+                        setEmailTimerActive(false);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+        }
+        return () => clearInterval(timer);
+    }, [emailTimerActive]);
+    // -----------------------------------------------------
+
+    // Реф для скролла внутри модалки
+    const contentRef = useRef<HTMLDivElement>(null);
+    const isScrolled = useSelector((state: RootState) =>
+        selectModalState(state, ModalType.CONFIRM_CODE)?.isScrolled
+    );
+
+    useLayoutEffect(() => {
+        const handleScroll = () => {
+            if (contentRef.current) {
+                const { scrollTop } = contentRef.current;
+                dispatch(
+                    setModalScrolled({
+                        type: ModalType.CONFIRM_CODE,
+                        isScrolled: scrollTop > 0
+                    })
+                );
+            }
+        };
+        const content = contentRef.current;
+        if (content) {
+            content.addEventListener("scroll", handleScroll);
+            handleScroll();
+        }
+
+        return () => {
+            if (content) {
+                content.removeEventListener("scroll", handleScroll);
+            }
+        };
+    }, []);
+
+    // Хук для экшенов
+    const dispatch = useAppDispatch();
+
+    // Длина кода
+    const codeLength = 4;
+
+    // Инпуты для первой формы (телефон/WhatsApp)
+    const [smsCodeFirst, setSmsCodeFirst] = useState<string[]>(Array(codeLength).fill(""));
+    const inputRefsFirst = useRef<(HTMLInputElement | null)[]>([]);
+
+    // Инпуты для второй формы (email)
+    const [smsCodeSecond, setSmsCodeSecond] = useState<string[]>(Array(codeLength).fill(""));
+    const inputRefsSecond = useRef<(HTMLInputElement | null)[]>([]);
+
+    // При смене метода подтверждения сбрасываем коды
+    useEffect(() => {
+        setSmsCodeFirst(Array(codeLength).fill(""));
+        setSmsCodeSecond(Array(codeLength).fill(""));
+    }, [confirmationMethod, codeLength]);
+
+    // ---- Обработчики ввода для ПЕРВОЙ формы (телефон/whatsapp) ----
     const handleInputChangeFirst = (value: string, index: number) => {
         const newCode = [...smsCodeFirst];
         newCode[index] = value.slice(0, 1);
         setSmsCodeFirst(newCode);
-
-        // Фокус на следующий инпут, если ввели символ
         if (value && index < inputRefsFirst.current.length - 1) {
             inputRefsFirst.current[index + 1]?.focus();
         }
@@ -138,12 +201,6 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
         }
     };
 
-    const handleSuccessConfirmation = () => {
-        onClose()
-        dispatch(setTooltipActive({ active: true, message: 'Данные успешно подтверждены' }))
-        dispatch(nextStep())
-    }
-
     const handlePasteFirst = (e: React.ClipboardEvent<HTMLInputElement>) => {
         e.preventDefault();
         const pasteData = e.clipboardData.getData("text");
@@ -153,21 +210,16 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
             newCode[i] = pasteValue[i] || "";
         }
         setSmsCodeFirst(newCode);
-
         if (pasteValue.length < codeLength) {
             inputRefsFirst.current[pasteValue.length]?.focus();
         }
     };
 
-    /**
-     * Обработчики для второй формы (почта)
-     */
+    // ---- Обработчики ввода для ВТОРОЙ формы (email) ----
     const handleInputChangeSecond = (value: string, index: number) => {
         const newCode = [...smsCodeSecond];
         newCode[index] = value.slice(0, 1);
         setSmsCodeSecond(newCode);
-
-        // Фокус на следующий инпут, если ввели символ
         if (value && index < inputRefsSecond.current.length - 1) {
             inputRefsSecond.current[index + 1]?.focus();
         }
@@ -191,66 +243,40 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
             newCode[i] = pasteValue[i] || "";
         }
         setSmsCodeSecond(newCode);
-
         if (pasteValue.length < codeLength) {
             inputRefsSecond.current[pasteValue.length]?.focus();
         }
     };
 
-    // Отслеживание скролла внутри модалки, чтобы поднимать/убирать тень
-    useLayoutEffect(() => {
-        const handleScroll = () => {
-            if (contentRef.current) {
-                const { scrollTop } = contentRef.current;
-                dispatch(
-                    setModalScrolled({
-                        type: ModalType.CONFIRM_CODE,
-                        isScrolled: scrollTop > 0
-                    })
-                );
-            }
-        };
+    // ---- Повторная отправка кода для телефона / WhatsApp ----
+    const handleResetPhoneTimer = () => {
+        if (!userId) return;
+        // Отправляем код заново, метод берем из confirmationMethod (phone или whatsapp)
+        dispatch(resendConfirmationCode({ user_id: userId, method: confirmationMethod }));
 
-        const content = contentRef.current;
-        if (content) {
-            content.addEventListener("scroll", handleScroll);
-            handleScroll();
-        }
+        setPhoneTimeLeft(60);
+        setPhoneTimerActive(true);
+    };
 
-        return () => {
-            if (content) {
-                content.removeEventListener("scroll", handleScroll);
-            }
-        };
-    }, [dispatch]);
+    // ---- Повторная отправка кода для e-mail ----
+    const handleResetEmailTimer = () => {
+        if (!userId) return;
+        dispatch(resendConfirmationCode({ user_id: userId, method: "email" }));
 
-    /**
-     * Обработчик повторной отправки кода.
-     */
-    const handleResetTimer = (nativeMethod?: "phone" | "email" | "whatsapp") => {
-        if (nativeMethod && userId && confirmationMethod) {
-            dispatch(resendConfirmationCode({ user_id: userId, method: nativeMethod }));
-        }
-        if (userId && confirmationMethod) {
-            dispatch(resendConfirmationCode({ user_id: userId, method: confirmationMethod }));
-        }
-        setTimeLeft(60);
-        setTimerActive(true);
+        setEmailTimeLeft(60);
+        setEmailTimerActive(true);
     };
 
     // Проверяем заполненность форм
     const isFirstFormFilled = smsCodeFirst.every((digit) => digit !== "");
     const isSecondFormFilled = smsCodeSecond.every((digit) => digit !== "");
 
-    // И 'phone', и 'whatsapp' требуют два кода
-    const isDoubleConfirmationMethod = confirmationMethod === "phone" || confirmationMethod === "whatsapp";
-
-    // Можем ли нажать "Подтвердить"
+    // Можно ли нажать «Подтвердить»?
     const canSubmit = isDoubleConfirmationMethod
         ? (isFirstFormFilled && isSecondFormFilled)
         : isFirstFormFilled;
 
-    // Для первой формы при `whatsapp` считаем ошибку в whatsappSuccess, при `phone` — phoneSuccess
+    // Определяем, есть ли ошибка для ПЕРВОЙ формы
     const hasFirstFormError =
         confirmationMethod === "whatsapp"
             ? hasWhatsAppConfirmationError
@@ -261,7 +287,14 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
             ? noWhatsAppConfirmationError
             : noPhoneConfirmationError;
 
-    // Генерация текста для первой формы
+    // Успешная отправка => закрываем модалку, шаг + тултип
+    const handleSuccessConfirmation = () => {
+        onClose();
+        dispatch(setTooltipActive({ active: true, message: "Данные успешно подтверждены" }));
+        dispatch(nextStep());
+    };
+
+    // Текст для ПЕРВОЙ формы (phone / whatsapp)
     const renderFirstFormText = () => {
         if (confirmationMethod === "whatsapp") {
             return (
@@ -290,13 +323,13 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
         >
             <div
                 className={`
-          ${styles.modalContent} 
-          ${isScrolled && styles.modalContent__shadow_top} 
-        `}
+                    ${styles.modalContent} 
+                    ${isScrolled && styles.modalContent__shadow_top} 
+                `}
                 ref={contentRef}
                 style={{ overflow: "auto" }}
             >
-                {/** --- ПЕРВАЯ ФОРМА (телефон / WhatsApp) --- */}
+                {/* --- ПЕРВАЯ ФОРМА (телефон / WhatsApp) --- */}
                 <div className={styles.modalContent__head}>
                     {renderFirstFormText()}
 
@@ -325,7 +358,6 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                     ...(hasFirstFormError && { borderColor: "#FF3C53" }),
                                     ...(noFirstFormError && { borderColor: "#1CC15A" }),
                                 }}
-
                             />
                         ))}
                     </div>
@@ -333,20 +365,26 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                     <div
                         className={styles.modalContent__problems}
                         onClick={() => {
-                            if (timerActive) {
-                                return
-                            } else {
-                                handleResetTimer()
+                            if (!phoneTimerActive) {
+                                handleResetPhoneTimer();
                             }
                         }}
                     >
-                        <div className={styles.timer} style={!timerActive ? { color: '#0666EB' } : {}}>
-                            Отправить код снова через: 0{Math.floor(timeLeft / 60)}:
-                            {String(timeLeft % 60).padStart(2, "0")}
+                        {/* Если таймер активен, показываем отсчет, иначе активная ссылка */}
+                        <div
+                            className={styles.timer}
+                            style={!phoneTimerActive ? { color: "#0666EB" } : {}}
+                        >
+                            {phoneTimerActive
+                                ? `Отправить код снова через: 0${Math.floor(
+                                    phoneTimeLeft / 60
+                                )}:${String(phoneTimeLeft % 60).padStart(2, "0")}`
+                                : "Отправить код снова"}
                         </div>
                     </div>
                 </div>
 
+                {/* --- ВТОРАЯ ФОРМА (email) --- */}
                 {isDoubleConfirmationMethod && (
                     <div className={styles.modalContent__head}>
                         <span className={styles.modalContent__description}>
@@ -385,32 +423,38 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                         <div
                             className={styles.modalContent__problems}
                             onClick={() => {
-                                if (timerActive) {
-                                    return
-                                } else {
-                                    handleResetTimer('email')
+                                if (!emailTimerActive) {
+                                    handleResetEmailTimer();
                                 }
                             }}
                         >
-                            <div className={styles.timer} style={!timerActive ? { color: '#0666EB' } : {}}>
-                                Отправить код снова через: 0{Math.floor(timeLeft / 60)}:
-                                {String(timeLeft % 60).padStart(2, "0")}
+                            <div
+                                className={styles.timer}
+                                style={!emailTimerActive ? { color: "#0666EB" } : {}}
+                            >
+                                {emailTimerActive
+                                    ? `Отправить код снова через: 0${Math.floor(
+                                        emailTimeLeft / 60
+                                    )}:${String(emailTimeLeft % 60).padStart(2, "0")}`
+                                    : "Отправить код снова"}
                             </div>
                         </div>
                     </div>
                 )}
 
-                {/** --- НИЖНЯЯ ЧАСТЬ: таймер и кнопки --- */}
+                {/* --- Кнопки внизу --- */}
                 <div>
                     <div className={styles.buttonGroup}>
                         <Button
                             theme={ButtonTheme.UNDERLINE}
                             onClick={() => {
-                                dispatch(openModal({
-                                    type: ModalType.PROBLEM_WITH_CODE,
-                                    size: ModalSize.MINI,
-                                    animation: ModalAnimation.BOTTOM
-                                }));
+                                dispatch(
+                                    openModal({
+                                        type: ModalType.PROBLEM_WITH_CODE,
+                                        size: ModalSize.MINI,
+                                        animation: ModalAnimation.BOTTOM
+                                    })
+                                );
                             }}
                             className={styles.button}
                         >
@@ -423,12 +467,13 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                     sendConfirmationCode({
                                         user_id: userId ?? "",
                                         codeFirst: smsCodeFirst.join(""),
-                                        codeSecond: isDoubleConfirmationMethod ? smsCodeSecond.join("") : undefined,
+                                        codeSecond: isDoubleConfirmationMethod
+                                            ? smsCodeSecond.join("")
+                                            : undefined,
                                         method: confirmationMethod,
                                         onSuccess: handleSuccessConfirmation
                                     })
                                 );
-                                setLoadingConfirmationCode(true);
                             }}
                             theme={ButtonTheme.BLUE}
                             className={styles.button}

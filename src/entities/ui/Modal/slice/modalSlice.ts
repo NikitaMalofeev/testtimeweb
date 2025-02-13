@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ModalType, ModalSize, ModalAnimation, ModalState, ModalStateItem } from '../model/modalTypes';
 
 interface ExtendedModalState extends ModalState {
-    confirmationMethod: 'phone' | 'email' | 'whatsapp' | 'type_doc_EDS_agreement';
+    confirmationMethod: 'phone' | 'email' | 'whatsapp';
     selectedCountry: string; // Добавляем поле для хранения выбранной страны
 }
 
@@ -47,7 +47,7 @@ const modalSlice = createSlice({
             state[type] = { ...state[type], isOpen: true, size, animation };
         },
 
-        setCurrentConfirmModalType: (state, action: PayloadAction<'phone' | 'email' | 'whatsapp' | 'type_doc_EDS_agreement'>) => {
+        setCurrentConfirmModalType: (state, action: PayloadAction<'phone' | 'email' | 'whatsapp'>) => {
             state.confirmationMethod = action.payload;
         },
 

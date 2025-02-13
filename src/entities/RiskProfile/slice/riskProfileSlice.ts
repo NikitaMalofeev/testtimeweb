@@ -25,7 +25,7 @@ interface SendCodePayload {
     user_id: string;
     codeFirst: string;        // Код из первой формы
     codeSecond?: string;      // Код из второй формы (при методе 'phone' + email)
-    method: 'phone' | 'email' | 'whatsapp' | 'type_doc_EDS_agreement'  // Как в вашем modalSlice
+    method: 'phone' | 'email' | 'whatsapp'  // Как в вашем modalSlice
     onSuccess?: () => void;
 }
 
@@ -334,7 +334,7 @@ export const sendConfirmationCode = createAsyncThunk<
 
 export const resendConfirmationCode = createAsyncThunk<
     void,
-    { user_id: string; method: "whatsapp" | "phone" | "email" | 'type_doc_EDS_agreement' },
+    { user_id: string; method: "whatsapp" | "phone" | "email" },
     { rejectValue: string }
 >(
     "riskProfile/resendConfirmationCode",
@@ -343,7 +343,7 @@ export const resendConfirmationCode = createAsyncThunk<
             // Подготовим разные поля под конкретный метод
             let payload: Record<string, any> = { user_id };
             if (method === "whatsapp") {
-                payload.type = "type_doc_EDS_agreement";
+                payload.type = "phone";
                 payload.type_sms_message = "WHATSAPP";
             } else if (method === "phone") {
                 payload.type = "phone";

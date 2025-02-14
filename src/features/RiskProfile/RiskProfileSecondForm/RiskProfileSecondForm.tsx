@@ -72,13 +72,15 @@ export const RiskProfileSecondForm: React.FC = () => {
             <form onSubmit={formik.handleSubmit} className={styles.form__form}>
                 <div className={styles.form__container}>
                     <div className={styles.form__item}>
-                        <div>
+                        <div className={styles.form__item__balans}>
                             <span className={styles.balans}>Баланс портфеля</span>
                             <Tooltip
-                                positionBox={{ top: "8px", left: "34px" }}
-                                squerePosition={{ top: "15px", left: "-5px" }}
-                                topForCenteringIcons="8px"
+                                className={styles.form__item__tooltip}
                                 description="Средства на счете"
+                                topForCenteringIcons="24px"
+                                direction='top'
+                                squerePosition={{ bottom: '-4px' }}
+
                             />
                         </div>
                         <span>0 ₽</span>
@@ -111,10 +113,12 @@ export const RiskProfileSecondForm: React.FC = () => {
                         />
                         <div className={styles.form__item__tooltip}>
                             <Tooltip
-                                topForCenteringIcons='20px'
+                                className={styles.form__item__tooltip_specified}
                                 description='Сумма предполагаемого пополнения счета'
-                                positionBox={{ top: '26px', left: '-264px' }}
-                                squerePosition={{ top: '15px', left: '241px' }}
+                                topForCenteringIcons="24px"
+                                direction='left'
+                                positionBox={{ top: '12px', right: '32px' }}
+                                squerePosition={{ right: '-4px' }}
                             />
                         </div>
                     </div>
@@ -146,22 +150,35 @@ export const RiskProfileSecondForm: React.FC = () => {
                         />
                     </div>
                 </div>
-                <div className={styles.form__container}>
+                <div className={styles.form__container} style={{ minHeight: '74px' }}>
                     <div className={styles.form__item_potintial}>
-                        <div className={styles.form__item__potintial}>
+                        <div className={styles.form__item_potintial__container} >
                             <span className={styles.form__item__potintial__title}>Возможный убыток</span>
                             <Tooltip
                                 className={styles.form__item__tooltip}
-                                description='Возможный потенциальный убыток'
-                                positionBox={{ top: '26px', left: '-264px' }}
-                                squerePosition={{ top: '15px', left: '241px' }}
+                                description="Возможное снижение цены портфеля в момента, с учетом действующих на рынке факторов"
                                 topForCenteringIcons="24px"
+                                direction='top'
+                                squerePosition={{ bottom: '-4px' }}
                             />
                         </div>
-                        <span className={styles.form__item__potintial}>3%</span>
+                        <span className={styles.form__item__potintial__title_red}>3%</span>
                     </div>
-                    <div className={styles.form__item}>
-                        <div className={styles.form__item__potintial}></div>
+
+                </div>
+                <div className={styles.form__container} style={{ minHeight: '74px' }}>
+                    <div className={styles.form__item_potintial}>
+                        <div className={styles.form__item_potintial__container} >
+                            <span className={styles.form__item__potintial__title}>Потенциальный доход</span>
+                            <Tooltip
+                                className={styles.form__item__tooltip}
+                                description="Потенциальный доход. Складывается из потенциального роста цены бумаг, входящих в портфель, прогнозных дивидендов и купонного дохода от облигаций"
+                                topForCenteringIcons="24px"
+                                direction='top'
+                                squerePosition={{ bottom: '-4px' }}
+                            />
+                        </div>
+                        <span className={styles.form__item__potintial__title_green}>20%</span>
                     </div>
                 </div>
 

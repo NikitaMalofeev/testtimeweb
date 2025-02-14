@@ -11,16 +11,21 @@ import { Input } from "shared/ui/Input/Input";
 import { postSecondRiskProfileForm } from "entities/RiskProfile/slice/riskProfileSlice";
 
 interface SwiperParametrValues {
-    "risk_prof_conservative": 'Консервативный',
-    "risk_prof_moderate": 'Умеренный',
-    "risk_prof_aggressive": 'Агрессивный'
+    risk_prof_conservative: string;
+    risk_prof_conservative_moderately: string;
+    risk_prof_balanced: string;
+    risk_prof_aggressive_moderately: string;
+    risk_prof_aggressive: string;
+    risk_prof_aggressive_super: string;
 }
 
-// Словарь: ключ → человекочитаемое название
 const SWIPER_PARAM_VALUES: SwiperParametrValues = {
     risk_prof_conservative: 'Консервативный',
-    risk_prof_moderate: 'Умеренный',
+    risk_prof_conservative_moderately: 'Умеренно-консервативный',
+    risk_prof_balanced: 'Сбалансированный',
+    risk_prof_aggressive_moderately: 'Умеренно-агрессивный',
     risk_prof_aggressive: 'Агрессивный',
+    risk_prof_aggressive_super: 'Супер-агрессивный',
 };
 
 
@@ -28,6 +33,7 @@ export const RiskProfileSecondForm: React.FC = () => {
     const dispatch = useAppDispatch();
     const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
     const initialValuesFromRedux = useSelector((state: RootState) => state.riskProfile.secondForm);
+    const firstRiskProfileData = useSelector((state: RootState) => state.riskProfile.firstRiskProfileData);
 
     const goNext = () => dispatch(nextStep());
     const goBack = () => dispatch(prevStep());
@@ -141,7 +147,14 @@ export const RiskProfileSecondForm: React.FC = () => {
                             type="swiperDiscrete"
                             theme="gradient"                // чтобы ползунок был с градиентной обводкой
                             name="portfolio_parameters"
-                            discreteValues={["risk_prof_conservative", "risk_prof_moderate", "risk_prof_aggressive"]}
+                            discreteValues={[
+                                "risk_prof_conservative",
+                                "risk_prof_conservative_moderately",
+                                "risk_prof_balanced",
+                                "risk_prof_aggressive_moderately",
+                                "risk_prof_aggressive",
+                                "risk_prof_aggressive_super"
+                            ]}
                             value={formik.values.portfolio_parameters}
                             onChange={(e) => {
                                 // e.target.value здесь будет строка из массива discreteValues
@@ -181,6 +194,26 @@ export const RiskProfileSecondForm: React.FC = () => {
                         <span className={styles.form__item__potintial__title_green}>20%</span>
                     </div>
                 </div>
+                <div className={styles.form__container} style={{ minHeight: '74px' }}>
+                    {firstRiskProfileData && (
+                        <div>
+                            <h2>Profile Data</h2>
+                            <p><strong>Info:</strong> {firstRiskProfileData.info}</p>
+                            <p><strong>Summ:</strong> {firstRiskProfileData.summ}</p>
+                            <div>
+                                <h3>Recommended Risk Profiles:</h3>
+                                <ul>
+                                    {Object.entries(firstRiskProfileData.recommended_risk_profiles).map(([key, value]) => (
+                                        <li key={key}>
+                                            {key}: {value}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
 
                 <div className={`${styles.buttons} ${isBottom ? "" : styles.shadow}`}>
                     <Button

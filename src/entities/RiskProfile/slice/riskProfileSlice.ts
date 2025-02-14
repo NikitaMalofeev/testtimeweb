@@ -10,10 +10,17 @@ import { setConfirmationEmailSuccess, setConfirmationPhoneSuccess, setConfirmati
 import { setError } from "entities/Error/slice/errorSlice";
 import { RootState } from "app/providers/store/config/store";
 
+export interface FirstRiskProfileResponse {
+    info: string;
+    summ: number;
+    recommended_risk_profiles: Record<string, string>;
+}
+
 interface RiskProfileFormState {
     loading: boolean;
     error: string | null;
     success: boolean;
+    firstRiskProfileData: FirstRiskProfileResponse | null,
     riskProfileSelectors: RiskProfileSelectors | null
     formValues: Record<string, string>;
     stepsFirstForm: {
@@ -46,6 +53,7 @@ const initialState: RiskProfileFormState = {
     loading: false,
     error: null,
     success: false,
+    firstRiskProfileData: null,
     riskProfileSelectors: null,
     formValues: {},
     stepsFirstForm: {
@@ -115,22 +123,20 @@ export const postFirstRiskProfileForm = createAsyncThunk<
     Record<string, string>,
     { state: RootState; rejectValue: string }
 >(
-    "riskProfile/requestNeedHelp",
-    async (data, { getState, rejectWithValue }) => {
+    "riskProfile/postFirstRiskProfileForm",
+    async (data, { getState, dispatch, rejectWithValue }) => {
         try {
             const token = getState().user.token;
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");
             }
-
-            // Приводим значение "true"/"false" к булевому значению:
             const transformedData = {
                 ...data,
-                // Здесь, если строка равна "true", получим true, иначе – false.
                 is_qualified_investor_status: data.is_qualified_investor_status === "true",
             };
-
-            await postFirstRiskProfile(transformedData, token);
+            const response = await postFirstRiskProfile(transformedData, token);
+            // Обновляем state сразу: сохраняем данные ответа первой формы
+            dispatch(setFirstRiskProfileData(response));
         } catch (error: any) {
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке данных"
@@ -138,6 +144,7 @@ export const postFirstRiskProfileForm = createAsyncThunk<
         }
     }
 );
+
 
 
 
@@ -448,6 +455,13 @@ const riskProfileSlice = createSlice({
         setStep(state, action) {
             state.stepsFirstForm.currentStep = action.payload;
         },
+        setFirstRiskProfileData(state, action: PayloadAction<FirstRiskProfileResponse>) {
+            state.firstRiskProfileData = action.payload;
+        },
+        // Новый экшен для обновления данных второй формы
+        setSecondRiskProfileData(state, action: PayloadAction<SecondRiskProfilePayload>) {
+            state.secondForm = action.payload;
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -500,10 +514,10 @@ const riskProfileSlice = createSlice({
             .addCase(fetchAllSelects.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
-            });
+            })
 
     },
 });
 
-export const { updateFieldValue, nextRiskProfileStep, prevRiskProfileStep } = riskProfileSlice.actions;
+export const { updateFieldValue, nextRiskProfileStep, prevRiskProfileStep, setFirstRiskProfileData, setSecondRiskProfileData } = riskProfileSlice.actions;
 export default riskProfileSlice.reducer;

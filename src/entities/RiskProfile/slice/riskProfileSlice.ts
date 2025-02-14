@@ -61,7 +61,7 @@ const initialState: RiskProfileFormState = {
     },
     secondForm: {
         amount_expected_replenishment: 10000000,
-        portfolio_parameters: 'risk_prof_moderate'
+        portfolio_parameters: 'risk_prof_balanced'
     }
 };
 

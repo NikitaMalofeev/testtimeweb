@@ -133,6 +133,37 @@ export const Input: React.FC<InputProps> = ({
         onChange(newEvent as React.ChangeEvent<HTMLInputElement>);
     };
 
+    // Считаем количество интервалов в каждом диапазоне:
+    const range1Count = (1000000 - 500000) / 100000;       // 5 шагов
+    const range2Count = (10000000 - 1000000) / 500000;       // 18 шагов
+    const range3Count = (100000000 - 10000000) / 2000000;     // 45 шагов
+
+    // Общее число шагов (индексов) – можно использовать как max для слайдера:
+    const totalSteps = range1Count + range2Count + range3Count; // 5 + 18 + 45 = 68
+
+    // Функция, которая по значению возвращает индекс (для инициализации слайдера)
+    const mapValueToSliderIndex = (value: number): number => {
+        if (value <= 1000000) {
+            return (value - 500000) / 100000;
+        } else if (value <= 10000000) {
+            return range1Count + (value - 1000000) / 500000;
+        } else {
+            return range1Count + range2Count + (value - 10000000) / 2000000;
+        }
+    };
+
+    // Функция, которая по индексу возвращает округлённое значение
+    const mapSliderIndexToValue = (index: number): number => {
+        if (index <= range1Count) {
+            return 500000 + index * 100000;
+        } else if (index <= range1Count + range2Count) {
+            return 1000000 + (index - range1Count) * 500000;
+        } else {
+            return 10000000 + (index - range1Count - range2Count) * 2000000;
+        }
+    };
+
+
     // Автоматическое изменение высоты textarea
     useEffect(() => {
         if (type === "textarea" && textAreaRef.current) {
@@ -164,10 +195,14 @@ export const Input: React.FC<InputProps> = ({
                 {(() => {
                     // Ниже – переключение по типу
                     switch (type) {
-                        // ---------------------------------------------------
-                        //   НАШ СТАРЫЙ РЕЖИМ "SWIPER" (ЧИСЛОВОЙ ПОЛЗУНОК)
-                        // ---------------------------------------------------
+                        // Импортируем мапперы (если они вынесены в отдельный файл)
+                        // import { mapValueToSliderIndex, mapSliderIndexToValue, totalSteps } from "./sliderMapping";
+
                         case "swiper":
+                            // Вычисляем индекс слайдера по текущему значению (из строки парсим число)
+                            const currentValue = parseToNumber(value);
+                            const sliderIndex = useMemo(() => mapValueToSliderIndex(currentValue), [value]);
+
                             return (
                                 <div className={`${styles.inputWrapper} ${styles[theme]}`}>
                                     <div className={styles.swiperWrapper}>
@@ -176,22 +211,24 @@ export const Input: React.FC<InputProps> = ({
                                                 type="text"
                                                 placeholder={placeholder}
                                                 name={name}
-                                                value={value}
+                                                value={value}  // Можно показывать отформатированное значение, например через formatMoney()
                                                 disabled={disabled}
                                                 onFocus={handleFocus}
                                                 onBlur={handleBlur}
                                                 className={styles.input}
                                                 onChange={(e) => {
+                                                    // Для ручного ввода можно оставить логику парсинга,
+                                                    // либо применять mapSliderIndexToValue для округления.
                                                     const numericVal = parseToNumber(e.target.value);
-                                                    const clamped = Math.min(
-                                                        Math.max(numericVal, min),
-                                                        max
-                                                    );
+                                                    // Здесь можно округлить numericVal по вашему алгоритму,
+                                                    // например: const clamped = mapValueToSliderIndex(numericVal);
+                                                    // И потом преобразовать обратно:
+                                                    const rounded = mapSliderIndexToValue(mapValueToSliderIndex(numericVal));
                                                     const newEvent = {
                                                         ...e,
                                                         target: {
                                                             ...e.target,
-                                                            value: clamped.toString(),
+                                                            value: rounded.toString(),
                                                         },
                                                     };
                                                     onChange(newEvent as React.ChangeEvent<HTMLInputElement>);
@@ -199,24 +236,22 @@ export const Input: React.FC<InputProps> = ({
                                             />
                                         )}
 
-                                        {/** 
-                                         * Передаём новую тему (sliderTheme),
-                                         * если theme === 'gradient' — используем градиентный стиль,
-                                         * иначе будет дефолт.
-                                         */}
                                         <CustomSlider
-                                            sliderValue={numericValueForSlider}
-                                            min={min}
-                                            max={max}
-                                            step={step}
+                                            // Передаём индекс слайдера
+                                            sliderValue={sliderIndex}
+                                            min={0}
+                                            max={totalSteps}
+                                            step={1}
                                             disabled={disabled}
                                             onChange={(val: number) => {
+                                                // При изменении слайдера получаем новый индекс и преобразуем его в значение
+                                                const newValue = mapSliderIndexToValue(val);
                                                 const event = {
                                                     target: {
                                                         name: name || "",
-                                                        value: val.toString(),
+                                                        value: newValue.toString(),
                                                     },
-                                                } as unknown as React.ChangeEvent<HTMLInputElement>;
+                                                } as React.ChangeEvent<HTMLInputElement>;
                                                 onChange(event);
                                             }}
                                             sliderTheme={theme === "gradient" ? "gradient" : "default"}
@@ -236,6 +271,7 @@ export const Input: React.FC<InputProps> = ({
                                     </div>
                                 </div>
                             );
+
 
                         // -----------------------------------------------------
                         //   НОВЫЙ РЕЖИМ "SWIPERDISCRETE" (3 ШАГА/СТРОКИ И Т.П.)

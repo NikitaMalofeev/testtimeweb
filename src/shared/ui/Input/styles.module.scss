@@ -148,6 +148,14 @@ input:-moz-autofill {
 .swiperNumberInput {
     width: 100%;
 }
+
+.input__swiper__container {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    position: relative;
+    height: 63px;
+}
 /* Пример, как можно стилизовать наш новый swiper-кейс */
 .swiperWrapper {
     display: flex;

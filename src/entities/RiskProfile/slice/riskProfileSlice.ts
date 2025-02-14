@@ -4,7 +4,7 @@ import {
     ConfirmationCodeData,
     NeedHelpData
 } from "../model/types";
-import { getAllSelects, postConfirmationCode, postFirstRiskProfile, postIdentificationData, postNeedHelpRequest, postResendConfirmationCode } from "shared/api/RiskProfileApi/riskProfileApi";
+import { getAllSelects, postConfirmationCode, postFirstRiskProfile, postIdentificationData, postNeedHelpRequest, postResendConfirmationCode, postSecondRiskProfile } from "shared/api/RiskProfileApi/riskProfileApi";
 import { setUserId, setUserToken } from "entities/User/slice/userSlice";
 import { setConfirmationEmailSuccess, setConfirmationPhoneSuccess, setConfirmationStatusSuccess, setConfirmationWhatsappSuccess } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
@@ -19,6 +19,10 @@ interface RiskProfileFormState {
     stepsFirstForm: {
         currentStep: number;
     };
+    secondForm: {
+        amount_expected_replenishment: number,
+        portfolio_parameters: string;
+    }
 }
 
 interface SendCodePayload {
@@ -27,6 +31,11 @@ interface SendCodePayload {
     codeSecond?: string;      // Код из второй формы (при методе 'phone' + email)
     method: 'phone' | 'email' | 'whatsapp'  // Как в вашем modalSlice
     onSuccess?: () => void;
+}
+
+export interface SecondRiskProfilePayload {
+    amount_expected_replenishment: number,
+    portfolio_parameters: string,
 }
 
 interface RiskProfileSelectors {
@@ -41,6 +50,10 @@ const initialState: RiskProfileFormState = {
     formValues: {},
     stepsFirstForm: {
         currentStep: 0
+    },
+    secondForm: {
+        amount_expected_replenishment: 10000000,
+        portfolio_parameters: 'risk_prof_moderate'
     }
 };
 
@@ -66,6 +79,30 @@ export const createRiskProfile = createAsyncThunk<
             if (error.response.data.info) {
                 dispatch(setError(error.response.data.info))
             }
+            return rejectWithValue(
+                error.response?.data?.message || "Ошибка при отправке данных"
+            );
+        }
+    }
+);
+
+export const postSecondRiskProfileForm = createAsyncThunk<
+    void,
+    SecondRiskProfilePayload,
+    { rejectValue: string }
+>(
+    "riskProfile/postSecondRiskProfileForm",
+    async (data, { dispatch, rejectWithValue }) => {
+        try {
+            const token = 'e55b763400c82c8374d809035976364e98d4fed7'
+            console.log()
+            const response = await postSecondRiskProfile(data, token);
+            // const { id } = response;
+            // dispatch(setUserId(id));
+        } catch (error: any) {
+            // if (error.response.data.password) {
+            //     dispatch(setError(error.response.data.password))
+            // }
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке данных"
             );

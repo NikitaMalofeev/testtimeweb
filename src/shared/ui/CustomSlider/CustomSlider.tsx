@@ -1,28 +1,37 @@
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, {
+    memo,
+    useState,
+    useRef,
+    useEffect,
+    useCallback,
+    useLayoutEffect
+} from "react";
 import styles from "./styles.module.scss";
 
+export type SliderTheme = "default" | "gradient";
+
 interface CustomSliderProps {
-    sliderValue: number; // Текущее числовое значение
+    sliderValue: number;    // Текущее числовое значение (или индекс в дискретном режиме)
     min: number;
     max: number;
     step?: number;
     disabled?: boolean;
     onChange: (val: number) => void; // Вызывается, когда значение меняется
+    sliderTheme?: SliderTheme;       // Тема слайдера
 }
 
-export const CustomSlider: React.FC<CustomSliderProps> = ({
+export const CustomSlider: React.FC<CustomSliderProps> = memo(({
     sliderValue,
     min,
     max,
     step = 1,
     disabled,
     onChange,
+    sliderTheme = "default",
 }) => {
     const trackRef = useRef<HTMLDivElement | null>(null);
     const [isDragging, setIsDragging] = useState(false);
-    // Сохраним «смещение» (offset) между точкой клика и центром ползунка,
-    // чтобы при драге «ползунок» не прыгал под курсор:
-    const [dragOffset, setDragOffset] = useState();
+    const [dragOffset, setDragOffset] = useState(0);
 
     // Привязка к диапазону
     const clampValue = useCallback(
@@ -39,30 +48,26 @@ export const CustomSlider: React.FC<CustomSliderProps> = ({
         [min, step, clampValue]
     );
 
-    // Процент заполнения (0% - слева, 100% - справа)
+    // Переводим текущее значение в % заполнения трека
     const calcPercentage = useCallback(
         (val: number) => ((val - min) / (max - min)) * 100,
         [min, max]
     );
 
-    // Переводим координату (clientX) в новое значение по формуле
+    // Из clientX вычисляем новое значение
     const getValueFromClientX = useCallback(
-        (clientX: number, withOffset = false) => {
+        (clientX: number, withOffset: boolean) => {
             if (!trackRef.current) return sliderValue;
             const rect = trackRef.current.getBoundingClientRect();
-            // Позиция клика внутри трека:
-            let x = clientX - rect.left;
 
-            // Если учитываем смещение (для случая, когда тянем ползунок)
+            let x = clientX - rect.left;
             if (withOffset) {
                 x -= dragOffset;
             }
 
-            // Ограничим диапазон, чтобы не выходить за трек
             if (x < 0) x = 0;
             if (x > rect.width) x = rect.width;
 
-            // Переводим x в процент, а затем в абсолютное значение
             const percent = x / rect.width;
             const rawVal = min + percent * (max - min);
 
@@ -71,7 +76,7 @@ export const CustomSlider: React.FC<CustomSliderProps> = ({
         [trackRef, min, max, dragOffset, snapToStep, sliderValue]
     );
 
-    // Когда двигается мышь/палец
+    // Движение мыши/пальца
     const handlePointerMove = useCallback(
         (clientX: number, withOffset: boolean) => {
             const newVal = getValueFromClientX(clientX, withOffset);
@@ -80,8 +85,7 @@ export const CustomSlider: React.FC<CustomSliderProps> = ({
         [onChange, getValueFromClientX]
     );
 
-    // Когда нажимаем на дорожку (клик) — сразу ставим ползунок в эту точку
-    // (без смещения)
+    // Клик по дорожке
     const handleTrackClick = useCallback(
         (e: React.MouseEvent | React.TouchEvent) => {
             if (disabled) return;
@@ -92,17 +96,18 @@ export const CustomSlider: React.FC<CustomSliderProps> = ({
             } else {
                 clientX = e.touches[0].clientX;
             }
+
             const newVal = getValueFromClientX(clientX, false);
             onChange(newVal);
         },
         [disabled, getValueFromClientX, onChange]
     );
 
-    // Когда зажимаем сам «ползунок» (чтобы тянуть):
+    // Зажимаем ползунок
     const handleThumbPointerDown = useCallback(
         (e: React.MouseEvent | React.TouchEvent) => {
             if (disabled) return;
-            e.stopPropagation(); // Чтобы не сработал клик по треку
+            e.stopPropagation();
             e.preventDefault();
 
             setIsDragging(true);
@@ -114,23 +119,21 @@ export const CustomSlider: React.FC<CustomSliderProps> = ({
                 clientX = e.touches[0].clientX;
             }
 
-            // Рассчитаем текущее положение thumb, чтобы понять offset:
             if (trackRef.current) {
                 const rect = trackRef.current.getBoundingClientRect();
                 const thumbX = (calcPercentage(sliderValue) / 100) * rect.width;
-                // offset от центра ползунка:
                 setDragOffset(clientX - (rect.left + thumbX));
             }
         },
         [disabled, calcPercentage, sliderValue]
     );
 
-    // Когда отпускаем мышь/палец:
+    // Отпускаем мышь/палец
     const handlePointerUp = useCallback(() => {
         setIsDragging(false);
     }, []);
 
-    // Document-level events, чтобы следить за движением даже за пределами трека
+    // Ловим движение на документе
     useEffect(() => {
         if (!isDragging) return;
 
@@ -165,23 +168,33 @@ export const CustomSlider: React.FC<CustomSliderProps> = ({
 
     const percentage = calcPercentage(sliderValue);
 
+    // Определяем классы для дорожки и ползунка в зависимости от темы
+    const trackClass = sliderTheme === "gradient"
+        ? `${styles.customSliderTrack} ${styles.gradient}`
+        : styles.customSliderTrack;
+
+    const thumbClass = sliderTheme === "gradient"
+        ? `${styles.customSliderThumb} ${styles.gradient}`
+        : styles.customSliderThumb;
+
+    // Если gradient - убираем отдельную "заливку" (т.к. вся дорожка = градиент)
+    // Если default - отображаем залитую часть до значения
     return (
         <div className={styles.customSlider}>
-            {/* Дорожка */}
             <div
-                className={styles.customSliderTrack}
+                className={trackClass}
                 ref={trackRef}
                 onMouseDown={handleTrackClick}
                 onTouchStart={handleTrackClick}
             >
-                {/* Заполненная часть (до ползунка) */}
+                {sliderTheme !== "gradient" && (
+                    <div
+                        className={styles.customSliderTrackFill}
+                        style={{ width: `${percentage}%` }}
+                    />
+                )}
                 <div
-                    className={styles.customSliderTrackFill}
-                    style={{ width: `${percentage}%` }}
-                />
-                {/* Ползунок */}
-                <div
-                    className={styles.customSliderThumb}
+                    className={thumbClass}
                     style={{ left: `${percentage}%` }}
                     onMouseDown={handleThumbPointerDown}
                     onTouchStart={handleThumbPointerDown}
@@ -189,4 +202,4 @@ export const CustomSlider: React.FC<CustomSliderProps> = ({
             </div>
         </div>
     );
-};
+});

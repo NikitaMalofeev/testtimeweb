@@ -12,10 +12,14 @@ import ErrorIcon from "shared/assets/svg/errorCircle.svg";
 import OnPasswordIcon from "shared/assets/svg/visibility_on.svg";
 import OffPasswordIcon from "shared/assets/svg/visibility_off.svg";
 import SearchIcon from "shared/assets/svg/searchIcon.svg";
-import { CustomSlider } from "../CustomSlider/CustomSlider";
+import { CustomSlider, SliderTheme } from "../CustomSlider/CustomSlider";
 
+// Новое перечисление для тем (при желании можно расширять)
+type InputTheme = "default" | "primary" | "secondary" | "gradient";
+
+// Расширяем типы, чтобы добавить "swiperDiscrete"
 interface InputProps {
-    theme?: "default" | "primary" | "secondary";
+    theme?: InputTheme;                               // <--- Новое
     value: string;
     name?: string;
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -24,13 +28,24 @@ interface InputProps {
     disabled?: boolean;
     needValue?: boolean;
     className?: string;
-    type?: string;
+
+    /**
+     * Поддерживаем обычные типы + два наших «ползунковых» режима:
+     *  - "swiper"        — числовой слайдер (мин, макс, шаг)
+     *  - "swiperDiscrete" — дискретный режим (массив строк)
+     */
+    type?: "text" | "textarea" | "search" | "password" | "number" | "swiper" | "swiperDiscrete";
+
     error?: string | boolean;
 
-    // Для "swiper"
+    // Пределы для «числового» ползунка
     min?: number;
     max?: number;
     step?: number;
+
+    // В режиме "swiperDiscrete" — массив значений, по которым движется слайдер
+    discreteValues?: string[];
+    swiperDiscreteSubtitles?: string[];
 }
 
 export const Input: React.FC<InputProps> = ({
@@ -47,6 +62,8 @@ export const Input: React.FC<InputProps> = ({
     min = 0,
     max = 100,
     step = 1,
+    discreteValues,
+    swiperDiscreteSubtitles
 }) => {
     const [isFocused, setIsFocused] = useState(false);
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -69,25 +86,30 @@ export const Input: React.FC<InputProps> = ({
         return num;
     }, []);
 
-    // В режиме "swiper" нам нужно, чтобы:
-    // 1) в input показывалась форматированная строка (к нам она уже приходит пропом `value`)
-    // 2) sliderValue было числом
+    // -----------------------------------------
+    // 1) РЕЖИМ ОДНОГО «числового» СЛАЙДЕРА (type="swiper")
+    // -----------------------------------------
+
+    // Для "swiper": вычисляем число, ограничиваем в пределах min–max
     const numericValueForSlider = useMemo(() => {
         const parsed = parseToNumber(value);
-        // Ограничиваем в пределах min–max:
         return Math.min(Math.max(parsed, min), max);
     }, [value, min, max, parseToNumber]);
 
-    // Автоматическое изменение высоты textarea
-    useEffect(() => {
-        if (type === "textarea" && textAreaRef.current) {
-            textAreaRef.current.style.height = "auto";
-            textAreaRef.current.style.height = `${textAreaRef.current.scrollHeight}px`;
-        }
-    }, [value, type]);
+    // -----------------------------------------
+    // 2) РЕЖИМ "swiperDiscrete" – ограниченный набор значений (discreteValues)
+    // -----------------------------------------
 
-    // Функция для обработки ручного ввода числа (в инпуте)
-    // с учётом min, max, step (при необходимости).
+    // Если передан массив discreteValues, находим индекс текущего значения:
+    const discreteIndex = useMemo(() => {
+        if (!discreteValues || !discreteValues.length) {
+            return 0;
+        }
+        const idx = discreteValues.indexOf(value);
+        return idx >= 0 ? idx : 0;
+    }, [discreteValues, value]);
+
+    // При ручном вводе «числа» в инпут
     const handleNumberChange = (
         e: React.ChangeEvent<HTMLInputElement>,
         localMin: number,
@@ -100,7 +122,6 @@ export const Input: React.FC<InputProps> = ({
         if (numericValue < localMin) numericValue = localMin;
         if (numericValue > localMax) numericValue = localMax;
 
-        // Генерируем новое событие
         const newEvent = {
             ...e,
             target: {
@@ -112,12 +133,19 @@ export const Input: React.FC<InputProps> = ({
         onChange(newEvent as React.ChangeEvent<HTMLInputElement>);
     };
 
+    // Автоматическое изменение высоты textarea
+    useEffect(() => {
+        if (type === "textarea" && textAreaRef.current) {
+            textAreaRef.current.style.height = "auto";
+            textAreaRef.current.style.height = `${textAreaRef.current.scrollHeight}px`;
+        }
+    }, [value, type]);
+
     return (
         <div className={`${styles.inputWrapper} ${styles[theme]}`}>
             {type !== "textarea" && (
                 <label
-                    className={`${styles.label} ${isFocused || value ? styles.active : ""
-                        }`}
+                    className={`${styles.label} ${isFocused || value ? styles.active : ""}`}
                 >
                     {type === "search" && (
                         <Icon
@@ -134,46 +162,48 @@ export const Input: React.FC<InputProps> = ({
 
             <div className={styles.inputContainer}>
                 {(() => {
-
+                    // Ниже – переключение по типу
                     switch (type) {
+                        // ---------------------------------------------------
+                        //   НАШ СТАРЫЙ РЕЖИМ "SWIPER" (ЧИСЛОВОЙ ПОЛЗУНОК)
+                        // ---------------------------------------------------
                         case "swiper":
                             return (
                                 <div className={`${styles.inputWrapper} ${styles[theme]}`}>
                                     <div className={styles.swiperWrapper}>
-                                        {/* 
-                          Инпут для ручного ввода строки.
-                          В onChange мы парсим и передаём чистое число наверх 
-                          (Formik), чтобы там оно уже форматировалось заново.
-                        */}
-                                        <input
-                                            type="text"
-                                            placeholder={placeholder}
-                                            name={name}
-                                            value={value}
-                                            disabled={disabled}
-                                            onFocus={handleFocus}
-                                            onBlur={handleBlur}
-                                            className={styles.input}
-                                            onChange={(e) => {
-                                                // Парсим строку в число:
-                                                const numericVal = parseToNumber(e.target.value);
+                                        {theme !== "gradient" && (
+                                            <input
+                                                type="text"
+                                                placeholder={placeholder}
+                                                name={name}
+                                                value={value}
+                                                disabled={disabled}
+                                                onFocus={handleFocus}
+                                                onBlur={handleBlur}
+                                                className={styles.input}
+                                                onChange={(e) => {
+                                                    const numericVal = parseToNumber(e.target.value);
+                                                    const clamped = Math.min(
+                                                        Math.max(numericVal, min),
+                                                        max
+                                                    );
+                                                    const newEvent = {
+                                                        ...e,
+                                                        target: {
+                                                            ...e.target,
+                                                            value: clamped.toString(),
+                                                        },
+                                                    };
+                                                    onChange(newEvent as React.ChangeEvent<HTMLInputElement>);
+                                                }}
+                                            />
+                                        )}
 
-                                                // Также ограничим min–max, если нужно:
-                                                const clamped = Math.min(Math.max(numericVal, min), max);
-
-                                                // Генерируем новое событие, где в target.value
-                                                // положим именно число (в виде строки).
-                                                const newEvent = {
-                                                    ...e,
-                                                    target: {
-                                                        ...e.target,
-                                                        value: clamped.toString(),
-                                                    },
-                                                };
-                                                onChange(newEvent as React.ChangeEvent<HTMLInputElement>);
-                                            }}
-                                        />
-
+                                        {/** 
+                                         * Передаём новую тему (sliderTheme),
+                                         * если theme === 'gradient' — используем градиентный стиль,
+                                         * иначе будет дефолт.
+                                         */}
                                         <CustomSlider
                                             sliderValue={numericValueForSlider}
                                             min={min}
@@ -181,7 +211,6 @@ export const Input: React.FC<InputProps> = ({
                                             step={step}
                                             disabled={disabled}
                                             onChange={(val: number) => {
-                                                // Когда двигаем ползунок — возвращаем наверх число в виде строки:
                                                 const event = {
                                                     target: {
                                                         name: name || "",
@@ -190,9 +219,9 @@ export const Input: React.FC<InputProps> = ({
                                                 } as unknown as React.ChangeEvent<HTMLInputElement>;
                                                 onChange(event);
                                             }}
+                                            sliderTheme={theme === "gradient" ? "gradient" : "default"}
                                         />
 
-                                        {/* Если есть ошибка — выводим её */}
                                         {error && (
                                             <div className={styles.input__error}>
                                                 <Icon
@@ -207,57 +236,193 @@ export const Input: React.FC<InputProps> = ({
                                     </div>
                                 </div>
                             );
-                            // Кейс, где у нас кастомный ползунок + инпут для числа
+
+                        // -----------------------------------------------------
+                        //   НОВЫЙ РЕЖИМ "SWIPERDISCRETE" (3 ШАГА/СТРОКИ И Т.П.)
+                        // -----------------------------------------------------
+                        case "swiperDiscrete": {
+                            // Мапим английские ключи → русские надписи
+                            const labelMap = {
+                                risk_prof_conservative: "Консервативный",
+                                risk_prof_moderate: "Умеренный",
+                                risk_prof_aggressive: "Агрессивный",
+                            };
+
+                            // discreteValues: ["risk_prof_conservative","risk_prof_moderate","risk_prof_aggressive"]
+                            // value: выбранное значение, например "risk_prof_moderate"
+
+                            // Находим индекс текущего ключа
+                            const discreteIndex = useMemo(() => {
+                                if (!discreteValues || !discreteValues.length) return 0;
+                                return discreteValues.indexOf(value);
+                            }, [discreteValues, value]);
+
+                            // То, что показываем пользователю (русский текст):
+                            const displayValue = labelMap[value as keyof typeof labelMap] || "";
+
                             return (
-                                <div className={styles.swiperWrapper}>
-
-                                    {/* Инпут для ручного ввода числа */}
-                                    <input
-                                        type="text"
-                                        placeholder={placeholder}
-                                        name={name}
-                                        value={value}
-                                        disabled={disabled}
-                                        onChange={(e) => handleNumberChange(e, min, max)}
-                                        onFocus={handleFocus}
-                                        onBlur={handleBlur}
-                                        className={`${styles.input}`}
-                                    />
-
-                                    <CustomSlider
-                                        sliderValue={parseInt(value, 10) || min}
-                                        min={min}
-                                        max={max}
-                                        step={step}
-                                        disabled={disabled}
-                                        onChange={(val) => {
-                                            // Когда CustomSlider меняет значение — эмулируем onChange Formik
-                                            const event = {
-                                                target: {
-                                                    name: name || "",
-                                                    value: val.toString(),
-                                                },
-                                            } as unknown as React.ChangeEvent<HTMLInputElement>;
-                                            onChange(event);
-                                        }}
-                                    />
-                                    {error && (
-                                        <div className={styles.input__error}>
-                                            <Icon
-                                                Svg={ErrorIcon}
-                                                className={styles.input__error__icon}
-                                                width={16}
-                                                height={16}
+                                <div className={`${styles.inputWrapper} ${styles[theme]}`}>
+                                    <div className={styles.swiperWrapper}>
+                                        {theme !== "gradient" && (
+                                            <input
+                                                type="text"
+                                                placeholder={placeholder}
+                                                name={name}
+                                                value={displayValue}  // показываем русское название
+                                                disabled={disabled}
+                                                onFocus={handleFocus}
+                                                onBlur={handleBlur}
+                                                className={styles.input}
+                                                readOnly
                                             />
-                                            <span>{error}</span>
+                                        )}
+
+                                        <div className={styles.input__swiper__container}>
+                                            <span
+                                                style={{
+                                                    position: "absolute",
+                                                    top: 0,
+                                                    left: 0,
+                                                    fontSize: "12px",
+                                                    color: "#989898"
+                                                }}
+                                            >
+                                                {swiperDiscreteSubtitles?.[0] || ""}
+                                            </span>
+                                            <span
+                                                style={{
+                                                    position: "absolute",
+                                                    bottom: 0,
+                                                    left: 0,
+                                                    fontSize: "12px",
+                                                    color: "#989898"
+                                                }}
+                                            >
+                                                {swiperDiscreteSubtitles?.[1] || ""}
+                                            </span>
+
+                                            <CustomSlider
+                                                // Cоответствующий индекс выбранного ключа
+                                                sliderValue={discreteIndex}
+                                                min={0}
+                                                max={(discreteValues?.length || 1) - 1}
+                                                step={1}
+                                                disabled={disabled}
+                                                onChange={(val: number) => {
+                                                    if (!discreteValues || !discreteValues.length) return;
+                                                    // Получаем английский ключ по индексу
+                                                    const newKey = discreteValues[val];
+
+                                                    // В форму уходит ключ, напр. "risk_prof_moderate"
+                                                    const event = {
+                                                        target: {
+                                                            name: name || "",
+                                                            value: newKey,
+                                                        },
+                                                    } as unknown as React.ChangeEvent<HTMLInputElement>;
+
+                                                    onChange(event);
+                                                }}
+                                                sliderTheme={theme === "gradient" ? "gradient" : "default"}
+                                            />
+
+                                            <span
+                                                style={{
+                                                    position: "absolute",
+                                                    top: 0,
+                                                    right: 0,
+                                                    fontSize: "12px",
+                                                    color: "#989898"
+                                                }}
+                                            >
+                                                {swiperDiscreteSubtitles?.[2] || ""}
+                                            </span>
+                                            <span
+                                                style={{
+                                                    position: "absolute",
+                                                    bottom: 0,
+                                                    right: 0,
+                                                    fontSize: "12px",
+                                                    color: "#989898"
+                                                }}
+                                            >
+                                                {swiperDiscreteSubtitles?.[3] || ""}
+                                            </span>
                                         </div>
-                                    )}
+
+                                        {error && (
+                                            <div className={styles.input__error}>
+                                                <Icon
+                                                    Svg={ErrorIcon}
+                                                    className={styles.input__error__icon}
+                                                    width={16}
+                                                    height={16}
+                                                />
+                                                <span>{error}</span>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             );
+                        }
 
-                        // Остальные кейсы...
-                        // password, number, search, textarea, default...
                         default:
+                            if (type === "textarea") {
+                                return (
+                                    <textarea
+                                        ref={textAreaRef}
+                                        name={name}
+                                        value={value}
+                                        onChange={onChange}
+                                        onFocus={handleFocus}
+                                        onBlur={handleBlur}
+                                        disabled={disabled}
+                                        className={`${styles.textarea} ${needValue && !value.length ? styles.error : ""
+                                            }`}
+                                    />
+                                );
+                            }
+
+                            if (type === "password") {
+                                return (
+                                    <>
+                                        <input
+                                            type={isPasswordVisible ? "text" : "password"}
+                                            name={name}
+                                            value={value}
+                                            onChange={onChange}
+                                            onFocus={handleFocus}
+                                            onBlur={handleBlur}
+                                            disabled={disabled}
+                                            className={`${styles.input} ${needValue && !value.length ? styles.error : ""
+                                                }`}
+                                        />
+                                        <button
+                                            type="button"
+                                            className={styles.toggleButton}
+                                            onClick={handleTogglePassword}
+                                        >
+                                            <Icon
+                                                Svg={isPasswordVisible ? OnPasswordIcon : OffPasswordIcon}
+                                                width={18}
+                                                height={18}
+                                            />
+                                        </button>
+                                        {error && (
+                                            <div className={styles.input__error}>
+                                                <Icon
+                                                    Svg={ErrorIcon}
+                                                    className={styles.input__error__icon}
+                                                    width={16}
+                                                    height={16}
+                                                />
+                                                <span>{error}</span>
+                                            </div>
+                                        )}
+                                    </>
+                                );
+                            }
+
                             return (
                                 <>
                                     <input

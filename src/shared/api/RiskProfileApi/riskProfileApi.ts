@@ -1,5 +1,6 @@
 import axios from "axios";
 import { IdentificationProfileData, ConfirmationCodeData, NeedHelpData } from "entities/RiskProfile/model/types";
+import { SecondRiskProfilePayload } from "entities/RiskProfile/slice/riskProfileSlice";
 
 const apiUrl = import.meta.env.VITE_RANKS_TEST_API_URL;
 
@@ -61,6 +62,22 @@ export const postFirstRiskProfile = async (data: Record<string, string | boolean
     );
     return response.data;
 };
+
+export const postSecondRiskProfile = async (data: SecondRiskProfilePayload, token: string) => {
+    const response = await axios.post(
+        `${apiUrl}create_doc_user/third_risk_profiling_add_more_info/`,
+        data,
+        {
+            headers: {
+                "Accept-Language": "ru",
+                "Content-Type": "application/json",
+                "Authorization": `Token ${token}`,
+            },
+        }
+    );
+    return response.data;
+};
+
 
 export const getAllSelects = async () => {
     const response = await axios.get(`${apiUrl}create_doc_user/get_all_selects/`, {

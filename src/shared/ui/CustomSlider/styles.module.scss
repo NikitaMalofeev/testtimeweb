@@ -1,48 +1,60 @@
+/* Общий контейнер слайдера */
 .customSlider {
-    position: relative;
-    width: 100%; // Общая ширина
-    height: 20px; // Условная высота
-    user-select: none; // Чтобы при перетаскивании текст не выделялся
-  }
-  
-  .customSliderTrack {
-    position: relative;
-    width: 100%;
-    height: 4px;
-    background-color: #ccc;
-    border-radius: 2px;
-    cursor: pointer;
-  }
-  
-  /* Заливка */
-  .customSliderTrackFill {
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 4px;
-    background-color: #007bff;
-    border-radius: 2px;
-  }
-  
-  /* Ползунок */
-  .customSliderThumb {
-    position: absolute;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 33px;
-    height: 33px;
-    background-color: #0666EB;
-    border: 5px solid white;
-    border-radius: 50%;
-    cursor: pointer;
-    // box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
-  
-    &:hover {
-    //   box-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
-      border: 2px solid white;
-    }
-    &:active {
-    //   box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
-    }
-  }
-  
+  width: 100%;
+  position: relative;
+  height: 5px // Можно подгонять под нужный размер
+}
+
+/* Дорожка (трек) */
+.customSliderTrack {
+  position: relative;
+  height: 6px;
+  width: 100%;
+  border-radius: 3px;
+  background-color: #eee; // <-- Цвет трека по умолчанию
+  cursor: pointer;
+}
+
+/* Если sliderTheme="gradient", то вся дорожка будет градиентной */
+.customSliderTrack.gradient {
+  background: linear-gradient(
+    90deg,
+    #07B021 -15.43%,
+    #F9F100 35.85%,
+    #F99500 59.07%,
+    #E93147 125.08%
+  );
+}
+
+/* Заполненная часть (только в default-режиме показываем). */
+.customSliderTrackFill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 6px;
+  border-radius: 3px;
+  background-color: #0666eb; // для "обычного" режима
+  // transition: width 0.2s;    // плавное изменение ширины
+}
+
+/* Ползунок (thumb) */
+.customSliderThumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 33px;
+  height: 33px;
+  border: 5px solid white;
+  background-color: #0666eb;
+  border-radius: 50%;
+  cursor: pointer;
+  // transition: left 0.1s; // плавное перемещение
+}
+
+/* Если хотим, чтобы в градиентном режиме у ползунка был другой цвет, 
+   добавим .gradient и переопределим:
+*/
+.customSliderThumb.gradient {
+  /* Можно поставить любой цвет или градиент, например: */
+  background-color: #0666eb;
+}

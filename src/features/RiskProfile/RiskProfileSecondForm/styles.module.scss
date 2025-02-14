@@ -33,6 +33,18 @@
 
 .balans {
     margin-right: 4px;
+    font-family: var(--font-inter);
+    color: #989898;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 16.94px;
+    letter-spacing: 0%;
+
+}
+.form__item__tooltip {
+    position: absolute;
+    right: 20px;
+    top: 10px;
 }
 
 .form {
@@ -48,14 +60,38 @@
 .form__form {
     display: flex;
         flex-direction: column;
-        justify-content: space-between;
         width: 100%;
         flex-grow: 1;
+        gap: 20px;
         margin-bottom: 67px;
 }
 
+.form__item {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: start;
+        width: 100%;
+        max-height: 300px;
+        flex-grow: 1;
+        margin-bottom: 18px;
+        max-height: 72px;
+}
+
 .form__container {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: start;
+    max-height: 168px;
+
+    &::after {
+        position: absolute;
+        bottom: 0;
+        left: -32px;
+        content: '';
+        width: 100dvw;
+        height: 1px;
+        background-color: #EBEBED;
+    }
 }

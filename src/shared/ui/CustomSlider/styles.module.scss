@@ -1,0 +1,48 @@
+.customSlider {
+    position: relative;
+    width: 100%; // Общая ширина
+    height: 20px; // Условная высота
+    user-select: none; // Чтобы при перетаскивании текст не выделялся
+  }
+  
+  .customSliderTrack {
+    position: relative;
+    width: 100%;
+    height: 4px;
+    background-color: #ccc;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+  
+  /* Заливка */
+  .customSliderTrackFill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 4px;
+    background-color: #007bff;
+    border-radius: 2px;
+  }
+  
+  /* Ползунок */
+  .customSliderThumb {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 33px;
+    height: 33px;
+    background-color: #0666EB;
+    border: 5px solid white;
+    border-radius: 50%;
+    cursor: pointer;
+    // box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+  
+    &:hover {
+    //   box-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
+      border: 2px solid white;
+    }
+    &:active {
+    //   box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
+    }
+  }
+  

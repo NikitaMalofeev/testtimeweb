@@ -145,3 +145,16 @@ input:-moz-autofill {
     }
 }
 
+.swiperNumberInput {
+    width: 100%;
+}
+/* Пример, как можно стилизовать наш новый swiper-кейс */
+.swiperWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px; // Расстояние между самим слайдером и числовым input
+  }
+  
+  /* Общий контейнер слайдера */
+  

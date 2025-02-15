@@ -215,11 +215,8 @@ export const sendConfirmationCode = createAsyncThunk<
                     const response = await postConfirmationCode({
                         user_id,
                         code: codeFirst!,
-                        type: "phone" // для обоих методов backend ожидает "phone"
+                        type: "phone"
                     });
-                    if (response.status !== 'success') {
-                        onError?.()
-                    }
                     if (response.status === "success") {
                         if (method === "whatsapp") {
                             dispatch(setConfirmationWhatsappSuccess("пройдено"));
@@ -228,6 +225,7 @@ export const sendConfirmationCode = createAsyncThunk<
                         }
                         onSuccess?.();
                     } else {
+                        onError?.()
                         const phoneError =
                             response.error_text || "Ошибка верификации телефона/WhatsApp";
                         dispatch(setError(phoneError));
@@ -367,6 +365,7 @@ export const sendConfirmationCode = createAsyncThunk<
                     dispatch(setConfirmationStatusSuccess(true));
                     onSuccess?.();
                 } else {
+                    onError?.()
                     const errMsg =
                         response.error_text || `Ошибка при отправке кода (email)`;
                     dispatch(setError(errMsg));
@@ -390,6 +389,7 @@ export const sendConfirmationCode = createAsyncThunk<
                     dispatch(setConfirmationStatusSuccess(true));
                     onSuccess?.();
                 } else {
+                    onError?.()
                     const errMsg =
                         response.error_text || `Ошибка при отправке кода (${method})`;
                     dispatch(setError(errMsg));

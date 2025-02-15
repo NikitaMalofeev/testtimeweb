@@ -383,13 +383,11 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                 ref={(el) => (inputRefsFirst.current[index] = el)}
                                 className={styles.codeInput__box}
                                 style={{
-                                    ...(confirmationMethod === "whatsapp"
-                                        ? (hasWhatsAppConfirmationError
-                                            ? { borderColor: "#FF3C53" }
-                                            : noWhatsAppConfirmationError && { borderColor: "#1CC15A" })
-                                        : (hasPhoneConfirmationError
-                                            ? { borderColor: "#FF3C53" }
-                                            : noPhoneConfirmationError && { borderColor: "#1CC15A" }))
+                                    borderColor: hasPhoneConfirmationError || hasWhatsAppConfirmationError
+                                        ? "#FF3C53"
+                                        : noEmailConfirmationError
+                                            ? "#1CC15A"
+                                            : undefined
                                 }}
                             />
                         ))}
@@ -448,9 +446,11 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                     ref={(el) => (inputRefsSecond.current[index] = el)}
                                     className={styles.codeInput__box}
                                     style={{
-                                        ...(hasEmailConfirmationError
-                                            ? { borderColor: "#FF3C53" }
-                                            : noEmailConfirmationError && { borderColor: "#1CC15A" })
+                                        borderColor: hasEmailConfirmationError
+                                            ? "#FF3C53"
+                                            : noEmailConfirmationError
+                                                ? "#1CC15A"
+                                                : undefined
                                     }}
                                 />
                             ))}

@@ -39,7 +39,7 @@ export const RiskProfileFirstForm: React.FC = () => {
 
     useEffect(() => {
         dispatch(fetchAllSelects() as any);
-    }, [dispatch]);
+    }, []);
 
     useEffect(() => {
         console.log(riskProfileSelectors)
@@ -113,8 +113,8 @@ export const RiskProfileFirstForm: React.FC = () => {
                 label: "Есть ли у Вас статус квалифицированного инвестора?",
                 fieldType: "checkboxGroup",
                 options: {
-                    "Да": 'true',
-                    "Нет": 'false',
+                    "true": 'Да',
+                    "false": 'Нет',
                 },
             },
             {
@@ -318,7 +318,7 @@ export const RiskProfileFirstForm: React.FC = () => {
             return (
                 <CheckboxGroup
                     name={question.name}
-                    options={Object.entries(question.options).map(([label, value]) => ({
+                    options={Object.entries(question.options).map(([value, label]) => ({
                         label,
                         value,
                     }))}

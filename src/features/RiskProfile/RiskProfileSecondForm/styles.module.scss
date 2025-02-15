@@ -179,3 +179,35 @@
     top: 0;
     right: 40px;
 }
+
+.report {
+    display: inline-block;
+    width: 100%;
+    display: flex;
+    justify-content: start;
+    text-align: left;
+}
+
+.report__value {
+    display: inline-block;
+    width: 100%;
+    display: flex;
+    justify-content: start;
+    text-align: left;
+}
+
+.report__container {
+    font-family: var(--font-inter);
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 16.94px;
+    letter-spacing: 0%;
+    background-color: #B4CFF566;
+    border-radius: 15px;
+    padding: 10px 16px;
+}
+
+.form__item__tooltip_report {
+    top: 14px;
+    right: 14px;
+}

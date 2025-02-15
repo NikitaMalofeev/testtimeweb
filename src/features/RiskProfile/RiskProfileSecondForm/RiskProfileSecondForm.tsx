@@ -51,6 +51,7 @@ export const RiskProfileSecondForm: React.FC = () => {
     });
 
     useEffect(() => {
+        console.log(formik.values)
         handleGetNewPercentage()
     }, [formik.values])
 
@@ -72,6 +73,7 @@ export const RiskProfileSecondForm: React.FC = () => {
         const val = parseInt(raw, 10);
         return isNaN(val) ? 0 : val;
     };
+
 
     return (
         <div className={styles.form}>
@@ -194,21 +196,20 @@ export const RiskProfileSecondForm: React.FC = () => {
                         <span className={styles.form__item__potintial__title_green}>20%</span>
                     </div>
                 </div>
-                <div className={styles.form__container} style={{ minHeight: '74px' }}>
+                <div className={styles.form__container} style={{ minHeight: '180px' }}>
                     {firstRiskProfileData && (
                         <div>
-                            <h2>Profile Data</h2>
-                            <p><strong>Info:</strong> {firstRiskProfileData.info}</p>
-                            <p><strong>Summ:</strong> {firstRiskProfileData.summ}</p>
-                            <div>
-                                <h3>Recommended Risk Profiles:</h3>
-                                <ul>
-                                    {Object.entries(firstRiskProfileData.recommended_risk_profiles).map(([key, value]) => (
-                                        <li key={key}>
-                                            {key}: {value}
-                                        </li>
-                                    ))}
-                                </ul>
+                            <Tooltip
+                                className={styles.form__item__tooltip_report}
+                                description={firstRiskProfileData.info}
+                                topForCenteringIcons="24px"
+                                direction='left'
+                                positionBox={{ top: '12px', right: '32px' }}
+                                squerePosition={{ right: '-4px' }}
+                            />
+                            <div className={styles.report__container}>
+                                <p className={styles.report}>Рекомендуемый риск-профиль по результатам риск-профилирования </p>
+                                <b className={styles.report__value}>{Object.values(firstRiskProfileData.recommended_risk_profiles)[0]}</b>
                             </div>
                         </div>
                     )}

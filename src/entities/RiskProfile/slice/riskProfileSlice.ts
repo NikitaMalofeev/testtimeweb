@@ -38,6 +38,8 @@ interface SendCodePayload {
     codeSecond?: string;      // Код из второй формы (при методе 'phone' + email)
     method: 'phone' | 'email' | 'whatsapp'  // Как в вашем modalSlice
     onSuccess?: () => void;
+    onError?: () => void;
+    onClose?: () => void;
 }
 
 export interface SecondRiskProfilePayload {
@@ -173,40 +175,75 @@ export const sendConfirmationCode = createAsyncThunk<
 >(
     "riskProfile/sendConfirmationCode",
     async (
-        { user_id, codeFirst, codeSecond, method, onSuccess },
+        { user_id, codeFirst, codeSecond, method, onSuccess, onError, onClose },
         { rejectWithValue, dispatch, getState }
     ) => {
         try {
-            // Достаем текущие статусы подтверждения из uiReducer
+            // Получаем текущие статусы подтверждения из uiReducer
             const {
                 confirmationEmailSuccess,
                 confirmationPhoneSuccess,
                 confirmationWhatsappSuccess
             } = getState().ui;
 
-            // ----- СЛУЧАЙ 1: whatsapp или phone -----
-            // Предполагаем, что нужно подтверждать телефон/whatsapp + email.
+            // ----- СЛУЧАЙ 1: метод "whatsapp" или "phone" -----
             if (method === "whatsapp" || method === "phone") {
-                // Нужно ли подтверждать телефон/whatsapp?
-                // (т.е. если еще НЕ "пройдено")
+                // Определяем, нужен ли подтверждение для телефона/WhatsApp
                 const needConfirmPhone =
                     method === "whatsapp"
                         ? confirmationWhatsappSuccess !== "пройдено"
                         : confirmationPhoneSuccess !== "пройдено";
-
-                // Нужно ли подтверждать email?
+                // Определяем, нужно ли подтверждать email
                 const needConfirmEmail = confirmationEmailSuccess !== "пройдено";
 
-                // Если оба канала уже "пройдено", ничего делать не надо
+                // Если оба канала уже подтверждены – выходим
                 if (!needConfirmPhone && !needConfirmEmail) {
                     dispatch(setConfirmationStatusSuccess(true));
-                    onSuccess?.();
+                    onClose?.();
                     return;
                 }
 
-                // Проверяем, что коды переданы (если соответствующий канал нуждается в подтверждении)
+                // Если для текущего вызова передан только код для телефона/WhatsApp,
+                // то отправляем запрос только для него
+                if (codeSecond === undefined) {
+                    if (needConfirmPhone && !codeFirst) {
+                        const msg = `Метод "${method}" требует codeFirst (телефон/WhatsApp), а он не передан`;
+                        dispatch(setError(msg));
+
+                        return rejectWithValue(msg);
+                    }
+                    const response = await postConfirmationCode({
+                        user_id,
+                        code: codeFirst!,
+                        type: "phone" // для обоих методов backend ожидает "phone"
+                    });
+                    if (response.status !== 'success') {
+                        onError?.()
+                    }
+                    if (response.status === "success") {
+                        if (method === "whatsapp") {
+                            dispatch(setConfirmationWhatsappSuccess("пройдено"));
+                        } else {
+                            dispatch(setConfirmationPhoneSuccess("пройдено"));
+                        }
+                        onSuccess?.();
+                    } else {
+                        const phoneError =
+                            response.error_text || "Ошибка верификации телефона/WhatsApp";
+                        dispatch(setError(phoneError));
+                        if (method === "whatsapp") {
+                            dispatch(setConfirmationWhatsappSuccess("не пройдено"));
+                        } else {
+                            dispatch(setConfirmationPhoneSuccess("не пройдено"));
+                        }
+                        return rejectWithValue(phoneError);
+                    }
+                    return;
+                }
+
+                // Если же переданы оба кода, выполняется комбинированная отправка:
                 if (needConfirmPhone && !codeFirst) {
-                    const msg = `Метод "${method}" требует codeFirst (телефон/whatsapp), а он не передан`;
+                    const msg = `Метод "${method}" требует codeFirst (телефон/WhatsApp), а он не передан`;
                     dispatch(setError(msg));
                     return rejectWithValue(msg);
                 }
@@ -216,12 +253,11 @@ export const sendConfirmationCode = createAsyncThunk<
                     return rejectWithValue(msg);
                 }
 
-                // Формируем запросы для тех каналов, которые надо подтвердить
                 const phonePromise = needConfirmPhone
                     ? postConfirmationCode({
                         user_id,
                         code: codeFirst!,
-                        type: "phone", // и при WhatsApp, и при phone бек использует "phone"
+                        type: "phone",
                     })
                     : null;
 
@@ -233,17 +269,16 @@ export const sendConfirmationCode = createAsyncThunk<
                     })
                     : null;
 
-                // Запускаем параллельно, но используя allSettled для независимой обработки
+                // Отправляем запросы параллельно
                 const [resPhone, resEmail] = await Promise.allSettled([
                     phonePromise,
                     emailPromise,
                 ]);
 
-                // Изначально считаем, что там, где не нужно подтверждать — уже "пройдено"
                 let isPhoneOk = !needConfirmPhone;
                 let isEmailOk = !needConfirmEmail;
 
-                // --- ОБРАБОТКА РЕЗУЛЬТАТА ТЕЛЕФОНА/WHATSAPP ---
+                // Обработка результата для телефона/WhatsApp
                 if (phonePromise) {
                     if (resPhone.status === "fulfilled") {
                         if (resPhone.value.status === "success") {
@@ -255,8 +290,7 @@ export const sendConfirmationCode = createAsyncThunk<
                             }
                         } else {
                             const phoneError =
-                                resPhone.value.error_text ||
-                                "Ошибка верификации телефона/WhatsApp";
+                                resPhone.value.error_text || "Ошибка верификации телефона/WhatsApp";
                             dispatch(setError(phoneError));
                             if (method === "whatsapp") {
                                 dispatch(setConfirmationWhatsappSuccess("не пройдено"));
@@ -265,10 +299,9 @@ export const sendConfirmationCode = createAsyncThunk<
                             }
                         }
                     } else {
-                        // Если промис отклонился (reject)
                         const phoneError =
                             resPhone.reason?.response?.data?.error_text ||
-                            "Ошибка при отправке кода (телефон/whatsapp)";
+                            "Ошибка при отправке кода (телефон/WhatsApp)";
                         dispatch(setError(phoneError));
                         if (method === "whatsapp") {
                             dispatch(setConfirmationWhatsappSuccess("не пройдено"));
@@ -278,7 +311,7 @@ export const sendConfirmationCode = createAsyncThunk<
                     }
                 }
 
-                // --- ОБРАБОТКА РЕЗУЛЬТАТА EMAIL ---
+                // Обработка результата для email
                 if (emailPromise) {
                     if (resEmail.status === "fulfilled") {
                         if (resEmail.value.status === "success") {
@@ -299,7 +332,6 @@ export const sendConfirmationCode = createAsyncThunk<
                     }
                 }
 
-                // Если оба канала подтверждены успешно, включаем общий флаг
                 if (isPhoneOk && isEmailOk) {
                     dispatch(setConfirmationStatusSuccess(true));
                     onSuccess?.();
@@ -310,33 +342,26 @@ export const sendConfirmationCode = createAsyncThunk<
                     ]
                         .filter(Boolean)
                         .join(" | ");
-
-                    return rejectWithValue(
-                        combinedError || "Ошибка верификации телефона/почты"
-                    );
+                    return rejectWithValue(combinedError || "Ошибка верификации телефона/почты");
                 }
             }
-            // ----- СЛУЧАЙ 2: только email -----
+            // ----- СЛУЧАЙ 2: метод "email" -----
             else if (method === "email") {
-                // Если уже подтвержден email, то ничего делать не нужно
                 if (confirmationEmailSuccess === "пройдено") {
                     dispatch(setConfirmationStatusSuccess(true));
                     onSuccess?.();
                     return;
                 }
-
                 if (!codeFirst) {
                     const msg = `Метод "email" требует codeFirst (email), а он не передан`;
                     dispatch(setError(msg));
                     return rejectWithValue(msg);
                 }
-
                 const response = await postConfirmationCode({
                     user_id,
                     code: codeFirst,
                     type: "email"
                 });
-
                 if (response.status === "success") {
                     dispatch(setConfirmationEmailSuccess("пройдено"));
                     dispatch(setConfirmationStatusSuccess(true));
@@ -349,22 +374,18 @@ export const sendConfirmationCode = createAsyncThunk<
                     return rejectWithValue(errMsg);
                 }
             }
-            // ----- СЛУЧАЙ 3: любой другой метод (например, йц5988888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888880000000                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       я_agreement) -----
+            // ----- СЛУЧАЙ 3: любой другой метод -----
             else {
-                // Если у вас для этого метода нет отдельного флага, просто отправляем один код
-                // (или делайте отдельный флаг - зависит от вашей логики)
                 if (!codeFirst) {
                     const msg = `Метод "${method}" требует codeFirst, а он не передан`;
                     dispatch(setError(msg));
                     return rejectWithValue(msg);
                 }
-
                 const response = await postConfirmationCode({
                     user_id,
                     code: codeFirst,
                     type: method,
                 });
-
                 if (response.status === "success") {
                     dispatch(setConfirmationStatusSuccess(true));
                     onSuccess?.();

@@ -99,12 +99,12 @@ export const createRiskProfile = createAsyncThunk<
 export const postSecondRiskProfileForm = createAsyncThunk<
     void,
     SecondRiskProfilePayload,
-    { rejectValue: string }
+    { state: RootState; rejectValue: string }
 >(
     "riskProfile/postSecondRiskProfileForm",
-    async (data, { dispatch, rejectWithValue }) => {
+    async (data, { dispatch, rejectWithValue, getState }) => {
         try {
-            const token = 'e55b763400c82c8374d809035976364e98d4fed7'
+            const token = getState().user.token;
             console.log()
             const response = await postSecondRiskProfile(data, token);
             // const { id } = response;

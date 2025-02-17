@@ -5,6 +5,7 @@ import IdentificationProfileForm from "features/RiskProfile/IdentificationForm/u
 import { RiskProfileFirstForm } from "features/RiskProfile/RiskProfileFirstForm/RiskProfileFirstForm";
 import styles from './styles.module.scss'
 import { RiskProfileSecondForm } from "features/RiskProfile/RiskProfileSecondForm/RiskProfileSecondForm";
+import { PasportDataForm } from "features/RiskProfile/PasportDataFrom/PasportDataForm";
 
 interface WithStepContentProps {
     onClose: () => void;
@@ -22,7 +23,7 @@ const stepContents = [
     <IdentificationProfileForm />,
     <RiskProfileFirstForm />,
     <RiskProfileSecondForm />,
-    <p>Настройте параметры</p>,
+    <PasportDataForm />,
     <p>Подтвердите и завершите</p>
 ];
 

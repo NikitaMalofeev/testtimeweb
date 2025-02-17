@@ -22,6 +22,7 @@ export const AdditionalMenu: React.FC<AdditionalMenuProps> = ({ onClose, title, 
     const [hasScrolled, setHasScrolled] = useState(false);
     const dispatch = useAppDispatch()
 
+
     useEffect(() => {
         const handleScroll = () => {
             if (containerRef.current) {

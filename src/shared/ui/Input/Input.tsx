@@ -34,7 +34,7 @@ interface InputProps {
      *  - "swiper"        — числовой слайдер (мин, макс, шаг)
      *  - "swiperDiscrete" — дискретный режим (массив строк)
      */
-    type?: "text" | "textarea" | "search" | "password" | "number" | "swiper" | "swiperDiscrete";
+    type?: "text" | "textarea" | "search" | "password" | "number" | "swiper" | "swiperDiscrete" | 'data';
 
     error?: string | boolean;
 
@@ -190,6 +190,15 @@ export const Input: React.FC<InputProps> = ({
                     {needValue && !value.length && <span className={styles.required}>*</span>}
                 </label>
             )}
+
+            {/* {type === "data" && (
+                <label
+                    className={`${styles.label} ${isFocused || value ? styles.active : ""}`}
+                >
+                    {placeholder}
+                    {needValue && !value.length && <span className={styles.required}>*</span>}
+                </label>
+            )} */}
 
             <div className={styles.inputContainer}>
                 {(() => {

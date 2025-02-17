@@ -27,7 +27,13 @@ import {
     ModalType
 } from "entities/ui/Modal/model/modalTypes";
 import { selectModalState } from "entities/ui/Modal/selectors/selectorsModals";
-import { nextStep, setTooltipActive } from "entities/ui/Ui/slice/uiSlice";
+import {
+    nextStep,
+    setTooltipActive,
+    setConfirmationPhoneSuccess,
+    setConfirmationEmailSuccess,
+    setConfirmationWhatsappSuccess
+} from "entities/ui/Ui/slice/uiSlice";
 
 interface ConfirmInfoModalProps {
     isOpen: boolean;
@@ -35,25 +41,20 @@ interface ConfirmInfoModalProps {
 }
 
 export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps) => {
+    const dispatch = useAppDispatch();
     const modalState = useSelector((state: RootState) => state.modal);
-    const codeError = useSelector((state: RootState) => state.error.error);
 
     // Состояния успеха/неуспеха подтверждения
-    const phoneSuccess = useSelector((state: RootState) => state.ui.confirmationPhoneSuccess);
+    const phoneSuccess = useSelector((state: RootState) => state.ui.confirmationPhoneSuccess)
     const emailSuccess = useSelector((state: RootState) => state.ui.confirmationEmailSuccess);
     const whatsappSuccess = useSelector((state: RootState) => state.ui.confirmationWhatsappSuccess);
 
+    const hasNoTryPhoneConfirm = phoneSuccess === 'не определено'
+    const hasNoTryEmailConfirm = emailSuccess === 'не определено'
+    const hasNoTryWhatsappConfirm = whatsappSuccess === 'не определено'
     // Определяем метод подтверждения
     const confirmationMethod = modalState.confirmationMethod;
 
-    // Флаги ошибок
-    const hasEmailConfirmationError = emailSuccess === "не пройдено";
-    const hasWhatsAppConfirmationError = whatsappSuccess === "не пройдено";
-    const hasPhoneConfirmationError = phoneSuccess === "не пройдено";
-
-    const noEmailConfirmationError = emailSuccess === "пройдено";
-    const noWhatsAppConfirmationError = whatsappSuccess === "пройдено";
-    const noPhoneConfirmationError = phoneSuccess === "пройдено";
 
     // Данные пользователя
     const { phone, email } = useSelector((state: RootState) => state.user.user);
@@ -147,9 +148,8 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                 content.removeEventListener("scroll", handleScroll);
             }
         };
-    }, []);
+    }, [dispatch]);
 
-    const dispatch = useAppDispatch();
     const codeLength = 4;
 
     // Инпуты для формы (телефон/WhatsApp)
@@ -263,23 +263,33 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
         );
     };
 
-    // Состояния для автоотправки
-    const [submittingFirst, setSubmittingFirst] = useState(false);
-    const [submittingSecond, setSubmittingSecond] = useState(false);
 
     // Автоотправка для первой формы (телефон/WhatsApp)
     useEffect(() => {
         const code = smsCodeFirst.join("");
         if (code.length === codeLength) {
-            setSubmittingFirst(true);
+            // setSubmittingFirst(true);
             dispatch(
                 sendConfirmationCode({
                     user_id: userId ?? "",
                     codeFirst: code,
                     method: confirmationMethod,
-                    onSuccess: () => {
-                        setSubmittingFirst(false);
-                        // Если не требуется двойное подтверждение – закрываем модалку
+                    onSuccess: (data: any) => {
+                        // setSubmittingFirst(false);
+                        // Обновляем статус для телефона или WhatsApp в зависимости от метода
+                        if (confirmationMethod === "phone") {
+                            dispatch(
+                                setConfirmationPhoneSuccess(
+                                    data.is_confirmed_phone ? 'пройдено' : 'не пройдено'
+                                )
+                            );
+                        } else if (confirmationMethod === "whatsapp") {
+                            dispatch(
+                                setConfirmationWhatsappSuccess(
+                                    data.is_confirmed_phone ? 'пройдено' : 'не пройдено'
+                                )
+                            );
+                        }
                         dispatch(
                             setTooltipActive({
                                 active: true,
@@ -288,38 +298,46 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                         );
                         dispatch(nextStep());
                     },
-                    onError: () => {
-                        setSubmittingFirst(false);
+                    onError: (data) => {
+                        console.log('ошибка отправки кода')
+                        // setSubmittingFirst(false);
+                        if (confirmationMethod === "phone") {
+                            dispatch(
+                                setConfirmationPhoneSuccess(
+                                    data.is_confirmed_phone ? 'пройдено' : 'не пройдено'
+                                )
+                            );
+                        } else if (confirmationMethod === "whatsapp") {
+                            dispatch(
+                                setConfirmationPhoneSuccess(
+                                    data.is_confirmed_phone ? 'пройдено' : 'не пройдено'
+                                )
+                            );
+                        }
+
                     }
                 })
             );
         }
-    }, [
-        smsCodeFirst.join(""),
-        userId,
-        confirmationMethod,
-    ]);
-
-    useEffect(() => {
-        if (submittingFirst && submittingSecond) {
-            onClose()
-            console.log('Оба данных подтверждены го на некст')
-        }
-    }, [submittingFirst, submittingSecond])
-
+    }, [smsCodeFirst.join(""), userId, confirmationMethod, dispatch]);
 
     // Автоотправка для второй формы (e-mail)
     useEffect(() => {
         const code = smsCodeSecond.join("");
         if (code.length === codeLength) {
-            setSubmittingSecond(true);
+            // setSubmittingSecond(true);
             dispatch(
                 sendConfirmationCode({
                     user_id: userId ?? "",
                     codeFirst: code,
                     method: "email",
-                    onSuccess: () => {
-                        setSubmittingSecond(false);
+                    onSuccess: (data: any) => {
+                        // setSubmittingSecond(false);
+                        dispatch(
+                            setConfirmationEmailSuccess(
+                                data.is_confirmed_email
+                            )
+                        );
                         dispatch(
                             setTooltipActive({
                                 active: true,
@@ -328,13 +346,24 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                         );
                         dispatch(nextStep());
                     },
-                    onError: () => {
-                        setSubmittingSecond(false);
+                    onError: (data) => {
+                        // setSubmittingSecond(false);
+                        setConfirmationPhoneSuccess(
+                            data.is_confirmed_phone ? 'пройдено' : 'не пройдено'
+                        )
                     }
                 })
             );
         }
-    }, [smsCodeSecond.join(""), userId]);
+    }, [smsCodeSecond.join(""), userId, dispatch]);
+
+    // Если необходимо закрыть модалку, когда оба запроса завершены
+    useEffect(() => {
+        if ((phoneSuccess === "пройдено" || whatsappSuccess === "пройдено") && emailSuccess === "пройдено") {
+            onClose();
+            console.log('Оба данных подтверждены, переходим к следующему шагу');
+        }
+    }, [phoneSuccess, whatsappSuccess, emailSuccess]);
 
     return (
         <Modal
@@ -383,11 +412,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                 ref={(el) => (inputRefsFirst.current[index] = el)}
                                 className={styles.codeInput__box}
                                 style={{
-                                    borderColor: hasPhoneConfirmationError || hasWhatsAppConfirmationError
-                                        ? "#FF3C53"
-                                        : noEmailConfirmationError
-                                            ? "#1CC15A"
-                                            : undefined
+                                    borderColor: hasNoTryPhoneConfirm ? "#D4D4E8" : !phoneSuccess ? "#FF3C53" : "#1CC15A"
                                 }}
                             />
                         ))}
@@ -446,11 +471,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                     ref={(el) => (inputRefsSecond.current[index] = el)}
                                     className={styles.codeInput__box}
                                     style={{
-                                        borderColor: hasEmailConfirmationError
-                                            ? "#FF3C53"
-                                            : noEmailConfirmationError
-                                                ? "#1CC15A"
-                                                : undefined
+                                        borderColor: hasNoTryEmailConfirm ? "#D4D4E8" : !emailSuccess ? "#FF3C53" : "#1CC15A"
                                     }}
                                 />
                             ))}

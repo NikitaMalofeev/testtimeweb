@@ -18,9 +18,9 @@ const initialState: UiState = {
         currentStep: 0,
     },
     confirmationStatusSuccess: false,
-    confirmationPhoneSuccess: '',
-    confirmationEmailSuccess: '',
-    confirmationWhatsappSuccess: '',
+    confirmationPhoneSuccess: 'не определено',
+    confirmationEmailSuccess: 'не определено',
+    confirmationWhatsappSuccess: 'не определено',
     isScrollToBottom: true,
     isTooltipActive: {
         active: false,

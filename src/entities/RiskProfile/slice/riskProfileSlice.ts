@@ -37,8 +37,8 @@ interface SendCodePayload {
     codeFirst: string;        // Код из первой формы
     codeSecond?: string;      // Код из второй формы (при методе 'phone' + email)
     method: 'phone' | 'email' | 'whatsapp'  // Как в вашем modalSlice
-    onSuccess?: () => void;
-    onError?: () => void;
+    onSuccess?: (data?: any) => void;
+    onError?: (data?: any) => void;
     onClose?: () => void;
 }
 
@@ -223,9 +223,9 @@ export const sendConfirmationCode = createAsyncThunk<
                         } else {
                             dispatch(setConfirmationPhoneSuccess("пройдено"));
                         }
-                        onSuccess?.();
+                        onSuccess?.(response);
                     } else {
-                        onError?.()
+                        onError?.(response)
                         const phoneError =
                             response.error_text || "Ошибка верификации телефона/WhatsApp";
                         dispatch(setError(phoneError));
@@ -332,7 +332,7 @@ export const sendConfirmationCode = createAsyncThunk<
 
                 if (isPhoneOk && isEmailOk) {
                     dispatch(setConfirmationStatusSuccess(true));
-                    onSuccess?.();
+
                 } else {
                     const combinedError = [
                         !isPhoneOk ? "Телефон (WhatsApp) не подтверждён" : "",
@@ -347,7 +347,7 @@ export const sendConfirmationCode = createAsyncThunk<
             else if (method === "email") {
                 if (confirmationEmailSuccess === "пройдено") {
                     dispatch(setConfirmationStatusSuccess(true));
-                    onSuccess?.();
+
                     return;
                 }
                 if (!codeFirst) {
@@ -363,9 +363,9 @@ export const sendConfirmationCode = createAsyncThunk<
                 if (response.status === "success") {
                     dispatch(setConfirmationEmailSuccess("пройдено"));
                     dispatch(setConfirmationStatusSuccess(true));
-                    onSuccess?.();
+                    onSuccess?.(response);
                 } else {
-                    onError?.()
+                    onError?.(response)
                     const errMsg =
                         response.error_text || `Ошибка при отправке кода (email)`;
                     dispatch(setError(errMsg));
@@ -387,9 +387,9 @@ export const sendConfirmationCode = createAsyncThunk<
                 });
                 if (response.status === "success") {
                     dispatch(setConfirmationStatusSuccess(true));
-                    onSuccess?.();
+                    onSuccess?.(response);
                 } else {
-                    onError?.()
+                    onError?.(response)
                     const errMsg =
                         response.error_text || `Ошибка при отправке кода (${method})`;
                     dispatch(setError(errMsg));

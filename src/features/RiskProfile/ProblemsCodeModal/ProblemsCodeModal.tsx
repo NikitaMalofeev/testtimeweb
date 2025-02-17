@@ -95,7 +95,6 @@ export const ProblemsCodeModal = memo(({ isOpen, onClose }: ConfirmInfoModalProp
 
                 <Input
                     type="textarea"
-                    typeProgramm="textarea"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Опишите проблему"

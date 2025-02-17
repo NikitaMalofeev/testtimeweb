@@ -13,7 +13,9 @@ import { Button, ButtonTheme } from "shared/ui/Button/Button";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import {
     resendConfirmationCode,
-    sendConfirmationCode
+
+    sendEmailConfirmationCode,
+    sendPhoneConfirmationCode
 } from "entities/RiskProfile/slice/riskProfileSlice";
 import { RootState } from "app/providers/store/config/store";
 import {
@@ -270,70 +272,15 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
         if (code.length === codeLength) {
             // setSubmittingFirst(true);
             dispatch(
-                sendConfirmationCode({
+                sendPhoneConfirmationCode({
                     user_id: userId ?? "",
                     codeFirst: code,
                     method: confirmationMethod,
                     onSuccess: (data: any) => {
                         // setSubmittingFirst(false);
                         // Обновляем статус для телефона или WhatsApp в зависимости от метода
-                        if (confirmationMethod === "phone") {
-                            dispatch(
-                                setConfirmationPhoneSuccess(
-                                    data.is_confirmed_phone ? 'пройдено' : 'не пройдено'
-                                )
-                            );
-                        } else if (confirmationMethod === "whatsapp") {
-                            dispatch(
-                                setConfirmationWhatsappSuccess(
-                                    data.is_confirmed_phone ? 'пройдено' : 'не пройдено'
-                                )
-                            );
-                        }
                         dispatch(
-                            setTooltipActive({
-                                active: true,
-                                message: "Данные успешно подтверждены",
-                            })
-                        );
-                    },
-                    onError: (data) => {
-                        console.log('ошибка отправки кода 1')
-                        // setSubmittingFirst(false);
-                        if (confirmationMethod === "phone") {
-                            dispatch(
-                                setConfirmationPhoneSuccess(
-                                    'не пройдено'
-                                )
-                            );
-                        } else if (confirmationMethod === "whatsapp") {
-                            dispatch(
-                                setConfirmationPhoneSuccess(
-                                    'не пройдено'
-                                )
-                            );
-                        }
-
-                    }
-                })
-            );
-        }
-    }, [smsCodeFirst.join(""), userId, confirmationMethod, dispatch]);
-
-    // Автоотправка для второй формы (e-mail)
-    useEffect(() => {
-        const code = smsCodeSecond.join("");
-        if (code.length === codeLength) {
-            // setSubmittingSecond(true);
-            dispatch(
-                sendConfirmationCode({
-                    user_id: userId ?? "",
-                    codeFirst: code,
-                    method: "email",
-                    onSuccess: (data: any) => {
-                        // setSubmittingSecond(false);
-                        dispatch(
-                            setConfirmationEmailSuccess(
+                            setConfirmationPhoneSuccess(
                                 data.is_confirmed_phone ? 'пройдено' : 'не пройдено'
                             )
                         );
@@ -344,16 +291,37 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                             })
                         );
                     },
-                    onError: (data) => {
-                        // setSubmittingSecond(false);
-                        setConfirmationEmailSuccess(
-                            'не пройдено'
-                        )
-                    }
                 })
             );
         }
-    }, [smsCodeSecond.join(""), userId, dispatch]);
+    }, [smsCodeFirst, userId, confirmationMethod]);
+
+    useEffect(() => {
+        const code = smsCodeSecond.join("");
+        if (code.length === codeLength) {
+            dispatch(
+                sendEmailConfirmationCode({
+                    user_id: userId ?? "",
+                    codeSecond: code, // Теперь передается правильно
+                    onSuccess: (data: any) => {
+                        dispatch(
+                            setConfirmationEmailSuccess(
+                                data.is_confirmed_email ? "пройдено" : "не пройдено"
+                            )
+                        );
+                        dispatch(
+                            setTooltipActive({
+                                active: true,
+                                message: "Данные успешно подтверждены",
+                            })
+                        );
+                    },
+                })
+            );
+        }
+    }, [smsCodeSecond, userId]);
+
+
 
     // Если необходимо закрыть модалку, когда оба запроса завершены
     useEffect(() => {

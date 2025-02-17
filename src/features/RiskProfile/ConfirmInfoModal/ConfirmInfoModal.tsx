@@ -296,7 +296,6 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                 message: "Данные успешно подтверждены",
                             })
                         );
-                        dispatch(nextStep());
                     },
                     onError: (data) => {
                         console.log('ошибка отправки кода 1')
@@ -344,7 +343,6 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                 message: "Данные успешно подтверждены",
                             })
                         );
-                        dispatch(nextStep());
                     },
                     onError: (data) => {
                         // setSubmittingSecond(false);
@@ -360,8 +358,8 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
     // Если необходимо закрыть модалку, когда оба запроса завершены
     useEffect(() => {
         if ((phoneSuccess === "пройдено" || whatsappSuccess === "пройдено") && emailSuccess === "пройдено") {
+            dispatch(nextStep());
             onClose();
-            console.log('Оба данных подтверждены, переходим к следующему шагу');
         }
     }, [phoneSuccess, whatsappSuccess, emailSuccess]);
 

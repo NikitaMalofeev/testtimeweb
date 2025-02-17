@@ -40,13 +40,13 @@ export const PasportDataForm: React.FC = () => {
         },
     });
 
-    const handleTextInputChange = (e) => {
+    const handleTextInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         formik.setFieldValue(name, value);
         dispatch(updateFieldValue({ name, value }));
     };
 
-    const handleDateInputChange = (e) => {
+    const handleDateInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         let { name, value } = e.target;
         value = value.replace(/\D/g, "");
         if (value.length > 2) value = value.slice(0, 2) + "." + value.slice(2);
@@ -54,6 +54,7 @@ export const PasportDataForm: React.FC = () => {
         formik.setFieldValue(name, value);
         dispatch(updateFieldValue({ name, value }));
     };
+
 
     const handleCaptchaChange = (value: string | null) => {
         formik.setFieldValue("g_recaptcha", value || "");

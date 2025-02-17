@@ -196,6 +196,11 @@ export const sendPhoneConfirmationCode = createAsyncThunk<
             dispatch(setConfirmationPhoneSuccess(
                 'не пройдено'
             ))
+            console.log(error)
+            const msg =
+                error.response.data?.error_text ||
+                "Ошибка при отправке кода (непредвиденная)";
+            dispatch(setError(msg))
         }
     }
 );
@@ -215,16 +220,18 @@ export const sendEmailConfirmationCode = createAsyncThunk<
             if (responseEmail.status === "success") {
                 onSuccess?.(responseEmail);
             } else if (responseEmail.code !== 200) {
-                const msg =
-                    responseEmail.data?.error_text ||
-                    "Ошибка при отправке кода (непредвиденная)";
-                dispatch(setError(msg))
+
                 onSuccess?.(responseEmail);
             }
-        } catch {
+        } catch (error: any) {
             dispatch(setConfirmationEmailSuccess(
                 'не пройдено'
             ))
+            console.log(error)
+            const msg =
+                error.response.data?.error_text ||
+                "Ошибка при отправке кода (непредвиденная)";
+            dispatch(setError(msg))
         }
     }
 );

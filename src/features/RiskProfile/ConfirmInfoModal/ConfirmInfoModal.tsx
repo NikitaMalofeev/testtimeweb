@@ -299,18 +299,18 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                         dispatch(nextStep());
                     },
                     onError: (data) => {
-                        console.log('ошибка отправки кода')
+                        console.log('ошибка отправки кода 1')
                         // setSubmittingFirst(false);
                         if (confirmationMethod === "phone") {
                             dispatch(
                                 setConfirmationPhoneSuccess(
-                                    data.is_confirmed_phone ? 'пройдено' : 'не пройдено'
+                                    'не пройдено'
                                 )
                             );
                         } else if (confirmationMethod === "whatsapp") {
                             dispatch(
                                 setConfirmationPhoneSuccess(
-                                    data.is_confirmed_phone ? 'пройдено' : 'не пройдено'
+                                    'не пройдено'
                                 )
                             );
                         }
@@ -335,7 +335,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                         // setSubmittingSecond(false);
                         dispatch(
                             setConfirmationEmailSuccess(
-                                data.is_confirmed_email
+                                data.is_confirmed_phone ? 'пройдено' : 'не пройдено'
                             )
                         );
                         dispatch(
@@ -348,8 +348,8 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                     },
                     onError: (data) => {
                         // setSubmittingSecond(false);
-                        setConfirmationPhoneSuccess(
-                            data.is_confirmed_phone ? 'пройдено' : 'не пройдено'
+                        setConfirmationEmailSuccess(
+                            'не пройдено'
                         )
                     }
                 })
@@ -412,7 +412,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                 ref={(el) => (inputRefsFirst.current[index] = el)}
                                 className={styles.codeInput__box}
                                 style={{
-                                    borderColor: hasNoTryPhoneConfirm ? "#D4D4E8" : !phoneSuccess ? "#FF3C53" : "#1CC15A"
+                                    borderColor: hasNoTryPhoneConfirm ? "#D4D4E8" : phoneSuccess === 'не пройдено' ? "#FF3C53" : "#1CC15A"
                                 }}
                             />
                         ))}
@@ -471,7 +471,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                     ref={(el) => (inputRefsSecond.current[index] = el)}
                                     className={styles.codeInput__box}
                                     style={{
-                                        borderColor: hasNoTryEmailConfirm ? "#D4D4E8" : !emailSuccess ? "#FF3C53" : "#1CC15A"
+                                        borderColor: hasNoTryEmailConfirm ? "#D4D4E8" : emailSuccess === 'не пройдено' ? "#FF3C53" : "#1CC15A"
                                     }}
                                 />
                             ))}

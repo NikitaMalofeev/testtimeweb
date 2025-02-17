@@ -190,7 +190,7 @@ const IdentificationProfileForm: React.FC = () => {
                     onBlur={formik.handleBlur}
                     placeholder="Номер телефона"
                     needValue
-                    type="number"
+                    type="text"
                     error={formik.touched.phone && formik.errors.phone}
                 />
                 <Input

@@ -6,6 +6,7 @@ import {
     fetchAllSelects,
     nextRiskProfileStep,
     postFirstRiskProfileForm,
+    postTrustedPersonInfo,
     prevRiskProfileStep,
     updateFieldValue,
 } from "entities/RiskProfile/slice/riskProfileSlice";
@@ -19,6 +20,7 @@ import { Loader } from "shared/ui/Loader/Loader";
 import { Select } from "shared/ui/Select/Select";
 import { nextStep } from "entities/ui/Ui/slice/uiSlice";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
+import { TrustedPersonInfo } from "entities/RiskProfile/model/types";
 
 interface Question {
     name: string;
@@ -117,19 +119,6 @@ export const RiskProfileFirstForm: React.FC = () => {
                     "false": 'Нет',
                 },
             },
-            {
-                name: "expected_return_investment",
-                label:
-                    "Ожидаемая доходность по результатам инвестирования (% годовых)",
-                placeholder: "Укажите ожидаемую доходность, %",
-                fieldType: "numberinput",
-            },
-            {
-                name: "max_allowable_drawdown",
-                label: "Максимальная допустимая просадка",
-                placeholder: "Укажите допустимую просадку, %",
-                fieldType: "numberinput",
-            },
         ];
 
         return [
@@ -176,6 +165,19 @@ export const RiskProfileFirstForm: React.FC = () => {
     const totalSteps = questions.length;
     const isLastStep = currentStep === totalSteps - 1;
     const currentQuestion = questions[currentStep];
+
+    const checkTrustedPerson = () => {
+        const { trusted_person_fio, trusted_person_phone, trusted_person_other_contact } = formik.values;
+
+        const trustedPersonInfo: TrustedPersonInfo = {
+            trusted_person_fio,
+            trusted_person_phone,
+            trusted_person_other_contact,
+        };
+
+        dispatch(postTrustedPersonInfo({ data: trustedPersonInfo, onSuccess: goNext }));
+    };
+
 
     const goNext = () => {
         if (isLastStep) {
@@ -410,11 +412,11 @@ export const RiskProfileFirstForm: React.FC = () => {
                     <Button
                         type="button"
                         theme={ButtonTheme.BLUE}
-                        onClick={goNext}
+                        onClick={currentStep !== 1 ? goNext : checkTrustedPerson}
                         className={styles.button}
                         disabled={!isQuestionAnswered(currentQuestion) && questions[currentStep].name !== 'trusted_person'}
                     >
-                        {isLastStep ? "Продолжить" : "Продолжить"}
+                        Продолжить
                     </Button>
                 </div>
             </form>

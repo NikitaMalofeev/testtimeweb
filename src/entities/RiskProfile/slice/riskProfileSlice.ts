@@ -2,9 +2,11 @@ import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import {
     IdentificationProfileData,
     ConfirmationCodeData,
-    NeedHelpData
+    NeedHelpData,
+    RiskProfileFormData,
+    TrustedPersonInfo
 } from "../model/types";
-import { getAllSelects, postConfirmationCode, postFirstRiskProfile, postIdentificationData, postNeedHelpRequest, postResendConfirmationCode, postSecondRiskProfile } from "shared/api/RiskProfileApi/riskProfileApi";
+import { getAllSelects, postConfirmationCode, postFirstRiskProfile, postIdentificationData, postNeedHelpRequest, postResendConfirmationCode, postSecondRiskProfile, postTrustedPersonInfoApi } from "shared/api/RiskProfileApi/riskProfileApi";
 import { setUserId, setUserToken } from "entities/User/slice/userSlice";
 import { setConfirmationEmailSuccess, setConfirmationPhoneSuccess, setConfirmationStatusSuccess, setConfirmationWhatsappSuccess } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
@@ -20,6 +22,8 @@ interface RiskProfileFormState {
     loading: boolean;
     error: string | null;
     success: boolean;
+    IdentificationFromData: IdentificationProfileData | null;
+    riskProfileForm: RiskProfileFormData | null;
     firstRiskProfileData: FirstRiskProfileResponse | null,
     riskProfileSelectors: RiskProfileSelectors | null
     formValues: Record<string, string>;
@@ -56,6 +60,8 @@ const initialState: RiskProfileFormState = {
     error: null,
     success: false,
     firstRiskProfileData: null,
+    riskProfileForm: null,
+    IdentificationFromData: null,
     riskProfileSelectors: null,
     formValues: {},
     stepsFirstForm: {
@@ -140,6 +146,31 @@ export const postFirstRiskProfileForm = createAsyncThunk<
             // Обновляем state сразу: сохраняем данные ответа первой формы
             dispatch(setFirstRiskProfileData(response));
         } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message || "Ошибка при отправке данных"
+            );
+        }
+    }
+);
+
+export const postTrustedPersonInfo = createAsyncThunk<
+    void,
+    { data: TrustedPersonInfo; onSuccess: () => void; },
+    { state: RootState; rejectValue: string }
+>(
+    "riskProfile/postFirstRiskProfileForm",
+    async ({ data, onSuccess }, { getState, rejectWithValue, dispatch }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+            const response = await postTrustedPersonInfoApi(data, token);
+            if (response.code === 200) {
+                onSuccess(); // Вызываем переданный callback при успешном ответе
+            }
+        } catch (error: any) {
+            dispatch(setError('Ошибка при отправке данных о доверенном лице'))
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке данных"
             );

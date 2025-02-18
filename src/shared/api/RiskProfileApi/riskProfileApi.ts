@@ -92,6 +92,22 @@ export const postSecondRiskProfile = async (data: SecondRiskProfilePayload, toke
     return response.data;
 };
 
+export const postSecondRiskProfileFinal = async (data: SecondRiskProfilePayload, token: string) => {
+    const response = await axios.post(
+        `${apiUrl}create_doc_user/third_risk_profiling_add_more_info_final/`,
+        data,
+        {
+            headers: {
+                "Accept-Language": "ru",
+                "Content-Type": "application/json",
+                "Authorization": `Token ${token}`,
+            },
+        }
+    );
+    return response.data;
+};
+
+
 
 export const getAllSelects = async () => {
     const response = await axios.get(`${apiUrl}create_doc_user/get_all_selects/`, {

@@ -68,6 +68,7 @@ export interface SendCodePayload {
 export interface SecondRiskProfilePayload {
     amount_expected_replenishment: number | undefined,
     portfolio_parameters: string,
+    risk_profiling_final?: string
 }
 
 export interface RiskProfileSelectors {

@@ -3,18 +3,24 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import styles from './styles.module.scss'
+import { useAppDispatch } from "shared/hooks/useAppDispatch";
+import { setError } from "entities/Error/slice/errorSlice";
 
 
 
 export const ErrorPopup = () => {
     const [visible, setVisible] = useState(false);
     const error = useSelector((state: RootState) => state.error.error)
+    const dispatch = useAppDispatch()
 
     useEffect(() => {
         if (error) {
             setVisible(true);
             const timer = setTimeout(() => setVisible(false), 4000);
-            return () => clearTimeout(timer);
+            return () => {
+                clearTimeout(timer)
+                // dispatch(setError(''))
+            };
         }
     }, [error]);
 

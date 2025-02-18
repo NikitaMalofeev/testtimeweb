@@ -11,9 +11,9 @@ import {
     SecondRiskProfileResponse,
     ThirdRiskProfileResponse
 } from "../model/types";
-import { getAllSelects, postConfirmationCode, postFirstRiskProfile, postIdentificationData, postNeedHelpRequest, postResendConfirmationCode, postSecondRiskProfile, postTrustedPersonInfoApi } from "shared/api/RiskProfileApi/riskProfileApi";
+import { getAllSelects, postConfirmationCode, postFirstRiskProfile, postIdentificationData, postNeedHelpRequest, postResendConfirmationCode, postSecondRiskProfile, postSecondRiskProfileFinal, postTrustedPersonInfoApi } from "shared/api/RiskProfileApi/riskProfileApi";
 import { setUserId, setUserToken } from "entities/User/slice/userSlice";
-import { setConfirmationEmailSuccess, setConfirmationPhoneSuccess, setConfirmationStatusSuccess, setConfirmationWhatsappSuccess } from "entities/ui/Ui/slice/uiSlice";
+import { nextStep, setConfirmationEmailSuccess, setConfirmationPhoneSuccess, setConfirmationStatusSuccess, setConfirmationWhatsappSuccess } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
 import { RootState } from "app/providers/store/config/store";
 interface RiskProfileFormState {
@@ -97,6 +97,26 @@ export const postSecondRiskProfileForm = createAsyncThunk<
     }
 );
 
+export const postSecondRiskProfileFormFinal = createAsyncThunk<
+    void,
+    SecondRiskProfilePayload,
+    { state: RootState; rejectValue: string }
+>(
+    "riskProfile/postSecondRiskProfileFormFinal",
+    async (data, { dispatch, rejectWithValue, getState }) => {
+        try {
+            const token = getState().user.token;
+            const response = await postSecondRiskProfileFinal(data, token);
+
+            dispatch(nextStep())
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message || "Ошибка при отправке данных"
+            );
+        }
+    }
+);
+
 export const postFirstRiskProfileForm = createAsyncThunk<
     void,
     Record<string, string>,
@@ -146,7 +166,8 @@ export const postTrustedPersonInfo = createAsyncThunk<
                 onSuccess();
             }
         } catch (error: any) {
-            dispatch(setError('Ошибка при отправке данных о доверенном лице'))
+            console.log(error)
+            dispatch(setError(error.response.data.trusted_person_phone))
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке данных"
             );

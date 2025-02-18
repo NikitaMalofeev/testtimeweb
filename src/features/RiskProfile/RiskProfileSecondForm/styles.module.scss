@@ -100,6 +100,12 @@
     }
 }
 
+.form__final {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
 .potential__capital__change {
     position: absolute;
     bottom: 20px;

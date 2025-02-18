@@ -73,3 +73,11 @@ export interface SecondRiskProfilePayload {
 export interface RiskProfileSelectors {
     [key: string]: Record<string, string>;
 }
+
+export interface ThirdRiskProfileResponse {
+    is_success: boolean;
+    risk_profiling_possible_loss_percent: number;
+    risk_profiling_potential_income_percent: number;
+    possible_loss: number;
+    potential_income: number;
+}

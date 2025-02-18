@@ -13,6 +13,8 @@ import OnPasswordIcon from "shared/assets/svg/visibility_on.svg";
 import OffPasswordIcon from "shared/assets/svg/visibility_off.svg";
 import SearchIcon from "shared/assets/svg/searchIcon.svg";
 import { CustomSlider, SliderTheme } from "../CustomSlider/CustomSlider";
+import { useSelector } from "react-redux";
+import { RootState } from "app/providers/store/config/store";
 
 // Новое перечисление для тем (при желании можно расширять)
 type InputTheme = "default" | "primary" | "secondary" | "gradient";
@@ -68,6 +70,7 @@ export const Input: React.FC<InputProps> = ({
     const [isFocused, setIsFocused] = useState(false);
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
+    const minAmountInputNumberSlider = useSelector((state: RootState) => state.riskProfile.secondRiskProfileData?.min_amount_expected_replenishment || 200000)
 
     const handleFocus = () => setIsFocused(true);
     const handleBlur = (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -134,8 +137,8 @@ export const Input: React.FC<InputProps> = ({
     };
 
     // Считаем количество интервалов в каждом диапазоне:
-    const range1Count = (1000000 - 500000) / 100000;       // 5 шагов
-    const range2Count = (10000000 - 1000000) / 500000;       // 18 шагов
+    const range1Count = (1000000 - minAmountInputNumberSlider) / 100000;       // 5 шагов
+    const range2Count = (10000000 - 1000000) / minAmountInputNumberSlider;       // 18 шагов
     const range3Count = (100000000 - 10000000) / 2000000;     // 45 шагов
 
     // Общее число шагов (индексов) – можно использовать как max для слайдера:
@@ -144,9 +147,9 @@ export const Input: React.FC<InputProps> = ({
     // Функция, которая по значению возвращает индекс (для инициализации слайдера)
     const mapValueToSliderIndex = (value: number): number => {
         if (value <= 1000000) {
-            return (value - 500000) / 100000;
+            return (value - minAmountInputNumberSlider) / 100000;
         } else if (value <= 10000000) {
-            return range1Count + (value - 1000000) / 500000;
+            return range1Count + (value - 1000000) / minAmountInputNumberSlider;
         } else {
             return range1Count + range2Count + (value - 10000000) / 2000000;
         }
@@ -155,9 +158,9 @@ export const Input: React.FC<InputProps> = ({
     // Функция, которая по индексу возвращает округлённое значение
     const mapSliderIndexToValue = (index: number): number => {
         if (index <= range1Count) {
-            return 500000 + index * 100000;
+            return minAmountInputNumberSlider + index * 100000;
         } else if (index <= range1Count + range2Count) {
-            return 1000000 + (index - range1Count) * 500000;
+            return 1000000 + (index - range1Count) * minAmountInputNumberSlider;
         } else {
             return 10000000 + (index - range1Count - range2Count) * 2000000;
         }

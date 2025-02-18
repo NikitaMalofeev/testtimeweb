@@ -8,7 +8,8 @@ import {
     SecondRiskProfilePayload,
     SendCodePayload,
     RiskProfileSelectors,
-    SecondRiskProfileResponse
+    SecondRiskProfileResponse,
+    ThirdRiskProfileResponse
 } from "../model/types";
 import { getAllSelects, postConfirmationCode, postFirstRiskProfile, postIdentificationData, postNeedHelpRequest, postResendConfirmationCode, postSecondRiskProfile, postTrustedPersonInfoApi } from "shared/api/RiskProfileApi/riskProfileApi";
 import { setUserId, setUserToken } from "entities/User/slice/userSlice";
@@ -22,15 +23,12 @@ interface RiskProfileFormState {
     IdentificationFromData: IdentificationProfileData | null;
     riskProfileForm: RiskProfileFormData | null;
     secondRiskProfileData: SecondRiskProfileResponse | null,
+    thirdRiskProfileResponse: ThirdRiskProfileResponse | null,
     riskProfileSelectors: RiskProfileSelectors | null
     formValues: Record<string, string>;
     stepsFirstForm: {
         currentStep: number;
     };
-    secondForm: {
-        amount_expected_replenishment: number | undefined,
-        portfolio_parameters: string;
-    }
 }
 
 
@@ -43,14 +41,11 @@ const initialState: RiskProfileFormState = {
     riskProfileForm: null,
     IdentificationFromData: null,
     riskProfileSelectors: null,
+    thirdRiskProfileResponse: null,
     formValues: {},
     stepsFirstForm: {
         currentStep: 0
     },
-    secondForm: {
-        amount_expected_replenishment: 10000000,
-        portfolio_parameters: 'risk_prof_balanced'
-    }
 };
 
 export const createRiskProfile = createAsyncThunk<
@@ -93,7 +88,7 @@ export const postSecondRiskProfileForm = createAsyncThunk<
             const token = getState().user.token;
             console.log()
             const response = await postSecondRiskProfile(data, token);
-            dispatch(setSecondRiskProfileData(response.data))
+            dispatch(setThirdRiskProfileResponse(response))
         } catch (error: any) {
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке данных"
@@ -323,10 +318,10 @@ const riskProfileSlice = createSlice({
         setFirstRiskProfileData(state, action: PayloadAction<SecondRiskProfileResponse>) {
             state.secondRiskProfileData = action.payload;
         },
-        // Новый экшен для обновления данных второй формы
-        setSecondRiskProfileData(state, action: PayloadAction<SecondRiskProfilePayload>) {
-            state.secondForm = action.payload;
+        setThirdRiskProfileResponse(state, action: PayloadAction<ThirdRiskProfileResponse>) {
+            state.thirdRiskProfileResponse = action.payload;
         },
+
     },
     extraReducers: (builder) => {
         builder
@@ -372,5 +367,5 @@ const riskProfileSlice = createSlice({
     },
 });
 
-export const { updateFieldValue, nextRiskProfileStep, prevRiskProfileStep, setFirstRiskProfileData, setSecondRiskProfileData } = riskProfileSlice.actions;
+export const { updateFieldValue, nextRiskProfileStep, prevRiskProfileStep, setThirdRiskProfileResponse, setFirstRiskProfileData } = riskProfileSlice.actions;
 export default riskProfileSlice.reducer;

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { useFormik } from "formik";
 import { useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
@@ -9,6 +9,9 @@ import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { Tooltip } from "shared/ui/Tooltip/Tooltip";
 import { Input } from "shared/ui/Input/Input";
 import { postSecondRiskProfileForm } from "entities/RiskProfile/slice/riskProfileSlice";
+import { debounce } from "lodash";
+import { SecondRiskProfilePayload } from "entities/RiskProfile/model/types";
+
 
 interface SwiperParametrValues {
     risk_prof_conservative: string;
@@ -32,8 +35,9 @@ const SWIPER_PARAM_VALUES: SwiperParametrValues = {
 export const RiskProfileSecondForm: React.FC = () => {
     const dispatch = useAppDispatch();
     const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
-    const initialValuesFromRedux = useSelector((state: RootState) => state.riskProfile.secondForm);
     const secondRiskProfileData = useSelector((state: RootState) => state.riskProfile.secondRiskProfileData);
+    const thirdRiskProfileResponse = useSelector((state: RootState) => state.riskProfile.thirdRiskProfileResponse);
+
 
     const goNext = () => dispatch(nextStep());
     const goBack = () => dispatch(prevStep());
@@ -42,22 +46,30 @@ export const RiskProfileSecondForm: React.FC = () => {
         enableReinitialize: true,
         initialValues: {
             // Храним именно число!
-            amount_expected_replenishment: secondRiskProfileData?.min_amount_expected_replenishment,
-            portfolio_parameters: initialValuesFromRedux.portfolio_parameters,
+            amount_expected_replenishment: 200000,
+            portfolio_parameters: 'risk_prof_balanced',
         },
         onSubmit: async (values) => {
             alert("Данные отправлены: " + JSON.stringify(values));
         },
     });
 
+
+    const debouncedPostForm = useCallback(
+        debounce((values) => {
+            handleGetNewPercentage(values)
+        }, 500), // 500 мс задержка
+        [dispatch]
+    );
+
     useEffect(() => {
-        handleGetNewPercentage();
+        debouncedPostForm(formik.values);
+    }, [formik.values, debouncedPostForm]);
 
-    }, [formik.values]);
 
 
-    const handleGetNewPercentage = () => {
-        dispatch(postSecondRiskProfileForm(formik.values))
+    const handleGetNewPercentage = (values: SecondRiskProfilePayload) => {
+        dispatch(postSecondRiskProfileForm(values))
     }
 
     // Функция для форматирования числа: 3000000 → "3 000 000 ₽"
@@ -178,10 +190,10 @@ export const RiskProfileSecondForm: React.FC = () => {
                                 squerePosition={{ bottom: '-4px' }}
                             />
                         </div>
-                        <span className={styles.form__item__potintial__title_red}>{secondRiskProfileData?.risk_profiling_possible_loss_percent}%</span>
+                        <span className={styles.form__item__potintial__title_red}>{thirdRiskProfileResponse ? thirdRiskProfileResponse.risk_profiling_possible_loss_percent : secondRiskProfileData?.risk_profiling_possible_loss_percent}%</span>
                     </div>
                     <div className={styles.potential__capital__change}>
-                        {secondRiskProfileData?.possible_loss} ₽
+                        {thirdRiskProfileResponse ? thirdRiskProfileResponse.possible_loss : secondRiskProfileData?.possible_loss} ₽
                     </div>
                 </div>
                 <div className={styles.form__container} style={{ minHeight: '74px' }}>
@@ -196,10 +208,11 @@ export const RiskProfileSecondForm: React.FC = () => {
                                 squerePosition={{ bottom: '-4px' }}
                             />
                         </div>
-                        <span className={styles.form__item__potintial__title_green}>{secondRiskProfileData?.risk_profiling_potential_income_percent}%</span>
+                        <span className={styles.form__item__potintial__title_green}>{thirdRiskProfileResponse ? thirdRiskProfileResponse.risk_profiling_potential_income_percent : secondRiskProfileData?.risk_profiling_potential_income_percent}%</span>
                     </div>
                     <div className={styles.potential__capital__change}>
-                        {secondRiskProfileData?.potential_income} ₽
+                        {thirdRiskProfileResponse ? thirdRiskProfileResponse.potential_income : secondRiskProfileData?.potential_income} ₽
+
                     </div>
                 </div>
                 <div className={styles.form__container} style={{ minHeight: '180px' }}>

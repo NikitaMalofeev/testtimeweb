@@ -100,6 +100,18 @@
     }
 }
 
+.potential__capital__change {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    font-family: var(--font-inter);
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 16px;
+    letter-spacing: 0%;
+    color: #0F0E0E;
+}
+
 .parametrs {
     margin-right: 4px;
     font-family: var(--font-inter);

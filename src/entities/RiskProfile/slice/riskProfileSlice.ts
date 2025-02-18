@@ -4,62 +4,42 @@ import {
     ConfirmationCodeData,
     NeedHelpData,
     RiskProfileFormData,
-    TrustedPersonInfo
+    TrustedPersonInfo,
+    SecondRiskProfilePayload,
+    SendCodePayload,
+    RiskProfileSelectors,
+    SecondRiskProfileResponse
 } from "../model/types";
 import { getAllSelects, postConfirmationCode, postFirstRiskProfile, postIdentificationData, postNeedHelpRequest, postResendConfirmationCode, postSecondRiskProfile, postTrustedPersonInfoApi } from "shared/api/RiskProfileApi/riskProfileApi";
 import { setUserId, setUserToken } from "entities/User/slice/userSlice";
 import { setConfirmationEmailSuccess, setConfirmationPhoneSuccess, setConfirmationStatusSuccess, setConfirmationWhatsappSuccess } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
 import { RootState } from "app/providers/store/config/store";
-
-export interface FirstRiskProfileResponse {
-    info: string;
-    summ: number;
-    recommended_risk_profiles: Record<string, string>;
-}
-
 interface RiskProfileFormState {
     loading: boolean;
     error: string | null;
     success: boolean;
     IdentificationFromData: IdentificationProfileData | null;
     riskProfileForm: RiskProfileFormData | null;
-    firstRiskProfileData: FirstRiskProfileResponse | null,
+    secondRiskProfileData: SecondRiskProfileResponse | null,
     riskProfileSelectors: RiskProfileSelectors | null
     formValues: Record<string, string>;
     stepsFirstForm: {
         currentStep: number;
     };
     secondForm: {
-        amount_expected_replenishment: number,
+        amount_expected_replenishment: number | undefined,
         portfolio_parameters: string;
     }
 }
 
-interface SendCodePayload {
-    user_id: string;
-    codeFirst: string;        // Код из первой формы
-    codeSecond?: string;      // Код из второй формы (при методе 'phone' + email)
-    method: 'phone' | 'email' | 'whatsapp'  // Как в вашем modalSlice
-    onSuccess?: (data?: any) => void;
-    onError?: (data?: any) => void;
-    onClose?: () => void;
-}
 
-export interface SecondRiskProfilePayload {
-    amount_expected_replenishment: number,
-    portfolio_parameters: string,
-}
-
-interface RiskProfileSelectors {
-    [key: string]: Record<string, string>;
-}
 
 const initialState: RiskProfileFormState = {
     loading: false,
     error: null,
     success: false,
-    firstRiskProfileData: null,
+    secondRiskProfileData: null,
     riskProfileForm: null,
     IdentificationFromData: null,
     riskProfileSelectors: null,
@@ -113,12 +93,8 @@ export const postSecondRiskProfileForm = createAsyncThunk<
             const token = getState().user.token;
             console.log()
             const response = await postSecondRiskProfile(data, token);
-            // const { id } = response;
-            // dispatch(setUserId(id));
+            dispatch(setSecondRiskProfileData(response.data))
         } catch (error: any) {
-            // if (error.response.data.password) {
-            //     dispatch(setError(error.response.data.password))
-            // }
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке данных"
             );
@@ -138,12 +114,16 @@ export const postFirstRiskProfileForm = createAsyncThunk<
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");
             }
+
+            // Убираем ненужные поля
+            const { trusted_person_fio, trusted_person_phone, trusted_person_other_contact, ...filteredData } = data;
+
             const transformedData = {
-                ...data,
-                is_qualified_investor_status: data.is_qualified_investor_status === "true",
+                ...filteredData,
+                is_qualified_investor_status: filteredData.is_qualified_investor_status === "true",
             };
+
             const response = await postFirstRiskProfile(transformedData, token);
-            // Обновляем state сразу: сохраняем данные ответа первой формы
             dispatch(setFirstRiskProfileData(response));
         } catch (error: any) {
             return rejectWithValue(
@@ -152,6 +132,7 @@ export const postFirstRiskProfileForm = createAsyncThunk<
         }
     }
 );
+
 
 export const postTrustedPersonInfo = createAsyncThunk<
     void,
@@ -166,8 +147,8 @@ export const postTrustedPersonInfo = createAsyncThunk<
                 return rejectWithValue("Отсутствует токен авторизации");
             }
             const response = await postTrustedPersonInfoApi(data, token);
-            if (response.code === 200) {
-                onSuccess(); // Вызываем переданный callback при успешном ответе
+            if (response === true) {
+                onSuccess();
             }
         } catch (error: any) {
             dispatch(setError('Ошибка при отправке данных о доверенном лице'))
@@ -339,8 +320,8 @@ const riskProfileSlice = createSlice({
         setStep(state, action) {
             state.stepsFirstForm.currentStep = action.payload;
         },
-        setFirstRiskProfileData(state, action: PayloadAction<FirstRiskProfileResponse>) {
-            state.firstRiskProfileData = action.payload;
+        setFirstRiskProfileData(state, action: PayloadAction<SecondRiskProfileResponse>) {
+            state.secondRiskProfileData = action.payload;
         },
         // Новый экшен для обновления данных второй формы
         setSecondRiskProfileData(state, action: PayloadAction<SecondRiskProfilePayload>) {

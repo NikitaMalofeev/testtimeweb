@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useFormik } from "formik";
 import { useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
@@ -33,7 +33,7 @@ export const RiskProfileSecondForm: React.FC = () => {
     const dispatch = useAppDispatch();
     const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
     const initialValuesFromRedux = useSelector((state: RootState) => state.riskProfile.secondForm);
-    const firstRiskProfileData = useSelector((state: RootState) => state.riskProfile.firstRiskProfileData);
+    const secondRiskProfileData = useSelector((state: RootState) => state.riskProfile.secondRiskProfileData);
 
     const goNext = () => dispatch(nextStep());
     const goBack = () => dispatch(prevStep());
@@ -42,7 +42,7 @@ export const RiskProfileSecondForm: React.FC = () => {
         enableReinitialize: true,
         initialValues: {
             // Храним именно число!
-            amount_expected_replenishment: initialValuesFromRedux.amount_expected_replenishment,
+            amount_expected_replenishment: secondRiskProfileData?.min_amount_expected_replenishment,
             portfolio_parameters: initialValuesFromRedux.portfolio_parameters,
         },
         onSubmit: async (values) => {
@@ -51,9 +51,10 @@ export const RiskProfileSecondForm: React.FC = () => {
     });
 
     useEffect(() => {
-        console.log(formik.values)
-        handleGetNewPercentage()
-    }, [formik.values])
+        handleGetNewPercentage();
+
+    }, [formik.values]);
+
 
     const handleGetNewPercentage = () => {
         dispatch(postSecondRiskProfileForm(formik.values))
@@ -100,13 +101,13 @@ export const RiskProfileSecondForm: React.FC = () => {
                             type="swiper"
                             placeholder="Деньги"
                             // Пределы для ползунка:
-                            min={500000}
+                            min={secondRiskProfileData?.min_amount_expected_replenishment}
                             max={100000000}
-                            step={5000}
+                            step={secondRiskProfileData?.step_scroll_amount_expected_replenishment}
                             // Передаём уже ОТФОРМАТИРОВАННУЮ строку,
                             // чтобы пользователь видел "3 000 000 ₽"
                             value={formatMoney(
-                                formik.values.amount_expected_replenishment
+                                formik.values.amount_expected_replenishment || 200000
                             )}
                             onChange={(e) => {
                                 // Парсим обратно в число,
@@ -177,9 +178,11 @@ export const RiskProfileSecondForm: React.FC = () => {
                                 squerePosition={{ bottom: '-4px' }}
                             />
                         </div>
-                        <span className={styles.form__item__potintial__title_red}>3%</span>
+                        <span className={styles.form__item__potintial__title_red}>{secondRiskProfileData?.risk_profiling_possible_loss_percent}%</span>
                     </div>
-
+                    <div className={styles.potential__capital__change}>
+                        {secondRiskProfileData?.possible_loss} ₽
+                    </div>
                 </div>
                 <div className={styles.form__container} style={{ minHeight: '74px' }}>
                     <div className={styles.form__item_potintial}>
@@ -193,15 +196,18 @@ export const RiskProfileSecondForm: React.FC = () => {
                                 squerePosition={{ bottom: '-4px' }}
                             />
                         </div>
-                        <span className={styles.form__item__potintial__title_green}>20%</span>
+                        <span className={styles.form__item__potintial__title_green}>{secondRiskProfileData?.risk_profiling_potential_income_percent}%</span>
+                    </div>
+                    <div className={styles.potential__capital__change}>
+                        {secondRiskProfileData?.potential_income} ₽
                     </div>
                 </div>
                 <div className={styles.form__container} style={{ minHeight: '180px' }}>
-                    {firstRiskProfileData && (
+                    {secondRiskProfileData && (
                         <div>
                             <Tooltip
                                 className={styles.form__item__tooltip_report}
-                                description={firstRiskProfileData.info}
+                                description={secondRiskProfileData.info}
                                 topForCenteringIcons="24px"
                                 direction='left'
                                 positionBox={{ top: '12px', right: '32px' }}
@@ -209,7 +215,7 @@ export const RiskProfileSecondForm: React.FC = () => {
                             />
                             <div className={styles.report__container}>
                                 <p className={styles.report}>Рекомендуемый риск-профиль по результатам риск-профилирования </p>
-                                <b className={styles.report__value}>{Object.values(firstRiskProfileData.recommended_risk_profiles)[0]}</b>
+                                <b className={styles.report__value}>{Object.values(secondRiskProfileData.recommended_risk_profiles)[0]}</b>
                             </div>
                         </div>
                     )}

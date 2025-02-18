@@ -1,6 +1,5 @@
 import axios from "axios";
-import { IdentificationProfileData, ConfirmationCodeData, NeedHelpData, TrustedPersonInfo } from "entities/RiskProfile/model/types";
-import { SecondRiskProfilePayload } from "entities/RiskProfile/slice/riskProfileSlice";
+import { IdentificationProfileData, ConfirmationCodeData, NeedHelpData, TrustedPersonInfo, SecondRiskProfilePayload } from "entities/RiskProfile/model/types";
 
 const apiUrl = import.meta.env.VITE_RANKS_TEST_API_URL;
 
@@ -50,7 +49,7 @@ export const postNeedHelpRequest = async (data: NeedHelpData) => {
 
 export const postTrustedPersonInfoApi = async (data: TrustedPersonInfo, token: string) => {
     const response = await axios.post(
-        `${apiUrl}create_doc_user/second_rpart_save_trusted_person/`,
+        `${apiUrl}create_doc_user/second_part_save_trusted_person/`,
         data,
         {
             headers: {

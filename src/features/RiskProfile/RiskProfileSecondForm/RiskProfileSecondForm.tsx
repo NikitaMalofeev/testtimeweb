@@ -21,7 +21,6 @@ interface SwiperParametrValues {
     risk_prof_aggressive: string;
     risk_prof_aggressive_super: string;
 }
-
 const SWIPER_PARAM_VALUES: SwiperParametrValues = {
     risk_prof_conservative: 'Консервативный',
     risk_prof_conservative_moderately: 'Умеренно-консервативный',
@@ -30,7 +29,6 @@ const SWIPER_PARAM_VALUES: SwiperParametrValues = {
     risk_prof_aggressive: 'Агрессивный',
     risk_prof_aggressive_super: 'Супер-агрессивный',
 };
-
 
 export const RiskProfileSecondForm: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -45,14 +43,16 @@ export const RiskProfileSecondForm: React.FC = () => {
     const formik = useFormik({
         enableReinitialize: true,
         initialValues: {
-            // Храним именно число!
-            amount_expected_replenishment: 200000,
-            portfolio_parameters: 'risk_prof_balanced',
+            amount_expected_replenishment: secondRiskProfileData?.min_amount_expected_replenishment ?? 0,
+            portfolio_parameters: secondRiskProfileData?.recommended_risk_profiles
+                ? Object.keys(secondRiskProfileData.recommended_risk_profiles)[0]
+                : '',
         },
         onSubmit: async (values) => {
             alert("Данные отправлены: " + JSON.stringify(values));
         },
     });
+
 
 
     const debouncedPostForm = useCallback(
@@ -63,7 +63,9 @@ export const RiskProfileSecondForm: React.FC = () => {
     );
 
     useEffect(() => {
-        debouncedPostForm(formik.values);
+        if (formik.values.amount_expected_replenishment && formik.values.portfolio_parameters) {
+            debouncedPostForm(formik.values);
+        }
     }, [formik.values, debouncedPostForm]);
 
 
@@ -148,12 +150,9 @@ export const RiskProfileSecondForm: React.FC = () => {
                     <div className={styles.form__item}>
                         <span className={styles.parametrs}>Параметры портфеля</span>
                         <span className={styles.parametrs__value}>
-                            {
-                                SWIPER_PARAM_VALUES[
-                                formik.values.portfolio_parameters as keyof SwiperParametrValues
-                                ] || 'значение'
-                            }
+                            {SWIPER_PARAM_VALUES[formik.values.portfolio_parameters as keyof SwiperParametrValues]}
                         </span>
+
                     </div>
 
                     <div className={styles.form__item}>

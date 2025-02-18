@@ -246,6 +246,7 @@ export const RiskProfileFirstForm: React.FC = () => {
                         type="text"
                         value={formik.values.trusted_person_fio || ""}
                         onChange={handleTextInputChange}
+                        needValue
                     />
                     <Input
                         placeholder="Введите номер телефона"
@@ -253,6 +254,7 @@ export const RiskProfileFirstForm: React.FC = () => {
                         type="text"
                         value={formik.values.trusted_person_phone || ""}
                         onChange={handleTextInputChange}
+                        needValue
                     />
                     <Input
                         placeholder="Дополнительная контактная информация"

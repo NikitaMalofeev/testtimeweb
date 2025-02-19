@@ -208,7 +208,7 @@ export const sendPhoneConfirmationCode = createAsyncThunk<
     ) => {
         try {
             if (codeFirst) {
-                const responsePhone = await postConfirmationCode({ user_id, code: codeFirst, type: method });
+                const responsePhone = await postConfirmationCode({ user_id, code: codeFirst, type: 'phone' });
                 if (responsePhone.status === "success") {
                     onSuccess?.(responsePhone);
                 } else if (responsePhone.code !== 200) {

@@ -209,9 +209,9 @@ export const sendPhoneConfirmationCode = createAsyncThunk<
         try {
             if (codeFirst) {
                 const responsePhone = await postConfirmationCode({ user_id, code: codeFirst, type: 'phone' });
-                if (responsePhone.status === "success") {
+                if (responsePhone.is_confirmed_phone) {
                     onSuccess?.(responsePhone);
-                } else if (responsePhone.code !== 200) {
+                } else {
                     const msg =
                         responsePhone.data?.error_text ||
                         "Ошибка при отправке кода (непредвиденная)";
@@ -283,12 +283,13 @@ export const resendConfirmationCode = createAsyncThunk<
             };
 
             if (method === "whatsapp") {
-                payload.type = "phone";
-                payload.type_sms_message = "WHATSAPP";
+                payload.type_confirm = "phone";
+                payload.type_message = "WHATSAPP";
             } else if (method === "phone") {
-                payload.type = "phone";
+                payload.type_confirm = "phone";
+                payload.type_message = "SMS";
             } else if (method === "email") {
-                payload.type = "email";
+                payload.type_confirm = "email";
             }
 
             // Единственный вызов, без второго

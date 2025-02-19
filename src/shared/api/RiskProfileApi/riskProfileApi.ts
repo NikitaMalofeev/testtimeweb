@@ -13,8 +13,18 @@ export const postIdentificationData = async (data: IdentificationProfileData) =>
     return response.data;
 };
 
-export const postConfirmationCode = async (data: ConfirmationCodeData) => {
+export const postConfirmationCodeWithoutId = async (data: ConfirmationCodeData) => {
     const response = await axios.post(`${apiUrl}create_doc_user/check_confirmation_code/`, data, {
+        headers: {
+            "Accept-Language": "ru",
+            "Content-Type": "application/json",
+        },
+    });
+    return response.data;
+};
+
+export const postConfirmationCode = async (data: ConfirmationCodeData) => {
+    const response = await axios.post(`${apiUrl}create_doc_user/check_confirmation_code_id/`, data, {
         headers: {
             "Accept-Language": "ru",
             "Content-Type": "application/json",

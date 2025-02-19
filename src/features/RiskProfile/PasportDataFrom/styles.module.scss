@@ -1,0 +1,56 @@
+.form {
+    padding-bottom: 88px;
+}
+
+.form__duoInputs {
+    display: flex;
+    gap: 15px;
+}
+
+.form__subtitle {
+    position: relative;
+    padding-top: 44px;
+    text-align: start;
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 18px;
+    letter-spacing: 0%;
+    color: #0F0E0E;
+    margin-bottom: 8px;
+
+    &::before {
+        position: absolute;
+        top: 16px;
+        left: -32px;
+        content: '';
+        width: 100dvw;
+        height: 1px;
+        background-color: #EBEBED;
+    }
+}
+
+.buttons {
+    position: fixed;
+    background-color: white;
+    padding: 16px 20px;
+    bottom: 51px;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    gap: 23px;
+    width: 100%;
+    z-index: 1;
+}
+
+.button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18.5px 42px;
+    width: 100%;
+    max-width: max-content;
+}
+
+.shadow {
+    box-shadow: 0px -1px 13.4px 0px #00000026;
+}

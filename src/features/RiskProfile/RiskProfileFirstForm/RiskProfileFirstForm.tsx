@@ -21,6 +21,7 @@ import { Select } from "shared/ui/Select/Select";
 import { nextStep } from "entities/ui/Ui/slice/uiSlice";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { TrustedPersonInfo } from "entities/RiskProfile/model/types";
+import { setUserAllData, updateUserAllData } from "entities/User/slice/userSlice";
 
 interface Question {
     name: string;
@@ -137,12 +138,6 @@ export const RiskProfileFirstForm: React.FC = () => {
         },
     });
 
-    useEffect(() => {
-        if (formik.values) {
-            console.log("Formik Values: ", formik.values);
-        }
-    }, [formik.values]);
-
     // Для чекбоксов
     const handleCheckboxGroupChange = (name: string, selectedValue: string) => {
         formik.setFieldValue(name, selectedValue);
@@ -182,6 +177,7 @@ export const RiskProfileFirstForm: React.FC = () => {
     const goNext = () => {
         if (isLastStep) {
             dispatch(postFirstRiskProfileForm(formik.values))
+            dispatch(updateUserAllData({ gender: `${formik.values.gender}` }))
             dispatch(nextStep())
         } else {
             setCurrentStep((prev) => prev + 1);

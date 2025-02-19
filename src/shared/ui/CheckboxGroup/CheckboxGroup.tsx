@@ -10,7 +10,9 @@ interface CheckboxOption {
 
 interface CheckboxGroupProps {
     name: string;
+    label?: string;
     options: CheckboxOption[];
+    direction?: 'column' | 'row';
     /**
      * Значение выбранного варианта (строка).
      */
@@ -25,6 +27,8 @@ interface CheckboxGroupProps {
 export const CheckboxGroup: React.FC<CheckboxGroupProps> = ({
     name,
     options,
+    label,
+    direction,
     value = "",
     onChange,
 }) => {
@@ -35,22 +39,27 @@ export const CheckboxGroup: React.FC<CheckboxGroupProps> = ({
     };
 
     return (
-        <div className={styles.checkboxGroup}>
-            {options.map((option) => (
-                <CheckboxRadio
-                    key={option.value}
-                    name={name}
-                    /** 
-                     * Здесь мы указываем:
-                     * - value (строка), которая пойдёт в e.target.value
-                     * - checked (булево), определяющее, выбран ли этот вариант
-                     */
-                    value={option.value}
-                    checked={option.value === value}
-                    onChange={handleChange}
-                    label={<span>{option.label}</span>}
-                />
-            ))}
-        </div>
+        <>
+            {label && <span className={styles.checkboxGroup__label}>{label}</span>}
+            <div className={styles.checkboxGroup} style={direction === 'row' ? { flexDirection: 'row', maxWidth: 'max-content', marginBottom: '10px' } : {}}>
+
+                {options.map((option) => (
+                    <CheckboxRadio
+                        key={option.value}
+                        name={name}
+                        /** 
+                         * Здесь мы указываем:
+                         * - value (строка), которая пойдёт в e.target.value
+                         * - checked (булево), определяющее, выбран ли этот вариант
+                         */
+                        value={option.value}
+                        checked={option.value === value}
+                        onChange={handleChange}
+                        label={<span>{option.label}</span>}
+                    />
+                ))}
+            </div>
+
+        </>
     );
 };

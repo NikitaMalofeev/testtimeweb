@@ -82,3 +82,32 @@ export interface ThirdRiskProfileResponse {
     possible_loss: number;
     potential_income: number;
 }
+
+export interface PasportFormData {
+    g_recaptcha: string;
+    type_sms_message: string;
+    gender?: string;
+    first_name?: string;
+    middle_name?: string;
+    last_name?: string;
+    birth_date: string;
+    birth_place: string;
+    passport_series: string;
+    passport_number: string;
+    department_code: string;
+    issue_date: string;
+    issue_whom: string;
+    inn: string;
+    region: string;
+    city: string;
+    street: string;
+    house: string;
+    apartment: string;
+    is_live_this_address: boolean;
+    is_receive_mail_this_address: boolean;
+    address_residential_region: string;
+    address_residential_city: string;
+    address_residential_street: string;
+    address_residential_house: string;
+    address_residential_apartment: string;
+}

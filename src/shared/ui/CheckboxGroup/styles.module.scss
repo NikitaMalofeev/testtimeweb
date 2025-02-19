@@ -3,3 +3,16 @@
     flex-direction: column;
     gap: 32px;
 }
+
+.checkboxGroup__label {
+    display: inline-block;
+    display: flex;
+    justify-content: start;
+    width: 100%;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 16.94px;
+    letter-spacing: 0%;
+    color:  #989898;
+    margin-bottom: 8px;
+}

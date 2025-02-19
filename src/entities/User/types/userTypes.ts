@@ -6,3 +6,10 @@ export interface userType {
     last_name: string;
     is_agreement: boolean;
 }
+
+export interface userAllData {
+    first_name?: string;
+    middle_name?: string;
+    last_name?: string;
+    gender?: string;
+}

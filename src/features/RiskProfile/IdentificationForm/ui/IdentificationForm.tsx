@@ -25,7 +25,7 @@ import { nextStep } from "entities/ui/Ui/slice/uiSlice";
 import { Icon } from "shared/ui/Icon/Icon";
 import SuccessIcon from 'shared/assets/svg/success.svg';
 import { userType } from "entities/User/types/userTypes";
-import { setUserData } from "entities/User/slice/userSlice";
+import { setUserAllData, setUserData, updateUserAllData } from "entities/User/slice/userSlice";
 
 const IdentificationProfileForm: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -133,6 +133,13 @@ const IdentificationProfileForm: React.FC = () => {
             is_agreement: formik.values.is_agreement,
         }
 
+        const userNameData = {
+            first_name: formik.values.firstName,
+            middle_name: formik.values.middleName,
+            last_name: formik.values.lastName,
+        }
+
+        dispatch(updateUserAllData({ first_name: `${formik.values.firstName}`, middle_name: `${formik.values.middleName}`, last_name: `${formik.values.lastName}` }))
         dispatch(setUserData(userForRedux))
 
         try {

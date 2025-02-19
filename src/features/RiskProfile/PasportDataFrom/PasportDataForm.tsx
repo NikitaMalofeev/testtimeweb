@@ -13,7 +13,7 @@ import { Checkbox } from "shared/ui/Checkbox/Checkbox";
 
 export const PasportDataForm: React.FC = () => {
     const dispatch = useDispatch();
-    const recaptchaRef = useRef(null);
+    const recaptchaRef = useRef<ReCAPTCHA | null>(null);
     const gcaptchaSiteKey = import.meta.env.VITE_RANKS_GRCAPTCHA_SITE_KEY;
     const [captchaVerified, setCaptchaVerified] = useState(false);
     const userPersonalAccount = useSelector((state: RootState) => state.user.userForPersonalAccount)
@@ -22,7 +22,7 @@ export const PasportDataForm: React.FC = () => {
     const formik = useFormik({
         initialValues: {
             g_recaptcha: "",
-            type_sms_message: "",
+            type_sms_message: "phone",
             gender: userPersonalAccount?.gender,
             first_name: userPersonalAccount?.first_name,
             middle_name: userPersonalAccount?.middle_name,
@@ -79,6 +79,16 @@ export const PasportDataForm: React.FC = () => {
         formik.setFieldValue("g_recaptcha", value || "");
         setCaptchaVerified(!!value);
     };
+
+    const handleMethodChange = (method: string) => {
+        formik.setFieldValue("type_sms_message", `${method}`)
+
+        // Сбрасываем капчу и статус верификации
+        setCaptchaVerified(false);
+        formik.setFieldValue("g_recaptcha", "");
+        recaptchaRef.current?.reset();
+    };
+
 
     return (
         <form onSubmit={formik.handleSubmit} className={styles.form}>
@@ -158,12 +168,27 @@ export const PasportDataForm: React.FC = () => {
                         <Input placeholder="Квартира" name="apartment" type="text" value={formik.values.address_residential_apartment} onChange={handleTextInputChange} needValue />
                     </div>
                 </div>
-
+                <div className={styles.buttons__confirm}>
+                    <Button
+                        theme={formik.values.type_sms_message === 'whatsapp' ? ButtonTheme.GREEN : ButtonTheme.GREENuNDERLINE}
+                        className={styles.button_select}
+                        onClick={() => handleMethodChange("whatsapp")}
+                    >
+                        WhatsApp
+                    </Button>
+                    <Button
+                        theme={formik.values.type_sms_message === 'phone' ? ButtonTheme.BLUE : ButtonTheme.UNDERLINE}
+                        className={styles.button_select}
+                        onClick={() => handleMethodChange("phone")}
+                    >
+                        SMS
+                    </Button>
+                </div>
 
                 <div style={{ minHeight: "74px" }}>
                     <ReCAPTCHA ref={recaptchaRef} sitekey={gcaptchaSiteKey} onChange={handleCaptchaChange} />
                 </div>
-                <Input placeholder="Тип SMS-сообщения" name="type_sms_message" type="text" value={formik.values.type_sms_message} onChange={handleTextInputChange} />
+
                 <div className={`${styles.buttons} ${!isBottom ? styles.shadow : ""
                     }`}>
                     <Button type="submit" theme={ButtonTheme.BLUE} className={styles.button}>
@@ -171,6 +196,6 @@ export const PasportDataForm: React.FC = () => {
                     </Button>
                 </div>
             </div>
-        </form>
+        </form >
     );
 };

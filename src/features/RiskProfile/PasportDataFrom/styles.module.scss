@@ -54,3 +54,22 @@
 .shadow {
     box-shadow: 0px -1px 13.4px 0px #00000026;
 }
+
+.buttons__confirm {
+    max-width: 100%;
+    width: 100%;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+
+    &__title {
+        display: block;
+        width: 100%;
+        font-family: var(--font-inter);
+        font-size: 12px;
+        text-align: start;
+        line-height: 16px;
+        color: #121B2F;
+        margin-bottom: 10px;
+    }
+}

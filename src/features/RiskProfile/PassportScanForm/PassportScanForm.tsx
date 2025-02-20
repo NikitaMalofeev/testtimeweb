@@ -206,6 +206,12 @@ export const PasportScanForm: React.FC = () => {
                              </ol>
 
                 {/* Первая страница паспорта */}
+                <div className={styles.uploadBlock__header}>
+                    <span className={styles.uploadBlock__headerTitle}>ПЕРВАЯ СТРАНИЦА: &nbsp;</span>
+                    <span className={styles.uploadBlock__headerExample} onClick={(e) => e.preventDefault()}>
+                        СМ. ОБРАЗЕЦ
+                    </span>
+                </div>
                 <div className={`${styles.uploadBlock} ${dragActiveFirst ? styles.uploadBlock_active : ""}`}>
                     <div
                         className={styles.uploadBlock__dropzone}

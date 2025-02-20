@@ -253,7 +253,7 @@ export const RiskProfileFirstForm: React.FC = () => {
                         needValue
                     />
                     <Input
-                        placeholder="Дополнительная контактная информация"
+                        placeholder="Доп. контактная информация"
                         name="trusted_person_other_contact"
                         type="text"
                         value={formik.values.trusted_person_other_contact || ""}

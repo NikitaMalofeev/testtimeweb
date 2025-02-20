@@ -10,11 +10,12 @@ import {
     RiskProfileSelectors,
     SecondRiskProfileResponse,
     ThirdRiskProfileResponse,
-    PasportFormData
+    PasportFormData,
+    SendCodeDocsConfirmPayload
 } from "../model/types";
-import { getAllSelects, postConfirmationCode, postFirstRiskProfile, postIdentificationData, postNeedHelpRequest, postPasportData, postResendConfirmationCode, postSecondRiskProfile, postSecondRiskProfileFinal, postTrustedPersonInfoApi } from "shared/api/RiskProfileApi/riskProfileApi";
-import { setUserId, setUserToken } from "entities/User/slice/userSlice";
-import { nextStep, setConfirmationEmailSuccess, setConfirmationPhoneSuccess, setConfirmationStatusSuccess, setConfirmationWhatsappSuccess } from "entities/ui/Ui/slice/uiSlice";
+import { getAllSelects, postConfirmationCode, postConfirmationDocsCode, postFirstRiskProfile, postIdentificationData, postNeedHelpRequest, postPasportData, postResendConfirmationCode, postSecondRiskProfile, postSecondRiskProfileFinal, postTrustedPersonInfoApi } from "shared/api/RiskProfileApi/riskProfileApi";
+import { setUserId, setUserToken, updateUserAllData } from "entities/User/slice/userSlice";
+import { nextStep, setConfirmationDocsSuccess, setConfirmationEmailSuccess, setConfirmationPhoneSuccess, setConfirmationStatusSuccess, setConfirmationWhatsappSuccess } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
 import { RootState } from "app/providers/store/config/store";
 interface RiskProfileFormState {
@@ -108,8 +109,8 @@ export const postSecondRiskProfileFormFinal = createAsyncThunk<
         try {
             const token = getState().user.token;
             const response = await postSecondRiskProfileFinal(data, token);
-
-            dispatch(nextStep())
+            dispatch(updateUserAllData({ first_name: response.first_name, middle_name: response.middle_name, last_name: response.patronymic, gender: response }))
+            return response
         } catch (error: any) {
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке данных"
@@ -184,7 +185,9 @@ export const postPasportInfo = createAsyncThunk<
     "riskProfile/postFirstRiskProfileForm",
     async ({ data, onSuccess }, { getState, rejectWithValue, dispatch }) => {
         try {
-            const token = getState().user.token;
+            console.log('submit2')
+            // const token = getState().user.token;
+            const token = '8a0c95a9a8b9942f900a732fc730afbad939afe8'
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");
             }
@@ -289,6 +292,42 @@ export const sendEmailConfirmationCode = createAsyncThunk<
         }
     }
 );
+
+export const sendDocsConfirmationCode = createAsyncThunk<
+    void,
+    SendCodeDocsConfirmPayload,
+    { rejectValue: string; state: RootState }
+>(
+    "riskProfile/sendDocsConfirmationCode",
+    async (
+        { codeFirst, docs, onSuccess },
+        { getState, dispatch, rejectWithValue }
+    ) => {
+        try {
+            console.log('submit2')
+            // const token = getState().user.token;
+            const token = '8a0c95a9a8b9942f900a732fc730afbad939afe8'
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+            if (codeFirst) {
+                const responsePhone = await postConfirmationDocsCode({ code: codeFirst, type: docs }, token);
+                onSuccess?.(responsePhone);
+
+            }
+        } catch (error: any) {
+            dispatch(setConfirmationDocsSuccess(
+                'не пройдено'
+            ))
+            console.log(error)
+            const msg =
+                error.response.data?.error_text ||
+                "Ошибка при отправке кода (непредвиденная)";
+            dispatch(setError(msg))
+        }
+    }
+);
+
 
 export const resendConfirmationCode = createAsyncThunk<
     void,

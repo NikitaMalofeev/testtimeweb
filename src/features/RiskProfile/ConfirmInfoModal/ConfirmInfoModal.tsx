@@ -162,6 +162,11 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
     const [smsCodeSecond, setSmsCodeSecond] = useState<string[]>(Array(codeLength).fill(""));
     const inputRefsSecond = useRef<(HTMLInputElement | null)[]>([]);
 
+    useEffect(() => {
+        setSmsCodeFirst(Array(codeLength).fill(""));
+        setSmsCodeSecond(Array(codeLength).fill(""));
+    }, [])
+
     // При смене метода подтверждения сбрасываем коды
     useEffect(() => {
         setSmsCodeFirst(Array(codeLength).fill(""));

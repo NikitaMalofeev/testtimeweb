@@ -6,7 +6,7 @@ import styles from "./styles.module.scss";
 import { setIsBottom } from "entities/ui/Ui/slice/uiSlice";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 
-const steps = ["Шаг 1 из 5", "Шаг 2 из 5", "Шаг 3 из 5", "Шаг 4 из 5", "Шаг 5 из 5"];
+const steps = ["Шаг 1 из 8", "Шаг 2 из 8", "Шаг 3 из 8", "Шаг 4 из 8", "Шаг 5 из 8", "Шаг 6 из 8", "Шаг 7 из 8", "Шаг 8 из 8"];
 
 interface AdditionalMenuProps {
     onClose: () => void;
@@ -79,7 +79,7 @@ export const AdditionalMenu: React.FC<AdditionalMenuProps> = ({ onClose, title, 
                 <div className={`${styles.header} ${hasScrolled ? styles.shadow : ""}`}>
                     <span className={styles.header__steps}>{steps[currentStep]}</span>
                     <h2 className={styles.header__title}>{title}</h2>
-                    <Tooltip positionBox={{ top: '26px', left: '-264px' }} bigContentSquerePosition={currentStep === 2 ? { top: '32px', left: '241px' } : { top: '15px', left: '241px' }} topForCenteringIcons='24px' description={description} className={`${styles.header__tooltip} ${hasScrolled ? styles.header__tooltip_scrolled : ""}`} />
+                    {description && <Tooltip positionBox={{ top: '26px', left: '-264px' }} bigContentSquerePosition={currentStep === 2 ? { top: '32px', left: '241px' } : { top: '15px', left: '241px' }} topForCenteringIcons='24px' description={description} className={`${styles.header__tooltip} ${hasScrolled ? styles.header__tooltip_scrolled : ""}`} />}
                 </div>
 
                 {content}

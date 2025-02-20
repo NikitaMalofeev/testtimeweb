@@ -6,6 +6,7 @@ import { RiskProfileFirstForm } from "features/RiskProfile/RiskProfileFirstForm/
 import styles from './styles.module.scss'
 import { RiskProfileSecondForm } from "features/RiskProfile/RiskProfileSecondForm/RiskProfileSecondForm";
 import { PasportDataForm } from "features/RiskProfile/PasportDataFrom/PasportDataForm";
+import { PasportScanForm } from "features/RiskProfile/PassportScanForm/PassportScanForm";
 
 interface WithStepContentProps {
     onClose: () => void;
@@ -16,7 +17,10 @@ const stepTitles = [
     "Риск-профилирование",
     "Уточнение риск профиля",
     "Паспортные данные",
-    "Подтверждение"
+    "Отправка документов",
+    "Отправка документов",
+    "Отправка документов",
+    "Отправка документов"
 ];
 
 const stepContents = [
@@ -24,7 +28,7 @@ const stepContents = [
     <RiskProfileFirstForm />,
     <RiskProfileSecondForm />,
     <PasportDataForm />,
-    <p>Подтвердите и завершите</p>
+    <PasportScanForm />
 ];
 
 const stepTooltipDescriptions = [

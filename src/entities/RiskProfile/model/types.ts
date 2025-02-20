@@ -17,6 +17,11 @@ export interface ConfirmationCodeData {
     type: "phone" | 'email' | 'whatsapp';
 }
 
+export interface ConfirmationDocsData {
+    code: string;
+    type: string;
+}
+
 export interface NeedHelpData {
     user_id: string;
     screen: string;
@@ -63,6 +68,13 @@ export interface SendCodePayload {
     onSuccess?: (data?: any) => void;
     onError?: (data?: any) => void;
     onClose?: () => void;
+}
+
+export interface SendCodeDocsConfirmPayload {
+    codeFirst: string;
+    codeSecond?: string;
+    docs: string;
+    onSuccess?: (data?: any) => void;
 }
 
 export interface SecondRiskProfilePayload {

@@ -1,0 +1,147 @@
+.form {
+    padding-bottom: 88px;
+    &__title {
+        text-align: start;
+        font-weight: 700;
+        font-size: 14px;
+        line-height: 18.2px;
+        letter-spacing: 0%;
+        color: #0F0E0E;
+        margin-bottom: 12px;
+    }
+
+    &__list {
+        padding-left: 16px;
+        margin-bottom: 18px;
+    }
+
+    &__list__item {
+        text-align: start;
+        font-weight: 400;
+        font-size: 12px;
+        line-height: 15.6px;
+        letter-spacing: 0%;
+        color: #0F0E0E;
+        margin-bottom: 8px;
+    }
+}
+
+.uploadBlock {
+    border: 1px dashed #0666EB96;
+    border-radius: 40px;
+    margin-bottom: 16px;
+    text-align: center;
+    position: relative;
+    max-height: 70px;
+    background-color: #E9F1FC;
+
+    &_active {
+        opacity: 0.7;
+    }
+
+    &__preview {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 35px;
+    }
+
+    &__header {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    &__headerTitle {
+        font-weight: 700;
+        font-size: 12px;
+        line-height: 15.6px;
+        letter-spacing: 0%;
+
+    }
+
+    &__headerExample {
+        font-weight: 700;
+        font-size: 12px;
+        line-height: 15.6px;
+        letter-spacing: 0%;
+
+        color: #0666EB;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+    &__inputLabel {
+        display: block;
+        cursor: pointer;
+        position: relative;
+    }
+
+    &__fileInput {
+        width: 0.1px;
+        height: 0.1px;
+        opacity: 0;
+        position: absolute;
+        overflow: hidden;
+        z-index: -1;
+    }
+
+    &__content {
+        padding: 13px 35px;
+        display: flex;
+        flex-direction: row;
+        gap: 14px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    &__icon {
+        width: 48px;
+        height: 48px;
+        margin-right: 16px;
+        background: url('/icons/cloud-upload.svg') no-repeat center center;
+        background-size: contain;
+    }
+
+    &__text {
+        text-align: start;
+        font-weight: 400;
+        font-size: 11px;
+        line-height: 14.3px;
+        letter-spacing: 0%;
+
+
+        span {
+            color: #0666EB;
+            font-weight: 600;
+        }
+    }
+}
+
+.buttons {
+    position: fixed;
+    background-color: white;
+    padding: 16px 20px;
+    bottom: 50px;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    gap: 23px;
+    width: 100%;
+    z-index: 1;
+}
+
+.button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18.5px 42px;
+    width: 100%;
+    max-width: max-content;
+}
+
+.shadow {
+    box-shadow: 0px -1px 13.4px 0px #00000026;
+}

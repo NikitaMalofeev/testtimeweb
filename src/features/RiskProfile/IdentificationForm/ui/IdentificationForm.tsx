@@ -139,7 +139,7 @@ const IdentificationProfileForm: React.FC = () => {
             last_name: formik.values.lastName,
         }
 
-        dispatch(updateUserAllData({ first_name: `${formik.values.firstName}`, middle_name: `${formik.values.middleName}`, last_name: `${formik.values.lastName}` }))
+        // dispatch(updateUserAllData({ first_name: `${formik.values.firstName}`, middle_name: `${formik.values.middleName}`, last_name: `${formik.values.lastName}`, gender: `` }))
         dispatch(setUserData(userForRedux))
 
         try {

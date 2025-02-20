@@ -12,16 +12,20 @@ import ErrorIcon from "shared/assets/svg/errorCircle.svg";
 import OnPasswordIcon from "shared/assets/svg/visibility_on.svg";
 import OffPasswordIcon from "shared/assets/svg/visibility_off.svg";
 import SearchIcon from "shared/assets/svg/searchIcon.svg";
-import { CustomSlider, SliderTheme } from "../CustomSlider/CustomSlider";
+import { CustomSlider } from "../CustomSlider/CustomSlider";
 import { useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
 
-// Новое перечисление для тем (при желании можно расширять)
+/**
+ * Темы нашего инпута
+ */
 type InputTheme = "default" | "primary" | "secondary" | "gradient";
 
-// Расширяем типы, чтобы добавить "swiperDiscrete"
+/**
+ * Расширяем пропсы под все нужные сценарии
+ */
 interface InputProps {
-    theme?: InputTheme;                               // <--- Новое
+    theme?: InputTheme;
     value: string;
     name?: string;
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -32,22 +36,41 @@ interface InputProps {
     className?: string;
 
     /**
-     * Поддерживаем обычные типы + два наших «ползунковых» режима:
-     *  - "swiper"        — числовой слайдер (мин, макс, шаг)
+     * Поддерживаем обычные типы + два ползунковых режима:
+     *  - "swiper"         — числовой слайдер (мин, макс, шаг)
      *  - "swiperDiscrete" — дискретный режим (массив строк)
      */
-    type?: "text" | "textarea" | "search" | "password" | "number" | "swiper" | "swiperDiscrete" | 'data';
+    type?:
+    | "text"
+    | "textarea"
+    | "search"
+    | "password"
+    | "number"
+    | "swiper"
+    | "swiperDiscrete"
+    | "data";
 
     error?: string | boolean;
 
-    // Пределы для «числового» ползунка
+    /**
+     * Пределы для «числового» ползунка (type="swiper")
+     */
     min?: number;
     max?: number;
     step?: number;
 
-    // В режиме "swiperDiscrete" — массив значений, по которым движется слайдер
+    /**
+     * В режиме "swiperDiscrete" — массив значений,
+     * по которым движется слайдер
+     */
     discreteValues?: string[];
     swiperDiscreteSubtitles?: string[];
+
+    /**
+     * **Новый проп**: ограничение на количество символов для type="number".
+     * Если не указан, то ограничение не действует.
+     */
+    maxLength?: number;
 }
 
 export const Input: React.FC<InputProps> = ({
@@ -65,14 +88,20 @@ export const Input: React.FC<InputProps> = ({
     max = 100,
     step = 1,
     discreteValues,
-    swiperDiscreteSubtitles
+    swiperDiscreteSubtitles,
+    maxLength
 }) => {
     const [isFocused, setIsFocused] = useState(false);
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
-    const minAmountInputNumberSlider = useSelector((state: RootState) => state.riskProfile.secondRiskProfileData?.min_amount_expected_replenishment || 200000)
+
+    const minAmountInputNumberSlider = useSelector(
+        (state: RootState) =>
+            state.riskProfile.secondRiskProfileData?.min_amount_expected_replenishment || 200_000
+    );
 
     const handleFocus = () => setIsFocused(true);
+
     const handleBlur = (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setIsFocused(!!value);
         onBlur?.(e);
@@ -83,27 +112,24 @@ export const Input: React.FC<InputProps> = ({
     };
 
     const parseToNumber = useCallback((str: string): number => {
+        // Убираем пробелы, знак рубля и т.д.
         const cleaned = str.replace(/\s+/g, "").replace("₽", "");
         const num = parseInt(cleaned, 10);
         if (isNaN(num)) return 0;
         return num;
     }, []);
 
-    // -----------------------------------------
+    // -------------------------------------------------------------------
     // 1) РЕЖИМ ОДНОГО «числового» СЛАЙДЕРА (type="swiper")
-    // -----------------------------------------
-
-    // Для "swiper": вычисляем число, ограничиваем в пределах min–max
+    // -------------------------------------------------------------------
     const numericValueForSlider = useMemo(() => {
         const parsed = parseToNumber(value);
         return Math.min(Math.max(parsed, min), max);
     }, [value, min, max, parseToNumber]);
 
-    // -----------------------------------------
+    // -------------------------------------------------------------------
     // 2) РЕЖИМ "swiperDiscrete" – ограниченный набор значений (discreteValues)
-    // -----------------------------------------
-
-    // Если передан массив discreteValues, находим индекс текущего значения:
+    // -------------------------------------------------------------------
     const discreteIndex = useMemo(() => {
         if (!discreteValues || !discreteValues.length) {
             return 0;
@@ -112,7 +138,7 @@ export const Input: React.FC<InputProps> = ({
         return idx >= 0 ? idx : 0;
     }, [discreteValues, value]);
 
-    // При ручном вводе «числа» в инпут
+    // Если нужно, при ручном вводе числа можно делать дополнительную проверку:
     const handleNumberChange = (
         e: React.ChangeEvent<HTMLInputElement>,
         localMin: number,
@@ -136,38 +162,36 @@ export const Input: React.FC<InputProps> = ({
         onChange(newEvent as React.ChangeEvent<HTMLInputElement>);
     };
 
-    // Считаем количество интервалов в каждом диапазоне:
-    const range1Count = (1000000 - minAmountInputNumberSlider) / 100000;       // 5 шагов
-    const range2Count = (10000000 - 1000000) / minAmountInputNumberSlider;       // 18 шагов
-    const range3Count = (100000000 - 10000000) / 2000000;     // 45 шагов
+    // -------------------------------------------------
+    // Пример вычисления шагов для "swiper" (сложный кейс)
+    // -------------------------------------------------
+    const range1Count = (1_000_000 - minAmountInputNumberSlider) / 100_000; // 5 шагов
+    const range2Count = (10_000_000 - 1_000_000) / minAmountInputNumberSlider; // 18 шагов
+    const range3Count = (100_000_000 - 10_000_000) / 2_000_000; // 45 шагов
 
-    // Общее число шагов (индексов) – можно использовать как max для слайдера:
-    const totalSteps = range1Count + range2Count + range3Count; // 5 + 18 + 45 = 68
+    const totalSteps = range1Count + range2Count + range3Count; // 68
 
-    // Функция, которая по значению возвращает индекс (для инициализации слайдера)
-    const mapValueToSliderIndex = (value: number): number => {
-        if (value <= 1000000) {
-            return (value - minAmountInputNumberSlider) / 100000;
-        } else if (value <= 10000000) {
-            return range1Count + (value - 1000000) / minAmountInputNumberSlider;
+    const mapValueToSliderIndex = (val: number): number => {
+        if (val <= 1_000_000) {
+            return (val - minAmountInputNumberSlider) / 100_000;
+        } else if (val <= 10_000_000) {
+            return range1Count + (val - 1_000_000) / minAmountInputNumberSlider;
         } else {
-            return range1Count + range2Count + (value - 10000000) / 2000000;
+            return range1Count + range2Count + (val - 10_000_000) / 2_000_000;
         }
     };
 
-    // Функция, которая по индексу возвращает округлённое значение
     const mapSliderIndexToValue = (index: number): number => {
         if (index <= range1Count) {
-            return minAmountInputNumberSlider + index * 100000;
+            return minAmountInputNumberSlider + index * 100_000;
         } else if (index <= range1Count + range2Count) {
-            return 1000000 + (index - range1Count) * minAmountInputNumberSlider;
+            return 1_000_000 + (index - range1Count) * minAmountInputNumberSlider;
         } else {
-            return 10000000 + (index - range1Count - range2Count) * 2000000;
+            return 10_000_000 + (index - range1Count - range2Count) * 2_000_000;
         }
     };
 
-
-    // Автоматическое изменение высоты textarea
+    // Для авто-увеличения textarea по контенту:
     useEffect(() => {
         if (type === "textarea" && textAreaRef.current) {
             textAreaRef.current.style.height = "auto";
@@ -177,6 +201,7 @@ export const Input: React.FC<InputProps> = ({
 
     return (
         <div className={`${styles.inputWrapper} ${styles[theme]}`}>
+            {/* Заголовок (placeholder) – в виде лейбла, кроме textarea (уже есть встроенный placeholder) */}
             {type !== "textarea" && (
                 <label
                     className={`${styles.label} ${isFocused || value ? styles.active : ""}`}
@@ -190,30 +215,24 @@ export const Input: React.FC<InputProps> = ({
                         />
                     )}
                     {placeholder}
-                    {needValue && !value.length && <span className={styles.required}>*</span>}
+                    {needValue && !value.length && (
+                        <span className={styles.required}>*</span>
+                    )}
                 </label>
             )}
 
-            {/* {type === "data" && (
-                <label
-                    className={`${styles.label} ${isFocused || value ? styles.active : ""}`}
-                >
-                    {placeholder}
-                    {needValue && !value.length && <span className={styles.required}>*</span>}
-                </label>
-            )} */}
-
             <div className={styles.inputContainer}>
                 {(() => {
-                    // Ниже – переключение по типу
                     switch (type) {
-                        // Импортируем мапперы (если они вынесены в отдельный файл)
-                        // import { mapValueToSliderIndex, mapSliderIndexToValue, totalSteps } from "./sliderMapping";
-
-                        case "swiper":
-                            // Вычисляем индекс слайдера по текущему значению (из строки парсим число)
+                        // -------------------------------------------
+                        // 1) СЛАЙДЕР (type="swiper")
+                        // -------------------------------------------
+                        case "swiper": {
                             const currentValue = parseToNumber(value);
-                            const sliderIndex = useMemo(() => mapValueToSliderIndex(currentValue), [value]);
+                            const sliderIndex = useMemo(
+                                () => mapValueToSliderIndex(currentValue),
+                                [value]
+                            );
 
                             return (
                                 <div className={`${styles.inputWrapper} ${styles[theme]}`}>
@@ -223,19 +242,17 @@ export const Input: React.FC<InputProps> = ({
                                                 type="text"
                                                 placeholder={placeholder}
                                                 name={name}
-                                                value={value}  // Можно показывать отформатированное значение, например через formatMoney()
+                                                value={value}
                                                 disabled={disabled}
                                                 onFocus={handleFocus}
                                                 onBlur={handleBlur}
                                                 className={styles.input}
                                                 onChange={(e) => {
-                                                    // Для ручного ввода можно оставить логику парсинга,
-                                                    // либо применять mapSliderIndexToValue для округления.
                                                     const numericVal = parseToNumber(e.target.value);
-                                                    // Здесь можно округлить numericVal по вашему алгоритму,
-                                                    // например: const clamped = mapValueToSliderIndex(numericVal);
-                                                    // И потом преобразовать обратно:
-                                                    const rounded = mapSliderIndexToValue(mapValueToSliderIndex(numericVal));
+                                                    // Округляем по логике наших шагов
+                                                    const rounded = mapSliderIndexToValue(
+                                                        mapValueToSliderIndex(numericVal)
+                                                    );
                                                     const newEvent = {
                                                         ...e,
                                                         target: {
@@ -249,14 +266,12 @@ export const Input: React.FC<InputProps> = ({
                                         )}
 
                                         <CustomSlider
-                                            // Передаём индекс слайдера
                                             sliderValue={sliderIndex}
                                             min={0}
                                             max={totalSteps}
                                             step={1}
                                             disabled={disabled}
                                             onChange={(val: number) => {
-                                                // При изменении слайдера получаем новый индекс и преобразуем его в значение
                                                 const newValue = mapSliderIndexToValue(val);
                                                 const event = {
                                                     target: {
@@ -283,30 +298,27 @@ export const Input: React.FC<InputProps> = ({
                                     </div>
                                 </div>
                             );
+                        }
 
-
-                        // -----------------------------------------------------
-                        //   НОВЫЙ РЕЖИМ "SWIPERDISCRETE" (3 ШАГА/СТРОКИ И Т.П.)
-                        // -----------------------------------------------------
+                        // -------------------------------------------
+                        // 2) ДИСКРЕТНЫЙ СЛАЙДЕР (type="swiperDiscrete")
+                        // -------------------------------------------
                         case "swiperDiscrete": {
-                            // Мапим английские ключи → русские надписи
+                            // Можно расширить логику мапинга, если ключей много
                             const labelMap = {
                                 risk_prof_conservative: "Консервативный",
                                 risk_prof_moderate: "Умеренный",
                                 risk_prof_aggressive: "Агрессивный",
                             };
 
-                            // discreteValues: ["risk_prof_conservative","risk_prof_moderate","risk_prof_aggressive"]
-                            // value: выбранное значение, например "risk_prof_moderate"
+                            // Русское название для текущего значения
+                            const displayValue =
+                                labelMap[value as keyof typeof labelMap] || value;
 
-                            // Находим индекс текущего ключа
                             const discreteIndex = useMemo(() => {
                                 if (!discreteValues || !discreteValues.length) return 0;
                                 return discreteValues.indexOf(value);
                             }, [discreteValues, value]);
-
-                            // То, что показываем пользователю (русский текст):
-                            const displayValue = labelMap[value as keyof typeof labelMap] || "";
 
                             return (
                                 <div className={`${styles.inputWrapper} ${styles[theme]}`}>
@@ -316,7 +328,7 @@ export const Input: React.FC<InputProps> = ({
                                                 type="text"
                                                 placeholder={placeholder}
                                                 name={name}
-                                                value={displayValue}  // показываем русское название
+                                                value={displayValue}
                                                 disabled={disabled}
                                                 onFocus={handleFocus}
                                                 onBlur={handleBlur}
@@ -332,7 +344,7 @@ export const Input: React.FC<InputProps> = ({
                                                     top: 0,
                                                     left: 0,
                                                     fontSize: "12px",
-                                                    color: "#989898"
+                                                    color: "#989898",
                                                 }}
                                             >
                                                 {swiperDiscreteSubtitles?.[0] || ""}
@@ -343,14 +355,13 @@ export const Input: React.FC<InputProps> = ({
                                                     bottom: 0,
                                                     left: 0,
                                                     fontSize: "12px",
-                                                    color: "#989898"
+                                                    color: "#989898",
                                                 }}
                                             >
                                                 {swiperDiscreteSubtitles?.[1] || ""}
                                             </span>
 
                                             <CustomSlider
-                                                // Cоответствующий индекс выбранного ключа
                                                 sliderValue={discreteIndex}
                                                 min={0}
                                                 max={(discreteValues?.length || 1) - 1}
@@ -358,10 +369,8 @@ export const Input: React.FC<InputProps> = ({
                                                 disabled={disabled}
                                                 onChange={(val: number) => {
                                                     if (!discreteValues || !discreteValues.length) return;
-                                                    // Получаем английский ключ по индексу
                                                     const newKey = discreteValues[val];
 
-                                                    // В форму уходит ключ, напр. "risk_prof_moderate"
                                                     const event = {
                                                         target: {
                                                             name: name || "",
@@ -380,7 +389,7 @@ export const Input: React.FC<InputProps> = ({
                                                     top: 0,
                                                     right: 0,
                                                     fontSize: "12px",
-                                                    color: "#989898"
+                                                    color: "#989898",
                                                 }}
                                             >
                                                 {swiperDiscreteSubtitles?.[2] || ""}
@@ -391,7 +400,7 @@ export const Input: React.FC<InputProps> = ({
                                                     bottom: 0,
                                                     right: 0,
                                                     fontSize: "12px",
-                                                    color: "#989898"
+                                                    color: "#989898",
                                                 }}
                                             >
                                                 {swiperDiscreteSubtitles?.[3] || ""}
@@ -414,63 +423,117 @@ export const Input: React.FC<InputProps> = ({
                             );
                         }
 
-                        default:
-                            if (type === "textarea") {
-                                return (
-                                    <textarea
-                                        ref={textAreaRef}
+                        // -------------------------------------------
+                        // 3) ТЕКСТОВАЯ ОБЛАСТЬ (type="textarea")
+                        // -------------------------------------------
+                        case "textarea":
+                            return (
+                                <textarea
+                                    ref={textAreaRef}
+                                    name={name}
+                                    value={value}
+                                    onChange={onChange}
+                                    onFocus={handleFocus}
+                                    onBlur={handleBlur}
+                                    disabled={disabled}
+                                    className={`${styles.textarea} ${needValue && !value.length ? styles.error : ""
+                                        }`}
+                                />
+                            );
+
+                        // -------------------------------------------
+                        // 4) ПАРОЛЬ (type="password") + иконка глазика
+                        // -------------------------------------------
+                        case "password":
+                            return (
+                                <>
+                                    <input
+                                        type={isPasswordVisible ? "text" : "password"}
                                         name={name}
                                         value={value}
                                         onChange={onChange}
                                         onFocus={handleFocus}
                                         onBlur={handleBlur}
                                         disabled={disabled}
-                                        className={`${styles.textarea} ${needValue && !value.length ? styles.error : ""
+                                        className={`${styles.input} ${needValue && !value.length ? styles.error : ""
                                             }`}
                                     />
-                                );
-                            }
-
-                            if (type === "password") {
-                                return (
-                                    <>
-                                        <input
-                                            type={isPasswordVisible ? "text" : "password"}
-                                            name={name}
-                                            value={value}
-                                            onChange={onChange}
-                                            onFocus={handleFocus}
-                                            onBlur={handleBlur}
-                                            disabled={disabled}
-                                            className={`${styles.input} ${needValue && !value.length ? styles.error : ""
-                                                }`}
+                                    <button
+                                        type="button"
+                                        className={styles.toggleButton}
+                                        onClick={handleTogglePassword}
+                                    >
+                                        <Icon
+                                            Svg={isPasswordVisible ? OnPasswordIcon : OffPasswordIcon}
+                                            width={18}
+                                            height={18}
                                         />
-                                        <button
-                                            type="button"
-                                            className={styles.toggleButton}
-                                            onClick={handleTogglePassword}
-                                        >
+                                    </button>
+                                    {error && (
+                                        <div className={styles.input__error}>
                                             <Icon
-                                                Svg={isPasswordVisible ? OnPasswordIcon : OffPasswordIcon}
-                                                width={18}
-                                                height={18}
+                                                Svg={ErrorIcon}
+                                                className={styles.input__error__icon}
+                                                width={16}
+                                                height={16}
                                             />
-                                        </button>
-                                        {error && (
-                                            <div className={styles.input__error}>
-                                                <Icon
-                                                    Svg={ErrorIcon}
-                                                    className={styles.input__error__icon}
-                                                    width={16}
-                                                    height={16}
-                                                />
-                                                <span>{error}</span>
-                                            </div>
-                                        )}
-                                    </>
-                                );
-                            }
+                                            <span>{error}</span>
+                                        </div>
+                                    )}
+                                </>
+                            );
 
+                        // -------------------------------------------
+                        // 5) ПРОСТО ЧИСЛО (type="number") с maxLength
+                        // -------------------------------------------
+                        case "number":
+                            return (
+                                <>
+                                    <input
+                                        type="number"
+                                        name={name}
+                                        // HTML5-атрибуты min, max, step — используйте по необходимости
+                                        min={min}
+                                        max={max}
+                                        step={step}
+                                        value={value}
+                                        disabled={disabled}
+                                        onFocus={handleFocus}
+                                        onBlur={handleBlur}
+                                        className={`${styles.input} ${needValue && !value.length ? styles.error : ""
+                                            }`}
+                                        onChange={(e) => {
+                                            // Если задано ограничение на кол-во цифр, обрежем при вводе
+                                            if (
+                                                maxLength &&
+                                                e.target.value.replace(/\D+/g, "").length > maxLength
+                                            ) {
+                                                // Либо полностью блокируем лишние символы...
+                                                e.target.value = e.target.value
+                                                    .slice(0, maxLength)
+                                                    .replace(/\D+/g, "");
+                                            }
+                                            onChange(e);
+                                        }}
+                                    />
+                                    {error && (
+                                        <div className={styles.input__error}>
+                                            <Icon
+                                                Svg={ErrorIcon}
+                                                className={styles.input__error__icon}
+                                                width={16}
+                                                height={16}
+                                            />
+                                            <span>{error}</span>
+                                        </div>
+                                    )}
+                                </>
+                            );
+
+                        // -------------------------------------------
+                        // 6) ПО УМОЛЧАНИЮ: text, search, data и т.д.
+                        // -------------------------------------------
+                        default:
                             return (
                                 <>
                                     <input

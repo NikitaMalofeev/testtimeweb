@@ -12,10 +12,11 @@ interface UiState {
         active: boolean
         message: string
     }
+    confirmationDocs: string;
 }
 const initialState: UiState = {
     additionalMenu: {
-        currentStep: 3,
+        currentStep: 4,
     },
     confirmationStatusSuccess: false,
     confirmationPhoneSuccess: 'не определено',
@@ -25,7 +26,8 @@ const initialState: UiState = {
     isTooltipActive: {
         active: false,
         message: ''
-    }
+    },
+    confirmationDocs: 'не определено',
 };
 
 
@@ -34,7 +36,7 @@ const uiSlice = createSlice({
     initialState,
     reducers: {
         nextStep: (state) => {
-            if (state.additionalMenu.currentStep < 4) {
+            if (state.additionalMenu.currentStep < 7) {
                 state.additionalMenu.currentStep += 1;
             }
         },
@@ -42,6 +44,9 @@ const uiSlice = createSlice({
             if (state.additionalMenu.currentStep > 0) {
                 state.additionalMenu.currentStep -= 1;
             }
+        },
+        setStepAdditionalMenuUI(state, action: PayloadAction<number>) {
+            state.additionalMenu.currentStep = action.payload;
         },
         resetStep: (state) => {
             state.additionalMenu.currentStep = 0;
@@ -57,6 +62,9 @@ const uiSlice = createSlice({
         },
         setConfirmationWhatsappSuccess: (state, action: PayloadAction<string>) => {
             state.confirmationWhatsappSuccess = action.payload;
+        },
+        setConfirmationDocsSuccess: (state, action: PayloadAction<string>) => {
+            state.confirmationDocs = action.payload;
         },
         setTooltipActive: (state, action: PayloadAction<{ active: boolean; message: string }>) => {
             state.isTooltipActive = action.payload;
@@ -76,7 +84,9 @@ export const {
     setConfirmationPhoneSuccess,
     setConfirmationEmailSuccess,
     setConfirmationWhatsappSuccess,
-    setTooltipActive
+    setConfirmationDocsSuccess,
+    setTooltipActive,
+    setStepAdditionalMenuUI
 } = uiSlice.actions;
 
 export default uiSlice.reducer;

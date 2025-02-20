@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
 import styles from "./styles.module.scss";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
-import { nextStep, prevStep } from "entities/ui/Ui/slice/uiSlice";
+import { nextStep, prevStep, setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { Tooltip } from "shared/ui/Tooltip/Tooltip";
 import { Input } from "shared/ui/Input/Input";
@@ -37,8 +37,6 @@ export const RiskProfileSecondForm: React.FC = () => {
     const secondRiskProfileData = useSelector((state: RootState) => state.riskProfile.secondRiskProfileData);
     const thirdRiskProfileResponse = useSelector((state: RootState) => state.riskProfile.thirdRiskProfileResponse);
 
-
-    const goNext = () => dispatch(nextStep());
     const goBack = () => dispatch(prevStep());
 
     const formik = useFormik({
@@ -70,7 +68,7 @@ export const RiskProfileSecondForm: React.FC = () => {
         }
     }, [formik.values, debouncedPostForm]);
 
-    const finalRiskProfileOptions = Object.entries(SWIPER_PARAM_VALUES || {}).map(
+    const finalRiskProfileOptions = Object.entries(secondRiskProfileData?.recommended_risk_profiles || {}).map(
         ([key, value]) => ({
             value: key,
             label: value,
@@ -98,9 +96,15 @@ export const RiskProfileSecondForm: React.FC = () => {
         return isNaN(val) ? 0 : val;
     };
 
-    const handlePostRiskProfileDetailedInfo = () => {
-        dispatch(postSecondRiskProfileFormFinal(formik.values))
-    }
+    const handlePostRiskProfileDetailedInfo = async () => {
+        try {
+            await dispatch(postSecondRiskProfileFormFinal(formik.values)).unwrap();
+            dispatch(nextStep());
+        } catch (error) {
+            console.error("Ошибка при отправке данных:", error);
+        }
+
+    };
 
 
     return (
@@ -243,7 +247,7 @@ export const RiskProfileSecondForm: React.FC = () => {
                                 <b className={styles.report__value}>{Object.values(secondRiskProfileData.recommended_risk_profiles)[0]}</b>
                             </div>
                             <Select
-                                label="Подтвердить выбор риск профиля*"
+                                label="Подтвердить выбор риск профиля"
                                 needValue
                                 value={formik.values.risk_profiling_final || ""}
                                 title="Окончательный риск профиль"

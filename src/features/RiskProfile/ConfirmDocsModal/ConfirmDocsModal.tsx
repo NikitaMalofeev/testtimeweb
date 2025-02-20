@@ -14,6 +14,8 @@ import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import {
     resendConfirmationCode,
 
+    sendDocsConfirmationCode,
+
     sendEmailConfirmationCode,
     sendPhoneConfirmationCode
 } from "entities/RiskProfile/slice/riskProfileSlice";
@@ -33,23 +35,23 @@ import {
     nextStep,
     setTooltipActive,
     setConfirmationPhoneSuccess,
+    setConfirmationDocsSuccess,
 } from "entities/ui/Ui/slice/uiSlice";
 
 interface ConfirmInfoModalProps {
     isOpen: boolean;
     onClose: () => void;
+    docsType?: string;
 }
 
-export const ConfirmDocsModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps) => {
+export const ConfirmDocsModal = memo(({ isOpen, onClose, docsType }: ConfirmInfoModalProps) => {
     const dispatch = useAppDispatch();
     const modalState = useSelector((state: RootState) => state.modal);
 
     // Состояния успеха/неуспеха подтверждения
-    const phoneSuccess = useSelector((state: RootState) => state.ui.confirmationPhoneSuccess)
-    const emailSuccess = useSelector((state: RootState) => state.ui.confirmationEmailSuccess);
-    const whatsappSuccess = useSelector((state: RootState) => state.ui.confirmationWhatsappSuccess);
+    const docsSuccess = useSelector((state: RootState) => state.ui.confirmationDocs)
 
-    const hasNoTryPhoneConfirm = phoneSuccess === 'не определено'
+    const hasNoTryPhoneConfirm = docsSuccess === 'не определено'
     const confirmationMethod = modalState.confirmationMethod;
 
 
@@ -193,15 +195,14 @@ export const ConfirmDocsModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
         if (code.length === codeLength) {
             // setSubmittingFirst(true);
             dispatch(
-                sendPhoneConfirmationCode({
-                    user_id: userId ?? "",
+                sendDocsConfirmationCode({
                     codeFirst: code,
-                    method: confirmationMethod,
+                    docs: docsType || '',
                     onSuccess: (data: any) => {
                         // setSubmittingFirst(false);
                         // Обновляем статус для телефона или WhatsApp в зависимости от метода
                         dispatch(
-                            setConfirmationPhoneSuccess(
+                            setConfirmationDocsSuccess(
                                 data.is_confirmed_phone ? 'пройдено' : 'не пройдено'
                             )
                         );
@@ -211,6 +212,8 @@ export const ConfirmDocsModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                 message: "Данные успешно подтверждены",
                             })
                         );
+                        dispatch(nextStep())
+                        onClose()
                     },
                 })
             );
@@ -218,12 +221,12 @@ export const ConfirmDocsModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
     }, [smsCodeFirst, userId, confirmationMethod]);
 
     // Если необходимо закрыть модалку, когда оба запроса завершены
-    useEffect(() => {
-        if ((phoneSuccess === "пройдено" || whatsappSuccess === "пройдено") && emailSuccess === "пройдено") {
-            dispatch(nextStep());
-            onClose();
-        }
-    }, [phoneSuccess, whatsappSuccess, emailSuccess]);
+    // useEffect(() => {
+    //     if ((phoneSuccess === "пройдено" || whatsappSuccess === "пройдено") && emailSuccess === "пройдено") {
+    //         dispatch(nextStep());
+    //         onClose();
+    //     }
+    // }, [phoneSuccess, whatsappSuccess, emailSuccess]);
 
     return (
         <Modal
@@ -272,7 +275,7 @@ export const ConfirmDocsModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                 ref={(el) => (inputRefsFirst.current[index] = el)}
                                 className={styles.codeInput__box}
                                 style={{
-                                    borderColor: hasNoTryPhoneConfirm ? "#D4D4E8" : phoneSuccess === 'не пройдено' ? "#FF3C53" : "#1CC15A"
+                                    borderColor: hasNoTryPhoneConfirm ? "#D4D4E8" : docsSuccess === 'не пройдено' ? "#FF3C53" : "#1CC15A"
                                 }}
                             />
                         ))}

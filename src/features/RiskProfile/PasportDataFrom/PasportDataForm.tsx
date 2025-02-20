@@ -10,7 +10,7 @@ import { RootState } from "app/providers/store/config/store";
 import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { Checkbox } from "shared/ui/Checkbox/Checkbox";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
-import { closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
+import { closeModal, openModal, setCurrentConfirmModalType } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { ConfirmDocsModal } from "../ConfirmDocsModal/ConfirmDocsModal";
 
@@ -58,11 +58,12 @@ export const PasportDataForm: React.FC = () => {
     });
 
     const GenderOptions = {
-        "male": 'Мужчина',
-        "female": 'Женщина',
+        "gender_male": 'Мужчина',
+        "gender_female": 'Женщина',
     }
 
     const handleSubmit = () => {
+        console.log('submit1')
         dispatch(postPasportInfo({ data: formik.values, onSuccess: () => { } }))
         dispatch(openModal({ type: ModalType.CONFIRM_DOCS, size: ModalSize.MIDDLE, animation: ModalAnimation.LEFT }))
     }
@@ -74,14 +75,58 @@ export const PasportDataForm: React.FC = () => {
         dispatch(updateFieldValue({ name, value }));
     };
 
+    /**
+     * Возвращает строку в формате 'XXX-XXX'.
+     * Если цифр меньше 3, возвращается как есть.
+     */
+    const maskDepartmentCode = (value: string) => {
+        if (!value) return "";
+
+        // Если цифр 3 или меньше – просто возвращаем
+        if (value.length <= 3) {
+            return value;
+        }
+
+        // Если цифр больше 3, вставляем дефис после 3-й
+        return value.slice(0, 3) + "-" + value.slice(3);
+    };
+
+    const handleDepartmentCodeChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        let rawValue = e.target.value.replace(/\D/g, ""); // Убираем всё, кроме цифр
+
+        // Если хотите ограничить 6ю цифрами – обрезаем
+        if (rawValue.length > 6) {
+            rawValue = rawValue.slice(0, 6);
+        }
+
+        // Сохраняем "чистую" строку без дефисов во Formik
+        formik.setFieldValue("department_code", rawValue);
+    };
+
+
+
+    // const handleDateInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    //     let { name, value } = e.target;
+    //     value = value.replace(/\D/g, "");
+    //     if (value.length > 2) value = value.slice(0, 2) + "." + value.slice(2);
+    //     if (value.length > 5) value = value.slice(0, 5) + "." + value.slice(5);
+    //     formik.setFieldValue(name, value);
+    //     dispatch(updateFieldValue({ name, value }));
+    // };
+
     const handleDateInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         let { name, value } = e.target;
-        value = value.replace(/\D/g, "");
-        if (value.length > 2) value = value.slice(0, 2) + "." + value.slice(2);
-        if (value.length > 5) value = value.slice(0, 5) + "." + value.slice(5);
+        value = value.replace(/\D/g, ""); // Удаляем все нецифровые символы
+
+        // Форматируем в YYYY-MM-DD
+        if (value.length >= 4) value = value.slice(0, 4) + "-" + value.slice(4);
+        if (value.length >= 6) value = value.slice(0, 7) + "-" + value.slice(7);
+
         formik.setFieldValue(name, value);
         dispatch(updateFieldValue({ name, value }));
     };
+
+
 
 
     const handleCaptchaChange = (value: string | null) => {
@@ -89,9 +134,9 @@ export const PasportDataForm: React.FC = () => {
         setCaptchaVerified(!!value);
     };
 
-    const handleMethodChange = (method: string) => {
+    const handleMethodChange = (method: 'phone' | 'email' | 'whatsapp') => {
         formik.setFieldValue("type_sms_message", `${method}`)
-
+        dispatch(setCurrentConfirmModalType(method))
         // Сбрасываем капчу и статус верификации
         setCaptchaVerified(false);
         formik.setFieldValue("g_recaptcha", "");
@@ -123,16 +168,26 @@ export const PasportDataForm: React.FC = () => {
                 <Input placeholder="Дата рождения" name="birth_date" type="text" value={formik.values.birth_date} onChange={handleDateInputChange} needValue />
                 <Input placeholder="Место рождения" name="birth_place" type="text" value={formik.values.birth_place} onChange={handleTextInputChange} needValue />
                 <div className={styles.form__duoInputs}>
-                    <Input placeholder="Серия паспорта" name="passport_series" type="text" value={formik.values.passport_series} onChange={handleTextInputChange} needValue />
-                    <Input placeholder="Номер паспорта" name="passport_number" type="text" value={formik.values.passport_number} onChange={handleTextInputChange} needValue />
+                    <Input placeholder="Серия паспорта" type="number" maxLength={4} name="passport_series" value={formik.values.passport_series} onChange={handleTextInputChange} needValue />
+                    <Input placeholder="Номер паспорта" type="number" maxLength={6} name="passport_number" value={formik.values.passport_number} onChange={handleTextInputChange} needValue />
                 </div>
-                <div className={styles.form__duoInputs}>
-                    <Input placeholder="Код подразделения" name="department_code" type="text" value={formik.values.department_code} onChange={handleTextInputChange} needValue />
-                    <Input placeholder="Дата выдачи паспорта" name="issue_date" type="text" value={formik.values.issue_date} onChange={handleDateInputChange} needValue />
-                </div>
-                <Input placeholder="Кем выдан" name="issue_whom" type="text" value={formik.values.issue_whom} onChange={handleTextInputChange} needValue />
-                <Input placeholder="ИНН" name="inn" type="text" value={formik.values.inn} onChange={handleTextInputChange} needValue />
 
+                <Input
+                    placeholder="Код подразделения"
+                    name="department_code"
+                    type="text"
+                    value={maskDepartmentCode(formik.values.department_code)}
+                    onChange={handleDepartmentCodeChange}
+                    needValue
+                />
+
+
+
+                <Input placeholder="Кем выдан" name="issue_whom" type="text" value={formik.values.issue_whom} onChange={handleTextInputChange} needValue />
+                <div className={styles.form__duoInputs}>
+                    <Input placeholder="ИНН" name="inn" type="number" maxLength={12} value={formik.values.inn} onChange={handleTextInputChange} needValue />
+                    <Input placeholder="Дата выдачи" name="issue_date" type="text" value={formik.values.issue_date} onChange={handleDateInputChange} needValue />
+                </div>
                 <div>
                     <h2 className={styles.form__subtitle}>Адрес регистрации</h2>
 
@@ -173,7 +228,7 @@ export const PasportDataForm: React.FC = () => {
                         <Input placeholder="Регион/район" name="address_residential_region" type="text" value={formik.values.address_residential_region} onChange={handleTextInputChange} needValue />
                         <Input placeholder="Город/населенный пункт" name="address_residential_city" type="text" value={formik.values.address_residential_city} onChange={handleTextInputChange} needValue />
                         <Input placeholder="Улица" name="address_residential_street" type="text" value={formik.values.address_residential_street} onChange={handleTextInputChange} needValue />
-                        <div>
+                        <div className={styles.form__duoInputs}>
                             <Input placeholder="Дом" name="address_residential_house" type="text" value={formik.values.address_residential_house} onChange={handleTextInputChange} needValue />
                             <Input placeholder="Квартира" name="address_residential_apartment" type="text" value={formik.values.address_residential_apartment} onChange={handleTextInputChange} needValue />
                         </div>
@@ -194,8 +249,15 @@ export const PasportDataForm: React.FC = () => {
                             SMS
                         </Button>
                     </div>
+                    <Button
+                        theme={formik.values.type_sms_message === 'email' ? ButtonTheme.BLUE : ButtonTheme.UNDERLINE}
+                        className={styles.button__type}
+                        onClick={() => handleMethodChange("email")}
+                    >
+                        E-mail
+                    </Button>
 
-                    <div style={{ minHeight: "74px" }}>
+                    <div style={{ minHeight: "74px", marginTop: '20px' }}>
                         <ReCAPTCHA ref={recaptchaRef} sitekey={gcaptchaSiteKey} onChange={handleCaptchaChange} />
                     </div>
 
@@ -207,7 +269,7 @@ export const PasportDataForm: React.FC = () => {
                     </div>
                 </div>
             </form >
-            <ConfirmDocsModal isOpen={modalState.confirmDocsModal.isOpen} onClose={() => { dispatch(closeModal(ModalType.CONFIRM_DOCS)) }} />
+            <ConfirmDocsModal isOpen={modalState.confirmDocsModal.isOpen} onClose={() => { dispatch(closeModal(ModalType.CONFIRM_DOCS)) }} docsType="type_doc_passport" />
         </>
     );
 };

@@ -47,6 +47,16 @@
         height: 35px;
     }
 
+    &__preview_success {
+        position: absolute;
+        top: 28px;
+        left: 14px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        z-index: 1;
+    }
+
     &__header {
         display: flex;
         justify-content: flex-start;
@@ -88,6 +98,7 @@
     }
 
     &__content {
+        position: relative;
         padding: 13px 35px;
         display: flex;
         flex-direction: row;

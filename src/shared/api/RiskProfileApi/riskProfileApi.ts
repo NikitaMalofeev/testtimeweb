@@ -1,5 +1,5 @@
 import axios from "axios";
-import { IdentificationProfileData, ConfirmationCodeData, NeedHelpData, TrustedPersonInfo, SecondRiskProfilePayload } from "entities/RiskProfile/model/types";
+import { IdentificationProfileData, ConfirmationCodeData, NeedHelpData, TrustedPersonInfo, SecondRiskProfilePayload, PasportFormData } from "entities/RiskProfile/model/types";
 
 const apiUrl = import.meta.env.VITE_RANKS_TEST_API_URL;
 
@@ -28,6 +28,17 @@ export const postConfirmationCode = async (data: ConfirmationCodeData) => {
         headers: {
             "Accept-Language": "ru",
             "Content-Type": "application/json",
+        },
+    });
+    return response.data;
+};
+
+export const postPasportData = async (data: PasportFormData, token: string) => {
+    const response = await axios.post(`${apiUrl}create_doc_user/fourth_passport/`, data, {
+        headers: {
+            "Accept-Language": "ru",
+            "Content-Type": "application/json",
+            "Authorization": `Token ${token}`,
         },
     });
     return response.data;

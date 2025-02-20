@@ -9,9 +9,10 @@ import {
     SendCodePayload,
     RiskProfileSelectors,
     SecondRiskProfileResponse,
-    ThirdRiskProfileResponse
+    ThirdRiskProfileResponse,
+    PasportFormData
 } from "../model/types";
-import { getAllSelects, postConfirmationCode, postFirstRiskProfile, postIdentificationData, postNeedHelpRequest, postResendConfirmationCode, postSecondRiskProfile, postSecondRiskProfileFinal, postTrustedPersonInfoApi } from "shared/api/RiskProfileApi/riskProfileApi";
+import { getAllSelects, postConfirmationCode, postFirstRiskProfile, postIdentificationData, postNeedHelpRequest, postPasportData, postResendConfirmationCode, postSecondRiskProfile, postSecondRiskProfileFinal, postTrustedPersonInfoApi } from "shared/api/RiskProfileApi/riskProfileApi";
 import { setUserId, setUserToken } from "entities/User/slice/userSlice";
 import { nextStep, setConfirmationEmailSuccess, setConfirmationPhoneSuccess, setConfirmationStatusSuccess, setConfirmationWhatsappSuccess } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
@@ -175,6 +176,31 @@ export const postTrustedPersonInfo = createAsyncThunk<
     }
 );
 
+export const postPasportInfo = createAsyncThunk<
+    void,
+    { data: PasportFormData; onSuccess: () => void; },
+    { state: RootState; rejectValue: string }
+>(
+    "riskProfile/postFirstRiskProfileForm",
+    async ({ data, onSuccess }, { getState, rejectWithValue, dispatch }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+            const response = await postPasportData(data, token);
+            if (response === true) {
+                onSuccess();
+            }
+        } catch (error: any) {
+            console.log(error)
+            dispatch(setError('ошибка паспорта'))
+            return rejectWithValue(
+                error.response?.data?.message || "Ошибка при отправке данных"
+            );
+        }
+    }
+);
 
 
 
@@ -264,11 +290,6 @@ export const sendEmailConfirmationCode = createAsyncThunk<
     }
 );
 
-
-
-
-
-
 export const resendConfirmationCode = createAsyncThunk<
     void,
     { user_id: string; method: "whatsapp" | "phone" | "email" },
@@ -318,6 +339,7 @@ export const requestNeedHelp = createAsyncThunk<
         );
     }
 });
+
 
 const riskProfileSlice = createSlice({
     name: "riskProfile",

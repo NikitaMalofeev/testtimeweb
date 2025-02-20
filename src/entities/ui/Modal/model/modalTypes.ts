@@ -16,6 +16,7 @@ export enum ModalType {
     IDENTIFICATION = 'identificationModal',
     SELECT = 'select',
     CONFIRM_CODE = 'confirmCodeModal',
+    CONFIRM_DOCS = 'confirmDocsModal',
     PROBLEM_WITH_CODE = 'problemWithCodeModal',
 }
 

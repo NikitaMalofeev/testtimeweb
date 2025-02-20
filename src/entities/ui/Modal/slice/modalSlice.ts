@@ -19,6 +19,12 @@ const initialState: ExtendedModalState = {
         animation: ModalAnimation.BOTTOM,
         isScrolled: false
     },
+    [ModalType.CONFIRM_DOCS]: {
+        isOpen: false,
+        size: ModalSize.MIDDLE,
+        animation: ModalAnimation.BOTTOM,
+        isScrolled: false
+    },
     [ModalType.PROBLEM_WITH_CODE]: {
         isOpen: false,
         size: ModalSize.MINI,

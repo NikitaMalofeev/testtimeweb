@@ -13,11 +13,12 @@ import {
     PasportFormData,
     SendCodeDocsConfirmPayload
 } from "../model/types";
-import { getAllSelects, postConfirmationCode, postConfirmationDocsCode, postFirstRiskProfile, postIdentificationData, postNeedHelpRequest, postPasportData, postResendConfirmationCode, postSecondRiskProfile, postSecondRiskProfileFinal, postTrustedPersonInfoApi } from "shared/api/RiskProfileApi/riskProfileApi";
+import { getAllSelects, postConfirmationCode, postConfirmationDocsCode, postFirstRiskProfile, postIdentificationData, postNeedHelpRequest, postPasportData, postPasportScanData, postResendConfirmationCode, postSecondRiskProfile, postSecondRiskProfileFinal, postTrustedPersonInfoApi } from "shared/api/RiskProfileApi/riskProfileApi";
 import { setUserId, setUserToken, updateUserAllData } from "entities/User/slice/userSlice";
 import { nextStep, setConfirmationDocsSuccess, setConfirmationEmailSuccess, setConfirmationPhoneSuccess, setConfirmationStatusSuccess, setConfirmationWhatsappSuccess } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
 import { RootState } from "app/providers/store/config/store";
+import { PasportScanData } from "features/RiskProfile/PassportScanForm/PassportScanForm";
 interface RiskProfileFormState {
     loading: boolean;
     error: string | null;
@@ -197,7 +198,34 @@ export const postPasportInfo = createAsyncThunk<
             }
         } catch (error: any) {
             console.log(error)
-            dispatch(setError('ошибка паспорта'))
+            dispatch(setError('Ошибка отправки данных паспорта'))
+            return rejectWithValue(
+                error.response?.data?.message || "Ошибка при отправке данных"
+            );
+        }
+    }
+);
+
+export const postPasportScanThunk = createAsyncThunk<
+    void,
+    { data: PasportScanData; onSuccess: () => void; },
+    { state: RootState; rejectValue: string }
+>(
+    "riskProfile/postPasportScan",
+    async ({ data, onSuccess }, { getState, rejectWithValue, dispatch }) => {
+        try {
+            // const token = getState().user.token;
+            const token = '8a0c95a9a8b9942f900a732fc730afbad939afe8'
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+            const response = await postPasportScanData(data, token);
+            if (response === true) {
+                onSuccess();
+            }
+        } catch (error: any) {
+            console.log(error)
+            dispatch(setError('Ошибка отправки скана документов'))
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке данных"
             );

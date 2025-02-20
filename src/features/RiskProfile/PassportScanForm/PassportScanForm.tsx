@@ -9,6 +9,13 @@ import UploadIcon from "shared/assets/svg/UploadIcon.svg";
 import UploadPDFIcon from "shared/assets/svg/UploadPDFIcon.svg";
 import SuccessLabel from 'shared/assets/svg/SuccessLabel.svg'
 import styles from "./styles.module.scss";
+import { postPasportScanThunk } from "entities/RiskProfile/slice/riskProfileSlice";
+import { nextStep } from "entities/ui/Ui/slice/uiSlice";
+
+export interface PasportScanData {
+    file_scan_page_first: null | string,
+    file_scan_page_registration: null | string,
+}
 
 export const PasportScanForm: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -53,15 +60,28 @@ export const PasportScanForm: React.FC = () => {
     const handleClickFirst = () => fileInputFirstRef.current?.click();
     const handleClickReg = () => fileInputRegRef.current?.click();
 
+    const handleSubmit = () => {
+        console.log('отправка скана')
+        dispatch(postPasportScanThunk({
+            data: formik.values, onSuccess: () => {
+                dispatch(nextStep())
+            }
+        }))
+    }
+
     // === Обработчик изменения файла ===
     const handleFileChange = (
         e: React.ChangeEvent<HTMLInputElement>,
         fieldName: "file_scan_page_first" | "file_scan_page_registration"
     ) => {
+        // Берём "фиктивный" путь из e.currentTarget.value
+        const fakePath = e.currentTarget.value;
+        // Записываем его в Formik
+        formik.setFieldValue(fieldName, fakePath);
+
+        // При этом продолжаем получать сам файл для превью
         const file = e.currentTarget.files?.[0];
         if (file) {
-            formik.setFieldValue(fieldName, file);
-
             if (fieldName === "file_scan_page_first") {
                 updatePreview(file, setPreviewFirst, setIsPdfFirst);
             } else {
@@ -69,6 +89,8 @@ export const PasportScanForm: React.FC = () => {
             }
         }
     };
+
+
 
     // === Обработчики Drag & Drop ===
     const handleDragEnter = (
@@ -168,6 +190,13 @@ export const PasportScanForm: React.FC = () => {
             }
         };
     }, [previewReg]);
+
+    useEffect(() => {
+        console.log('значения фото', {
+            file_scan_page_first: formik.values.file_scan_page_first,
+            file_scan_page_registration: formik.values.file_scan_page_registration,
+        });
+    }, [formik.values]);
 
     return (
         <>
@@ -335,9 +364,7 @@ export const PasportScanForm: React.FC = () => {
 
                 <div className={`${styles.buttons} ${!isBottom ? styles.shadow : ""}`}>
                     <Button
-                        onClick={() => {
-                            // ваш код
-                        }}
+                        onClick={handleSubmit}
                         theme={ButtonTheme.BLUE}
                         className={styles.button}
                         disabled={isButtonDisabled}

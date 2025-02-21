@@ -60,14 +60,28 @@ export const PasportScanForm: React.FC = () => {
     const handleClickFirst = () => fileInputFirstRef.current?.click();
     const handleClickReg = () => fileInputRegRef.current?.click();
 
-    const handleSubmit = () => {
-        console.log('отправка скана')
+    const handleSubmit = async () => {
+        console.log('Отправка скана через postPasportScanThunk...');
+
+        const formData = new FormData();
+        const fileFirst = fileInputFirstRef.current?.files?.[0];
+        const fileReg = fileInputRegRef.current?.files?.[0];
+
+        if (fileFirst) {
+            formData.append('file_scan_page_first', fileFirst);
+        }
+        if (fileReg) {
+            formData.append('file_scan_page_registration', fileReg);
+        }
+
         dispatch(postPasportScanThunk({
-            data: formik.values, onSuccess: () => {
-                dispatch(nextStep())
-            }
-        }))
-    }
+            data: formData,
+            onSuccess: () => {
+                dispatch(nextStep());
+            },
+        }));
+    };
+
 
     // === Обработчик изменения файла ===
     const handleFileChange = (

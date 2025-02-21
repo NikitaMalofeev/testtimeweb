@@ -208,7 +208,7 @@ export const postPasportInfo = createAsyncThunk<
 
 export const postPasportScanThunk = createAsyncThunk<
     void,
-    { data: PasportScanData; onSuccess: () => void; },
+    { data: FormData; onSuccess: () => void; },
     { state: RootState; rejectValue: string }
 >(
     "riskProfile/postPasportScan",

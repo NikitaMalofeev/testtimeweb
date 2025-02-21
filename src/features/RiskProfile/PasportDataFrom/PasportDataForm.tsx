@@ -63,9 +63,11 @@ export const PasportDataForm: React.FC = () => {
     }
 
     const handleSubmit = () => {
-        console.log('submit1')
-        dispatch(postPasportInfo({ data: formik.values, onSuccess: () => { } }))
-        dispatch(openModal({ type: ModalType.CONFIRM_DOCS, size: ModalSize.MIDDLE, animation: ModalAnimation.LEFT }))
+        dispatch(postPasportInfo({
+            data: formik.values, onSuccess: () => {
+                dispatch(openModal({ type: ModalType.CONFIRM_DOCS, size: ModalSize.MIDDLE, animation: ModalAnimation.LEFT }))
+            }
+        }))
     }
 
 

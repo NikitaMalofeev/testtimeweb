@@ -7,6 +7,7 @@ import styles from './styles.module.scss'
 import { RiskProfileSecondForm } from "features/RiskProfile/RiskProfileSecondForm/RiskProfileSecondForm";
 import { PasportDataForm } from "features/RiskProfile/PasportDataFrom/PasportDataForm";
 import { PasportScanForm } from "features/RiskProfile/PassportScanForm/PassportScanForm";
+import { ConfirmAllDocs } from "features/RiskProfile/ConfirmationAllDocs/ConfirmationAllDocs";
 
 interface WithStepContentProps {
     onClose: () => void;
@@ -28,7 +29,8 @@ const stepContents = [
     <RiskProfileFirstForm />,
     <RiskProfileSecondForm />,
     <PasportDataForm />,
-    <PasportScanForm />
+    <PasportScanForm />,
+    <ConfirmAllDocs />
 ];
 
 const stepTooltipDescriptions = [

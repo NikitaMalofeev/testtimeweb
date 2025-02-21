@@ -216,6 +216,7 @@
 
 .report__container {
     font-family: var(--font-inter);
+    max-width: 90%;
     font-weight: 400;
     font-size: 14px;
     line-height: 16.94px;
@@ -227,5 +228,5 @@
 
 .form__item__tooltip_report {
     top: 14px;
-    right: 14px;
+    right: 0;
 }

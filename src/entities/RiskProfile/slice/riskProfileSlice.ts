@@ -32,6 +32,7 @@ interface RiskProfileFormState {
     stepsFirstForm: {
         currentStep: number;
     };
+    currentConfirmingDoc: string;
 }
 
 
@@ -49,6 +50,7 @@ const initialState: RiskProfileFormState = {
     stepsFirstForm: {
         currentStep: 0
     },
+    currentConfirmingDoc: 'type_doc_passport',
 };
 
 export const createRiskProfile = createAsyncThunk<
@@ -192,9 +194,8 @@ export const postPasportInfo = createAsyncThunk<
                 return rejectWithValue("Отсутствует токен авторизации");
             }
             const response = await postPasportData(data, token);
-            if (response === true) {
-                onSuccess();
-            }
+            onSuccess();
+            return response
         } catch (error: any) {
             console.log(error)
             dispatch(setError('Ошибка отправки данных паспорта'))
@@ -219,9 +220,9 @@ export const postPasportScanThunk = createAsyncThunk<
                 return rejectWithValue("Отсутствует токен авторизации");
             }
             const response = await postPasportScanData(data, token);
-            if (response === true) {
-                onSuccess();
-            }
+            onSuccess();
+
+            return response
         } catch (error: any) {
             console.log(error)
             dispatch(setError('Ошибка отправки скана документов'))
@@ -430,6 +431,9 @@ const riskProfileSlice = createSlice({
         setThirdRiskProfileResponse(state, action: PayloadAction<ThirdRiskProfileResponse>) {
             state.thirdRiskProfileResponse = action.payload;
         },
+        setCurrentConfirmingDoc(state, action: PayloadAction<string>) {
+            state.currentConfirmingDoc = action.payload;
+        },
 
     },
     extraReducers: (builder) => {
@@ -476,5 +480,5 @@ const riskProfileSlice = createSlice({
     },
 });
 
-export const { updateFieldValue, nextRiskProfileStep, prevRiskProfileStep, setThirdRiskProfileResponse, setFirstRiskProfileData } = riskProfileSlice.actions;
+export const { updateFieldValue, setCurrentConfirmingDoc, nextRiskProfileStep, prevRiskProfileStep, setThirdRiskProfileResponse, setFirstRiskProfileData } = riskProfileSlice.actions;
 export default riskProfileSlice.reducer;

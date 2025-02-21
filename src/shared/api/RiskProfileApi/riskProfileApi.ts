@@ -60,7 +60,6 @@ export const postPasportScanData = async (data: FormData, token: string) => {
     const response = await axios.post(`${apiUrl}create_doc_user/fifth_passport_scan/`, data, {
         headers: {
             "Accept-Language": "ru",
-            "Content-Type": "application/json",
             "Authorization": `Token ${token}`,
         },
     });

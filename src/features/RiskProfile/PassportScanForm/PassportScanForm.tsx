@@ -60,50 +60,48 @@ export const PasportScanForm: React.FC = () => {
     const handleClickFirst = () => fileInputFirstRef.current?.click();
     const handleClickReg = () => fileInputRegRef.current?.click();
 
-    const handleSubmit = async () => {
-        console.log('Отправка скана через postPasportScanThunk...');
-
-        const formData = new FormData();
-        const fileFirst = fileInputFirstRef.current?.files?.[0];
-        const fileReg = fileInputRegRef.current?.files?.[0];
-
-        if (fileFirst) {
-            formData.append('file_scan_page_first', fileFirst);
-        }
-        if (fileReg) {
-            formData.append('file_scan_page_registration', fileReg);
-        }
-
-        dispatch(postPasportScanThunk({
-            data: formData,
-            onSuccess: () => {
-                dispatch(nextStep());
-            },
-        }));
-    };
-
-
-    // === Обработчик изменения файла ===
+    // 1) Выбор файлов (через onChange у <input type="file" />)
     const handleFileChange = (
         e: React.ChangeEvent<HTMLInputElement>,
         fieldName: "file_scan_page_first" | "file_scan_page_registration"
     ) => {
-        // Берём "фиктивный" путь из e.currentTarget.value
-        const fakePath = e.currentTarget.value;
-        // Записываем его в Formik
-        formik.setFieldValue(fieldName, fakePath);
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
 
-        // При этом продолжаем получать сам файл для превью
-        const file = e.currentTarget.files?.[0];
-        if (file) {
-            if (fieldName === "file_scan_page_first") {
-                updatePreview(file, setPreviewFirst, setIsPdfFirst);
-            } else {
-                updatePreview(file, setPreviewReg, setIsPdfReg);
-            }
+            // Записываем сам `File` в Formik
+            formik.setFieldValue(fieldName, file);
+
+            // Обновляем превью
+            updatePreview(
+                file,
+                fieldName === "file_scan_page_first" ? setPreviewFirst : setPreviewReg,
+                fieldName === "file_scan_page_first" ? setIsPdfFirst : setIsPdfReg
+            );
         }
     };
 
+    // 2) При клике "Продолжить" собираем FormData из **Formik**
+    const handleSubmit = async () => {
+        console.log("Отправка скана через postPasportScanThunk...");
+
+        const formData = new FormData();
+        const fileFirst = formik.values.file_scan_page_first;
+        const fileReg = formik.values.file_scan_page_registration;
+
+        if (fileFirst) {
+            formData.append("file_scan_page_first", fileFirst);
+        }
+        if (fileReg) {
+            formData.append("file_scan_page_registration", fileReg);
+        }
+
+        dispatch(
+            postPasportScanThunk({
+                data: formData,
+                onSuccess: () => dispatch(nextStep()),
+            })
+        );
+    };
 
 
     // === Обработчики Drag & Drop ===

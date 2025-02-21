@@ -187,8 +187,7 @@ export const postPasportInfo = createAsyncThunk<
     async ({ data, onSuccess }, { getState, rejectWithValue, dispatch }) => {
         try {
             console.log('submit2')
-            // const token = getState().user.token;
-            const token = '8a0c95a9a8b9942f900a732fc730afbad939afe8'
+            const token = getState().user.token;
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");
             }
@@ -214,8 +213,8 @@ export const postPasportScanThunk = createAsyncThunk<
     "riskProfile/postPasportScan",
     async ({ data, onSuccess }, { getState, rejectWithValue, dispatch }) => {
         try {
-            // const token = getState().user.token;
-            const token = '185b06253d4de231448bdda2c05906003afc0f94'
+            const token = getState().user.token;
+
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");
             }
@@ -333,8 +332,7 @@ export const sendDocsConfirmationCode = createAsyncThunk<
     ) => {
         try {
             console.log('submit2')
-            // const token = getState().user.token;
-            const token = '8a0c95a9a8b9942f900a732fc730afbad939afe8'
+            const token = getState().user.token;
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");
             }

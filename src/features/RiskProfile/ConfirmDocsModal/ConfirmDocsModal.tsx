@@ -33,7 +33,7 @@ import {
     setTooltipActive,
     setConfirmationDocsSuccess
 } from "entities/ui/Ui/slice/uiSlice";
-import { nextDocType } from "entities/Documents/slice/documentsSlice";
+import { docTypes, nextDocType } from "entities/Documents/slice/documentsSlice";
 
 interface ConfirmInfoModalProps {
     isOpen: boolean;
@@ -198,29 +198,29 @@ export const ConfirmDocsModal = memo(
                         docs: docsType || "",
                         onSuccess: (data: any) => {
                             // Обновляем статус
-                            dispatch(
-                                setConfirmationDocsSuccess(
-                                    data.is_confirmed_phone ? "пройдено" : "не пройдено"
-                                )
-                            );
+                            // dispatch(
+                            //     setConfirmationDocsSuccess(
+                            //         data.is_confirmed_phone ? "пройдено" : "не пройдено"
+                            //     )
+                            // );
                             dispatch(
                                 setTooltipActive({
                                     active: true,
                                     message: "Данные успешно подтверждены"
                                 })
                             );
-                            // Т.е. вы здесь говорите, что документ подписан (по коду).
-                            // Переходим к следующему документу:
-                            dispatch(nextDocType());
-
-                            // Можно также переключиться на следующий общий "шаг" (если есть логика выше)
-                            dispatch(nextStep());
+                            if (docsType === 'type_doc_passport') {
+                                dispatch(nextStep())
+                                console.log('nextstep with if')
+                            }
+                            // dispatch(nextDocType());
                             onClose();
-                        }
+                        },
+                        onClose: () => onClose()
                     })
                 );
             }
-        }, [smsCodeFirst, dispatch, docsType, onClose]);
+        }, [smsCodeFirst, docsType]);
 
         // ===============================================
 

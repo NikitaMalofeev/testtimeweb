@@ -1,5 +1,5 @@
 // ConfirmAllDocs.tsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
@@ -18,6 +18,8 @@ import CloseIcon from "shared/assets/svg/close.svg";
 // ======== Модалка для превью документа (пример с framer-motion) ========
 import { motion } from "framer-motion";
 import ReactDOM from "react-dom";
+import { getAllUserInfoThunk } from "entities/User/slice/userSlice";
+import { RiskProfileAllData } from "../RiskProfileAllData/RiskProfileAllData";
 
 interface PreviewModalProps {
     isOpen: boolean;
@@ -153,7 +155,7 @@ export const ConfirmAllDocs: React.FC = () => {
                 return <div>Здесь превью EDS-Agreement</div>;
 
             case "type_doc_RP_questionnairy":
-                return <div>Превью RP Questionnairy</div>;
+                return <RiskProfileAllData />;
 
             case "type_doc_agreement_investment_advisor":
                 return <div>Содержимое соглашения с инвест. советником</div>;
@@ -175,12 +177,17 @@ export const ConfirmAllDocs: React.FC = () => {
         }
     };
 
+    // Не хватает 
+    // Доверенное лицо 
+
+    // Лишнее
+    // практический опыт 
+
     // Открываем модалку "Подтвердить документ"
     const handleOpenConfirm = () => {
         dispatch(
             openModal({
                 type: ModalType.CONFIRM_DOCS,
-                // Дальше эти параметры можно менять, если надо анимацию или размер
                 size: ModalSize.MIDDLE,
                 animation: ModalAnimation.LEFT,
             })
@@ -196,7 +203,10 @@ export const ConfirmAllDocs: React.FC = () => {
 
                 <div className={styles.page__container}>
                     <div className={styles.page__image}>
-                        <Icon Svg={DocsImage} width={194} height={194} />
+                        <div className={styles.page__image__circle}>
+                            <Icon Svg={DocsImage} width={194} height={194} />
+                        </div>
+
                     </div>
                 </div>
 

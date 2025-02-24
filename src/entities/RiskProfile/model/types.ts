@@ -75,6 +75,7 @@ export interface SendCodeDocsConfirmPayload {
     codeSecond?: string;
     docs: string;
     onSuccess?: (data?: any) => void;
+    onClose?: () => void
 }
 
 export interface SecondRiskProfilePayload {

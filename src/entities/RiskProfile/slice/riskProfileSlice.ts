@@ -328,7 +328,7 @@ export const sendDocsConfirmationCode = createAsyncThunk<
 >(
     "riskProfile/sendDocsConfirmationCode",
     async (
-        { codeFirst, docs, onSuccess },
+        { codeFirst, docs, onSuccess, onClose },
         { getState, dispatch, rejectWithValue }
     ) => {
         try {
@@ -340,7 +340,7 @@ export const sendDocsConfirmationCode = createAsyncThunk<
             if (codeFirst) {
                 const responsePhone = await postConfirmationDocsCode({ code: codeFirst, type_document: docs }, token);
                 onSuccess?.(responsePhone);
-
+                dispatch(setCurrentConfirmingDoc(responsePhone.next_document))
             }
         } catch (error: any) {
             dispatch(setConfirmationDocsSuccess(

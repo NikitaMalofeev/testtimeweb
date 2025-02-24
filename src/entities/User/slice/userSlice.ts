@@ -1,11 +1,13 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { userAllData, userType } from "../types/userTypes";
+import { AllUserInfo, userAllData, userType } from "../types/userTypes";
 import { ProblemsRequestData, sendProblemsRequest } from "shared/api/userApi/userApi";
+import { getAllUserInfo } from "../api/userApi";
 
 interface UserState {
     userId: string | null;
     token: string;
     user: userType;
+    allUserDataForDocuments: AllUserInfo | null;
     userForPersonalAccount: userAllData | null;
 }
 
@@ -20,6 +22,7 @@ const initialState: UserState = {
         last_name: "",
         is_agreement: false,
     },
+    allUserDataForDocuments: null,
     userForPersonalAccount: null,
 };
 
@@ -40,6 +43,28 @@ export const sendProblems = createAsyncThunk<
     }
 );
 
+export const getAllUserInfoThunk = createAsyncThunk<
+    any, // Здесь можно указать конкретный тип, если известно, что возвращает getAllUserInfo
+    void,
+    { rejectValue: string }
+>(
+    "user/getAllUserInfo",
+    async (_, { rejectWithValue,dispatch }) => {
+        try {
+            const response = await getAllUserInfo(); // Сохраняем результат в переменную
+            console.log("Результат getAllUserInfo:", response); // Выводим результат в консоль
+            dispatch(setUserAllInfo(response))
+            return response; 
+        } catch (error: any) {
+            console.error("Ошибка при получении данных пользователя:", error);
+            return rejectWithValue(
+                error.response?.data?.message || "Ошибка при отправке данных"
+            );
+        }
+    }
+);
+
+
 export const userSlice = createSlice({
     name: "user",
     initialState,
@@ -56,6 +81,9 @@ export const userSlice = createSlice({
         // Полная замена userForPersonalAccount (перезапись всего объекта)
         setUserAllData: (state, action: PayloadAction<userAllData>) => {
             state.userForPersonalAccount = action.payload;
+        },
+        setUserAllInfo: (state, action: PayloadAction<AllUserInfo>) => {
+            state.allUserDataForDocuments = action.payload;
         },
         // Частичное обновление userForPersonalAccount
         updateUserAllData: (state, action: PayloadAction<Partial<userAllData>>) => {
@@ -79,6 +107,7 @@ export const {
     setUserToken,
     setUserAllData,
     updateUserAllData,
+    setUserAllInfo,
 } = userSlice.actions;
 
 export default userSlice.reducer;

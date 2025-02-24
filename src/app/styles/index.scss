@@ -13,5 +13,10 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-    background: #f1f1f1; /* Цвет дорожки скроллбара */
+    background: #E1ECFB; /* Цвет дорожки скроллбара */
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: #E1ECFB; /* Цвет ползунка */
+    border-radius: 10px;       /* Закругление углов */
   }

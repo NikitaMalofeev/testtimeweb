@@ -338,7 +338,7 @@ export const sendDocsConfirmationCode = createAsyncThunk<
                 return rejectWithValue("Отсутствует токен авторизации");
             }
             if (codeFirst) {
-                const responsePhone = await postConfirmationDocsCode({ code: codeFirst, type: docs }, token);
+                const responsePhone = await postConfirmationDocsCode({ code: codeFirst, type_document: docs }, token);
                 onSuccess?.(responsePhone);
 
             }

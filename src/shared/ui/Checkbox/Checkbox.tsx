@@ -14,6 +14,7 @@ interface CheckboxProps {
     label: ReactElement;
     error?: string | boolean;
     disabled?: boolean;
+    fsize?: string;
     /**
      * Если `true`, используем стили "radio",
      * иначе классические стили "чекбокс".

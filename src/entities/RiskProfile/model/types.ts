@@ -19,7 +19,7 @@ export interface ConfirmationCodeData {
 
 export interface ConfirmationDocsData {
     code: string;
-    type: string;
+    type_document: string;
 }
 
 export interface NeedHelpData {

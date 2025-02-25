@@ -319,41 +319,7 @@ export const sendEmailConfirmationCode = createAsyncThunk<
             dispatch(setError(msg))
         }
     }
-);
-
-export const sendDocsConfirmationCode = createAsyncThunk<
-    void,
-    SendCodeDocsConfirmPayload,
-    { rejectValue: string; state: RootState }
->(
-    "riskProfile/sendDocsConfirmationCode",
-    async (
-        { codeFirst, docs, onSuccess, onClose },
-        { getState, dispatch, rejectWithValue }
-    ) => {
-        try {
-            console.log('submit2')
-            const token = getState().user.token;
-            if (!token) {
-                return rejectWithValue("Отсутствует токен авторизации");
-            }
-            if (codeFirst) {
-                const responsePhone = await postConfirmationDocsCode({ code: codeFirst, type_document: docs }, token);
-                onSuccess?.(responsePhone);
-                dispatch(setCurrentConfirmingDoc(responsePhone.next_document))
-            }
-        } catch (error: any) {
-            dispatch(setConfirmationDocsSuccess(
-                'не пройдено'
-            ))
-            console.log(error)
-            const msg =
-                error.response.data?.error_text ||
-                "Ошибка при отправке кода (непредвиденная)";
-            dispatch(setError(msg))
-        }
-    }
-);
+)
 
 
 export const resendConfirmationCode = createAsyncThunk<
@@ -476,6 +442,17 @@ const riskProfileSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload as string;
             })
+            .addCase(postPasportScanThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(postPasportScanThunk.fulfilled, (state) => {
+                state.loading = false;
+            })
+            .addCase(postPasportScanThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            });
 
     },
 });

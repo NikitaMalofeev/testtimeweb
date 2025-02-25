@@ -14,7 +14,6 @@ import { Button, ButtonTheme } from "shared/ui/Button/Button";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import {
     resendConfirmationCode,
-    sendDocsConfirmationCode
 } from "entities/RiskProfile/slice/riskProfileSlice";
 import { RootState } from "app/providers/store/config/store";
 import {
@@ -33,7 +32,7 @@ import {
     setTooltipActive,
     setConfirmationDocsSuccess
 } from "entities/ui/Ui/slice/uiSlice";
-import { docTypes, nextDocType } from "entities/Documents/slice/documentsSlice";
+import { docTypes, nextDocType, sendDocsConfirmationCode } from "entities/Documents/slice/documentsSlice";
 
 interface ConfirmInfoModalProps {
     isOpen: boolean;
@@ -214,13 +213,14 @@ export const ConfirmDocsModal = memo(
                                 console.log('nextstep with if')
                             }
                             // dispatch(nextDocType());
+                            setSmsCodeFirst(Array(codeLength).fill(""));
                             onClose();
                         },
                         onClose: () => onClose()
                     })
                 );
             }
-        }, [smsCodeFirst, docsType]);
+        }, [smsCodeFirst]);
 
         // ===============================================
 

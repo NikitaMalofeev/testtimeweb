@@ -169,3 +169,31 @@ position: relative;
     padding: 16px;
   }
   
+
+  .button__type {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18.5px 42px;
+    width: 100%;
+}
+
+
+.buttons__confirm {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 20px;
+
+    &__title {
+        display: block;
+        width: 100%;
+        font-family: var(--font-inter);
+        font-size: 12px;
+        text-align: start;
+        line-height: 16px;
+        color: #121B2F;
+        margin-bottom: 10px;
+    }
+}

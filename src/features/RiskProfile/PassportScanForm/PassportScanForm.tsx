@@ -11,6 +11,7 @@ import SuccessLabel from 'shared/assets/svg/SuccessLabel.svg'
 import styles from "./styles.module.scss";
 import { postPasportScanThunk } from "entities/RiskProfile/slice/riskProfileSlice";
 import { nextStep } from "entities/ui/Ui/slice/uiSlice";
+import { Loader } from "shared/ui/Loader/Loader";
 
 export interface PasportScanData {
     file_scan_page_first: null | string,
@@ -20,7 +21,7 @@ export interface PasportScanData {
 export const PasportScanForm: React.FC = () => {
     const dispatch = useAppDispatch();
     const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
-
+    const loading = useSelector((state: RootState) => state.riskProfile.loading)
     // === STATE для превью файлов ===
     const [previewFirst, setPreviewFirst] = useState<string | null>(null);
     const [isPdfFirst, setIsPdfFirst] = useState(false);
@@ -381,7 +382,7 @@ export const PasportScanForm: React.FC = () => {
                         className={styles.button}
                         disabled={isButtonDisabled}
                     >
-                        Продолжить
+                        {loading ? <Loader /> : 'Продолжить'}
                     </Button>
                 </div>
             </form>

@@ -208,9 +208,9 @@ export const ConfirmDocsModal = memo(
                                     message: "Данные успешно подтверждены"
                                 })
                             );
-                            if (docsType === 'type_doc_passport') {
+                            if (docsType === 'type_doc_passport' || docsType === 'type_doc_investment_profile_certificate') {
                                 dispatch(nextStep())
-                                console.log('nextstep with if')
+
                             }
                             // dispatch(nextDocType());
                             setSmsCodeFirst(Array(codeLength).fill(""));

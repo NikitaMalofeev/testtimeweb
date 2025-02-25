@@ -8,6 +8,18 @@
     justify-content: center;
 }
 
+.blue .path {
+  stroke: #045fdd;
+}
+
+.white .path {
+  stroke: white;
+}
+
+.small .spinner {
+  width: 20px;
+  height: 20px;
+}
 
 .spinner {
     width: 40px;
@@ -16,7 +28,6 @@
   }
   
   .path {
-    stroke: #045fdd;
     /* Ниже задаём анимацию «пульса» штриховки */
     stroke-dasharray: 150;
     stroke-dashoffset: 0;

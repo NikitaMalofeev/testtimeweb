@@ -16,7 +16,7 @@ import { closeModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalType } from "entities/ui/Modal/model/modalTypes";
 import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { Input } from "shared/ui/Input/Input";
-import { Loader } from "shared/ui/Loader/Loader";
+import { Loader, LoaderTheme } from "shared/ui/Loader/Loader";
 import { Select } from "shared/ui/Select/Select";
 import { nextStep } from "entities/ui/Ui/slice/uiSlice";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
@@ -153,7 +153,7 @@ export const RiskProfileFirstForm: React.FC = () => {
         dispatch(updateFieldValue({ name, value }));
     };
 
-    if (loading) return <Loader />;
+    if (loading) return <Loader theme={LoaderTheme.BLUE}/>;
     if (error) return <p style={{ color: "red" }}>{error}</p>;
     if (!riskProfileSelectors || questions.length === 0) return null;
 

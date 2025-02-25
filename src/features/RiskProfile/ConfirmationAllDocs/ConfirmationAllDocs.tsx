@@ -21,6 +21,7 @@ import { motion } from "framer-motion";
 import ReactDOM from "react-dom";
 import { getAllUserInfoThunk } from "entities/User/slice/userSlice";
 import { RiskProfileAllData } from "../RiskProfileAllData/RiskProfileAllData";
+import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 
 interface PreviewModalProps {
     isOpen: boolean;
@@ -103,15 +104,16 @@ export const ConfirmAllDocs: React.FC = () => {
     const dispatch = useAppDispatch();
     const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
 
-    const handleMethodChange = (method: string) => {
-        formik.setFieldValue("type_message", `${method}`)
-        dispatch(setCurrentConfirmationMethod(method))
-    };
-
     // Текущий документ, который нужно подписать
     const currentTypeDoc = useSelector(
         (state: RootState) => state.documents.currentConfirmableDoc
     );
+
+    const messageTypeOptions = {
+        "SMS": 'SMS',
+        "EMAIL": 'Email',
+        "WHATSAPP": 'Whatsapp'
+    }
 
     // Индекс и общее кол-во документов
     const currentIndex = docTypes.findIndex((d) => d === currentTypeDoc);
@@ -132,16 +134,30 @@ export const ConfirmAllDocs: React.FC = () => {
             is_agree: false,
         },
         validationSchema: Yup.object({
-            is_agree: Yup.boolean().oneOf([true], 'Необходимо согласиться с документом'),
+            is_agree: Yup.boolean().oneOf([true], 'внимание'),
         }),
         onSubmit: () => {
-            // ...
+            console.log(formik.values)
+            dispatch(
+                confirmDocsRequestThunk({
+                    data: formik.values,
+                    onSuccess: () => {
+                        dispatch(
+                            openModal({
+                                type: ModalType.CONFIRM_DOCS,
+                                size: ModalSize.MIDDLE,
+                                animation: ModalAnimation.LEFT,
+                            })
+                        );
+                    },
+                })
+            );
         },
     });
 
     useEffect(() => {
         if (currentTypeDoc) {
-            formik.setFieldValue("type_document", `${currentTypeDoc}`)
+            formik.setFieldValue("type_document", currentTypeDoc)
         }
     }, [currentTypeDoc])
 
@@ -194,36 +210,6 @@ export const ConfirmAllDocs: React.FC = () => {
         }
     };
 
-    // Не хватает 
-    // Доверенное лицо 
-
-    // Лишнее
-    // практический опыт 
-
-    // Открываем модалку "Подтвердить документ"
-    const handleOpenConfirm = async () => {
-        await formik.validateForm();
-        if (formik.isValid && formik.values.is_agree) {
-            dispatch(
-                confirmDocsRequestThunk({
-                    data: formik.values,
-                    onSuccess: () => {
-                        dispatch(
-                            openModal({
-                                type: ModalType.CONFIRM_DOCS,
-                                size: ModalSize.MIDDLE,
-                                animation: ModalAnimation.LEFT,
-                            })
-                        );
-                    },
-                })
-            );
-        } else {
-            formik.setTouched({ is_agree: true }, true);
-        }
-    };
-
-
 
     return (
         <>
@@ -255,57 +241,56 @@ export const ConfirmAllDocs: React.FC = () => {
                     </div>
                 </div>
 
-                <div className={styles.page__checkbox}>
-                    <Checkbox
-                        name="is_agree"
-                        value={formik.values.is_agree}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        label={
-                            <span className={styles.checkbox__text}>
-                                Я ознакомился с вышеизложенным документом и его содержанием
-                            </span>
-                        }
-                        error={
-                            formik.touched.is_agree && formik.errors.is_agree
-                                ? formik.errors.is_agree
-                                : ""
-                        }
+                <div className={styles.page__container}>
+                    <div className={styles.page__checkbox}>
+                        <Checkbox
+                            name="is_agree"
+                            value={formik.values.is_agree}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            label={
+                                <span className={styles.checkbox__text}>
+                                    Я ознакомился с вышеизложенным документом и его содержанием
+                                </span>
+                            }
+                            error={
+                                formik.touched.is_agree && formik.errors.is_agree
+                                    ? formik.errors.is_agree
+                                    : ""
+                            }
+                        />
+                    </div>
+                </div>
+                <span className={styles.method__title}>Куда отправить код</span>
+                <div className={styles.method}>
+
+                    <CheckboxGroup
+                        name='type_message'
+                        label=""
+                        direction="row"
+                        options={Object.entries(messageTypeOptions).map(([value, label]) => ({
+                            label,
+                            value,
+                        }))}
+                        value={formik.values.type_message}
+                        onChange={(name, selectedValue) => {
+                            formik.setFieldValue(name, selectedValue);
+
+                        }}
                     />
                 </div>
-                <div className={styles.buttons__confirm}>
-                    <Button
-                        theme={formik.values.type_message === 'WHATSAPP' ? ButtonTheme.GREEN : ButtonTheme.GREENuNDERLINE}
-                        className={styles.button__type}
-                        onClick={() => handleMethodChange("WHATSAPP")}
-                    >
-                        WhatsApp
-                    </Button>
-                    <Button
-                        theme={formik.values.type_message === 'SMS' ? ButtonTheme.BLUE : ButtonTheme.UNDERLINE}
-                        className={styles.button__type}
-                        onClick={() => handleMethodChange("SMS")}
-                    >
-                        SMS
-                    </Button>
-                </div>
-                <Button
-                    theme={formik.values.type_message === 'EMAIL' ? ButtonTheme.BLUE : ButtonTheme.UNDERLINE}
-                    className={styles.button__type}
-                    onClick={() => handleMethodChange("EMAIL")}
-                >
-                    E-mail
-                </Button>
+
 
                 <div className={`${styles.buttons} ${!isBottom ? styles.shadow : ""}`}>
                     <Button
-                        onClick={handleOpenConfirm}
+                        onClick={() => formik.handleSubmit()}
                         theme={ButtonTheme.BLUE}
                         className={styles.button}
-                        disabled={false}
+                        disabled={!formik.values.is_agree}
                     >
                         Подписать
                     </Button>
+
                 </div>
             </div>
 

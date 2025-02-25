@@ -20,7 +20,7 @@ const stepTitles = [
     "Паспортные данные",
     "Отправка документов",
     "Подписание документов",
-    "Отправка документов",
+    "Настройка подключения к брокеру",
     "Отправка документов"
 ];
 
@@ -30,7 +30,8 @@ const stepContents = [
     <RiskProfileSecondForm />,
     <PasportDataForm />,
     <PasportScanForm />,
-    <ConfirmAllDocs />
+    <ConfirmAllDocs />,
+    <span>В работе</span>
 ];
 
 const stepTooltipDescriptions = [

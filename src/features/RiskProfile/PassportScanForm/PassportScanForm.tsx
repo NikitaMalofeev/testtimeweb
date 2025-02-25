@@ -11,7 +11,7 @@ import SuccessLabel from 'shared/assets/svg/SuccessLabel.svg'
 import styles from "./styles.module.scss";
 import { postPasportScanThunk } from "entities/RiskProfile/slice/riskProfileSlice";
 import { nextStep } from "entities/ui/Ui/slice/uiSlice";
-import { Loader } from "shared/ui/Loader/Loader";
+import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
 
 export interface PasportScanData {
     file_scan_page_first: null | string,
@@ -382,7 +382,7 @@ export const PasportScanForm: React.FC = () => {
                         className={styles.button}
                         disabled={isButtonDisabled}
                     >
-                        {loading ? <Loader /> : 'Продолжить'}
+                        {loading ? <Loader theme={LoaderTheme.WHITE} size={LoaderSize.SMALL} /> : 'Продолжить'}
                     </Button>
                 </div>
             </form>

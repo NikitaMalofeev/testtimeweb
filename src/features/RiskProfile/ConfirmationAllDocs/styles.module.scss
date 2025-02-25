@@ -55,11 +55,13 @@ position: relative;
     }
 
     &__checkbox {
-        padding-top: 12px;
+        max-height: 74px;
+        padding: 18px 0;
         font-weight: 400;
         font-size: 12px;
         line-height: 16px;
         letter-spacing: 0%;
+        margin-bottom: 10px;
 
     }
 }
@@ -107,7 +109,6 @@ position: relative;
     justify-content: center;
     padding: 18.5px 42px;
     width: 100%;
-    max-width: max-content;
 }
 
 .shadow {
@@ -168,32 +169,23 @@ position: relative;
     overflow-y: auto; /* Чтобы прокручивался контент внутри модалки */
     padding: 16px;
   }
-  
 
-  .button__type {
+.method {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 18.5px 42px;
     width: 100%;
-}
-
-
-.buttons__confirm {
-    width: 100%;
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    margin-bottom: 20px;
 
     &__title {
-        display: block;
+        display: inline-block;
         width: 100%;
-        font-family: var(--font-inter);
-        font-size: 12px;
-        text-align: start;
-        line-height: 16px;
-        color: #121B2F;
+        text-align: center;
+
+        font-weight: 400;
+        font-size: 14px;
+        line-height: 16.94px;
+        letter-spacing: 0%;
+        color: #989898;
         margin-bottom: 10px;
     }
 }

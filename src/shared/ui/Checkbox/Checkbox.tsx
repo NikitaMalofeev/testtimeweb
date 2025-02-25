@@ -15,6 +15,7 @@ interface CheckboxProps {
     error?: string | boolean;
     disabled?: boolean;
     fsize?: string;
+    needErrorMessage?: boolean;
     /**
      * Если `true`, используем стили "radio",
      * иначе классические стили "чекбокс".
@@ -28,6 +29,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({
     onBlur,
     label,
     error,
+    needErrorMessage,
     disabled = false,
 }) => {
     return (
@@ -48,7 +50,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({
                 />
                 {label}
             </label>
-            {error && <div className={styles.errorText}>{error}</div>}
+            {error && needErrorMessage && <div className={styles.errorText}>{error}</div>}
         </div>
     );
 };

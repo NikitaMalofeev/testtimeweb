@@ -26,7 +26,7 @@ export const PasportDataForm: React.FC = () => {
     const formik = useFormik({
         initialValues: {
             g_recaptcha: "",
-            type_sms_message: "phone",
+            type_sms_message: "email",
             gender: userPersonalAccount?.gender,
             first_name: userPersonalAccount?.first_name,
             middle_name: userPersonalAccount?.middle_name,
@@ -53,9 +53,14 @@ export const PasportDataForm: React.FC = () => {
             address_residential_apartment: "",
         },
         onSubmit: (values) => {
-            alert("Данные отправлены");
         },
     });
+
+    const messageTypeOptions = {
+        "phone": 'SMS',
+        "email": 'Email',
+        "whatsapp": 'Whatsapp'
+    }
 
     const GenderOptions = {
         "gender_male": 'Мужчина',
@@ -235,29 +240,23 @@ export const PasportDataForm: React.FC = () => {
                             <Input placeholder="Квартира" name="address_residential_apartment" type="text" value={formik.values.address_residential_apartment} onChange={handleTextInputChange} needValue />
                         </div>
                     </div>
-                    <div className={styles.buttons__confirm}>
-                        <Button
-                            theme={formik.values.type_sms_message === 'whatsapp' ? ButtonTheme.GREEN : ButtonTheme.GREENuNDERLINE}
-                            className={styles.button__type}
-                            onClick={() => handleMethodChange("whatsapp")}
-                        >
-                            WhatsApp
-                        </Button>
-                        <Button
-                            theme={formik.values.type_sms_message === 'phone' ? ButtonTheme.BLUE : ButtonTheme.UNDERLINE}
-                            className={styles.button__type}
-                            onClick={() => handleMethodChange("phone")}
-                        >
-                            SMS
-                        </Button>
+                    <span className={styles.method__title}>Куда отправить код</span>
+                    <div className={styles.method}>
+                        <CheckboxGroup
+                            name="type_sms_message"
+                            label=""
+                            direction="row"
+                            options={Object.entries(messageTypeOptions).map(([value, label]) => ({
+                                label,
+                                value,
+                            }))}
+                            value={formik.values.type_sms_message}
+                            onChange={(name, selectedValue) => {
+                                handleMethodChange(selectedValue as 'phone' | 'email' | 'whatsapp');
+                            }}
+                        />
+
                     </div>
-                    <Button
-                        theme={formik.values.type_sms_message === 'email' ? ButtonTheme.BLUE : ButtonTheme.UNDERLINE}
-                        className={styles.button__type}
-                        onClick={() => handleMethodChange("email")}
-                    >
-                        E-mail
-                    </Button>
 
                     <div style={{ minHeight: "74px", marginTop: '20px' }}>
                         <ReCAPTCHA ref={recaptchaRef} sitekey={gcaptchaSiteKey} onChange={handleCaptchaChange} />

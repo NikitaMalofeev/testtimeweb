@@ -263,7 +263,6 @@ export const ConfirmAllDocs: React.FC = () => {
                 </div>
                 <span className={styles.method__title}>Куда отправить код</span>
                 <div className={styles.method}>
-
                     <CheckboxGroup
                         name='type_message'
                         label=""

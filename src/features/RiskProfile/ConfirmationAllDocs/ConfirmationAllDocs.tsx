@@ -73,10 +73,10 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, title, chi
     return ReactDOM.createPortal(
         <motion.div
             className={styles.overlay} // Затемняющая подложка (можно стилизовать)
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            // initial={{ opacity: 0 }}
+            // animate={{ opacity: 1 }}
+            // exit={{ opacity: 0 }}
+            // transition={{ duration: 1 }}
             onClick={onClose}
         >
             <motion.div
@@ -84,7 +84,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, title, chi
                 initial={initialPosition}
                 animate={{ x: 0, y: 0 }}
                 exit={exitPosition}
-                transition={{ duration: 0.3, ease: "easeOut" }}
+                transition={{ duration: 0.3 }}
                 onClick={(e) => e.stopPropagation()} // Чтобы клик внутри модалки не закрывал
             >
                 <div className={styles.modalHeader}>

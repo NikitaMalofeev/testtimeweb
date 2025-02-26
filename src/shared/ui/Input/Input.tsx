@@ -306,9 +306,12 @@ export const Input: React.FC<InputProps> = ({
                         case "swiperDiscrete": {
                             // Можно расширить логику мапинга, если ключей много
                             const labelMap = {
-                                risk_prof_conservative: "Консервативный",
-                                risk_prof_moderate: "Умеренный",
-                                risk_prof_aggressive: "Агрессивный",
+                                risk_prof_conservative: 'Консервативный',
+                                risk_prof_conservative_moderately: 'Умеренно-консервативный',
+                                risk_prof_balanced: 'Сбалансированный',
+                                risk_prof_aggressive_moderately: 'Умеренно-агрессивный',
+                                risk_prof_aggressive: 'Агрессивный',
+                                risk_prof_aggressive_super: 'Супер-агрессивный',
                             };
 
                             // Русское название для текущего значения

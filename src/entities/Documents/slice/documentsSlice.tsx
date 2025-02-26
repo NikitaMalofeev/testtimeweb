@@ -38,7 +38,7 @@ interface DocumentsState {
 
 const initialState: DocumentsState = {
     // Начинаем с первого типа
-    currentConfirmableDoc: docTypes[2],
+    currentConfirmableDoc: docTypes[1],
     confirmationMethod: 'EMAIL'
 };
 

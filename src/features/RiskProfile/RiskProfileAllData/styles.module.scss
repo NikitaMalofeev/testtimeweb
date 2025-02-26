@@ -2,9 +2,47 @@
     padding-bottom: 50px;
 
     &__subtitle {
-        font-weight: 500;
+        font-weight: 600;
         font-size: 18px;
         line-height: 18px;
+        letter-spacing: 0%;
+        color: #0F0E0E;
+        margin: 16px 0 ;
+    }
+
+    &__item {
+        position: relative;
+        padding-bottom: 8px;
+        &::after {
+            position: absolute;
+            content: '';
+            bottom: 0;
+            left: -32px;
+            background-color:  #EBEBED;
+            width: 100dvw;
+            height: 1px;
+        }
+    }
+
+    &__field {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        margin-bottom: 16px;
+    }
+
+    &__question {
+        font-weight: 400;
+        font-size: 14px;
+        line-height: 16.94px;
+        letter-spacing: 0%;
+        color: #989898;
+    }
+
+    &__answer {
+        font-weight: 400;
+        font-size: 16px;
+        line-height: 19.36px;
         letter-spacing: 0%;
         color: #0F0E0E;
     }

@@ -48,7 +48,7 @@ export type AllUserInfo = {
     monthly_expense: string;
     monthly_income: string;
     obligations_invest_horizon: string;
-    patronymic: string | null;
+    patronymic: string;
     phone: string;
     planned_future_income: string;
     practical_investment_experience: string;
@@ -56,11 +56,13 @@ export type AllUserInfo = {
     question_assets_losing_value: string;
     region: string;
     residence_permit: string | null;
-    risk_more_amount_expected_replenishment: number;
+    risk_more_amount_expected_replenishment: string;
     risk_more_portfolio_balance: number;
     risk_more_portfolio_parameters: string;
     risk_more_possible_loss: number;
     risk_more_potential_income: number;
+    risk_more_potential_income_percent: string;
+    risk_more_possible_loss_percent: string;
     risk_profiling_recommended_profiles: RiskProfilingRecommendedProfiles;
     risk_profiling_summ: number;
     risk_profiling_text: string;

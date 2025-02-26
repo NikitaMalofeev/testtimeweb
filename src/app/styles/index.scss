@@ -40,3 +40,15 @@ body::-webkit-scrollbar-thumb,
 .rpv-core__text-layer {
   width: 100%;
 }
+
+.rpv-core__page-layer--single {
+  margin: 0 !important;
+}
+
+.rpv-core__page-layer .rpv-core__page-layer--single {
+  margin: 0;
+}
+
+.rpv-core__page-layer {
+  margin: 0;
+}

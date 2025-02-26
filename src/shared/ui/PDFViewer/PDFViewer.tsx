@@ -49,7 +49,9 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({ fileUrl }) => {
                                     <div >
                                         {annotationLayer.children}
                                     </div>
+
                                 </div>
+                                <div className={styles.pdf__line}></div>
                             </div>
                         );
                     }}

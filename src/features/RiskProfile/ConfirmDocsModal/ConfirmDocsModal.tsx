@@ -290,7 +290,7 @@ export const ConfirmDocsModal = memo(
                         >
                             <div
                                 className={styles.timer}
-                                style={!phoneTimerActive ? { color: "#0666EB" } : {}}
+                                style={!phoneTimerActive ? { color: "#045FDD" } : {}}
                             >
                                 {phoneTimerActive
                                     ? `Отправить код снова через: 0${Math.floor(

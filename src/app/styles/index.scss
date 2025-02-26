@@ -12,11 +12,22 @@ body {
     font-family: var(--font-inter);
 }
 
-::-webkit-scrollbar-track {
-    background: #E1ECFB; /* Цвет дорожки скроллбара */
-  }
+/* Если хотите гарантированно применить везде, можно дублировать: */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  width: 4px;
+}
 
-  ::-webkit-scrollbar-thumb {
-    background-color: #E1ECFB; /* Цвет ползунка */
-    border-radius: 10px;       /* Закругление углов */
-  }
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track,
+*::-webkit-scrollbar-track {
+  background: #E1ECFB;
+}
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-thumb {
+  background-color: #89b3ee;
+  border-radius: 10px;
+}

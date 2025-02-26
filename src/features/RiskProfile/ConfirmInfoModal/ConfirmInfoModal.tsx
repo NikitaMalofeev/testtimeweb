@@ -399,7 +399,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                     >
                         <div
                             className={styles.timer}
-                            style={!phoneTimerActive ? { color: "#0666EB" } : {}}
+                            style={!phoneTimerActive ? { color: "#045FDD" } : {}}
                         >
                             {phoneTimerActive
                                 ? `Отправить код снова через: 0${Math.floor(phoneTimeLeft / 60)}:${String(
@@ -458,7 +458,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                         >
                             <div
                                 className={styles.timer}
-                                style={!emailTimerActive ? { color: "#0666EB" } : {}}
+                                style={!emailTimerActive ? { color: "#045FDD" } : {}}
                             >
                                 {emailTimerActive
                                     ? `Отправить код снова через: 0${Math.floor(emailTimeLeft / 60)}:${String(

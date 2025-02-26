@@ -56,8 +56,8 @@
 }
 
 .checkboxInput:checked + .checkboxCustom {
-    background: #0666EB; /* синий фон */
-    border-color: #0666EB;
+    background: #045FDD; /* синий фон */
+    border-color: #045FDD;
 
     &:after {
         opacity: 1; /* показываем галочку при выборе */
@@ -82,7 +82,7 @@
   
   .checkboxInput:checked + .checkboxCustomRadio {
     background: white;
-    border-color: #0666eb;
+    border-color: #045FDD;
   }
   
   /* Вместо галочки покажем точку, если нужно */
@@ -91,7 +91,7 @@
     display: block;
     width: 9px;
     height: 9px;
-    background-color: #0666eb;
+    background-color: #045FDD;
     border-radius: 50%;
     position: absolute;
     top: 50%;

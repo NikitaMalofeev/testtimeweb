@@ -39,6 +39,10 @@ interface PreviewModalProps {
 const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, title, children }) => {
     if (!isOpen) return null;
 
+    const currentTypeDoc = useSelector(
+        (state: RootState) => state.documents.currentConfirmableDoc
+    );
+
     // Создаём контейнер для модалки, если его нет
     let modalRoot = document.getElementById("modal-root");
     if (!modalRoot) {
@@ -94,10 +98,10 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, title, chi
                     <Icon Svg={CloseIcon} width={20} height={20} onClick={onClose} />
                 </div>
                 <div className={styles.modalContainer}>
-                    <div className={styles.modalContent}>{children}</div>
+                    <div className={styles.modalContent} style={currentTypeDoc === 'type_doc_RP_questionnairy' ? { overflowY: 'auto' } : {}}>{children}</div>
                 </div>
             </motion.div>
-        </motion.div>,
+        </motion.div >,
         modalRoot
     );
 };

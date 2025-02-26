@@ -6,7 +6,7 @@ import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 
-// Импорт воркера (если не хотим CDN)
+// Импорт worker
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.js?url';
 
 interface PdfViewerProps {
@@ -14,20 +14,17 @@ interface PdfViewerProps {
 }
 
 export const PdfViewer: React.FC<PdfViewerProps> = ({ fileUrl }) => {
-    // Создаём экземпляр defaultLayoutPlugin
-    // и указываем, как изначально масштабировать PDF
-    const defaultLayoutPluginInstance = defaultLayoutPlugin({
-        // defaultScale: SpecialZoomLevel.PageWidth,
-        // или SpecialZoomLevel.PageFit
-    });
+    const defaultLayoutPluginInstance = defaultLayoutPlugin();
 
     return (
-        // Оборачиваем в <Worker>, чтобы не было конфликтов с воркером
         <Worker workerUrl={workerUrl}>
             <div style={{ width: '100%', height: '100vh' }}>
                 <Viewer
                     fileUrl={fileUrl}
-                    plugins={[defaultLayoutPluginInstance]}
+                    // Вместо передачи defaultScale в плагин, указываем его
+                    // прямо в Viewer:
+                    defaultScale={SpecialZoomLevel.PageWidth}
+                // plugins={[defaultLayoutPluginInstance]}
                 />
             </div>
         </Worker>

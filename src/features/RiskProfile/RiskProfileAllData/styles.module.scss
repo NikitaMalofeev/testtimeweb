@@ -1,5 +1,6 @@
 .page {
-    padding-bottom: 50px;
+    padding: 0 16px 50px;
+    overflow-y: auto;
 
     &__subtitle {
         font-weight: 600;

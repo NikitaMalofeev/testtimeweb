@@ -10,6 +10,7 @@ export default defineConfig({
       svgo: false, // Отключает оптимизацию, если она вызывает ошибки
     },
   }),],
+  assetsInclude: ['**/*.pdf'],
   publicDir: 'public',
   root: '.',
   resolve: {

@@ -163,11 +163,9 @@ position: relative;
   
   .modalContent {
     height: 100%;
-    overflow-y: auto;
     background-color: white;
     flex: 1;
-    overflow-y: auto; /* Чтобы прокручивался контент внутри модалки */
-    padding: 0 16px 16px 16px;
+    // overflow-y: auto; /* Чтобы прокручивался контент внутри модалки */
   }
 
 .method {

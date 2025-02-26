@@ -15,6 +15,7 @@ import { confirmDocsRequestThunk, docTypeLabels, docTypes, setCurrentConfirmatio
 import DocsImage from "shared/assets/svg/docsImage.svg";
 import { Icon } from "shared/ui/Icon/Icon";
 import CloseIcon from "shared/assets/svg/close.svg";
+import EDSPdf from 'shared/assets/documents/EDS.pdf'
 
 // ======== Модалка для превью документа (пример с framer-motion) ========
 import { motion } from "framer-motion";
@@ -22,6 +23,7 @@ import ReactDOM from "react-dom";
 import { getAllUserInfoThunk } from "entities/User/slice/userSlice";
 import { RiskProfileAllData } from "../RiskProfileAllData/RiskProfileAllData";
 import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
+import { PdfViewer } from "shared/ui/PDFViewer/PDFViewer";
 
 interface PreviewModalProps {
     isOpen: boolean;
@@ -185,7 +187,7 @@ export const ConfirmAllDocs: React.FC = () => {
                 return <div>Здесь превью паспорта (сканы и т.д.)</div>;
 
             case "type_doc_EDS_agreement":
-                return <div>Здесь превью EDS-Agreement</div>;
+                return <PdfViewer fileUrl={EDSPdf} />;
 
             case "type_doc_RP_questionnairy":
                 return <RiskProfileAllData />;

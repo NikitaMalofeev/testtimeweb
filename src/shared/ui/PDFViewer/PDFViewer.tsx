@@ -1,12 +1,10 @@
 import React from 'react';
 import { Viewer, Worker, SpecialZoomLevel } from '@react-pdf-viewer/core';
-import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
-
-// Стили (обязательно)
+import type { RenderPageProps } from '@react-pdf-viewer/core';
 import '@react-pdf-viewer/core/lib/styles/index.css';
-import '@react-pdf-viewer/default-layout/lib/styles/index.css';
+import styles from './styles.module.scss'
 
-// Импорт worker
+// Если используете свой локальный воркер pdf.js
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.js?url';
 
 interface PdfViewerProps {
@@ -14,17 +12,47 @@ interface PdfViewerProps {
 }
 
 export const PdfViewer: React.FC<PdfViewerProps> = ({ fileUrl }) => {
-    const defaultLayoutPluginInstance = defaultLayoutPlugin();
-
     return (
         <Worker workerUrl={workerUrl}>
-            <div style={{ width: '100%', height: '100vh' }}>
+            {/* Общий контейнер, чтобы страницы можно было прокручивать */}
+            <div
+                style={{
+                    width: '100%',
+                    height: '100vh',
+                    overflowY: 'auto',
+                    backgroundColor: '#f5f5f5', // фон (опционально)
+                }}
+            >
                 <Viewer
                     fileUrl={fileUrl}
-                    // Вместо передачи defaultScale в плагин, указываем его
-                    // прямо в Viewer:
                     defaultScale={SpecialZoomLevel.PageWidth}
-                // plugins={[defaultLayoutPluginInstance]}
+                    // Выводим каждую страницу в отдельном «обёрточном» div
+                    renderPage={(props: RenderPageProps) => {
+                        const { canvasLayer, textLayer, annotationLayer } = props;
+
+                        return (
+                            // Контейнер, отвечающий за «центрирование»
+                            <div
+
+                            >
+                                {/* Контейнер самой страницы со слоями */}
+                                <div className={styles.pdf__page}>
+                                    {/* Canvas (основное изображение PDF-страницы) */}
+                                    <div >
+                                        {canvasLayer.children}
+                                    </div>
+                                    {/* Текстовый слой (для выделения текста) */}
+                                    <div >
+                                        {textLayer.children}
+                                    </div>
+                                    {/* Аннотации (ссылки, поля форм) */}
+                                    <div >
+                                        {annotationLayer.children}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    }}
                 />
             </div>
         </Worker>

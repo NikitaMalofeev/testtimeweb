@@ -1,6 +1,6 @@
 .auth {
     display: flex;
-    align-items: center;
+    align-items: end;
     justify-content: center;
     height: 100%;
     flex-grow: 1;
@@ -37,18 +37,36 @@
         color: white;
         border-radius: 50px;
     }
+
+    &__form {
+        padding: 0 27px;
+    }
 }
 
 .auth__container {
-
-    position: absolute;
     bottom: 0;
     display: flex;
     flex-grow: 1;
-    max-height: 68dvh;
     height: 100%;
     width: 100%;
     background-color: white;
     border-radius: 50px 50px 0 0;
     flex-direction: column;
+    padding-bottom: 16px;
+}
+
+.forgotPassword {
+    display: inline-block;
+    color: #045FDD;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 40px;
+}
+.button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18.5px 42px;
+    width: 100%;
+    
 }

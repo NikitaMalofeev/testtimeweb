@@ -16,13 +16,17 @@ export const ErrorPopup = () => {
     useEffect(() => {
         if (error) {
             setVisible(true);
-            const timer = setTimeout(() => setVisible(false), 4000);
+
+            const hideTimer = setTimeout(() => setVisible(false), 4000);
+            const clearErrorTimer = setTimeout(() => dispatch(setError('')), 4500);
+
             return () => {
-                clearTimeout(timer)
-                // dispatch(setError(''))
+                clearTimeout(hideTimer);
+                clearTimeout(clearErrorTimer);
             };
         }
     }, [error]);
+
 
     return (
         <motion.div

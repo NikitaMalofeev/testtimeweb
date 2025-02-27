@@ -1,7 +1,8 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { AllUserInfo, userAllData, userType } from "../types/userTypes";
+import { AllUserInfo, userAllData, UserLogin, userType } from "../types/userTypes";
 import { ProblemsRequestData, sendProblemsRequest } from "shared/api/userApi/userApi";
-import { getAllUserInfo } from "../api/userApi";
+import { getAllUserInfo, userLogin } from "../api/userApi";
+import { setError } from "entities/Error/slice/errorSlice";
 
 interface UserState {
     userId: string | null;
@@ -36,6 +37,24 @@ export const sendProblems = createAsyncThunk<
         try {
             await sendProblemsRequest(data);
         } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message || "Ошибка при отправке данных"
+            );
+        }
+    }
+);
+
+export const userLoginThunk = createAsyncThunk<
+    void,
+    UserLogin,
+    { rejectValue: string }
+>(
+    "user/userLoginThunk",
+    async (data, { rejectWithValue, dispatch }) => {
+        try {
+            await userLogin(data);
+        } catch (error: any) {
+            dispatch(setError(error.response.data.errorText))
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке данных"
             );

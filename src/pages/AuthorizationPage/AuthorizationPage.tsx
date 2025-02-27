@@ -13,11 +13,11 @@ import WhiteLogo from 'shared/assets/svg/WhiteLogo.svg';
 import { useLocation } from "react-router-dom";
 import { StateSchema } from "app/providers/store/config/StateSchema";
 import { RiskProfileModal } from "features/RiskProfile/RiskProfileModal/RiskProfileModal";
+import { userLoginThunk } from "entities/User/slice/userSlice";
 
 const AuthorizationPage = () => {
     const dispatch = useAppDispatch();
     const location = useLocation();
-    const [loginError, setLoginError] = useState("");
 
     const modalState = useSelector((state: StateSchema) => state.modal);
     const isAuthPath = location.pathname === "/auth";
@@ -31,21 +31,37 @@ const AuthorizationPage = () => {
             identifier: Yup.string()
                 .matches(
                     /^(\+?[1-9]\d{1,14}|[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/,
-                    "Введите корректный email или номер телефона"
+                    "Введите корректные данные"
                 )
-                .required("Обязательное поле"),
+                .required("Введите почту/телефон"),
             password: Yup.string()
-                .min(6, "Минимум 6 символов")
-                .required("Обязательное поле"),
+                .min(8, "Минимум 8 символов")
+                .required("Введите пароль"),
         }),
         onSubmit: async (values) => {
             try {
                 console.log("Авторизация", values);
             } catch (error) {
-                setLoginError("Ошибка авторизации. Проверьте данные");
             }
         },
     });
+
+    const handleSubmit = () => {
+        const { identifier, password } = formik.values;
+        const isEmail = identifier.includes("@");
+        if (isEmail) {
+            dispatch(userLoginThunk({
+                email: identifier,
+                password
+            }));
+        } else {
+            dispatch(userLoginThunk({
+                phone: identifier,
+                password
+            }));
+        }
+
+    };
 
     return (
         <>
@@ -70,9 +86,10 @@ const AuthorizationPage = () => {
                         </div>
                     </div>
 
-                    <form onSubmit={formik.handleSubmit} className={styles.authForm}>
+                    <form onSubmit={formik.handleSubmit} className={styles.auth__form}>
                         <Input
-                            placeholder="Email или телефон"
+                            autoComplete="new-password"
+                            placeholder="Email/телефон"
                             name="identifier"
                             type="text"
                             value={formik.values.identifier}
@@ -82,6 +99,7 @@ const AuthorizationPage = () => {
                             needValue
                         />
                         <Input
+                            autoComplete="new-password"
                             placeholder="Пароль"
                             name="password"
                             type="password"
@@ -91,12 +109,12 @@ const AuthorizationPage = () => {
                             error={formik.touched.password && formik.errors.password}
                             needValue
                         />
-                        {loginError && <div className={styles.errorText}>{loginError}</div>}
 
                         <span className={styles.forgotPassword}>Не помню пароль</span>
 
                         <Button
-                            type="submit"
+                            type="button"
+                            onClick={handleSubmit}
                             theme={ButtonTheme.BLUE}
                             className={styles.button}
                             disabled={!(formik.isValid && formik.dirty)}

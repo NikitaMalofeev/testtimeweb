@@ -14,6 +14,12 @@ export interface userAllData {
     gender?: string;
 }
 
+export interface UserLogin {
+    email?: string;
+    phone?: string;
+    password: string;
+}
+
 export type RiskProfilingRecommendedProfiles = {
     risk_prof_balanced: string;
     risk_prof_conservative: string;

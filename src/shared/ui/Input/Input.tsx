@@ -21,10 +21,16 @@ import { RootState } from "app/providers/store/config/store";
  */
 type InputTheme = "default" | "primary" | "secondary" | "gradient";
 
+
+type CommonHTMLProps = Omit<
+    React.InputHTMLAttributes<HTMLInputElement>,
+    "type"
+> &
+    Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, "type">;
 /**
  * Расширяем пропсы под все нужные сценарии
  */
-interface InputProps {
+interface InputProps extends CommonHTMLProps {
     theme?: InputTheme;
     value: string;
     name?: string;
@@ -89,7 +95,8 @@ export const Input: React.FC<InputProps> = ({
     step = 1,
     discreteValues,
     swiperDiscreteSubtitles,
-    maxLength
+    maxLength,
+    ...restProps
 }) => {
     const [isFocused, setIsFocused] = useState(false);
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -243,6 +250,7 @@ export const Input: React.FC<InputProps> = ({
                                                 placeholder={placeholder}
                                                 name={name}
                                                 value={value}
+                                                autoComplete={restProps.autoComplete}
                                                 disabled={disabled}
                                                 onFocus={handleFocus}
                                                 onBlur={handleBlur}
@@ -435,6 +443,7 @@ export const Input: React.FC<InputProps> = ({
                                     ref={textAreaRef}
                                     name={name}
                                     value={value}
+                                    autoComplete={restProps.autoComplete}
                                     onChange={onChange}
                                     onFocus={handleFocus}
                                     onBlur={handleBlur}
@@ -454,6 +463,7 @@ export const Input: React.FC<InputProps> = ({
                                         type={isPasswordVisible ? "text" : "password"}
                                         name={name}
                                         value={value}
+                                        autoComplete={restProps.autoComplete}
                                         onChange={onChange}
                                         onFocus={handleFocus}
                                         onBlur={handleBlur}
@@ -500,6 +510,7 @@ export const Input: React.FC<InputProps> = ({
                                         max={max}
                                         step={step}
                                         value={value}
+                                        autoComplete={restProps.autoComplete}
                                         disabled={disabled}
                                         onFocus={handleFocus}
                                         onBlur={handleBlur}
@@ -543,6 +554,7 @@ export const Input: React.FC<InputProps> = ({
                                         type={type}
                                         name={name}
                                         value={value}
+                                        autoComplete={restProps.autoComplete}
                                         onChange={onChange}
                                         onFocus={handleFocus}
                                         onBlur={handleBlur}

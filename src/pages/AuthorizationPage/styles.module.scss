@@ -1,0 +1,54 @@
+.auth {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    flex-grow: 1;
+    background-color: #E1ECFB;
+
+    &__icon {
+        margin: 33px auto;
+    }
+
+    &__tabs {
+        display: flex;
+        background-color: #EBEBED;
+        border-radius: 50px;
+        max-width: 90%;
+        margin: 0 auto;
+        margin-bottom: 50px;
+    }
+
+    &__tab {
+        padding: 12px 29px;
+        border-radius: 50px;
+
+        font-weight: 400;
+        font-size: 16px;
+        line-height: 19.36px;
+        letter-spacing: 0%;
+        color: #000000;
+
+    }
+
+    &__tab_active {
+        background-color: #0F0E0E;
+        padding: 12px 29px;
+        color: white;
+        border-radius: 50px;
+    }
+}
+
+.auth__container {
+
+    position: absolute;
+    bottom: 0;
+    display: flex;
+    flex-grow: 1;
+    max-height: 68dvh;
+    height: 100%;
+    width: 100%;
+    background-color: white;
+    border-radius: 50px 50px 0 0;
+    flex-direction: column;
+}

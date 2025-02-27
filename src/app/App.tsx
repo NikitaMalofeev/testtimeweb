@@ -9,8 +9,20 @@ import { useSelector } from 'react-redux'
 import { RootState } from './providers/store/config/store'
 import { Tooltip } from 'shared/ui/Tooltip/Tooltip'
 import { SuccessPopup } from 'shared/ui/SuccessPopup/SuccessPopup'
+import { useNavigate } from 'react-router-dom'
 
 function App() {
+
+  const isAuthUser = useSelector((state: RootState) => state.user.token)
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (!isAuthUser) {
+      navigate('/auth')
+    } else {
+      navigate('/lk')
+    }
+  }, [isAuthUser])
 
   useEffect(() => {
     const userVh = window.innerHeight / 100
@@ -23,7 +35,7 @@ function App() {
       <Cover />
       <AppRouter />
 
-      
+
       <ErrorPopup />
       <SuccessPopup />
     </div>

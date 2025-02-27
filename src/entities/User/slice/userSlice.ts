@@ -49,12 +49,12 @@ export const getAllUserInfoThunk = createAsyncThunk<
     { rejectValue: string }
 >(
     "user/getAllUserInfo",
-    async (_, { rejectWithValue,dispatch }) => {
+    async (_, { rejectWithValue, dispatch }) => {
         try {
             const response = await getAllUserInfo(); // Сохраняем результат в переменную
             console.log("Результат getAllUserInfo:", response); // Выводим результат в консоль
             dispatch(setUserAllInfo(response))
-            return response; 
+            return response;
         } catch (error: any) {
             console.error("Ошибка при получении данных пользователя:", error);
             return rejectWithValue(

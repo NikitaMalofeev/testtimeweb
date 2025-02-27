@@ -72,7 +72,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, title, doc
         document.body.appendChild(modalRoot);
     }
 
-    // // Запрещаем прокрутку фона, пока модалка открыта
+    // // // Запрещаем прокрутку фона, пока модалка открыта
     // useEffect(() => {
     //     if (isOpen) {
     //         document.body.style.overflow = "hidden";
@@ -225,6 +225,7 @@ const DocumentsPage: React.FC = () => {
             case "type_doc_agreement_personal_data_policy":
             case "type_doc_investment_profile_certificate":
                 dispatch(setCurrentConfirmableDoc(docId));
+                dispatch(setStepAdditionalMenuUI(5));
                 dispatch(
                     openModal({
                         type: ModalType.IDENTIFICATION,

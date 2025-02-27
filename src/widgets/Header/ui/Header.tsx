@@ -19,11 +19,12 @@ export const Header = () => {
     const { token, is_active } = useSelector((state: RootState) => state.user)
     const navigate = useNavigate()
     const dispatch = useAppDispatch()
+    const modalState = useSelector((state: RootState) => state.modal.identificationModal)
 
     useEffect(() => {
         if (!token) {
             navigate('/auth')
-        } else if (token) {
+        } else if (token && !modalState.isOpen) {
             navigate('/lk')
         }
     }, [token])

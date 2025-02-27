@@ -26,15 +26,17 @@ import { Icon } from "shared/ui/Icon/Icon";
 import SuccessIcon from 'shared/assets/svg/success.svg';
 import { userType } from "entities/User/types/userTypes";
 import { setUserAllData, setUserData, updateUserAllData } from "entities/User/slice/userSlice";
+import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
 
 const IdentificationProfileForm: React.FC = () => {
     const dispatch = useAppDispatch();
     const gcaptchaSiteKey = import.meta.env.VITE_RANKS_GRCAPTCHA_SITE_KEY;
-
+    const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
     const [selectedMethod, setSelectedMethod] = useState<'phone' | 'email' | 'whatsapp' | ''>('phone');
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
     const recaptchaRef = useRef<ReCAPTCHA | null>(null);
     const [captchaVerified, setCaptchaVerified] = useState(false);
+    const { loading } = useSelector((state: RootState) => state.riskProfile)
 
     const checkConfirmmationSuccess = useSelector((state: RootState) => state.ui.confirmationStatusSuccess);
 
@@ -201,6 +203,7 @@ const IdentificationProfileForm: React.FC = () => {
                     error={formik.touched.phone && formik.errors.phone}
                 />
                 <Input
+                    autoComplete="new-password"
                     name="email"
                     value={formik.values.email}
                     onChange={formik.handleChange}
@@ -211,6 +214,7 @@ const IdentificationProfileForm: React.FC = () => {
                     error={formik.touched.email && formik.errors.email}
                 />
                 <Input
+                    autoComplete="new-password"
                     name="password"
                     value={formik.values.password}
                     onChange={formik.handleChange}
@@ -252,8 +256,8 @@ const IdentificationProfileForm: React.FC = () => {
             </div>
 
             <div>
-                <span className={styles.buttons__title}>Отправить код подтверждения на:</span>
-                <div className={styles.buttons}>
+                <span className={styles.buttons__method__title}>Отправить код подтверждения на:</span>
+                <div className={styles.buttons__method}>
                     <Button
                         theme={selectedMethod === 'whatsapp' ? ButtonTheme.GREEN : ButtonTheme.GREENuNDERLINE}
                         className={styles.button_select}
@@ -282,36 +286,12 @@ const IdentificationProfileForm: React.FC = () => {
                 <div className={styles.error}>{formik.errors.g_recaptcha}</div>
             )}
 
-            {checkConfirmmationSuccess ? (
-                <div className={styles.form__success}>
-                    <div className={styles.form__success__container}>
-                        <Icon Svg={SuccessIcon} width={16} height={16} />
-                        <span className={styles.form__success__description}>
-                            Данные подтверждены
-                        </span>
-                    </div>
-                    <Button
-                        onClick={() => {
-                            dispatch(nextStep());
-                        }}
-                        theme={ButtonTheme.BLUE}
-                        form={ButtonForm.CIRCLE}
-                        className={styles.button}
-                    >
-                        Продолжить
-                    </Button>
-                </div>
-            ) : (
-                <Button
-                    onClick={handleSubmitForm}
-                    theme={ButtonTheme.BLUE}
-                    form={ButtonForm.CIRCLE}
-                    disabled={isButtonDisabled}
-                    className={styles.button}
-                >
-                    Подтвердить данные
+            <div className={`${styles.buttons} ${!isBottom ? styles.shadow : ""
+                }`}>
+                <Button onClick={handleSubmitForm} theme={ButtonTheme.BLUE} className={styles.button} disabled={isButtonDisabled}>
+                    {loading ? <Loader theme={LoaderTheme.WHITE} size={LoaderSize.SMALL} /> : 'Подтвердить данные'}
                 </Button>
-            )}
+            </div>
         </form>
     );
 };

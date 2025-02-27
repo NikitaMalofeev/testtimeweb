@@ -6,6 +6,9 @@ import { setError } from "entities/Error/slice/errorSlice";
 
 interface UserState {
     is_active: boolean;
+    loading: boolean;
+    error: string | null;
+    success: boolean;
     userId: string | null;
     token: string;
     user: userType;
@@ -15,6 +18,9 @@ interface UserState {
 
 const initialState: UserState = {
     is_active: false,
+    loading: false,
+    error: '',
+    success: false,
     userId: null,
     token: "",
     user: {
@@ -135,6 +141,23 @@ export const userSlice = createSlice({
                 };
             }
         },
+    },
+    extraReducers: (builder) => {
+        builder
+            .addCase(userLoginThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+                state.success = false;
+            })
+            .addCase(userLoginThunk.fulfilled, (state) => {
+                state.loading = false;
+                state.success = true;
+            })
+            .addCase(userLoginThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
+
     },
 });
 

@@ -36,6 +36,7 @@ import {
     setConfirmationEmailSuccess,
     setConfirmationWhatsappSuccess
 } from "entities/ui/Ui/slice/uiSlice";
+import { setUserToken } from "entities/User/slice/userSlice";
 
 interface ConfirmInfoModalProps {
     isOpen: boolean;
@@ -289,6 +290,9 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                 data.is_confirmed_phone ? 'пройдено' : 'не пройдено'
                             )
                         );
+                        if (data.token) {
+                            dispatch(setUserToken(data.token))
+                        }
                         dispatch(
                             setTooltipActive({
                                 active: true,
@@ -314,6 +318,9 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                 data.is_confirmed_email ? "пройдено" : "не пройдено"
                             )
                         );
+                        if (data.token) {
+                            dispatch(setUserToken(data.token))
+                        }
                         dispatch(
                             setTooltipActive({
                                 active: true,

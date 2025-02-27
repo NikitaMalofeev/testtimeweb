@@ -14,12 +14,15 @@ import { useLocation } from "react-router-dom";
 import { StateSchema } from "app/providers/store/config/StateSchema";
 import { RiskProfileModal } from "features/RiskProfile/RiskProfileModal/RiskProfileModal";
 import { userLoginThunk } from "entities/User/slice/userSlice";
+import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
+import { RootState } from "app/providers/store/config/store";
 
 const AuthorizationPage = () => {
     const dispatch = useAppDispatch();
     const location = useLocation();
 
     const modalState = useSelector((state: StateSchema) => state.modal);
+    const { loading } = useSelector((state: RootState) => state.user);
     const isAuthPath = location.pathname === "/auth";
 
     const formik = useFormik({
@@ -119,7 +122,7 @@ const AuthorizationPage = () => {
                             className={styles.button}
                             disabled={!(formik.isValid && formik.dirty)}
                         >
-                            Войти
+                            {loading ? <Loader theme={LoaderTheme.WHITE} size={LoaderSize.SMALL} /> : 'Войти'}
                         </Button>
                     </form>
                 </div>

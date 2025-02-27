@@ -5,6 +5,7 @@ import { getAllUserInfo, userLogin } from "../api/userApi";
 import { setError } from "entities/Error/slice/errorSlice";
 
 interface UserState {
+    is_active: boolean;
     userId: string | null;
     token: string;
     user: userType;
@@ -13,6 +14,7 @@ interface UserState {
 }
 
 const initialState: UserState = {
+    is_active: false,
     userId: null,
     token: "",
     user: {
@@ -52,15 +54,24 @@ export const userLoginThunk = createAsyncThunk<
     "user/userLoginThunk",
     async (data, { rejectWithValue, dispatch }) => {
         try {
-            await userLogin(data);
+            const response = await userLogin(data);
+            console.log("Токен из API:", response.token);
+
+            if (response.token) {
+                dispatch(setUserToken(response.token));
+                console.log("Токен сохранен в Redux:", response.token);
+            } else {
+                console.error("Токен отсутствует в ответе сервера:", response);
+            }
+
+            return response;
         } catch (error: any) {
-            dispatch(setError(error.response.data.errorText))
-            return rejectWithValue(
-                error.response?.data?.message || "Ошибка при отправке данных"
-            );
+            dispatch(setError(error.response?.data?.message || "Ошибка при входе"));
+            return rejectWithValue(error.response?.data?.message || "Ошибка при отправке данных");
         }
     }
 );
+
 
 export const getAllUserInfoThunk = createAsyncThunk<
     any, // Здесь можно указать конкретный тип, если известно, что возвращает getAllUserInfo
@@ -91,8 +102,15 @@ export const userSlice = createSlice({
         setUserId: (state, action: PayloadAction<string>) => {
             state.userId = action.payload;
         },
+        setUserIsActive: (state, action: PayloadAction<boolean>) => {
+            state.is_active = action.payload;
+        },
         setUserToken: (state, action: PayloadAction<string>) => {
-            state.token = action.payload;
+            console.log("Устанавливаем токен в state:", action.payload);
+            return {
+                ...state,
+                token: action.payload, // Обновляем state через return
+            };
         },
         setUserData: (state, action: PayloadAction<userType>) => {
             state.user = action.payload;
@@ -127,6 +145,7 @@ export const {
     setUserAllData,
     updateUserAllData,
     setUserAllInfo,
+    setUserIsActive,
 } = userSlice.actions;
 
 export default userSlice.reducer;

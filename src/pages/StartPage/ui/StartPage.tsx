@@ -1,22 +1,14 @@
-import { Cover } from 'shared/ui/Cover/Cover';
 import styles from './styles.module.scss';
 import { Button } from 'shared/ui/Button/Button';
 import { Icon } from 'shared/ui/Icon/Icon';
 import ArrowIcon from 'shared/assets/svg/arrowTop-right.svg';
-import { useState } from 'react';
-import { RiskProfileModal } from 'features/RiskProfile/RiskProfileModal/RiskProfileModal';
 import { ModalAnimation, ModalSize, ModalType } from 'entities/ui/Modal/model/modalTypes';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
-import { closeModal, openModal } from 'entities/ui/Modal/slice/modalSlice';
-import { useSelector } from 'react-redux';
-import { StateSchema } from 'app/providers/store/config/StateSchema';
-import { ConfirmInfoModal } from 'features/RiskProfile/ConfirmInfoModal/ConfirmInfoModal';
-import { ProblemsCodeModal } from 'features/RiskProfile/ProblemsCodeModal/ProblemsCodeModal';
-import { Loader } from 'shared/ui/Loader/Loader';
+import {  openModal } from 'entities/ui/Modal/slice/modalSlice';
 
 function StartPage() {
     const dispatch = useAppDispatch()
-    const modalState = useSelector((state: StateSchema) => state.modal);
+
 
     return (
         <>
@@ -55,16 +47,6 @@ function StartPage() {
                 </div>
             </div>
 
-            {/* Модальные окна */}
-            <RiskProfileModal isOpen={modalState.identificationModal.isOpen} onClose={() => {
-                dispatch(closeModal(ModalType.IDENTIFICATION));
-            }} />
-            <ConfirmInfoModal isOpen={modalState.confirmCodeModal.isOpen} onClose={() => {
-                dispatch(closeModal(ModalType.CONFIRM_CODE));
-            }} />
-            <ProblemsCodeModal isOpen={modalState.problemWithCodeModal.isOpen} onClose={() => {
-                dispatch(closeModal(ModalType.PROBLEM_WITH_CODE));
-            }} />
         </>
     );
 }

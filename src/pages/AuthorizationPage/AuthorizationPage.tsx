@@ -124,12 +124,6 @@ const AuthorizationPage = () => {
                     </form>
                 </div>
             </div>
-
-            {/* Модальное окно идентификации */}
-            <RiskProfileModal
-                isOpen={modalState.identificationModal.isOpen}
-                onClose={() => dispatch(closeModal(ModalType.IDENTIFICATION))}
-            />
         </>
     );
 };

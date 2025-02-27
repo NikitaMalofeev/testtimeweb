@@ -10,19 +10,28 @@ import { RootState } from './providers/store/config/store'
 import { Tooltip } from 'shared/ui/Tooltip/Tooltip'
 import { SuccessPopup } from 'shared/ui/SuccessPopup/SuccessPopup'
 import { useNavigate } from 'react-router-dom'
+import { RiskProfileModal } from 'features/RiskProfile/RiskProfileModal/RiskProfileModal'
+import { ConfirmInfoModal } from 'features/RiskProfile/ConfirmInfoModal/ConfirmInfoModal'
+import { ProblemsCodeModal } from 'features/RiskProfile/ProblemsCodeModal/ProblemsCodeModal'
+import { StateSchema } from './providers/store/config/StateSchema'
+import { closeModal } from 'entities/ui/Modal/slice/modalSlice'
+import { ModalType } from 'entities/ui/Modal/model/modalTypes'
+import { useAppDispatch } from 'shared/hooks/useAppDispatch'
 
 function App() {
 
-  const isAuthUser = useSelector((state: RootState) => state.user.token)
+  const { token, is_active } = useSelector((state: RootState) => state.user)
   const navigate = useNavigate()
+  const modalState = useSelector((state: StateSchema) => state.modal);
+  const dispatch = useAppDispatch()
 
   useEffect(() => {
-    if (!isAuthUser) {
+    if (!token) {
       navigate('/auth')
-    } else {
+    } else if (token) {
       navigate('/lk')
     }
-  }, [isAuthUser])
+  }, [token])
 
   useEffect(() => {
     const userVh = window.innerHeight / 100
@@ -38,6 +47,18 @@ function App() {
 
       <ErrorPopup />
       <SuccessPopup />
+
+
+      {/* Модальные окна */}
+      <RiskProfileModal isOpen={modalState.identificationModal.isOpen} onClose={() => {
+        dispatch(closeModal(ModalType.IDENTIFICATION));
+      }} />
+      <ConfirmInfoModal isOpen={modalState.confirmCodeModal.isOpen} onClose={() => {
+        dispatch(closeModal(ModalType.CONFIRM_CODE));
+      }} />
+      <ProblemsCodeModal isOpen={modalState.problemWithCodeModal.isOpen} onClose={() => {
+        dispatch(closeModal(ModalType.PROBLEM_WITH_CODE));
+      }} />
     </div>
   )
 }

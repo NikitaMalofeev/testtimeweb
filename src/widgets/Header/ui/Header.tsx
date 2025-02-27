@@ -1,14 +1,32 @@
 // Header.jsx
 
-import React, { useState, KeyboardEvent } from 'react';
+import React, { useState, KeyboardEvent, useEffect } from 'react';
 import { Icon } from 'shared/ui/Icon/Icon';
 import styles from './styles.module.scss';
 import HeaderIcon from 'shared/assets/svg/headerLogo.svg';
+import AccountIcon from 'shared/assets/svg/AccountIcon.svg';
 import { classNames, Mods } from 'shared/lib/helpers/classNames/classNames';
+import { useNavigate } from 'react-router-dom';
+import { RootState } from 'app/providers/store/config/store';
+import { useSelector } from 'react-redux';
+import { StateSchema } from 'app/providers/store/config/StateSchema';
+import { useAppDispatch } from 'shared/hooks/useAppDispatch';
+import { closeAllModals } from 'entities/ui/Modal/slice/modalSlice';
 
 export const Header = () => {
     const [isActive, setIsActive] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
+    const { token, is_active } = useSelector((state: RootState) => state.user)
+    const navigate = useNavigate()
+    const dispatch = useAppDispatch()
+
+    useEffect(() => {
+        if (!token) {
+            navigate('/auth')
+        } else if (token) {
+            navigate('/lk')
+        }
+    }, [token])
 
     const toggleBurger = () => {
         setIsActive((prev) => !prev);
@@ -30,16 +48,29 @@ export const Header = () => {
     return (
         <header className={classNames(styles.header, headerMods, [])}>
             <Icon Svg={HeaderIcon} width={171} height={18.5} />
-            <div
-                className={classNames(styles.burger__container, burgerMods, [])}
-                onClick={toggleBurger}
-                aria-label="Меню"
-                role="button"
-                tabIndex={0}
-                onKeyPress={onKeyPress}
-            >
-                <div className={`${styles.hamburgerOne} ${styles.hamburger}`}></div>
-            </div>
+            {!token
+                ?
+                <></>
+                // <div
+                //     className={classNames(styles.burger__container, burgerMods, [])}
+                //     onClick={toggleBurger}
+                //     aria-label="Меню"
+                //     role="button"
+                //     tabIndex={0}
+                //     onKeyPress={onKeyPress}
+                // >
+                //     <div className={`${styles.hamburgerOne} ${styles.hamburger}`}></div>
+                // </div>
+                :
+                <div className={styles.header__account} onClick={() => {
+                    dispatch(closeAllModals())
+                    navigate('/lk')
+
+                }}>
+                    <div className={styles.header__notifications}>0</div>
+                    <Icon Svg={AccountIcon} width={24} height={24} />
+                </div>}
+
         </header>
     );
 };

@@ -71,6 +71,13 @@ const modalSlice = createSlice({
         setSelectedCountry: (state, action: PayloadAction<string>) => {
             state.selectedCountry = action.payload;
         },
+        closeAllModals: (state) => {
+            Object.values(ModalType).forEach((type) => {
+                if (state[type]) {
+                    state[type].isOpen = false;
+                }
+            });
+        },
     },
 });
 
@@ -80,6 +87,7 @@ export const {
     setModalScrolled,
     setCurrentConfirmModalType,
     setSelectedCountry,
+    closeAllModals,
     // Экспортируем экшен для открытия селекта
 } = modalSlice.actions;
 

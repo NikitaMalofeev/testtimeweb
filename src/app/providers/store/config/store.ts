@@ -5,7 +5,7 @@ import userReducer from 'entities/User/slice/userSlice';
 import errorReducer from 'entities/Error/slice/errorSlice';
 import documentsReducer from 'entities/Documents/slice/documentsSlice';
 import riskProfileReducer from 'entities/RiskProfile/slice/riskProfileSlice'
-
+import personalAccountReducer from 'entities/PersonalAccount/slice/personalAccountSlice'
 export const store = configureStore({
     reducer: {
         ui: uiReducer,
@@ -13,7 +13,8 @@ export const store = configureStore({
         modal: modalReducer,
         riskProfile: riskProfileReducer,
         error: errorReducer,
-        documents: documentsReducer
+        documents: documentsReducer,
+        personalAccount: personalAccountReducer,
     },
 });
 

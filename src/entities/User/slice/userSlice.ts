@@ -1,8 +1,9 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { AllUserInfo, userAllData, UserLogin, userType } from "../types/userTypes";
+import { AllUserInfo, userAllData, UserLogin, UserPersonalAccount, userType } from "../types/userTypes";
 import { ProblemsRequestData, sendProblemsRequest } from "shared/api/userApi/userApi";
-import { getAllUserInfo, userLogin } from "../api/userApi";
+import { getAllUserInfo, getUserPersonalAccountInfo, userLogin } from "../api/userApi";
 import { setError } from "entities/Error/slice/errorSlice";
+import { RootState } from "app/providers/store/config/store";
 
 interface UserState {
     is_active: boolean;
@@ -12,6 +13,7 @@ interface UserState {
     userId: string | null;
     token: string;
     user: userType;
+    userPersonalAccountInfo: UserPersonalAccount | null
     allUserDataForDocuments: AllUserInfo | null;
     userForPersonalAccount: userAllData | null;
 }
@@ -31,6 +33,7 @@ const initialState: UserState = {
         last_name: "",
         is_agreement: false,
     },
+    userPersonalAccountInfo: null,
     allUserDataForDocuments: null,
     userForPersonalAccount: null,
 };
@@ -82,14 +85,35 @@ export const userLoginThunk = createAsyncThunk<
 export const getAllUserInfoThunk = createAsyncThunk<
     any, // Здесь можно указать конкретный тип, если известно, что возвращает getAllUserInfo
     void,
-    { rejectValue: string }
+    { state: RootState, rejectValue: string }
 >(
     "user/getAllUserInfo",
-    async (_, { rejectWithValue, dispatch }) => {
+    async (_, { getState, rejectWithValue, dispatch }) => {
         try {
-            const response = await getAllUserInfo(); // Сохраняем результат в переменную
-            console.log("Результат getAllUserInfo:", response); // Выводим результат в консоль
+            const token = getState().user.token
+            const response = await getAllUserInfo(token); // Сохраняем результат в переменную
             dispatch(setUserAllInfo(response))
+            return response;
+        } catch (error: any) {
+            console.error("Ошибка при получении данных пользователя:", error);
+            return rejectWithValue(
+                error.response?.data?.message || "Ошибка при отправке данных"
+            );
+        }
+    }
+);
+
+export const getUserPersonalAccountInfoThunk = createAsyncThunk<
+    any, // Здесь можно указать конкретный тип, если известно, что возвращает getAllUserInfo
+    void,
+    { state: RootState, rejectValue: string }
+>(
+    "user/getAllUserInfo",
+    async (_, { getState, rejectWithValue, dispatch }) => {
+        try {
+            const token = getState().user.token
+            const response = await getUserPersonalAccountInfo(token); // Сохраняем результат в переменную
+            dispatch(setUserPersonalAccountInfo(response))
             return response;
         } catch (error: any) {
             console.error("Ошибка при получении данных пользователя:", error);
@@ -127,6 +151,9 @@ export const userSlice = createSlice({
         },
         setUserAllInfo: (state, action: PayloadAction<AllUserInfo>) => {
             state.allUserDataForDocuments = action.payload;
+        },
+        setUserPersonalAccountInfo: (state, action: PayloadAction<UserPersonalAccount>) => {
+            state.userPersonalAccountInfo = action.payload;
         },
         // Частичное обновление userForPersonalAccount
         updateUserAllData: (state, action: PayloadAction<Partial<userAllData>>) => {
@@ -169,6 +196,7 @@ export const {
     updateUserAllData,
     setUserAllInfo,
     setUserIsActive,
+    setUserPersonalAccountInfo,
 } = userSlice.actions;
 
 export default userSlice.reducer;

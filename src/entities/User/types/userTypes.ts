@@ -7,6 +7,27 @@ export interface userType {
     is_agreement: boolean;
 }
 
+export interface UserPersonalAccount {
+    first_name: string;
+    last_name: string;
+    patronymic: string;
+    email: string;
+    is_confirmed_email: boolean;
+    phone: string;
+    is_confirmed_phone: boolean;
+    gender: string | null;
+    birth_date: string | null;
+    risk_profiling_summ: number | null;
+    risk_profiling_text: string | null;
+    is_exist_personal_data: boolean;
+    market: string | null;
+    tariff_info: string | null;
+    tariff_is_active: boolean;
+    tariff_created: string | null;
+    tariff_expiry: string | null;
+}
+
+
 export interface userAllData {
     first_name?: string;
     middle_name?: string;

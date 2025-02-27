@@ -13,3 +13,13 @@ export const confirmDocsRequest = async (data: ConfirmDocsPayload, token: string
     });
     return response.data;
 };
+
+export const getDocumentsState = async (token: string) => {
+    const response = await axios.get(`${apiUrl}create_doc_user/get_user_documents_not_confirmed/`, {
+        headers: {
+            "Accept-Language": "ru",
+            "Authorization": `Token ${token}`
+        },
+    });
+    return response.data;
+};

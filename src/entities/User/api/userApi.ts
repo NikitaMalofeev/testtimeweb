@@ -3,11 +3,20 @@ import { UserLogin } from "../types/userTypes";
 
 const apiUrl = import.meta.env.VITE_RANKS_TEST_API_URL;
 
-export const getAllUserInfo = async () => {
+export const getAllUserInfo = async (token: string) => {
     const response = await axios.get(`${apiUrl}create_doc_user/get_user_info/`, {
         headers: {
             "Accept-Language": "ru",
-            "Authorization": 'Token 8228931bbdf90910cbe8babf92dc937e2366e1bf'
+            "Authorization": `Token ${token}`
+        },
+    });
+    return response.data;
+};
+export const getUserPersonalAccountInfo = async (token: string) => {
+    const response = await axios.get(`${apiUrl}create_doc_user/get_user_mini_info/`, {
+        headers: {
+            "Accept-Language": "ru",
+            "Authorization": `Token ${token}`
         },
     });
     return response.data;

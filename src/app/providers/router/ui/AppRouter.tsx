@@ -1,4 +1,5 @@
 import AuthorizationPage from 'pages/AuthorizationPage/AuthorizationPage';
+import DocumentsPage from 'pages/DocumentsPage/DocumentsPage';
 import PersonalAccountPage from 'pages/PersonalAccountPage/PersonalAccountPage';
 import { StartPage } from 'pages/StartPage';
 import { memo, Suspense, lazy } from 'react';
@@ -32,6 +33,14 @@ function AppRouter() {
                 element={
                     <Suspense fallback={<PageLoader />}>
                         <PersonalAccountPage />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="/documents"
+                element={
+                    <Suspense fallback={<PageLoader />}>
+                        <DocumentsPage />
                     </Suspense>
                 }
             />

@@ -1,0 +1,133 @@
+.page {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 16px;
+
+    &__title {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        color: #0F0E0E;
+        font-weight: 500;
+        font-size: 24px;
+        line-height: 28.8px;
+        letter-spacing: 0%;
+    }
+
+    &__container {
+        display: flex;
+        gap: 32px;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+}
+
+.button__green {
+    background-color: green;
+    max-width: 108px;
+    padding: 7px 16px;
+font-weight: 500;
+font-size: 14px;
+line-height: 16.94px;
+letter-spacing: 0%;
+text-align: center;
+
+}
+
+.button__red {
+    opacity: 0.5;
+    max-width: 108px;
+    padding: 7px 16px;
+font-weight: 500;
+font-size: 14px;
+line-height: 16.94px;
+letter-spacing: 0%;
+text-align: center;
+
+}
+
+.button__gray {
+    background-color: #0666EB;
+    max-width: 108px;
+    padding: 7px 16px;
+font-weight: 500;
+font-size: 14px;
+line-height: 16.94px;
+letter-spacing: 0%;
+text-align: center;
+
+}
+
+.document__info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.document__preview {
+    padding: 7px 16px;
+    max-width: max-content;
+    font-weight: 500;
+font-size: 14px;
+line-height: 16.94px;
+letter-spacing: 0%;
+text-align: center;
+}
+
+.document__info__flex {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.document__item {
+    position: relative;
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    padding-bottom: 16px;
+
+    &::after {
+        position: absolute;
+        bottom: 0;
+        left: -16px;
+        content: '';
+        width: 100dvw;
+        height: 1px;
+        background-color: #EBEBED;
+    }
+}
+
+.document__status {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-width: max-content;
+}
+
+.document__date {
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 14.52px;
+    letter-spacing: 0%;
+    text-align: end;
+    color: #797979;
+}
+
+.documents__list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.document__button_success {
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 16.94px;
+    letter-spacing: 0%;
+    text-align: center;
+    color: #0F0E0E;
+}

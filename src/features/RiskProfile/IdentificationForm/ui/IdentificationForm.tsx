@@ -123,7 +123,7 @@ const IdentificationProfileForm: React.FC = () => {
             password2: formik.values.password2,
             is_agreement: formik.values.is_agreement,
             g_recaptcha: formik.values.g_recaptcha,
-            type_sms_message: formik.values.type_sms_message || undefined,
+            type_message: formik.values.type_sms_message || undefined,
         };
 
         const userForRedux: userType = {

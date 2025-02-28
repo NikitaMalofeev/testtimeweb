@@ -78,8 +78,11 @@ export const RiskProfileSecondForm: React.FC = () => {
 
 
     const handleGetNewPercentage = (values: SecondRiskProfilePayload) => {
-        dispatch(postSecondRiskProfileForm({ amount_expected_replenishment: formik.values.amount_expected_replenishment, portfolio_parameters: formik.values.portfolio_parameters }))
-    }
+        dispatch(postSecondRiskProfileForm({
+            amount_expected_replenishment: formik.values.amount_expected_replenishment,
+            portfolio_parameters: formik.values.portfolio_parameters,
+        }));
+    };
 
     // Функция для форматирования числа: 3000000 → "3 000 000 ₽"
     const formatMoney = (num: number) => {

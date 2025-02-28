@@ -26,7 +26,7 @@ export const PasportDataForm: React.FC = () => {
     const formik = useFormik({
         initialValues: {
             g_recaptcha: "",
-            type_sms_message: "email",
+            type_message: "email",
             gender: userPersonalAccount?.gender,
             first_name: userPersonalAccount?.first_name,
             middle_name: userPersonalAccount?.last_name,
@@ -142,7 +142,7 @@ export const PasportDataForm: React.FC = () => {
     };
 
     const handleMethodChange = (method: 'phone' | 'email' | 'whatsapp') => {
-        formik.setFieldValue("type_sms_message", `${method}`)
+        formik.setFieldValue("type_message", `${method}`)
         dispatch(setCurrentConfirmModalType(method))
         // Сбрасываем капчу и статус верификации
         setCaptchaVerified(false);
@@ -243,14 +243,14 @@ export const PasportDataForm: React.FC = () => {
                     <span className={styles.method__title}>Куда отправить код</span>
                     <div className={styles.method}>
                         <CheckboxGroup
-                            name="type_sms_message"
+                            name="type_message"
                             label=""
                             direction="row"
                             options={Object.entries(messageTypeOptions).map(([value, label]) => ({
                                 label,
                                 value,
                             }))}
-                            value={formik.values.type_sms_message}
+                            value={formik.values.type_message}
                             onChange={(name, selectedValue) => {
                                 handleMethodChange(selectedValue as 'phone' | 'email' | 'whatsapp');
                             }}

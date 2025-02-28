@@ -8,7 +8,7 @@ export interface IdentificationProfileData {
     password2: string;
     is_agreement: boolean;
     g_recaptcha: string;
-    type_sms_message?: string
+    type_message?: string
 }
 
 export interface ConfirmationCodeData {
@@ -103,7 +103,7 @@ export interface ThirdRiskProfileResponse {
 
 export interface PasportFormData {
     g_recaptcha: string;
-    type_sms_message: string;
+    type_message: string;
     gender?: string;
     first_name?: string;
     patronymic?: string;

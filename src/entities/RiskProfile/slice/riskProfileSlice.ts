@@ -93,7 +93,6 @@ export const postSecondRiskProfileForm = createAsyncThunk<
     async (data, { dispatch, rejectWithValue, getState }) => {
         try {
             const token = getState().user.token;
-            console.log()
             const response = await postSecondRiskProfile(data, token);
             dispatch(setThirdRiskProfileResponse(response))
         } catch (error: any) {

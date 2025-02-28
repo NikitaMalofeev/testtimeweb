@@ -2,7 +2,7 @@ export interface IdentificationProfileData {
     phone: string;
     email: string;
     first_name: string;
-    middle_name: string;
+    patronymic: string;
     last_name: string;
     password: string;
     password2: string;
@@ -81,6 +81,11 @@ export interface SendCodeDocsConfirmPayload {
 export interface SecondRiskProfilePayload {
     amount_expected_replenishment: number | undefined,
     portfolio_parameters: string,
+}
+
+export interface SecondRiskProfileFinalPayload {
+    amount_expected_replenishment: number | undefined,
+    portfolio_parameters: string,
     risk_profiling_final?: string
 }
 
@@ -101,7 +106,7 @@ export interface PasportFormData {
     type_sms_message: string;
     gender?: string;
     first_name?: string;
-    middle_name?: string;
+    patronymic?: string;
     last_name?: string;
     birth_date: string;
     birth_place: string;

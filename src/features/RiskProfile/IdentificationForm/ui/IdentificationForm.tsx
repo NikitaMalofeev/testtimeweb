@@ -44,7 +44,7 @@ const IdentificationProfileForm: React.FC = () => {
         initialValues: {
             lastName: "",
             firstName: "",
-            middleName: "",
+            patronymic: "",
             phone: "",
             email: "",
             password: "",
@@ -117,7 +117,7 @@ const IdentificationProfileForm: React.FC = () => {
             phone: formik.values.phone,
             email: formik.values.email,
             first_name: formik.values.firstName,
-            middle_name: formik.values.middleName,
+            patronymic: formik.values.patronymic,
             last_name: formik.values.lastName,
             password: formik.values.password,
             password2: formik.values.password2,
@@ -130,15 +130,9 @@ const IdentificationProfileForm: React.FC = () => {
             phone: formik.values.phone,
             email: formik.values.email,
             first_name: formik.values.firstName,
-            middle_name: formik.values.middleName,
+            patronymic: formik.values.patronymic,
             last_name: formik.values.lastName,
             is_agreement: formik.values.is_agreement,
-        }
-
-        const userNameData = {
-            first_name: formik.values.firstName,
-            middle_name: formik.values.middleName,
-            last_name: formik.values.lastName,
         }
 
         // dispatch(updateUserAllData({ first_name: `${formik.values.firstName}`, middle_name: `${formik.values.middleName}`, last_name: `${formik.values.lastName}`, gender: `` }))
@@ -177,8 +171,8 @@ const IdentificationProfileForm: React.FC = () => {
                     type="text"
                 />
                 <Input
-                    name="middleName"
-                    value={formik.values.middleName}
+                    name="patronymic"
+                    value={formik.values.patronymic}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     placeholder="Отчество (при наличии)"

@@ -29,8 +29,8 @@ export const PasportDataForm: React.FC = () => {
             type_sms_message: "email",
             gender: userPersonalAccount?.gender,
             first_name: userPersonalAccount?.first_name,
-            middle_name: userPersonalAccount?.middle_name,
-            last_name: userPersonalAccount?.last_name,
+            middle_name: userPersonalAccount?.last_name,
+            patronymic: userPersonalAccount?.patronymic,
             birth_date: "",
             birth_place: "",
             passport_series: "",
@@ -154,10 +154,10 @@ export const PasportDataForm: React.FC = () => {
     return (
         <>
             <form onSubmit={formik.handleSubmit} className={styles.form}>
-                <Input placeholder="Фамилия" name="middle_name" type="text" value={formik.values.middle_name || ''} onChange={handleTextInputChange} needValue />
+                <Input placeholder="Фамилия" name="middle_name" type="text" value={formik.values.patronymic || ''} onChange={handleTextInputChange} needValue />
                 <Input placeholder="Имя" name="first_name" type="text" value={formik.values.first_name || ''} onChange={handleTextInputChange} needValue />
 
-                <Input placeholder="Отчество" name="last_name" type="text" value={formik.values.last_name || ''} onChange={handleTextInputChange} needValue />
+                <Input placeholder="Отчество" name="last_name" type="text" value={formik.values.middle_name || ''} onChange={handleTextInputChange} needValue />
                 <CheckboxGroup
                     name='gender'
                     label="Пол"

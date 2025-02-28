@@ -14,10 +14,11 @@ import {
     docTypeLabels as docTypeLabelsConfirm,
     confirmDocsRequestThunk,
     setCurrentConfirmableDoc,
-    getUserDocumentsStateThunk
+    getUserDocumentsStateThunk,
+    // Удалён старый setNotConfirmedDocuments
 } from "entities/Documents/slice/documentsSlice";
 
-import { openModal, closeModal } from "entities/ui/Modal/slice/modalSlice";
+import { openModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 
 import { Icon } from "shared/ui/Icon/Icon";
@@ -42,14 +43,8 @@ import { useNavigate } from "react-router-dom";
 import styles from "./styles.module.scss";
 import { RiskProfileAllData } from "features/RiskProfile/RiskProfileAllData/RiskProfileAllData";
 
-// -----------------------------------------------------------------------------
-// Ниже - логика, которая раньше была в ConfirmAllDocs.tsx
-// -----------------------------------------------------------------------------
-
 /**
- * Это та же самая модалка превью документа, перенесённая из ConfirmAllDocs.
- * Единственное отличие: теперь для отображения контента используется
- * локальный state (selectedDocId), а не currentTypeDoc из redux.
+ * Превью документов (модалка выезда слева).
  */
 interface PreviewModalProps {
     isOpen: boolean;
@@ -58,13 +53,14 @@ interface PreviewModalProps {
     docId?: string | null;
 }
 
-/**
- * Модальное окно для предпросмотра документа (анимация выезда слева).
- */
-const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, title, docId }) => {
+const PreviewModal: React.FC<PreviewModalProps> = ({
+    isOpen,
+    onClose,
+    title,
+    docId,
+}) => {
     if (!isOpen) return null;
 
-    // Создаём контейнер для модалки, если его нет
     let modalRoot = document.getElementById("modal-root");
     if (!modalRoot) {
         modalRoot = document.createElement("div");
@@ -72,17 +68,6 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, title, doc
         document.body.appendChild(modalRoot);
     }
 
-    // // // Запрещаем прокрутку фона, пока модалка открыта
-    // useEffect(() => {
-    //     if (isOpen) {
-    //         document.body.style.overflow = "hidden";
-    //     }
-    //     return () => {
-    //         document.body.style.overflow = "";
-    //     };
-    // }, [isOpen]);
-
-    // Закрываем по ESC
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === "Escape" && isOpen) {
@@ -93,11 +78,10 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, title, doc
         return () => document.removeEventListener("keydown", handleKeyDown);
     }, [isOpen, onClose]);
 
-    // Начальное и конечное положение для анимации "справа налево"
     const initialPosition = { x: "100%", y: 0 };
     const exitPosition = { x: "100%", y: 0 };
 
-    // Функция для выбора контента превью по docId
+    // В зависимости от типа документа отображаем соответствующий контент
     const renderDocPreviewContent = (docType: string | null) => {
         switch (docType) {
             case "type_doc_passport":
@@ -130,10 +114,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, title, doc
     };
 
     return ReactDOM.createPortal(
-        <motion.div
-            className={styles.overlay}
-            onClick={onClose}
-        >
+        <motion.div className={styles.overlay} onClick={onClose}>
             <motion.div
                 className={styles.modal}
                 initial={initialPosition}
@@ -169,12 +150,13 @@ const DocumentsPage: React.FC = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        dispatch(getUserDocumentsStateThunk({}));
+        dispatch(getUserDocumentsStateThunk());
     }, [dispatch]);
 
-    const { notConfirmedDocuments, loading } = useSelector((state: RootState) => state.documents);
+    // Теперь в стейте у нас есть массив userDocuments (key, date_last_confirmed).
+    const { userDocuments, loading } = useSelector((state: RootState) => state.documents);
 
-    // "docTypeLabels" и "docOrder" из старого DocumentsPage:
+    // Лейблы для отображения
     const docTypeLabels: Record<string, string> = {
         type_doc_RP_questionnairy: "1. Анкета РП",
         type_doc_passport: "2. Паспортные данные",
@@ -185,6 +167,7 @@ const DocumentsPage: React.FC = () => {
         type_doc_investment_profile_certificate: "7. Справка ИП",
     };
 
+    // Порядок документов
     const docOrder = [
         "type_doc_RP_questionnairy",
         "type_doc_passport",
@@ -195,9 +178,8 @@ const DocumentsPage: React.FC = () => {
         "type_doc_investment_profile_certificate",
     ];
 
-    // Старый метод handleSignDocument:
+    // Метод для подписания конкретного документа
     const handleSignDocument = (docId: string) => {
-        // Оставляем логику, как была
         switch (docId) {
             case "type_doc_RP_questionnairy":
                 dispatch(setStepAdditionalMenuUI(1));
@@ -239,34 +221,49 @@ const DocumentsPage: React.FC = () => {
         }
     };
 
-    // Генерируем список документов со статусом.
+    // Генерируем список документов с учётом даты из userDocuments.
+    // Если date_last_confirmed === null => "not signed" (или "signable").
+    // Иначе => "signed".
     const documents = docOrder.map((type) => {
+        // Ищем объект в userDocuments с key===type
+        const docInfo = userDocuments.find((doc) => doc.key === type);
+
+        const date = docInfo?.date_last_confirmed || null;
+        const status = date ? "signed" : "signable"; // если нет даты => значит не подписан
+
         return {
             id: type,
             title: docTypeLabels[type],
-            date: "07.03.2025",
-            status: notConfirmedDocuments.includes(type) ? "signable" : "signed",
+            date, // date_last_confirmed или null
+            status,
         };
     });
 
-    const firstNotConfirmed = docOrder.find((type) => notConfirmedDocuments.includes(type));
+    // Ищем первый документ, у которого status === "signable" (то есть не подписан)
+    const firstNotConfirmed = documents.find((doc) => doc.status === "signable")?.id;
 
-    // Красим кнопку в зависимости от статуса документа (старая логика).
+    // Генерируем нужный цвет кнопки (или "подписано").
+    // Логика:
+    // - Если документ подписан => зелёная плашка "Подписано"
+    // - Если не подписан, но это именно "первый" не подписанный => серый
+    // - Если не подписан, но не первый => красный
     const renderedDocuments = documents.map((doc) => {
-        let colorClass = styles.button__green;
-        if (notConfirmedDocuments.includes(doc.id)) {
-            colorClass = styles.button__red; // неподписан
+        let colorClass = styles.button__green; // по умолчанию зелёный
+        if (doc.status === "signable") {
+            // не подписан
+            if (doc.id === firstNotConfirmed) {
+                colorClass = styles.button__gray; // первый неподписанный
+            } else {
+                colorClass = styles.button__red; // остальные неподписанные
+            }
         }
-        if (doc.id === firstNotConfirmed) {
-            colorClass = styles.button__gray; // первый неподписанный
-        }
-
         return {
             ...doc,
             colorClass,
         };
     });
 
+    // Состояние для открытия модалки превью
     const [isPreviewOpen, setPreviewOpen] = useState(false);
     const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
 
@@ -279,27 +276,26 @@ const DocumentsPage: React.FC = () => {
         setPreviewOpen(false);
     };
 
-
     return loading ? (
         <Loader />
     ) : (
         <div className={styles.page}>
 
-            {/* --- ШАПКА ДЛЯ "СПИСКА ДОКУМЕНТОВ" (СТАРАЯ ЛОГИКА) --- */}
+            {/* Шапка страницы */}
             <div className={styles.page__container}>
                 <div className={styles.page__title}>
                     <Icon Svg={BackIcon} width={24} height={24} onClick={() => navigate("/lk")} />
                     <h2 className={styles.page__title}>Список документов</h2>
                 </div>
 
-                {/* --- СПИСОК ДОКУМЕНТОВ --- */}
+                {/* Список документов */}
                 <div className={styles.documents__list}>
                     {renderedDocuments.map((doc) => (
                         <div key={doc.id} className={styles.document__item}>
                             <div className={styles.document__info}>
                                 <span className={styles.document__info__title}>{doc.title}</span>
                                 <div className={styles.document__info__flex}>
-                                    {/* КНОПКА ПРОСМОТР: теперь открывает превью-модалку по doc.id */}
+                                    {/* Кнопка "Просмотр" => открывает превью */}
                                     <Button
                                         className={styles.document__preview}
                                         theme={ButtonTheme.UNDERLINE}
@@ -312,7 +308,13 @@ const DocumentsPage: React.FC = () => {
                             </div>
 
                             <div className={styles.document__status}>
-                                <span className={styles.document__date}>{doc.date}</span>
+                                {/* Показываем дату, если документ подписан */}
+                                <span className={styles.document__date}>
+                                    {doc.date
+                                        ? new Date(doc.date).toLocaleDateString()
+                                        : "Дата подписания"}
+                                </span>
+
                                 {doc.status === "signed" ? (
                                     <div className={styles.document__button_success}>
                                         <Icon Svg={SuccessBlueIcon} width={24} height={24} />
@@ -321,7 +323,11 @@ const DocumentsPage: React.FC = () => {
                                 ) : (
                                     <Button
                                         onClick={() => handleSignDocument(doc.id)}
-                                        disabled={doc.status === "not_signable"}
+                                        disabled={
+                                            // Можно отключать кнопку,
+                                            // если это не первый неподписанный документ:
+                                            doc.id !== firstNotConfirmed
+                                        }
                                         className={doc.colorClass}
                                         theme={ButtonTheme.BLUE}
                                     >
@@ -334,14 +340,17 @@ const DocumentsPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* --- МОДАЛКА ПРЕВЬЮ ДОКУМЕНТА --- */}
+            {/* Модалка предпросмотра документа */}
             <PreviewModal
                 isOpen={isPreviewOpen}
                 onClose={handleClosePreview}
-                title={selectedDocId ? docTypeLabels[selectedDocId] || "Документ" : "Документ"}
+                title={
+                    selectedDocId
+                        ? docTypeLabels[selectedDocId] || "Документ"
+                        : "Документ"
+                }
                 docId={selectedDocId}
             />
-
         </div>
     );
 };

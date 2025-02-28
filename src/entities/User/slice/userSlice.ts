@@ -29,7 +29,7 @@ const initialState: UserState = {
         phone: "",
         email: "",
         first_name: "",
-        middle_name: "",
+        patronymic: "",
         last_name: "",
         is_agreement: false,
     },
@@ -75,7 +75,7 @@ export const userLoginThunk = createAsyncThunk<
 
             return response;
         } catch (error: any) {
-            dispatch(setError(error.response?.data?.message || "Ошибка при входе"));
+            dispatch(setError(error.response?.data?.errorText || "Ошибка при входе"));
             return rejectWithValue(error.response?.data?.message || "Ошибка при отправке данных");
         }
     }

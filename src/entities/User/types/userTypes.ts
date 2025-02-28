@@ -2,7 +2,7 @@ export interface userType {
     phone: string;
     email: string;
     first_name: string;
-    middle_name: string;
+    patronymic: string;
     last_name: string;
     is_agreement: boolean;
 }
@@ -30,7 +30,7 @@ export interface UserPersonalAccount {
 
 export interface userAllData {
     first_name?: string;
-    middle_name?: string;
+    patronymic?: string;
     last_name?: string;
     gender?: string;
 }

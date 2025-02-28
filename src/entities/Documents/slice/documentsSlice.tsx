@@ -1,4 +1,5 @@
 // documentsSlice.ts
+
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "app/providers/store/config/store";
 import { ConfirmDocsPayload } from "../types/documentsTypes";
@@ -9,8 +10,14 @@ import { setError } from "entities/Error/slice/errorSlice";
 import { SendCodeDocsConfirmPayload } from "entities/RiskProfile/model/types";
 import { postConfirmationDocsCode } from "shared/api/RiskProfileApi/riskProfileApi";
 
+// Новый тип, соответствующий элементам из "confirmed_documents"
+export interface DocumentConfirmationInfo {
+    key: string;
+    date_last_confirmed: string | null; // null, если документ не подписан
+}
+
 // Массив с последовательностью типов документов,
-// которые необходимо подписать по порядку.
+// которые необходимо подписать по порядку (меняется редко).
 export const docTypes = [
     "type_doc_RP_questionnairy",
     "type_doc_passport",
@@ -21,6 +28,7 @@ export const docTypes = [
     "type_doc_investment_profile_certificate"
 ];
 
+// Лейблы для UI.
 export const docTypeLabels: Record<string, string> = {
     type_doc_passport: "Паспорт",
     type_doc_EDS_agreement: "Соглашение об ЭДО",
@@ -37,21 +45,22 @@ interface DocumentsState {
     success: boolean;
     currentConfirmableDoc: string;  // Текущий документ на подписании
     confirmationMethod: string;
-    notConfirmedDocuments: string[]
+    // Заменяем notConfirmedDocuments (string[]) на хранение всего массива:
+    userDocuments: DocumentConfirmationInfo[];
 }
 
 const initialState: DocumentsState = {
     loading: false,
     error: null,
     success: false,
-    currentConfirmableDoc: docTypes[1],
+    currentConfirmableDoc: docTypes[0],
     confirmationMethod: 'EMAIL',
-    notConfirmedDocuments: []
+    userDocuments: [] // теперь тут храним объекты
 };
 
 export const confirmDocsRequestThunk = createAsyncThunk<
     void,
-    { data: ConfirmDocsPayload, onSuccess: () => void },
+    { data: ConfirmDocsPayload; onSuccess: () => void },
     { rejectValue: string; state: RootState }
 >(
     "documents/confirmDocsRequestThunk",
@@ -65,21 +74,20 @@ export const confirmDocsRequestThunk = createAsyncThunk<
                 return rejectWithValue("Отсутствует токен авторизации");
             }
             if (type_document && type_message) {
-                const responseDocs = await confirmDocsRequest({
-                    type_message: type_message, type_document: type_document, is_agree: is_agree
-                }, token);
+                const responseDocs = await confirmDocsRequest(
+                    { type_message, type_document, is_agree },
+                    token
+                );
                 onSuccess?.();
-                return responseDocs
+                return responseDocs;
             }
         } catch (error: any) {
-            dispatch(setConfirmationDocsSuccess(
-                'не пройдено'
-            ))
-            console.log(error)
+            dispatch(setConfirmationDocsSuccess("не пройдено"));
+            console.log(error);
             const msg =
-                error.response.data?.error_text ||
+                error.response?.data?.errorText ||
                 "Ошибка при отправке кода (непредвиденная)";
-            dispatch(setError(msg))
+            dispatch(setError(msg));
         }
     }
 );
@@ -90,60 +98,55 @@ export const sendDocsConfirmationCode = createAsyncThunk<
     { rejectValue: string; state: RootState }
 >(
     "documents/sendDocsConfirmationCode",
-    async (
-        { codeFirst, docs, onSuccess, onClose },
-        { getState, dispatch, rejectWithValue }
-    ) => {
+    async ({ codeFirst, docs, onSuccess }, { getState, dispatch, rejectWithValue }) => {
         try {
-            console.log('submit2')
             const token = getState().user.token;
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");
             }
             if (codeFirst) {
-                const responseDocs = await postConfirmationDocsCode({ code: codeFirst, type_document: docs }, token);
+                const responseDocs = await postConfirmationDocsCode(
+                    { code: codeFirst, type_document: docs },
+                    token
+                );
                 onSuccess?.(responseDocs);
-                console.log(responseDocs.next_document)
-                dispatch(setCurrentConfirmableDoc(responseDocs.next_document))
+                dispatch(setCurrentConfirmableDoc(responseDocs.next_document));
             }
         } catch (error: any) {
-            dispatch(setConfirmationDocsSuccess(
-                'не пройдено'
-            ))
-            console.log(error)
+            dispatch(setConfirmationDocsSuccess("не пройдено"));
+            console.log(error);
             const msg =
-                error.response.data?.error_text ||
+                error.response?.data?.errorText ||
                 "Ошибка при отправке кода (непредвиденная)";
-            dispatch(setError(msg))
+            dispatch(setError(msg));
         }
     }
 );
 
 export const getUserDocumentsStateThunk = createAsyncThunk<
     void,
-    any,
+    void,
     { rejectValue: string; state: RootState }
 >(
     "documents/getUserDocumentsStateThunk",
-    async (
-        { },
-        { getState, dispatch, rejectWithValue }
-    ) => {
+    async (_, { getState, dispatch, rejectWithValue }) => {
         try {
             const token = getState().user.token;
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");
             }
-            const responseDocs = await getDocumentsState(token);
-            console.log(responseDocs)
-            dispatch(setNotConfirmedDocuments(responseDocs.not_confirmed_documents))
-            // dispatch(setCurrentConfirmableDoc(responseDocs.next_document))
+            const response = await getDocumentsState(token);
+            // См. пример структуры: { confirmed_documents: DocumentConfirmationInfo[] }
+            const confirmedDocuments = response.confirmed_documents;
+
+            // Сохраняем весь массив в state.userDocuments
+            dispatch(setUserDocuments(confirmedDocuments));
         } catch (error: any) {
-            console.log(error)
+            console.log(error);
             const msg =
-                error.response.data?.error_text ||
+                error.response?.data?.errorText ||
                 "Ошибка при отправке кода (непредвиденная)";
-            dispatch(setError(msg))
+            dispatch(setError(msg));
         }
     }
 );
@@ -158,10 +161,10 @@ export const documentsSlice = createSlice({
         setCurrentConfirmationMethod(state, action: PayloadAction<string>) {
             state.confirmationMethod = action.payload;
         },
-        setNotConfirmedDocuments(state, action: PayloadAction<string[]>) {
-            state.notConfirmedDocuments = action.payload;
+        // Сохраняем массив объектов (документов) в стейт.
+        setUserDocuments(state, action: PayloadAction<DocumentConfirmationInfo[]>) {
+            state.userDocuments = action.payload;
         },
-        // Экшен, который переключает `currentConfirmableDoc` на следующий документ.
         nextDocType(state) {
             const currentIndex = docTypes.findIndex(
                 (doc) => doc === state.currentConfirmableDoc
@@ -170,12 +173,9 @@ export const documentsSlice = createSlice({
             if (currentIndex < docTypes.length - 1) {
                 state.currentConfirmableDoc = docTypes[currentIndex + 1];
             } else {
-                // Здесь можно обработать «все документы подписаны»
-                // Например, зафиксировать статус завершённости,
-                // или просто оставить всё как есть.
                 console.log("Все документы подписаны!");
             }
-        }
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -192,8 +192,15 @@ export const documentsSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload as string;
             })
+        // Аналогично можно дописать pending/fulfilled для confirmDocsRequestThunk, если нужно
     },
 });
 
-export const { setCurrentConfirmableDoc, setNotConfirmedDocuments, nextDocType, setCurrentConfirmationMethod } = documentsSlice.actions;
+export const {
+    setCurrentConfirmableDoc,
+    setCurrentConfirmationMethod,
+    setUserDocuments,
+    nextDocType,
+} = documentsSlice.actions;
+
 export default documentsSlice.reducer;

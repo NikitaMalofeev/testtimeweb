@@ -11,7 +11,8 @@ import {
     SecondRiskProfileResponse,
     ThirdRiskProfileResponse,
     PasportFormData,
-    SendCodeDocsConfirmPayload
+    SendCodeDocsConfirmPayload,
+    SecondRiskProfileFinalPayload
 } from "../model/types";
 import { getAllSelects, postConfirmationCode, postConfirmationDocsCode, postFirstRiskProfile, postIdentificationData, postNeedHelpRequest, postPasportData, postPasportScanData, postResendConfirmationCode, postSecondRiskProfile, postSecondRiskProfileFinal, postTrustedPersonInfoApi } from "shared/api/RiskProfileApi/riskProfileApi";
 import { setUserId, setUserIsActive, setUserToken, updateUserAllData } from "entities/User/slice/userSlice";
@@ -105,7 +106,7 @@ export const postSecondRiskProfileForm = createAsyncThunk<
 
 export const postSecondRiskProfileFormFinal = createAsyncThunk<
     void,
-    SecondRiskProfilePayload,
+    SecondRiskProfileFinalPayload,
     { state: RootState; rejectValue: string }
 >(
     "riskProfile/postSecondRiskProfileFormFinal",
@@ -113,7 +114,7 @@ export const postSecondRiskProfileFormFinal = createAsyncThunk<
         try {
             const token = getState().user.token;
             const response = await postSecondRiskProfileFinal(data, token);
-            dispatch(updateUserAllData({ first_name: response.first_name, middle_name: response.middle_name, last_name: response.patronymic, gender: response }))
+            dispatch(updateUserAllData({ first_name: response.first_name, last_name: response.last_name, patronymic: response.patronymic, gender: response.gender }))
             return response
         } catch (error: any) {
             return rejectWithValue(
@@ -271,7 +272,7 @@ export const sendPhoneConfirmationCode = createAsyncThunk<
                     onSuccess?.(responsePhone);
                 } else {
                     const msg =
-                        responsePhone.data?.error_text ||
+                        responsePhone.data?.errorText ||
                         "Ошибка при отправке кода (непредвиденная)";
                     dispatch(setError(msg))
                     onSuccess?.(responsePhone);
@@ -284,7 +285,7 @@ export const sendPhoneConfirmationCode = createAsyncThunk<
             ))
             console.log(error)
             const msg =
-                error.response.data?.error_text ||
+                error.response.data?.errorText ||
                 "Ошибка при отправке кода (непредвиденная)";
             dispatch(setError(msg))
         }
@@ -315,7 +316,7 @@ export const sendEmailConfirmationCode = createAsyncThunk<
             ))
             console.log(error)
             const msg =
-                error.response.data?.error_text ||
+                error.response.data?.errorText ||
                 "Ошибка при отправке кода (непредвиденная)";
             dispatch(setError(msg))
         }

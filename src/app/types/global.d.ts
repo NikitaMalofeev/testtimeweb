@@ -12,7 +12,7 @@ declare module '*.svg' {
     export default ReactComponent;
 }
 
-
+declare module 'react-base64-to-pdf'
 declare module '*.png';
 declare module '*.jpg';
 declare module '*.jpeg';

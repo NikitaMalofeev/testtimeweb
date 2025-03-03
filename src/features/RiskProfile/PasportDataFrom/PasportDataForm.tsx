@@ -19,7 +19,7 @@ export const PasportDataForm: React.FC = () => {
     const recaptchaRef = useRef<ReCAPTCHA | null>(null);
     const gcaptchaSiteKey = import.meta.env.VITE_RANKS_GRCAPTCHA_SITE_KEY;
     const [captchaVerified, setCaptchaVerified] = useState(false);
-    const userPersonalAccount = useSelector((state: RootState) => state.user.userForPersonalAccount)
+    const userPersonalAccount = useSelector((state: RootState) => state.user.userForPersonalAccount);
     const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
     const modalState = useSelector((state: RootState) => state.modal);
 

@@ -28,6 +28,7 @@ import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { PdfViewer } from "shared/ui/PDFViewer/PDFViewer";
 import { Loader } from "shared/ui/Loader/Loader";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
+import { PDFInfo, PDFPreview, PDFDownloadButton } from 'react-base64-to-pdf';
 
 import DocsImage from "shared/assets/svg/docsImage.svg";
 import CloseIcon from "shared/assets/svg/close.svg";
@@ -39,9 +40,10 @@ import DownloadIcon from "shared/assets/svg/DownloadDocument.svg";
 import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
 
 import { useNavigate } from "react-router-dom";
-
+import mockpdf from 'shared/ui/PDFViewer/mockpdf.txt?raw'
 import styles from "./styles.module.scss";
 import { RiskProfileAllData } from "features/RiskProfile/RiskProfileAllData/RiskProfileAllData";
+import { PdfViewerrr } from "shared/ui/PDFViewer/Viewer";
 
 /**
  * Превью документов (модалка выезда слева).
@@ -87,8 +89,11 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
             case "type_doc_passport":
                 return <div>Здесь превью паспорта (сканы и т.д.)</div>;
 
+            // case "type_doc_EDS_agreement":
+            //     return <PdfViewer fileUrl={EDSPdf} />;
             case "type_doc_EDS_agreement":
-                return <PdfViewer fileUrl={EDSPdf} />;
+                return <PdfViewerrr base64={mockpdf} style={{ width: '100vw', height: '100vh' }} className="yourClassNameGoesHere" />;
+
 
             case "type_doc_RP_questionnairy":
                 return <RiskProfileAllData />;

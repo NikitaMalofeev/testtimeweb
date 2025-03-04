@@ -30,11 +30,11 @@ import {
 } from "entities/ui/Modal/model/modalTypes";
 import { selectModalState } from "entities/ui/Modal/selectors/selectorsModals";
 import {
-    nextStep,
     setTooltipActive,
     setConfirmationPhoneSuccess,
     setConfirmationEmailSuccess,
-    setConfirmationWhatsappSuccess
+    setConfirmationWhatsappSuccess,
+    setStepAdditionalMenuUI
 } from "entities/ui/Ui/slice/uiSlice";
 import { setUserToken } from "entities/User/slice/userSlice";
 
@@ -338,7 +338,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
     // Если необходимо закрыть модалку, когда оба запроса завершены
     useEffect(() => {
         if ((phoneSuccess === "пройдено" || whatsappSuccess === "пройдено") && emailSuccess === "пройдено") {
-            dispatch(nextStep());
+            dispatch(setStepAdditionalMenuUI(1));
             onClose();
         }
     }, [phoneSuccess, whatsappSuccess, emailSuccess]);

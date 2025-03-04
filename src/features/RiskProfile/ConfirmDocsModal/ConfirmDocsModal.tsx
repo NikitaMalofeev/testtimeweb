@@ -27,10 +27,9 @@ import {
     ModalType
 } from "entities/ui/Modal/model/modalTypes";
 import { selectModalState } from "entities/ui/Modal/selectors/selectorsModals";
-import {
-    nextStep,
-    setTooltipActive,
-    setConfirmationDocsSuccess
+import {    setTooltipActive,
+    setConfirmationDocsSuccess,
+    setStepAdditionalMenuUI
 } from "entities/ui/Ui/slice/uiSlice";
 import { docTypes, nextDocType, sendDocsConfirmationCode } from "entities/Documents/slice/documentsSlice";
 
@@ -208,9 +207,12 @@ export const ConfirmDocsModal = memo(
                                     message: "Данные успешно подтверждены"
                                 })
                             );
-                            if (docsType === 'type_doc_passport' || docsType === 'type_doc_investment_profile_certificate') {
-                                dispatch(nextStep())
+                            if (docsType === 'type_doc_passport') {
+                                dispatch(setStepAdditionalMenuUI(4))
+                            }
 
+                            if (docsType === 'type_doc_investment_profile_certificate') {
+                                dispatch(setStepAdditionalMenuUI(6))
                             }
                             // dispatch(nextDocType());
                             setSmsCodeFirst(Array(codeLength).fill(""));

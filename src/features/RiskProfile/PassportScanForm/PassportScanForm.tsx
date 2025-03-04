@@ -10,8 +10,8 @@ import UploadPDFIcon from "shared/assets/svg/UploadPDFIcon.svg";
 import SuccessLabel from 'shared/assets/svg/SuccessLabel.svg'
 import styles from "./styles.module.scss";
 import { postPasportScanThunk } from "entities/RiskProfile/slice/riskProfileSlice";
-import { nextStep } from "entities/ui/Ui/slice/uiSlice";
 import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
+import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
 
 export interface PasportScanData {
     file_scan_page_first: null | string,
@@ -99,7 +99,7 @@ export const PasportScanForm: React.FC = () => {
         dispatch(
             postPasportScanThunk({
                 data: formData,
-                onSuccess: () => dispatch(nextStep()),
+                onSuccess: () => dispatch(setStepAdditionalMenuUI(5)),
             })
         );
     };

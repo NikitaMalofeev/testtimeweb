@@ -18,7 +18,7 @@ import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { Input } from "shared/ui/Input/Input";
 import { Loader, LoaderTheme } from "shared/ui/Loader/Loader";
 import { Select } from "shared/ui/Select/Select";
-import { nextStep } from "entities/ui/Ui/slice/uiSlice";
+import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { TrustedPersonInfo } from "entities/RiskProfile/model/types";
 import { setUserAllData, updateUserAllData } from "entities/User/slice/userSlice";
@@ -153,7 +153,7 @@ export const RiskProfileFirstForm: React.FC = () => {
         dispatch(updateFieldValue({ name, value }));
     };
 
-    if (loading) return <Loader theme={LoaderTheme.BLUE}/>;
+    if (loading) return <Loader theme={LoaderTheme.BLUE} />;
     if (error) return <p style={{ color: "red" }}>{error}</p>;
     if (!riskProfileSelectors || questions.length === 0) return null;
 
@@ -178,7 +178,7 @@ export const RiskProfileFirstForm: React.FC = () => {
         if (isLastStep) {
             dispatch(postFirstRiskProfileForm(formik.values))
             dispatch(updateUserAllData({ gender: `${formik.values.gender}` }))
-            dispatch(nextStep())
+            dispatch(setStepAdditionalMenuUI(2))
         } else {
             setCurrentStep((prev) => prev + 1);
             dispatch(nextRiskProfileStep());

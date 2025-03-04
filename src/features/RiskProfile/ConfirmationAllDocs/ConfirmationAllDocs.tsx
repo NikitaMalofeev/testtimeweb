@@ -195,9 +195,9 @@ export const ConfirmAllDocs: React.FC = () => {
     // Простой рендер названия документа
     const renderDocLabel = () => {
         switch (currentTypeDoc) {
+            case "type_doc_RP_questionnairy":
             case "type_doc_passport":
             case "type_doc_EDS_agreement":
-            case "type_doc_RP_questionnairy":
             case "type_doc_agreement_investment_advisor":
             case "type_doc_risk_declarations":
             case "type_doc_agreement_personal_data_policy":

@@ -21,9 +21,6 @@ import {
 } from "entities/ui/Modal/model/modalTypes";
 import { useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
-import { nextStep } from "entities/ui/Ui/slice/uiSlice";
-import { Icon } from "shared/ui/Icon/Icon";
-import SuccessIcon from 'shared/assets/svg/success.svg';
 import { userType } from "entities/User/types/userTypes";
 import { setUserAllData, setUserData, updateUserAllData } from "entities/User/slice/userSlice";
 import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";

@@ -453,6 +453,17 @@ const riskProfileSlice = createSlice({
             .addCase(postPasportScanThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
+            })
+            .addCase(postSecondRiskProfileForm.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(postSecondRiskProfileForm.fulfilled, (state) => {
+                state.loading = false;
+            })
+            .addCase(postSecondRiskProfileForm.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
             });
 
     },

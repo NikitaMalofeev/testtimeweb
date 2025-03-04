@@ -51,7 +51,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, title, chi
         document.body.appendChild(modalRoot);
     }
 
-    // Запрещаем прокрутку фона, пока модалка открыта
+    // // Запрещаем прокрутку фона, пока модалка открыта
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = "hidden";

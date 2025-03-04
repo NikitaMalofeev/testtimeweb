@@ -27,7 +27,8 @@ import {
     ModalType
 } from "entities/ui/Modal/model/modalTypes";
 import { selectModalState } from "entities/ui/Modal/selectors/selectorsModals";
-import {    setTooltipActive,
+import {
+    setTooltipActive,
     setConfirmationDocsSuccess,
     setStepAdditionalMenuUI
 } from "entities/ui/Ui/slice/uiSlice";
@@ -133,6 +134,10 @@ export const ConfirmDocsModal = memo(
                 inputRefsFirst.current[index + 1]?.focus();
             }
         };
+
+        useEffect(() => {
+            dispatch(setConfirmationDocsSuccess("не определено"));
+        }, [docsType, dispatch]);
 
         const handleKeyDownFirst = (
             e: React.KeyboardEvent<HTMLInputElement>,

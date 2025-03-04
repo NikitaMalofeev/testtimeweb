@@ -56,7 +56,7 @@ const initialState: DocumentsState = {
     success: false,
     currentConfirmableDoc: docTypes[0],
     confirmationMethod: 'EMAIL',
-    timeoutBetweenConfirmation: 10,
+    timeoutBetweenConfirmation: 0,
     userDocuments: [] // теперь тут храним объекты
 };
 

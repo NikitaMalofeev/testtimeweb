@@ -18,6 +18,8 @@ export enum ModalType {
     CONFIRM_CODE = 'confirmCodeModal',
     CONFIRM_DOCS = 'confirmDocsModal',
     PROBLEM_WITH_CODE = 'problemWithCodeModal',
+    PREVIEW = 'preview',
+    DOCUMENTS_PREVIEW = 'documentsPreview'
 }
 
 /** Состояние одной конкретной модалки */
@@ -26,6 +28,8 @@ export interface ModalStateItem {
     size: ModalSize;
     animation: ModalAnimation;
     isScrolled: boolean;
+    title?: string;
+    docId?: string;
 }
 
 /** Полное состояние для всех модалок */

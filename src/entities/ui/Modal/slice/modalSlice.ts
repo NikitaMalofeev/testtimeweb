@@ -38,6 +38,13 @@ const initialState: ExtendedModalState = {
         animation: ModalAnimation.LEFT,
         isScrolled: false
     },
+    [ModalType.DOCUMENTS_PREVIEW]: {
+        isOpen: false,
+        size: ModalSize.FULL,
+        animation: ModalAnimation.LEFT,
+        isScrolled: false
+    },
+    [ModalType.PREVIEW]: { isOpen: false, size: ModalSize.FULL, animation: ModalAnimation.LEFT, isScrolled: false },
     confirmationMethod: 'phone',
     confirmationMethod2: 'EMAIL',
     selectedCountry: "", // Начальное состояние для выбранной страны

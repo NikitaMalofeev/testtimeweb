@@ -44,6 +44,7 @@ export const Modal = memo(({
     const isScrolled = useSelector((state: RootState) => selectModalState(state, type)?.isScrolled);
 
     useEffect(() => {
+        console.log("Modal state changed:", { isOpen, isAnyModalOpen });
         if (isOpen) {
             document.body.style.overflow = 'hidden';
             document.body.style.position = 'fixed';

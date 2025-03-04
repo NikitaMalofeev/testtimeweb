@@ -18,27 +18,15 @@ import {
     // Удалён старый setNotConfirmedDocuments
 } from "entities/Documents/slice/documentsSlice";
 
-import { openModal } from "entities/ui/Modal/slice/modalSlice";
+import { closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 
 import { Icon } from "shared/ui/Icon/Icon";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
-import { Checkbox } from "shared/ui/Checkbox/Checkbox";
-import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
-import { PdfViewer } from "shared/ui/PDFViewer/PDFViewer";
 import { Loader } from "shared/ui/Loader/Loader";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
-import { PDFInfo, PDFPreview, PDFDownloadButton } from 'react-base64-to-pdf';
 
-import DocsImage from "shared/assets/svg/docsImage.svg";
-import CloseIcon from "shared/assets/svg/close.svg";
-import EDSPdf from "shared/assets/documents/EDS.pdf?url";
-import Broker from "shared/assets/documents/Broker.pdf?url";
-import IS from "shared/assets/documents/IS.pdf?url";
-import PersonalPolicy from "shared/assets/documents/PersonalPolicy.pdf?url";
-import RiskDeclaration from "shared/assets/documents/RiskDeclaration.pdf?url";
-import RiskProfile from "shared/assets/documents/RiskProfile.pdf?url";
-import Profile from "shared/assets/documents/Profile.pdf?url";
+
 import BackIcon from "shared/assets/svg/ArrowBack.svg";
 import SuccessBlueIcon from "shared/assets/svg/SuccessBlueIcon.svg";
 import DownloadIcon from "shared/assets/svg/DownloadDocument.svg";
@@ -48,120 +36,40 @@ import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
 import { useNavigate } from "react-router-dom";
 import mockpdf from 'shared/ui/PDFViewer/mockpdf.txt?raw'
 import styles from "./styles.module.scss";
-import { RiskProfileAllData } from "features/RiskProfile/RiskProfileAllData/RiskProfileAllData";
-import { PdfViewerrr } from "shared/ui/PDFViewer/Viewer";
-
-/**
- * Превью документов (модалка выезда слева).
- */
-interface PreviewModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    title?: string;
-    docId?: string | null;
-}
-
-const PreviewModal: React.FC<PreviewModalProps> = ({
-    isOpen,
-    onClose,
-    title,
-    docId,
-}) => {
-    if (!isOpen) return null;
-
-    let modalRoot = document.getElementById("modal-root");
-    if (!modalRoot) {
-        modalRoot = document.createElement("div");
-        modalRoot.id = "modal-root";
-        document.body.appendChild(modalRoot);
-    }
-
-    useEffect(() => {
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === "Escape" && isOpen) {
-                onClose();
-            }
-        };
-        document.addEventListener("keydown", handleKeyDown);
-        return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [isOpen, onClose]);
-
-    const initialPosition = { x: "100%", y: 0 };
-    const exitPosition = { x: "100%", y: 0 };
-
-    // В зависимости от типа документа отображаем соответствующий контент
-    const renderDocPreviewContent = (docType: string | null) => {
-        switch (docType) {
-            case "type_doc_RP_questionnairy":
-                return <PdfViewer fileUrl={RiskProfile} />;
-            case "type_doc_passport":
-                return <RiskProfileAllData />;
-
-            case "type_doc_EDS_agreement":
-                return <PdfViewer fileUrl={EDSPdf} />;
-            // case "type_doc_EDS_agreement":
-            //     return <PdfViewerrr base64={mockpdf} style={{ width: '100vw', height: '100vh' }} className="yourClassNameGoesHere" />;
-
-            // case "type_doc_RP_questionnairy":
-            //     return <RiskProfileAllData />;
-
-            case "type_doc_agreement_investment_advisor":
-                return <PdfViewer fileUrl={IS} />;
-
-            case "type_doc_risk_declarations":
-                return <PdfViewer fileUrl={RiskDeclaration} />;
-
-            case "type_doc_agreement_personal_data_policy":
-                return <PdfViewer fileUrl={PersonalPolicy} />;
-
-            case "type_doc_investment_profile_certificate":
-                return <PdfViewer fileUrl={Profile} />;
-
-
-            default:
-                return <div>Неизвестный документ. Нет превью.</div>;
-        }
-    };
-
-    return ReactDOM.createPortal(
-        <motion.div className={styles.overlay} onClick={onClose}>
-            <motion.div
-                className={styles.modal}
-                initial={initialPosition}
-                animate={{ x: 0, y: 0 }}
-                exit={exitPosition}
-                transition={{ duration: 0.3 }}
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className={styles.modalHeader}>
-                    <span className={styles.modalTitle}>{title}</span>
-                    <Icon Svg={CloseIcon} width={20} height={20} onClick={onClose} />
-                </div>
-                <div className={styles.modalContainer}>
-                    <div
-                        className={styles.modalContent}
-                        style={
-                            docId === "type_doc_RP_questionnairy"
-                                ? { overflowY: "auto" }
-                                : {}
-                        }
-                    >
-                        {renderDocPreviewContent(docId || null)}
-                    </div>
-                </div>
-            </motion.div>
-        </motion.div>,
-        modalRoot
-    );
-};
+import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/DocumentPreviewModal";
+import { selectIsAnyModalOpen } from "entities/ui/Modal/selectors/selectorsModals";
 
 const DocumentsPage: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
+    const modalPreviewState = useSelector((state: RootState) => state.modal.documentsPreview)
 
     useEffect(() => {
         dispatch(getUserDocumentsStateThunk());
     }, [dispatch]);
+
+    const isAnyModalOpen = useSelector(selectIsAnyModalOpen);
+
+    useEffect(() => {
+        console.log("Modal state changed:", { modalPreviewState, isAnyModalOpen });
+
+        if (modalPreviewState.isOpen) {
+            document.body.style.overflow = 'hidden';
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+            document.documentElement.style.overflow = 'hidden';
+        } else {
+            setTimeout(() => {
+                if (!isAnyModalOpen) {
+                    console.log("All modals closed, resetting styles.");
+                    document.body.style.overflow = "";
+                    document.body.style.position = "";
+                    document.body.style.width = "";
+                    document.documentElement.style.overflow = "";
+                }
+            }, 50);
+        }
+    }, [modalPreviewState.isOpen, isAnyModalOpen]);
 
     // Теперь в стейте у нас есть массив userDocuments (key, date_last_confirmed).
     const { userDocuments, loading } = useSelector((state: RootState) => state.documents);
@@ -279,12 +187,15 @@ const DocumentsPage: React.FC = () => {
 
     const handleOpenPreview = (docId: string) => {
         setSelectedDocId(docId);
-        setPreviewOpen(true);
+        dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
     };
     const handleClosePreview = () => {
         setSelectedDocId(null);
-        setPreviewOpen(false);
+        setTimeout(() => {
+            dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW));
+        }, 0); // Убедимся, что стейт обновился перед Redux-диспатчем
     };
+
 
     return loading ? (
         <Loader />
@@ -352,8 +263,8 @@ const DocumentsPage: React.FC = () => {
             </div>
 
             {/* Модалка предпросмотра документа */}
-            <PreviewModal
-                isOpen={isPreviewOpen}
+            <DocumentPreviewModal
+                isOpen={modalPreviewState.isOpen}
                 onClose={handleClosePreview}
                 title={
                     selectedDocId

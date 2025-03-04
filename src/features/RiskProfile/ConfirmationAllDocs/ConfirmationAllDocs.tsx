@@ -14,97 +14,17 @@ import styles from "./styles.module.scss";
 import { confirmDocsRequestThunk, docTypeLabels, docTypes, setCurrentConfirmationMethod } from "entities/Documents/slice/documentsSlice";
 import DocsImage from "shared/assets/svg/docsImage.svg";
 import { Icon } from "shared/ui/Icon/Icon";
-import CloseIcon from "shared/assets/svg/close.svg";
-import EDSPdf from 'shared/assets/documents/EDS.pdf'
-
-// ======== Модалка для превью документа (пример с framer-motion) ========
-import { motion } from "framer-motion";
-import ReactDOM from "react-dom";
-import { getAllUserInfoThunk } from "entities/User/slice/userSlice";
 import { RiskProfileAllData } from "../RiskProfileAllData/RiskProfileAllData";
 import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { PdfViewer } from "shared/ui/PDFViewer/PDFViewer";
-
-interface PreviewModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    title?: string;
-    children?: React.ReactNode;
-}
-
-/**
- * Простая модалка, которая выезжает слева без всяких дополнительных настроек.
- * Если нужно - вынесите её в отдельный файл.
- */
-const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, title, children }) => {
-    if (!isOpen) return null;
-
-    const currentTypeDoc = useSelector(
-        (state: RootState) => state.documents.currentConfirmableDoc
-    );
-
-    // Создаём контейнер для модалки, если его нет
-    let modalRoot = document.getElementById("modal-root");
-    if (!modalRoot) {
-        modalRoot = document.createElement("div");
-        modalRoot.id = "modal-root";
-        document.body.appendChild(modalRoot);
-    }
-
-    // // Запрещаем прокрутку фона, пока модалка открыта
-    useEffect(() => {
-        if (isOpen) {
-            document.body.style.overflow = "hidden";
-        }
-        return () => {
-            document.body.style.overflow = "";
-        };
-    }, [isOpen]);
-
-    // Закрываем по ESC
-    useEffect(() => {
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === "Escape" && isOpen) {
-                onClose();
-            }
-        };
-        document.addEventListener("keydown", handleKeyDown);
-        return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [isOpen, onClose]);
-
-    // Начальное и конечное положение для анимации "слева направо"
-    const initialPosition = { x: "100%", y: 0 };
-    const exitPosition = { x: "100%", y: 0 };
-
-    return ReactDOM.createPortal(
-        <motion.div
-            className={styles.overlay} // Затемняющая подложка (можно стилизовать)
-            // initial={{ opacity: 0 }}
-            // animate={{ opacity: 1 }}
-            // exit={{ opacity: 0 }}
-            // transition={{ duration: 1 }}
-            onClick={onClose}
-        >
-            <motion.div
-                className={styles.modal} // Основной блок модалки
-                initial={initialPosition}
-                animate={{ x: 0, y: 0 }}
-                exit={exitPosition}
-                transition={{ duration: 0.3 }}
-                onClick={(e) => e.stopPropagation()} // Чтобы клик внутри модалки не закрывал
-            >
-                <div className={styles.modalHeader}>
-                    <span className={styles.modalTitle}>{title}</span>
-                    <Icon Svg={CloseIcon} width={20} height={20} onClick={onClose} />
-                </div>
-                <div className={styles.modalContainer}>
-                    <div className={styles.modalContent} style={currentTypeDoc === 'type_doc_RP_questionnairy' ? { overflowY: 'auto' } : {}}>{children}</div>
-                </div>
-            </motion.div>
-        </motion.div >,
-        modalRoot
-    );
-};
+import { PreviewModal } from "../PreviewModal/PreviewModal";
+import EDSPdf from "shared/assets/documents/EDS.pdf?url";
+import Broker from "shared/assets/documents/Broker.pdf?url";
+import IS from "shared/assets/documents/IS.pdf?url";
+import PersonalPolicy from "shared/assets/documents/PersonalPolicy.pdf?url";
+import RiskDeclaration from "shared/assets/documents/RiskDeclaration.pdf?url";
+import RiskProfile from "shared/assets/documents/RiskProfile.pdf?url";
+import Profile from "shared/assets/documents/Profile.pdf?url";
 
 export const ConfirmAllDocs: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -130,12 +50,9 @@ export const ConfirmAllDocs: React.FC = () => {
     const currentIndex = docTypes.findIndex((d) => d === currentTypeDoc);
     const totalDocs = docTypes.length;
 
-    // State для открытия/закрытия превью-модалки
-    const [isPreviewOpen, setPreviewOpen] = useState(false);
-
-    // Открыть/закрыть превью
-    const handleOpenPreview = () => setPreviewOpen(true);
-    const handleClosePreview = () => setPreviewOpen(false);
+    const handleOpenPreview = () => {
+        dispatch(openModal({ type: ModalType.PREVIEW, size: ModalSize.MIDDLE, animation: ModalAnimation.LEFT }));
+    };
 
     // Formik (пример)
     const formik = useFormik({
@@ -213,29 +130,19 @@ export const ConfirmAllDocs: React.FC = () => {
     const renderDocPreviewContent = () => {
         switch (currentTypeDoc) {
             case "type_doc_passport":
-                return <div>Здесь превью паспорта (сканы и т.д.)</div>;
-
+                return <RiskProfileAllData />;
+            case "type_doc_RP_questionnairy":
+                return <PdfViewer fileUrl={RiskProfile} />;
             case "type_doc_EDS_agreement":
                 return <PdfViewer fileUrl={EDSPdf} />;
-
-            case "type_doc_RP_questionnairy":
-                return <RiskProfileAllData />;
-
             case "type_doc_agreement_investment_advisor":
-                return <div>Содержимое соглашения с инвест. советником</div>;
-
+                return <PdfViewer fileUrl={IS} />;
             case "type_doc_risk_declarations":
-                return <div>Содержимое декларации рисков</div>;
-
+                return <PdfViewer fileUrl={RiskDeclaration} />;
             case "type_doc_agreement_personal_data_policy":
-                return <div>Политика в отношении персональных данных</div>;
-
+                return <PdfViewer fileUrl={PersonalPolicy} />;
             case "type_doc_investment_profile_certificate":
-                return <div>Сертификат инвест. профиля</div>;
-
-            case "type_doc_IP":
-                return <div>Содержимое документа IP</div>;
-
+                return <PdfViewer fileUrl={Profile} />;
             default:
                 return <div>Неизвестный документ. Нет превью.</div>;
         }
@@ -324,15 +231,7 @@ export const ConfirmAllDocs: React.FC = () => {
                 </div>
             </div>
 
-            {/* Модалка превью документа (фреймер-мошн слева) */}
-            <PreviewModal
-                isOpen={isPreviewOpen}
-                onClose={handleClosePreview}
-                title={renderDocLabel()}
-            >
-                {/* Сам контент превью в зависимости от текущего типа документа */}
-                {renderDocPreviewContent()}
-            </PreviewModal>
+            <PreviewModal title={renderDocLabel()} content={renderDocPreviewContent()} />
 
             {/* Модалка подтверждения (подписания) документа */}
             <ConfirmDocsModal

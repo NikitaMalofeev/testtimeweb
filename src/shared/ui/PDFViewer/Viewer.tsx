@@ -33,7 +33,7 @@ interface PdfViewerProps {
 
 export const PdfViewerrr: React.FC<PdfViewerProps> = ({ base64, style, className }) => {
     const blob = base64toBlob(base64);
-    const pdfUrl = URL.createObjectURL(blob);
+    const pdfUrl = blob ? URL.createObjectURL(blob) : "";
 
     useEffect(() => {
         console.log("Base64:", base64);

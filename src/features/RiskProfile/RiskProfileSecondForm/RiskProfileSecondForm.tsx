@@ -58,15 +58,26 @@ export const RiskProfileSecondForm: React.FC = () => {
     const debouncedPostForm = useCallback(
         debounce((values) => {
             handleGetNewPercentage(values)
-        }, 500), // 500 мс задержка
+        }, 500),
         [dispatch]
     );
 
     useEffect(() => {
         if (formik.values.amount_expected_replenishment && formik.values.portfolio_parameters) {
-            debouncedPostForm(formik.values);
+            debouncedPostForm({
+                amount_expected_replenishment: formik.values.amount_expected_replenishment,
+                portfolio_parameters: formik.values.portfolio_parameters
+            });
         }
-    }, [formik.values, debouncedPostForm]);
+    }, [formik.values.amount_expected_replenishment, formik.values.portfolio_parameters, debouncedPostForm]);
+
+    useEffect(() => {
+        if (!formik.values.portfolio_parameters && secondRiskProfileData?.recommended_risk_profiles) {
+            const firstKey = Object.keys(secondRiskProfileData.recommended_risk_profiles)[0] || '';
+            formik.setFieldValue('portfolio_parameters', firstKey);
+        }
+    }, [secondRiskProfileData]);
+
 
     const finalRiskProfileOptions = Object.entries(secondRiskProfileData?.recommended_risk_profiles || {}).map(
         ([key, value]) => ({
@@ -79,8 +90,8 @@ export const RiskProfileSecondForm: React.FC = () => {
 
     const handleGetNewPercentage = (values: SecondRiskProfilePayload) => {
         dispatch(postSecondRiskProfileForm({
-            amount_expected_replenishment: formik.values.amount_expected_replenishment,
-            portfolio_parameters: formik.values.portfolio_parameters,
+            amount_expected_replenishment: values.amount_expected_replenishment,
+            portfolio_parameters: values.portfolio_parameters,
         }));
     };
 
@@ -194,6 +205,7 @@ export const RiskProfileSecondForm: React.FC = () => {
                                 // e.target.value здесь будет строка из массива discreteValues
                                 formik.setFieldValue("portfolio_parameters", e.target.value);
                             }}
+                            onBlur={formik.handleBlur}
                         />
                     </div>
                 </div>

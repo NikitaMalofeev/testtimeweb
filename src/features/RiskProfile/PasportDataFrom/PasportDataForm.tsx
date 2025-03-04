@@ -10,7 +10,7 @@ import { RootState } from "app/providers/store/config/store";
 import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { Checkbox } from "shared/ui/Checkbox/Checkbox";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
-import { closeModal, openModal, setCurrentConfirmModalType } from "entities/ui/Modal/slice/modalSlice";
+import { closeModal, openModal, setCurrentConfirmModalType, setCurrentConfirmModalType2 } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { ConfirmDocsModal } from "../ConfirmDocsModal/ConfirmDocsModal";
 
@@ -26,10 +26,10 @@ export const PasportDataForm: React.FC = () => {
     const formik = useFormik({
         initialValues: {
             g_recaptcha: "",
-            type_message: "email",
+            type_message: "EMAIL",
             gender: userPersonalAccount?.gender,
             first_name: userPersonalAccount?.first_name,
-            middle_name: userPersonalAccount?.last_name,
+            last_name: userPersonalAccount?.last_name,
             patronymic: userPersonalAccount?.patronymic,
             birth_date: "",
             birth_place: "",
@@ -57,9 +57,9 @@ export const PasportDataForm: React.FC = () => {
     });
 
     const messageTypeOptions = {
-        "phone": 'SMS',
-        "email": 'Email',
-        "whatsapp": 'Whatsapp'
+        "SMS": 'SMS',
+        "EMAIL": 'Email',
+        "WHATSAPP": 'Whatsapp'
     }
 
     const GenderOptions = {
@@ -74,6 +74,10 @@ export const PasportDataForm: React.FC = () => {
             }
         }))
     }
+
+    useEffect(() => {
+        console.log(userPersonalAccount)
+    }, [userPersonalAccount])
 
 
     const handleTextInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -141,9 +145,9 @@ export const PasportDataForm: React.FC = () => {
         setCaptchaVerified(!!value);
     };
 
-    const handleMethodChange = (method: 'phone' | 'email' | 'whatsapp') => {
+    const handleMethodChange = (method: 'SMS' | 'EMAIL' | 'WHATSAPP') => {
         formik.setFieldValue("type_message", `${method}`)
-        dispatch(setCurrentConfirmModalType(method))
+        dispatch(setCurrentConfirmModalType2(method))
         // Сбрасываем капчу и статус верификации
         setCaptchaVerified(false);
         formik.setFieldValue("g_recaptcha", "");
@@ -154,10 +158,10 @@ export const PasportDataForm: React.FC = () => {
     return (
         <>
             <form onSubmit={formik.handleSubmit} className={styles.form}>
-                <Input placeholder="Фамилия" name="middle_name" type="text" value={formik.values.patronymic || ''} onChange={handleTextInputChange} needValue />
+                <Input placeholder="Фамилия" name="last_name" type="text" value={formik.values.last_name || ''} onChange={handleTextInputChange} needValue />
                 <Input placeholder="Имя" name="first_name" type="text" value={formik.values.first_name || ''} onChange={handleTextInputChange} needValue />
 
-                <Input placeholder="Отчество" name="last_name" type="text" value={formik.values.middle_name || ''} onChange={handleTextInputChange} needValue />
+                <Input placeholder="Отчество" name="patronymic" type="text" value={formik.values.patronymic || ''} onChange={handleTextInputChange} needValue />
                 <CheckboxGroup
                     name='gender'
                     label="Пол"
@@ -252,7 +256,7 @@ export const PasportDataForm: React.FC = () => {
                             }))}
                             value={formik.values.type_message}
                             onChange={(name, selectedValue) => {
-                                handleMethodChange(selectedValue as 'phone' | 'email' | 'whatsapp');
+                                handleMethodChange(selectedValue as 'SMS' | 'EMAIL' | 'WHATSAPP');
                             }}
                         />
 

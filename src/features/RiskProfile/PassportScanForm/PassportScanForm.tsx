@@ -315,7 +315,7 @@ export const PasportScanForm: React.FC = () => {
 
                             <div className={styles.uploadBlock__text}>
                                 перенесите изображение или <span>нажмите для загрузки</span> <br />
-                                PNG/JPG/PDF, не более 4 Мбайт
+                                PNG/JPG/PDF, не более 5 Мбайт
                             </div>
                         </div>
                     </div>
@@ -369,7 +369,7 @@ export const PasportScanForm: React.FC = () => {
                             </div>
                             <div className={styles.uploadBlock__text}>
                                 перенесите изображение или <span>нажмите для загрузки</span> <br />
-                                PNG/JPG/PDF, не более 4 Мбайт
+                                PNG/JPG/PDF, не более 5 Мбайт
                             </div>
                         </div>
                     </div>

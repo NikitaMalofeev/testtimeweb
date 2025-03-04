@@ -293,17 +293,17 @@ export const RiskProfileFirstForm: React.FC = () => {
                     <Select
                         needValue={false}
                         label="Вид на жительство"
-                        value={formik.values.residence_permit || ""}
+                        value={formik.values.citizenship_including_residence_permit || ""}
                         title="Выберите статус"
                         items={countryOptions}
                         onChange={(selectedVal) => {
                             formik.setFieldValue(
-                                "residence_permit",
+                                "citizenship_including_residence_permit",
                                 selectedVal
                             );
                             dispatch(
                                 updateFieldValue({
-                                    name: "residence_permit",
+                                    name: "citizenship_including_residence_permit",
                                     value: selectedVal,
                                 })
                             );

@@ -52,7 +52,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, title, chi
     }
 
     // Запрещаем прокрутку фона, пока модалка открыта
-    React.useEffect(() => {
+    useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = "hidden";
         }
@@ -62,7 +62,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onClose, title, chi
     }, [isOpen]);
 
     // Закрываем по ESC
-    React.useEffect(() => {
+    useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === "Escape" && isOpen) {
                 onClose();
@@ -114,7 +114,12 @@ export const ConfirmAllDocs: React.FC = () => {
     const currentTypeDoc = useSelector(
         (state: RootState) => state.documents.currentConfirmableDoc
     );
+    const [currentTimeout, setCurrentTimeout] = useState(0)
 
+
+    const timeoutBetweenConfirmation = useSelector(
+        (state: RootState) => state.documents.timeoutBetweenConfirmation
+    );
     const messageTypeOptions = {
         "SMS": 'SMS',
         "EMAIL": 'Email',
@@ -160,6 +165,26 @@ export const ConfirmAllDocs: React.FC = () => {
             );
         },
     });
+
+    useEffect(() => {
+        setCurrentTimeout(timeoutBetweenConfirmation);
+    }, [timeoutBetweenConfirmation]);
+
+    useEffect(() => {
+        if (currentTimeout > 0) {
+            const interval = setInterval(() => {
+                setCurrentTimeout((prev) => {
+                    if (prev <= 1) {
+                        clearInterval(interval);
+                        return 0
+                    }
+                    return prev - 1
+                });
+            }, 1000);
+
+            return () => clearInterval(interval);
+        }
+    }, [currentTimeout]);
 
     useEffect(() => {
         if (currentTypeDoc) {
@@ -291,9 +316,9 @@ export const ConfirmAllDocs: React.FC = () => {
                         onClick={() => formik.handleSubmit()}
                         theme={ButtonTheme.BLUE}
                         className={styles.button}
-                        disabled={!formik.values.is_agree}
+                        disabled={!formik.values.is_agree || currentTimeout > 0}
                     >
-                        Подписать
+                        {!currentTimeout ? 'Подписать' : `(${currentTimeout})`}
                     </Button>
 
                 </div>

@@ -64,7 +64,7 @@ export const createRiskProfile = createAsyncThunk<
         try {
             const response = await postIdentificationData(data);
             const { id, token, is_active } = response;
-            dispatch(setUserIsActive(is_active))
+            dispatch(setUserIsActive(is_active));
             dispatch(setUserId(id));
             dispatch(setUserToken(token));
         } catch (error: any) {

@@ -3,6 +3,7 @@ import { ModalType, ModalSize, ModalAnimation, ModalState, ModalStateItem } from
 
 interface ExtendedModalState extends ModalState {
     confirmationMethod: 'phone' | 'email' | 'whatsapp';
+    confirmationMethod2: 'SMS' | 'EMAIL' | 'WHATSAPP';
     selectedCountry: string; // Добавляем поле для хранения выбранной страны
 }
 
@@ -38,6 +39,7 @@ const initialState: ExtendedModalState = {
         isScrolled: false
     },
     confirmationMethod: 'phone',
+    confirmationMethod2: 'EMAIL',
     selectedCountry: "", // Начальное состояние для выбранной страны
 };
 
@@ -55,6 +57,9 @@ const modalSlice = createSlice({
 
         setCurrentConfirmModalType: (state, action: PayloadAction<'phone' | 'email' | 'whatsapp'>) => {
             state.confirmationMethod = action.payload;
+        },
+        setCurrentConfirmModalType2: (state, action: PayloadAction<'SMS' | 'EMAIL' | 'WHATSAPP'>) => {
+            state.confirmationMethod2 = action.payload;
         },
 
         closeModal: (state, action: PayloadAction<ModalType>) => {
@@ -86,6 +91,7 @@ export const {
     closeModal,
     setModalScrolled,
     setCurrentConfirmModalType,
+    setCurrentConfirmModalType2,
     setSelectedCountry,
     closeAllModals,
     // Экспортируем экшен для открытия селекта

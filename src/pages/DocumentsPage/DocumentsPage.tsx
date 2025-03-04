@@ -33,6 +33,12 @@ import { PDFInfo, PDFPreview, PDFDownloadButton } from 'react-base64-to-pdf';
 import DocsImage from "shared/assets/svg/docsImage.svg";
 import CloseIcon from "shared/assets/svg/close.svg";
 import EDSPdf from "shared/assets/documents/EDS.pdf";
+import Broker from "shared/assets/documents/Broker.pdf";
+import IS from "shared/assets/documents/IS.pdf";
+import PersonalPolicy from "shared/assets/documents/PersonalPolicy.pdf";
+import RiskDeclaration from "shared/assets/documents/RiskDeclaration.pdf";
+import RiskProfile from "shared/assets/documents/RiskProfile.pdf";
+import Profile from "shared/assets/documents/Profile.pdf";
 import BackIcon from "shared/assets/svg/ArrowBack.svg";
 import SuccessBlueIcon from "shared/assets/svg/SuccessBlueIcon.svg";
 import DownloadIcon from "shared/assets/svg/DownloadDocument.svg";
@@ -86,32 +92,31 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
     // В зависимости от типа документа отображаем соответствующий контент
     const renderDocPreviewContent = (docType: string | null) => {
         switch (docType) {
-            case "type_doc_passport":
-                return <div>Здесь превью паспорта (сканы и т.д.)</div>;
-
-            // case "type_doc_EDS_agreement":
-            //     return <PdfViewer fileUrl={EDSPdf} />;
-            case "type_doc_EDS_agreement":
-                return <PdfViewerrr base64={mockpdf} style={{ width: '100vw', height: '100vh' }} className="yourClassNameGoesHere" />;
-
-
             case "type_doc_RP_questionnairy":
+                return <PdfViewer fileUrl={RiskProfile} />;
+            case "type_doc_passport":
                 return <RiskProfileAllData />;
 
+            case "type_doc_EDS_agreement":
+                return <PdfViewer fileUrl={EDSPdf} />;
+            // case "type_doc_EDS_agreement":
+            //     return <PdfViewerrr base64={mockpdf} style={{ width: '100vw', height: '100vh' }} className="yourClassNameGoesHere" />;
+
+            // case "type_doc_RP_questionnairy":
+            //     return <RiskProfileAllData />;
+
             case "type_doc_agreement_investment_advisor":
-                return <div>Содержимое соглашения с инвест. советником</div>;
+                return <PdfViewer fileUrl={IS} />;
 
             case "type_doc_risk_declarations":
-                return <div>Содержимое декларации рисков</div>;
+                return <PdfViewer fileUrl={RiskDeclaration} />;
 
             case "type_doc_agreement_personal_data_policy":
-                return <div>Политика в отношении персональных данных</div>;
+                return <PdfViewer fileUrl={PersonalPolicy} />;
 
             case "type_doc_investment_profile_certificate":
-                return <div>Сертификат инвест. профиля</div>;
+                return <PdfViewer fileUrl={Profile} />;
 
-            case "type_doc_IP":
-                return <div>Содержимое документа IP</div>;
 
             default:
                 return <div>Неизвестный документ. Нет превью.</div>;
@@ -332,6 +337,7 @@ const DocumentsPage: React.FC = () => {
                                             // Можно отключать кнопку,
                                             // если это не первый неподписанный документ:
                                             doc.id !== firstNotConfirmed
+                                            // false
                                         }
                                         className={doc.colorClass}
                                         theme={ButtonTheme.BLUE}

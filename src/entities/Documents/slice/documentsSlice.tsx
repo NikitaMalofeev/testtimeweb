@@ -47,6 +47,7 @@ interface DocumentsState {
     confirmationMethod: string;
     // Заменяем notConfirmedDocuments (string[]) на хранение всего массива:
     userDocuments: DocumentConfirmationInfo[];
+    timeoutBetweenConfirmation: number;
 }
 
 const initialState: DocumentsState = {
@@ -55,6 +56,7 @@ const initialState: DocumentsState = {
     success: false,
     currentConfirmableDoc: docTypes[0],
     confirmationMethod: 'EMAIL',
+    timeoutBetweenConfirmation: 10,
     userDocuments: [] // теперь тут храним объекты
 };
 
@@ -78,6 +80,7 @@ export const confirmDocsRequestThunk = createAsyncThunk<
                     { type_message, type_document, is_agree },
                     token
                 );
+                dispatch(setTimeoutBetweenConfirmation(responseDocs.timeinterval_sms))
                 onSuccess?.();
                 return responseDocs;
             }
@@ -111,6 +114,7 @@ export const sendDocsConfirmationCode = createAsyncThunk<
                 );
                 onSuccess?.(responseDocs);
                 dispatch(setCurrentConfirmableDoc(responseDocs.next_document));
+
             }
         } catch (error: any) {
             dispatch(setConfirmationDocsSuccess("не пройдено"));
@@ -165,6 +169,9 @@ export const documentsSlice = createSlice({
         setUserDocuments(state, action: PayloadAction<DocumentConfirmationInfo[]>) {
             state.userDocuments = action.payload;
         },
+        setTimeoutBetweenConfirmation(state, action: PayloadAction<number>) {
+            state.timeoutBetweenConfirmation = action.payload;
+        },
         nextDocType(state) {
             const currentIndex = docTypes.findIndex(
                 (doc) => doc === state.currentConfirmableDoc
@@ -201,6 +208,7 @@ export const {
     setCurrentConfirmationMethod,
     setUserDocuments,
     nextDocType,
+    setTimeoutBetweenConfirmation
 } = documentsSlice.actions;
 
 export default documentsSlice.reducer;

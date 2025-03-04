@@ -157,7 +157,7 @@ export const PasportDataForm: React.FC = () => {
 
     return (
         <>
-            <form onSubmit={formik.handleSubmit} className={styles.form}>
+            <form className={styles.form}>
                 <Input placeholder="Фамилия" name="last_name" type="text" value={formik.values.last_name || ''} onChange={handleTextInputChange} needValue />
                 <Input placeholder="Имя" name="first_name" type="text" value={formik.values.first_name || ''} onChange={handleTextInputChange} needValue />
 

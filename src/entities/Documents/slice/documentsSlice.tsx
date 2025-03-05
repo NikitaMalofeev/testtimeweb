@@ -3,7 +3,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "app/providers/store/config/store";
 import { ConfirmDocsPayload } from "../types/documentsTypes";
-import { confirmDocsRequest, getDocumentsState } from "../api/documentsApi";
+import { confirmDocsRequest, getDocumentsNotSigned, getDocumentsState } from "../api/documentsApi";
 import { setCurrentConfirmingDoc } from "entities/RiskProfile/slice/riskProfileSlice";
 import { setConfirmationDocsSuccess } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
@@ -48,6 +48,7 @@ interface DocumentsState {
     // Заменяем notConfirmedDocuments (string[]) на хранение всего массива:
     userDocuments: DocumentConfirmationInfo[];
     timeoutBetweenConfirmation: number;
+    allNotSignedDocumentsHtml: Record<string, string> | null;
 }
 
 const initialState: DocumentsState = {
@@ -57,6 +58,7 @@ const initialState: DocumentsState = {
     currentConfirmableDoc: docTypes[0],
     confirmationMethod: 'EMAIL',
     timeoutBetweenConfirmation: 0,
+    allNotSignedDocumentsHtml: null,
     userDocuments: [] // теперь тут храним объекты
 };
 
@@ -155,6 +157,33 @@ export const getUserDocumentsStateThunk = createAsyncThunk<
     }
 );
 
+export const getUserDocumentsNotSignedThunk = createAsyncThunk<
+    void,
+    void,
+    { rejectValue: string; state: RootState }
+>(
+    "documents/getUserDocumentsStateThunk",
+    async (_, { getState, dispatch, rejectWithValue }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+            const response = await getDocumentsNotSigned(token);
+
+            const documents = response.not_signed_documents_htmls;
+            console.log(response)
+            dispatch(setNotSignedDocumentsHtmls(documents));
+        } catch (error: any) {
+            console.log(error);
+            const msg =
+                error.response?.data?.errorText ||
+                "Ошибка при отправке кода (непредвиденная)";
+            dispatch(setError(msg));
+        }
+    }
+);
+
 export const documentsSlice = createSlice({
     name: "documents",
     initialState,
@@ -172,6 +201,10 @@ export const documentsSlice = createSlice({
         setTimeoutBetweenConfirmation(state, action: PayloadAction<number>) {
             state.timeoutBetweenConfirmation = action.payload;
         },
+        setNotSignedDocumentsHtmls(state, action: PayloadAction<Record<string, string>>) {
+            state.allNotSignedDocumentsHtml = action.payload;
+        },
+
         nextDocType(state) {
             const currentIndex = docTypes.findIndex(
                 (doc) => doc === state.currentConfirmableDoc
@@ -208,7 +241,8 @@ export const {
     setCurrentConfirmationMethod,
     setUserDocuments,
     nextDocType,
-    setTimeoutBetweenConfirmation
+    setTimeoutBetweenConfirmation,
+    setNotSignedDocumentsHtmls
 } = documentsSlice.actions;
 
 export default documentsSlice.reducer;

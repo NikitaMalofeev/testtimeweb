@@ -15,6 +15,7 @@ import {
     confirmDocsRequestThunk,
     setCurrentConfirmableDoc,
     getUserDocumentsStateThunk,
+    getUserDocumentsNotSignedThunk,
     // Удалён старый setNotConfirmedDocuments
 } from "entities/Documents/slice/documentsSlice";
 
@@ -43,9 +44,11 @@ const DocumentsPage: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const modalPreviewState = useSelector((state: RootState) => state.modal.documentsPreview)
+    const { userDocuments, loading } = useSelector((state: RootState) => state.documents);
 
     useEffect(() => {
         dispatch(getUserDocumentsStateThunk());
+        dispatch(getUserDocumentsNotSignedThunk())
     }, [dispatch]);
 
     const isAnyModalOpen = useSelector(selectIsAnyModalOpen);
@@ -71,8 +74,7 @@ const DocumentsPage: React.FC = () => {
         }
     }, [modalPreviewState.isOpen, isAnyModalOpen]);
 
-    // Теперь в стейте у нас есть массив userDocuments (key, date_last_confirmed).
-    const { userDocuments, loading } = useSelector((state: RootState) => state.documents);
+
 
     // Лейблы для отображения
     const docTypeLabels: Record<string, string> = {

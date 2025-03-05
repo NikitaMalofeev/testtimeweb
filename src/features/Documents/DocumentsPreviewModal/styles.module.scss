@@ -44,7 +44,10 @@
   }
   
   .modalContent {
+    padding: 10px 20px;
+    overflow-y: auto;
     height: 100%;
+    max-width: 100dvw;
     background-color: white;
     flex: 1;
     // overflow-y: auto; /* Чтобы прокручивался контент внутри модалки */

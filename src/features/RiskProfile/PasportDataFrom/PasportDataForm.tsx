@@ -274,7 +274,7 @@ export const PasportDataForm: React.FC = () => {
                     </div>
                 </div>
             </form >
-            <ConfirmDocsModal isOpen={modalState.confirmDocsModal.isOpen} onClose={() => { dispatch(closeModal(ModalType.CONFIRM_DOCS)) }} docsType="type_doc_passport" />
+            <ConfirmDocsModal lastData={{ type_message: formik.values.type_message, type_document: 'type_doc_passport', is_agree: formik.values.g_recaptcha.length > 0 }} isOpen={modalState.confirmDocsModal.isOpen} onClose={() => { dispatch(closeModal(ModalType.CONFIRM_DOCS)) }} docsType="type_doc_passport" />
         </>
     );
 };

@@ -188,17 +188,17 @@ export const getUserDocumentsNotSignedThunk = createAsyncThunk<
 
 export const getUserDocumentsSignedThunk = createAsyncThunk<
     void,
-    void,
+    { type_document: string },
     { rejectValue: string; state: RootState }
 >(
     "documents/getUserDocumentsSignedThunk",
-    async (_, { getState, dispatch, rejectWithValue }) => {
+    async ({ type_document }, { getState, dispatch, rejectWithValue }) => {
         try {
             const token = getState().user.token;
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");
             }
-            const response = await getDocumentsSigned(token);
+            const response = await getDocumentsSigned(type_document, token);
 
             const documents = response.signed_documents;
             console.log(response)

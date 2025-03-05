@@ -16,6 +16,7 @@ import {
     setCurrentConfirmableDoc,
     getUserDocumentsStateThunk,
     getUserDocumentsNotSignedThunk,
+    getUserDocumentsSignedThunk,
     // Удалён старый setNotConfirmedDocuments
 } from "entities/Documents/slice/documentsSlice";
 
@@ -188,9 +189,11 @@ const DocumentsPage: React.FC = () => {
     const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
 
     const handleOpenPreview = (docId: string) => {
+        dispatch(getUserDocumentsSignedThunk({ type_document: docId }))
         setSelectedDocId(docId);
         dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
     };
+
     const handleClosePreview = () => {
         setSelectedDocId(null);
         setTimeout(() => {
@@ -219,14 +222,17 @@ const DocumentsPage: React.FC = () => {
                                 <span className={styles.document__info__title}>{doc.title}</span>
                                 <div className={styles.document__info__flex}>
                                     {/* Кнопка "Просмотр" => открывает превью */}
-                                    <Button
-                                        className={styles.document__preview}
-                                        theme={ButtonTheme.UNDERLINE}
-                                        onClick={() => handleOpenPreview(doc.id)}
-                                    >
-                                        Просмотр
-                                    </Button>
-                                    {doc.status === "signed" ? <Icon Svg={DownloadIcon} width={33} height={33} /> : ''}
+
+                                    {doc.status === "signed" ? <>
+                                        <Button
+                                            className={styles.document__preview}
+                                            theme={ButtonTheme.UNDERLINE}
+                                            onClick={() => handleOpenPreview(doc.id)}
+                                        >
+                                            Просмотр
+                                        </Button>
+                                        <Icon Svg={DownloadIcon} width={33} height={33} />
+                                    </> : ''}
 
                                 </div>
                             </div>

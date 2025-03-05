@@ -6,7 +6,7 @@ import footerSocialRnks from 'shared/assets/svg/footerSocialRnks.svg'
 import footerSocialTelegram from 'shared/assets/svg/footerSocialTelegram.svg'
 import footerSocialVK from 'shared/assets/svg/footerSocialVK.svg'
 import footerSocialYT from 'shared/assets/svg/footerSocialYT.svg'
-import footerEagle from 'shared/assets/svg/footerEagle.svg'
+import footerEagle from 'shared/assets/svg/FooterEagle.svg'
 import footerDocument from 'shared/assets/svg/footerDocument.svg'
 
 export const Footer = () => {

@@ -33,3 +33,13 @@ export const getDocumentsNotSigned = async (token: string) => {
     });
     return response.data;
 };
+
+export const getDocumentsSigned = async (token: string) => {
+    const response = await axios.get(`${apiUrl}create_doc_user/get_signed_document/`, {
+        headers: {
+            "Accept-Language": "ru",
+            "Authorization": `Token ${token}`
+        },
+    });
+    return response.data;
+};

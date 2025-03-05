@@ -113,7 +113,7 @@ const AuthorizationPage = () => {
                             needValue
                         />
 
-                        <span className={styles.forgotPassword}>Не помню пароль</span>
+                        {/* <span className={styles.forgotPassword}>Не помню пароль</span> */}
 
                         <Button
                             type="button"

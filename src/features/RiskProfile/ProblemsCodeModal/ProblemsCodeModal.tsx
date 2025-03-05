@@ -21,7 +21,9 @@ export const ProblemsCodeModal = memo(({ isOpen, onClose }: ConfirmInfoModalProp
     const dispatch = useAppDispatch();
     const modalState = useSelector((state: RootState) => state.modal);
     const { phone, email } = useSelector((state: RootState) => state.user.user);
-    const userId = useSelector((state: RootState) => state.user.userId);
+    const token = useSelector((state: RootState) => state.user.token);
+
+    const currentProblemScreen = useSelector((state: RootState) => state.modal.currentProblemScreen)
 
     const [checkboxes, setCheckboxes] = useState({
         is_phone_code_not_received: false,
@@ -41,14 +43,13 @@ export const ProblemsCodeModal = memo(({ isOpen, onClose }: ConfirmInfoModalProp
     };
 
     const handleSubmit = () => {
-        if (!userId) {
+        if (!token) {
             console.error("User ID отсутствует");
             return;
         }
 
         const requestData: ProblemsRequestData = {
-            user_id: userId,
-            screen: 'code_confirmation',
+            screen: currentProblemScreen ? currentProblemScreen : 'identification',
             email,
             phone,
             is_phone_code_not_received: checkboxes.is_phone_code_not_received,
@@ -80,12 +81,14 @@ export const ProblemsCodeModal = memo(({ isOpen, onClose }: ConfirmInfoModalProp
                     onChange={() => handleCheckboxChange("is_phone_code_not_received")}
                     label={<span>Не приходит код на телефон</span>}
                 />
+
                 <Checkbox
                     name="whatsappCode"
                     value={checkboxes.is_email_code_not_received}
                     onChange={() => handleCheckboxChange("is_email_code_not_received")}
                     label={<span>Не приходит код на почту</span>}
                 />
+
                 <Checkbox
                     name="invalidCode"
                     value={checkboxes.is_invalid_code_received}

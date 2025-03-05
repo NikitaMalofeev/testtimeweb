@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export interface ProblemsRequestData {
-    user_id: string;
+    user_id?: string;
     screen: string;
     email: string;
     phone: string;

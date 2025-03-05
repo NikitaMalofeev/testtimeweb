@@ -19,6 +19,7 @@ import { RootState } from "app/providers/store/config/store";
 import {
     closeModal,
     openModal,
+    setCurrentProblemScreen,
     setModalScrolled
 } from "entities/ui/Modal/slice/modalSlice";
 import {
@@ -32,16 +33,18 @@ import {
     setConfirmationDocsSuccess,
     setStepAdditionalMenuUI
 } from "entities/ui/Ui/slice/uiSlice";
-import { docTypes, nextDocType, sendDocsConfirmationCode } from "entities/Documents/slice/documentsSlice";
+import { confirmDocsRequestThunk, docTypes, nextDocType, sendDocsConfirmationCode } from "entities/Documents/slice/documentsSlice";
+import { ConfirmDocsPayload } from "entities/Documents/types/documentsTypes";
 
 interface ConfirmInfoModalProps {
     isOpen: boolean;
     onClose: () => void;
     docsType?: string;
+    lastData: ConfirmDocsPayload;
 }
 
 export const ConfirmDocsModal = memo(
-    ({ isOpen, onClose, docsType }: ConfirmInfoModalProps) => {
+    ({ isOpen, onClose, docsType, lastData }: ConfirmInfoModalProps) => {
         const dispatch = useAppDispatch();
         const modalState = useSelector((state: RootState) => state.modal);
 
@@ -167,9 +170,8 @@ export const ConfirmDocsModal = memo(
 
         // Повторная отправка кода
         const handleResetPhoneTimer = () => {
-            if (!userId) return;
             dispatch(
-                resendConfirmationCode({ user_id: userId, method: confirmationMethod })
+                confirmDocsRequestThunk({ data: lastData, onSuccess: () => { } })
             );
             setPhoneTimeLeft(60);
             setPhoneTimerActive(true);
@@ -313,6 +315,7 @@ export const ConfirmDocsModal = memo(
                         <Button
                             theme={ButtonTheme.UNDERLINE}
                             onClick={() => {
+                                dispatch(setCurrentProblemScreen(docsType))
                                 dispatch(
                                     openModal({
                                         type: ModalType.PROBLEM_WITH_CODE,

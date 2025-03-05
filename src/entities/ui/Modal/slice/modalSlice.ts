@@ -4,7 +4,8 @@ import { ModalType, ModalSize, ModalAnimation, ModalState, ModalStateItem } from
 interface ExtendedModalState extends ModalState {
     confirmationMethod: 'phone' | 'email' | 'whatsapp';
     confirmationMethod2: 'SMS' | 'EMAIL' | 'WHATSAPP';
-    selectedCountry: string; // Добавляем поле для хранения выбранной страны
+    selectedCountry: string;
+    currentProblemScreen: string | undefined;
 }
 
 const initialState: ExtendedModalState = {
@@ -47,7 +48,8 @@ const initialState: ExtendedModalState = {
     [ModalType.PREVIEW]: { isOpen: false, size: ModalSize.FULL, animation: ModalAnimation.LEFT, isScrolled: false },
     confirmationMethod: 'phone',
     confirmationMethod2: 'EMAIL',
-    selectedCountry: "", // Начальное состояние для выбранной страны
+    selectedCountry: "",
+    currentProblemScreen: ''
 };
 
 const modalSlice = createSlice({
@@ -83,6 +85,9 @@ const modalSlice = createSlice({
         setSelectedCountry: (state, action: PayloadAction<string>) => {
             state.selectedCountry = action.payload;
         },
+        setCurrentProblemScreen: (state, action: PayloadAction<string | undefined>) => {
+            state.currentProblemScreen = action.payload;
+        },
         closeAllModals: (state) => {
             Object.values(ModalType).forEach((type) => {
                 if (state[type]) {
@@ -101,6 +106,7 @@ export const {
     setCurrentConfirmModalType2,
     setSelectedCountry,
     closeAllModals,
+    setCurrentProblemScreen,
     // Экспортируем экшен для открытия селекта
 } = modalSlice.actions;
 

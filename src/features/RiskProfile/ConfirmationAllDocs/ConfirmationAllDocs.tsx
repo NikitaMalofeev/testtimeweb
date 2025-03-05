@@ -25,6 +25,7 @@ import PersonalPolicy from "shared/assets/documents/PersonalPolicy.pdf?url";
 import RiskDeclaration from "shared/assets/documents/RiskDeclaration.pdf?url";
 import RiskProfile from "shared/assets/documents/RiskProfile.pdf?url";
 import Profile from "shared/assets/documents/Profile.pdf?url";
+import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/DocumentPreviewModal";
 
 export const ConfirmAllDocs: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -35,6 +36,7 @@ export const ConfirmAllDocs: React.FC = () => {
         (state: RootState) => state.documents.currentConfirmableDoc
     );
     const [currentTimeout, setCurrentTimeout] = useState(0)
+    const modalState = useSelector((state: RootState) => state.modal.documentsPreview)
 
 
     const timeoutBetweenConfirmation = useSelector(
@@ -51,7 +53,7 @@ export const ConfirmAllDocs: React.FC = () => {
     const totalDocs = docTypes.length;
 
     const handleOpenPreview = () => {
-        dispatch(openModal({ type: ModalType.PREVIEW, size: ModalSize.MIDDLE, animation: ModalAnimation.LEFT }));
+        dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW, size: ModalSize.FULL, animation: ModalAnimation.LEFT }));
     };
 
     // Formik (пример)
@@ -233,7 +235,9 @@ export const ConfirmAllDocs: React.FC = () => {
                 </div>
             </div>
 
-            <PreviewModal title={renderDocLabel()} content={renderDocPreviewContent()} />
+            <DocumentPreviewModal isOpen={modalState.isOpen} onClose={() => {
+                dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW))
+            }} title={renderDocLabel()} docId={currentTypeDoc} />
 
             {/* Модалка подтверждения (подписания) документа */}
             <ConfirmDocsModal
@@ -242,6 +246,7 @@ export const ConfirmAllDocs: React.FC = () => {
                     dispatch(closeModal(ModalType.CONFIRM_DOCS));
                 }}
                 docsType={currentTypeDoc}
+                lastData={formik.values}
             />
         </>
     );

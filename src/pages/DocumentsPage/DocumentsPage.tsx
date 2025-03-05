@@ -40,16 +40,20 @@ import mockpdf from 'shared/ui/PDFViewer/mockpdf.txt?raw'
 import styles from "./styles.module.scss";
 import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/DocumentPreviewModal";
 import { selectIsAnyModalOpen } from "entities/ui/Modal/selectors/selectorsModals";
+import { getAllUserInfoThunk } from "entities/User/slice/userSlice";
 
 const DocumentsPage: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const modalPreviewState = useSelector((state: RootState) => state.modal.documentsPreview)
     const { userDocuments, loading } = useSelector((state: RootState) => state.documents);
+    const isPasportFilled = useSelector((state: RootState) => state.user.allUserDataForDocuments?.address_residential_apartment);
+    const isRpFilled = useSelector((state: RootState) => state.user.allUserDataForDocuments?.invest_target);
 
     useEffect(() => {
         dispatch(getUserDocumentsStateThunk());
-        dispatch(getUserDocumentsNotSignedThunk())
+        dispatch(getUserDocumentsNotSignedThunk());
+        dispatch(getAllUserInfoThunk());
     }, [dispatch]);
 
     const isAnyModalOpen = useSelector(selectIsAnyModalOpen);
@@ -103,24 +107,50 @@ const DocumentsPage: React.FC = () => {
     const handleSignDocument = (docId: string) => {
         switch (docId) {
             case "type_doc_RP_questionnairy":
-                dispatch(setStepAdditionalMenuUI(1));
-                dispatch(
-                    openModal({
-                        type: ModalType.IDENTIFICATION,
-                        size: ModalSize.FULL,
-                        animation: ModalAnimation.LEFT,
-                    })
-                );
+                if (!isRpFilled) {
+                    dispatch(setStepAdditionalMenuUI(1));
+                    dispatch(
+                        openModal({
+                            type: ModalType.IDENTIFICATION,
+                            size: ModalSize.FULL,
+                            animation: ModalAnimation.LEFT,
+                        })
+                    );
+                } else {
+                    dispatch(setStepAdditionalMenuUI(5));
+                    dispatch(
+                        openModal({
+                            type: ModalType.IDENTIFICATION,
+                            size: ModalSize.FULL,
+                            animation: ModalAnimation.LEFT,
+                        })
+                    );
+                }
+
                 break;
             case "type_doc_passport":
-                dispatch(setStepAdditionalMenuUI(3));
-                dispatch(
-                    openModal({
-                        type: ModalType.IDENTIFICATION,
-                        size: ModalSize.FULL,
-                        animation: ModalAnimation.LEFT,
-                    })
-                );
+                if (!isPasportFilled) {
+                    dispatch(setCurrentConfirmableDoc('type_doc_passport'));
+                    dispatch(setStepAdditionalMenuUI(3));
+                    dispatch(
+                        openModal({
+                            type: ModalType.IDENTIFICATION,
+                            size: ModalSize.FULL,
+                            animation: ModalAnimation.LEFT,
+                        })
+                    );
+                } else {
+                    dispatch(setCurrentConfirmableDoc('type_doc_passport'));
+                    dispatch(setStepAdditionalMenuUI(5));
+                    dispatch(
+                        openModal({
+                            type: ModalType.IDENTIFICATION,
+                            size: ModalSize.FULL,
+                            animation: ModalAnimation.LEFT,
+                        })
+                    );
+                }
+
                 break;
             case "type_doc_EDS_agreement":
             case "type_doc_agreement_investment_advisor":

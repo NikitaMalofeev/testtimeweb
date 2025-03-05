@@ -8,7 +8,7 @@ export interface IdentificationProfileData {
     password2: string;
     is_agreement: boolean;
     g_recaptcha: string;
-    type_message?: string
+    type_sms_message?: string
 }
 
 export interface ConfirmationCodeData {

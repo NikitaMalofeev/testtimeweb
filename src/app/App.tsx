@@ -9,7 +9,7 @@ import { useSelector } from 'react-redux'
 import { RootState } from './providers/store/config/store'
 import { Tooltip } from 'shared/ui/Tooltip/Tooltip'
 import { SuccessPopup } from 'shared/ui/SuccessPopup/SuccessPopup'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { RiskProfileModal } from 'features/RiskProfile/RiskProfileModal/RiskProfileModal'
 import { ConfirmInfoModal } from 'features/RiskProfile/ConfirmInfoModal/ConfirmInfoModal'
 import { ProblemsCodeModal } from 'features/RiskProfile/ProblemsCodeModal/ProblemsCodeModal'
@@ -17,6 +17,7 @@ import { StateSchema } from './providers/store/config/StateSchema'
 import { closeModal } from 'entities/ui/Modal/slice/modalSlice'
 import { ModalType } from 'entities/ui/Modal/model/modalTypes'
 import { useAppDispatch } from 'shared/hooks/useAppDispatch'
+import { Footer } from 'shared/ui/Footer/Footer'
 
 function App() {
 
@@ -24,6 +25,9 @@ function App() {
   const navigate = useNavigate()
   const modalState = useSelector((state: StateSchema) => state.modal);
   const dispatch = useAppDispatch()
+  const location = useLocation()
+
+  const isMainPages = location.pathname === '/lk' || location.pathname === '/auth'
 
   useEffect(() => {
     if (!token) {
@@ -40,9 +44,13 @@ function App() {
 
   return (
     <div className='page__wrapper'>
-      <Header />
-      <Cover />
-      <AppRouter />
+      <div className='page__content'>
+        <Header />
+        <Cover />
+        <AppRouter />
+      </div>
+
+      {isMainPages && <Footer />}
 
 
       <ErrorPopup />

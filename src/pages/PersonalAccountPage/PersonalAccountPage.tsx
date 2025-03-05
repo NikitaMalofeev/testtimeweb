@@ -55,7 +55,7 @@ const PersonalAccountMenu: React.FC = () => {
             icon: AccountNotificationIcon,
             title: "Уведомления",
             action: () => dispatch(setCurrentTab("notifications")),
-            notificationsCount: 3,
+            notificationsCount: 0,
             iconWidth: 25,
             iconHeight: 28,
         },

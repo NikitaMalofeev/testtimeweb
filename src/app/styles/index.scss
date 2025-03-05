@@ -6,6 +6,11 @@
     position: relative;
 }
 
+.page__content {
+  position: relative;
+  min-height: 100dvh;
+}
+
 body {
     min-height: 100dvh;
     min-height: calc(var(--vh, 1vh) * 100);

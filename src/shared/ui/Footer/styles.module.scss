@@ -1,0 +1,141 @@
+.footer {
+    padding: 30px 16px 36px;
+    background-color: #0D2B54;
+    color: white;
+
+    &__header {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        margin-bottom: 11px;
+    }
+
+    &__name {
+        font-family: Audiowide;
+        font-weight: 400;
+        font-size: 25px;
+        line-height: 20px;
+        text-align: center;
+    }
+
+    &__legal {
+        font-weight: 400;
+        font-size: 18px;
+        line-height: 26.1px;
+        letter-spacing: 0%;
+        text-align: center;
+
+    }
+
+    &__details {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 11px;
+    }
+
+    &__details__text {
+        font-weight: 400;
+        font-size: 12px;
+        line-height: 25.2px;
+        letter-spacing: 0%;
+        text-align: center;
+
+    }
+
+    &__contact {
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__email {
+        
+        font-weight: 400;
+        font-size: 14px;
+        line-height: 29.4px;
+        letter-spacing: 0%;
+        text-align: center;
+    }
+
+    &__email__link {
+        font-weight: 700;
+        font-size: 18px;
+        line-height: 26.1px;
+        letter-spacing: 0%;
+        text-align: center;
+        color: white;
+        text-decoration: none;
+        margin-bottom: 11px;
+        text-decoration: none;
+    }
+
+    &__contacts {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    &__registry {
+        display: flex;
+        gap: 17px;
+        align-items: center;
+        margin: 0 auto;
+font-weight: 400;
+font-size: 11px;
+line-height: 16.72px;
+letter-spacing: 0%;
+
+    }
+
+    &__description {
+        display: flex;
+        padding: 22px 0;
+        gap: 20px;
+        flex-direction: column;
+        border-top: 1px solid #FFFFFF1C;
+        border-bottom: 1px solid #FFFFFF1C;
+    }
+
+    &__description__text {
+        text-align: center;
+        font-weight: 400;
+        font-size: 10px;
+        line-height: 13.9px;
+        letter-spacing: 0%;
+        text-align: center;
+        color: #FFFFFF80;
+    }
+
+    &__socials {
+        display: flex;
+        gap: 19px;
+        margin-top: 7px;
+        margin-bottom: 24px;
+    }
+
+    &__docs {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin-bottom: 24px;
+    }
+    
+
+    &__footer {
+        padding-top: 24px;
+        align-items: center;
+        justify-content: center;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        gap: 18px;
+    }
+
+    &__footer__text {
+        font-weight: 400;
+        font-size: 12px;
+        line-height: 16.2px;
+        letter-spacing: 0%;
+        color: #7287A0;
+    }
+}

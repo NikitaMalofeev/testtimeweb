@@ -11,6 +11,7 @@ import { selectIsAnyModalOpen } from "entities/ui/Modal/selectors/selectorsModal
 import styles from "./styles.module.scss";
 import { Icon } from "shared/ui/Icon/Icon";
 import CloseIcon from "shared/assets/svg/close.svg";
+import { RiskProfileAllData } from "features/RiskProfile/RiskProfileAllData/RiskProfileAllData";
 
 interface PreviewModalProps {
     isOpen: boolean;       // Открыта ли модалка
@@ -96,14 +97,20 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                 </div>
 
                 <div className={styles.modalContent}>
-                    {docHtml ? (
-                        <div
-                            className={styles.htmlContainer}
-                            dangerouslySetInnerHTML={{ __html: docHtml }}
-                        />
-                    ) : (
-                        <div>Документ не найден (пустой HTML)</div>
-                    )}
+                    {docId === 'type_doc_passport' ?
+                        <RiskProfileAllData /> :
+                        <>
+                            {docHtml ? (
+                                <div
+                                    className={styles.htmlContainer}
+                                    dangerouslySetInnerHTML={{ __html: docHtml }}
+                                />
+                            ) : (
+                                <div>Документ не найден (пустой HTML)</div>
+                            )}
+                        </>
+                    }
+
                 </div>
             </motion.div>
         </div>,

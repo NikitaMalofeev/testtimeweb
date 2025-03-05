@@ -54,7 +54,7 @@ const DocumentsPage: React.FC = () => {
     const isAnyModalOpen = useSelector(selectIsAnyModalOpen);
 
     useEffect(() => {
-        console.log("Modal state changed:", { modalPreviewState, isAnyModalOpen });
+        // console.log("Modal state changed:", { modalPreviewState, isAnyModalOpen });
 
         if (modalPreviewState.isOpen) {
             document.body.style.overflow = 'hidden';
@@ -226,7 +226,8 @@ const DocumentsPage: React.FC = () => {
                                     >
                                         Просмотр
                                     </Button>
-                                    <Icon Svg={DownloadIcon} width={33} height={33} />
+                                    {doc.status === "signed" ? <Icon Svg={DownloadIcon} width={33} height={33} /> : ''}
+
                                 </div>
                             </div>
 

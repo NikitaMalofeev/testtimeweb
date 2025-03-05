@@ -148,6 +148,8 @@ export const ConfirmAllDocs: React.FC = () => {
         }
     };
 
+    useEffect
+
 
     return (
         <>

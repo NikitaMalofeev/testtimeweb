@@ -41,6 +41,7 @@ export const getDocumentsSigned = async (type_document: string, token: string) =
             "Authorization": `Token ${token}`,
             "Content-Type": "application/json",
         },
+        responseType: "arraybuffer",
     });
     return response.data;
 };

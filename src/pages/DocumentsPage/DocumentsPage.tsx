@@ -50,6 +50,7 @@ const DocumentsPage: React.FC = () => {
     const { userDocuments, loading } = useSelector((state: RootState) => state.documents);
     const isPasportFilled = useSelector((state: RootState) => state.user.allUserDataForDocuments?.address_residential_apartment);
     const isRpFilled = useSelector((state: RootState) => state.user.allUserDataForDocuments?.invest_target);
+    const currentDocument = useSelector((state: RootState) => state.documents.currentSugnedDocument.document);
 
     useEffect(() => {
         dispatch(getUserDocumentsStateThunk());
@@ -219,11 +220,35 @@ const DocumentsPage: React.FC = () => {
 
     const handleOpenPreview = (docId: string) => {
         if (docId !== 'doc_type_passport') {
-            dispatch(getUserDocumentsSignedThunk({ type_document: docId }))
+            dispatch(getUserDocumentsSignedThunk({ type_document: docId, purpose: 'preview', onSuccess: () => { } }))
             setSelectedDocId(docId);
             dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
         } else return
     };
+    const handleDownloadPdf = (docId: string) => {
+        if (docId !== 'doc_type_passport') {
+            dispatch(getUserDocumentsSignedThunk({
+                type_document: docId,
+                purpose: 'download',
+                onSuccess: () => {
+                    if (currentDocument) {
+                        const blob = new Blob([currentDocument], { type: "application/pdf" }); // Создаём Blob
+                        const url = window.URL.createObjectURL(blob);
+
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `${docId}.pdf`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+
+                        window.URL.revokeObjectURL(url);
+                    }
+                }
+            }));
+        }
+    };
+
 
     const handleClosePreview = () => {
         setSelectedDocId(null);
@@ -262,7 +287,9 @@ const DocumentsPage: React.FC = () => {
                                         >
                                             Просмотр
                                         </Button>
-                                        <Icon Svg={DownloadIcon} width={33} height={33} />
+                                        {doc.id !== 'type_doc_passport' && (
+                                            <Icon Svg={DownloadIcon} onClick={() => handleDownloadPdf(doc.id)} width={33} height={33} />
+                                        )}
                                     </> : ''}
 
                                 </div>

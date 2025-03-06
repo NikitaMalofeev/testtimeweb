@@ -134,17 +134,17 @@ export const ConfirmAllDocs: React.FC = () => {
             case "type_doc_passport":
                 return <RiskProfileAllData />;
             case "type_doc_RP_questionnairy":
-                return <PdfViewer fileUrl={RiskProfile} />;
+                return <PdfViewer assetUrl={RiskProfile} />;
             case "type_doc_EDS_agreement":
-                return <PdfViewer fileUrl={EDSPdf} />;
+                return <PdfViewer assetUrl={EDSPdf} />;
             case "type_doc_agreement_investment_advisor":
-                return <PdfViewer fileUrl={IS} />;
+                return <PdfViewer assetUrl={IS} />;
             case "type_doc_risk_declarations":
-                return <PdfViewer fileUrl={RiskDeclaration} />;
+                return <PdfViewer assetUrl={RiskDeclaration} />;
             case "type_doc_agreement_personal_data_policy":
-                return <PdfViewer fileUrl={PersonalPolicy} />;
+                return <PdfViewer assetUrl={PersonalPolicy} />;
             case "type_doc_investment_profile_certificate":
-                return <PdfViewer fileUrl={Profile} />;
+                return <PdfViewer assetUrl={Profile} />;
             default:
                 return <div>Неизвестный документ. Нет превью.</div>;
         }

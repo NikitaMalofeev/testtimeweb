@@ -50,7 +50,7 @@ interface DocumentsState {
     timeoutBetweenConfirmation: number;
     allNotSignedDocumentsHtml: Record<string, string> | null;
     currentSugnedDocument: {
-        document: string,
+        document: Uint8Array | null;
         type: string;
     };
 }
@@ -64,7 +64,7 @@ const initialState: DocumentsState = {
     timeoutBetweenConfirmation: 0,
     allNotSignedDocumentsHtml: null,
     currentSugnedDocument: {
-        document: '',
+        document: null,
         type: ''
     },
     userDocuments: [] // теперь тут храним объекты
@@ -194,26 +194,34 @@ export const getUserDocumentsNotSignedThunk = createAsyncThunk<
 
 export const getUserDocumentsSignedThunk = createAsyncThunk<
     void,
-    { type_document: string },
+    { type_document: string, purpose: string, onSuccess: () => void },
     { rejectValue: string; state: RootState }
 >(
     "documents/getUserDocumentsSignedThunk",
-    async ({ type_document }, { getState, dispatch, rejectWithValue }) => {
+    async ({ type_document, purpose, onSuccess }, { getState, dispatch, rejectWithValue }) => {
         try {
             const token = getState().user.token;
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");
             }
-            const response = await getDocumentsSigned(type_document, token);
+            // Запрашиваем PDF как бинарь (ArrayBuffer)
+            const arrayBuffer = await getDocumentsSigned(type_document, token);
+            // Превращаем ArrayBuffer в Uint8Array
+            const pdfBytes = new Uint8Array(arrayBuffer);
 
-            console.log('ответ подписанного pdf' + response)
-            dispatch(setCurrentSignedDocuments({ type: type_document, document: response }));
+            dispatch(setCurrentSignedDocuments({
+                type: type_document,
+                document: pdfBytes,
+            }));
+
+            if (purpose === 'download') {
+                onSuccess()
+            }
         } catch (error: any) {
-            console.log(error);
             const msg =
                 error.response?.data?.errorText ||
-                "Ошибка при отправке кода (непредвиденная)";
-            dispatch(setError(msg));
+                "Ошибка при получении подписанного документа";
+            return rejectWithValue(msg);
         }
     }
 );
@@ -238,7 +246,10 @@ export const documentsSlice = createSlice({
         setNotSignedDocumentsHtmls(state, action: PayloadAction<Record<string, string>>) {
             state.allNotSignedDocumentsHtml = action.payload;
         },
-        setCurrentSignedDocuments(state, action: PayloadAction<{ document: string, type: string }>) {
+        setCurrentSignedDocuments(
+            state,
+            action: PayloadAction<{ document: Uint8Array | null; type: string }>
+        ) {
             state.currentSugnedDocument = action.payload;
         },
 

@@ -107,32 +107,19 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                 </div>
 
                 <div className={styles.modalContent}>
-                    {loading ? <Loader /> : <>
-                        {hasCurrentSighedDocument.document
-                            ?
-                            <PdfViewer documentData={hasCurrentSighedDocument.document} />
-                            :
-                            <>
-                                {docId === 'type_doc_passport' ?
-                                    <RiskProfileAllData /> :
-                                    <>
-                                        {docHtml ? (
-                                            <div
-                                                className={styles.htmlContainer}
-                                                dangerouslySetInnerHTML={{ __html: docHtml }}
-                                            />
-                                        ) : (
-                                            <div>Документ не найден (пустой HTML)</div>
-                                        )}
-                                    </>
-                                }
-                            </>
-                        }
-                    </>
-                    }
-
-
-
+                    {loading ? <Loader /> : (
+                        <>
+                            {docId === 'type_doc_passport' ? (
+                                <RiskProfileAllData />
+                            ) : hasCurrentSighedDocument.document ? (
+                                <PdfViewer documentData={hasCurrentSighedDocument.document} />
+                            ) : docHtml ? (
+                                <div className={styles.htmlContainer} dangerouslySetInnerHTML={{ __html: docHtml }} />
+                            ) : (
+                                <div>Документ не найден (пустой HTML)</div>
+                            )}
+                        </>
+                    )}
                 </div>
             </motion.div>
         </div>,

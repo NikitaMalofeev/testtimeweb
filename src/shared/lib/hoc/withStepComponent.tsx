@@ -34,6 +34,7 @@ const stepContents = [
     <span>В работе</span>
 ];
 
+
 const stepTooltipDescriptions = [
     'Настройка параметров защиты цифрового профиля от несанкционированного доступа',
     'Пройдите анкетирование для определения вашего инвестиционного профиля',
@@ -44,7 +45,7 @@ const stepTooltipDescriptions = [
         </div>
         <div className={styles.description__container}>
             <span className={styles.description__title}>Максимально допустимый риск профиль</span>
-            <span className={styles.description__value}>Значение с бека</span>
+            <span className={styles.description__value}>Супер-агрессивный</span>
         </div>
     </ div>,
     'Данные вводимые в форму должны совпадать с паспортными данными и свидетельством ИНН',

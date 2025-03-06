@@ -188,6 +188,11 @@ export const RiskProfileFirstForm: React.FC = () => {
     const goBack = () => {
         if (currentStep === 0) {
             dispatch(closeModal(ModalType.IDENTIFICATION));
+            //костыль исправить FIXME
+            document.body.style.overflow = "";
+            document.body.style.position = "";
+            document.body.style.width = "";
+            document.documentElement.style.overflow = "";
         } else {
             setCurrentStep((prev) => prev - 1);
             dispatch(prevRiskProfileStep());
@@ -294,7 +299,7 @@ export const RiskProfileFirstForm: React.FC = () => {
                         needValue={false}
                         label="Вид на жительство"
                         value={formik.values.citizenship_including_residence_permit || ""}
-                        title="Выберите статус"
+                        title="Выберите страну"
                         items={countryOptions}
                         onChange={(selectedVal) => {
                             formik.setFieldValue(

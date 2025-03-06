@@ -26,6 +26,8 @@ import RiskDeclaration from "shared/assets/documents/RiskDeclaration.pdf?url";
 import RiskProfile from "shared/assets/documents/RiskProfile.pdf?url";
 import Profile from "shared/assets/documents/Profile.pdf?url";
 import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/DocumentPreviewModal";
+import { getAllUserInfoThunk } from "entities/User/slice/userSlice";
+import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
 
 export const ConfirmAllDocs: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -37,7 +39,7 @@ export const ConfirmAllDocs: React.FC = () => {
     );
     const [currentTimeout, setCurrentTimeout] = useState(0)
     const modalState = useSelector((state: RootState) => state.modal.documentsPreview)
-
+    const isPasportFilled = useSelector((state: RootState) => state.user.allUserDataForDocuments?.address_residential_apartment);
 
     const timeoutBetweenConfirmation = useSelector(
         (state: RootState) => state.documents.timeoutBetweenConfirmation
@@ -67,7 +69,9 @@ export const ConfirmAllDocs: React.FC = () => {
             is_agree: Yup.boolean().oneOf([true], 'внимание'),
         }),
         onSubmit: () => {
-            console.log(formik.values)
+            if (currentTypeDoc === 'type_doc_passport' && !isPasportFilled) {
+                dispatch(setStepAdditionalMenuUI(3))
+            }
             dispatch(
                 confirmDocsRequestThunk({
                     data: formik.values,
@@ -150,7 +154,9 @@ export const ConfirmAllDocs: React.FC = () => {
         }
     };
 
-    useEffect
+    useEffect(() => {
+        dispatch(getAllUserInfoThunk())
+    }, [])
 
 
     return (

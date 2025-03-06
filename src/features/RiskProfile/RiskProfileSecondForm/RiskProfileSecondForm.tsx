@@ -269,7 +269,7 @@ export const RiskProfileSecondForm: React.FC = () => {
                                     label="Подтвердить выбор риск профиля"
                                     needValue
                                     value={formik.values.risk_profiling_final || ""}
-                                    title="Окончательный риск профиль"
+                                    title="Выберите риск профиль"
                                     items={finalRiskProfileOptions}
                                     onChange={(selectedVal) => {
                                         formik.setFieldValue("risk_profiling_final", selectedVal);

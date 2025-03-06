@@ -65,6 +65,11 @@ export const Header = () => {
                 :
                 <div className={styles.header__account} onClick={() => {
                     dispatch(closeAllModals())
+                    //костыль потом исправить FIXME
+                    document.body.style.overflow = "";
+                    document.body.style.position = "";
+                    document.body.style.width = "";
+                    document.documentElement.style.overflow = "";
                     navigate('/lk')
 
                 }}>

@@ -69,6 +69,10 @@ export const userLoginThunk = createAsyncThunk<
             if (response.token) {
                 dispatch(setUserToken(response.token));
                 console.log("Токен сохранен в Redux:", response.token);
+                dispatch(setUserData({
+                    phone: response.phone ?? "",
+                    email: response.email ?? "",
+                }));
             } else {
                 console.error("Токен отсутствует в ответе сервера:", response);
             }

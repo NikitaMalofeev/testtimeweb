@@ -42,10 +42,6 @@ const AuthorizationPage = () => {
                 .required("Введите пароль"),
         }),
         onSubmit: async (values) => {
-            try {
-                console.log("Авторизация", values);
-            } catch (error) {
-            }
         },
     });
 

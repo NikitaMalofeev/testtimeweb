@@ -1,55 +1,51 @@
-import React from 'react';
-import { Viewer, Worker, SpecialZoomLevel } from '@react-pdf-viewer/core';
-import type { RenderPageProps } from '@react-pdf-viewer/core';
-import '@react-pdf-viewer/core/lib/styles/index.css';
-import styles from './styles.module.scss'
-
-// Если используете свой локальный воркер pdf.js
-import workerUrl from 'pdfjs-dist/build/pdf.worker.min.js?url';
+import React, { useMemo } from "react";
+import { Viewer, Worker, SpecialZoomLevel } from "@react-pdf-viewer/core";
+import type { RenderPageProps } from "@react-pdf-viewer/core";
+import "@react-pdf-viewer/core/lib/styles/index.css";
+import workerUrl from "pdfjs-dist/build/pdf.worker.min.js?url";
+import styles from "./styles.module.scss";
 
 interface PdfViewerProps {
-    fileUrl: string;
+    fileUrl?: string;
+    documentData?: string;
 }
 
-export const PdfViewer: React.FC<PdfViewerProps> = ({ fileUrl }) => {
+export const PdfViewer: React.FC<PdfViewerProps> = ({ fileUrl, documentData }) => {
+    const pdfFileUrl = useMemo((): string | Uint8Array => {
+        if (documentData) {
+            // Если получен сырой PDF, начинающийся с '%PDF'
+            if (documentData.startsWith("%PDF")) {
+                const bytes = new TextEncoder().encode(documentData);
+                return bytes; // Uint8Array
+            } else {
+                // Иначе считаем, что это Base64
+                const base64Str = documentData.replace(/^data:application\/pdf;base64,/, "");
+                const raw = atob(base64Str);
+                const array = new Uint8Array(raw.length);
+                for (let i = 0; i < raw.length; i++) {
+                    array[i] = raw.charCodeAt(i);
+                }
+                return array; // Uint8Array
+            }
+        }
+        // Если documentData не задан, используем строку URL
+        return fileUrl || "";
+    }, [documentData, fileUrl]);
+
     return (
         <Worker workerUrl={workerUrl}>
-            {/* Общий контейнер, чтобы страницы можно было прокручивать */}
-            <div
-                style={{
-                    width: '100%',
-                    height: '100vh',
-                    overflowY: 'auto',
-                    backgroundColor: '#f5f5f5', // фон (опционально)
-                }}
-            >
+            <div style={{ width: "100%", height: "100vh", overflowY: "auto", backgroundColor: "#f5f5f5" }}>
                 <Viewer
-                    fileUrl={fileUrl}
+                    fileUrl={pdfFileUrl}
                     defaultScale={SpecialZoomLevel.PageWidth}
-                    // Выводим каждую страницу в отдельном «обёрточном» div
                     renderPage={(props: RenderPageProps) => {
                         const { canvasLayer, textLayer, annotationLayer } = props;
-
                         return (
-                            // Контейнер, отвечающий за «центрирование»
-                            <div
-
-                            >
-                                {/* Контейнер самой страницы со слоями */}
+                            <div>
                                 <div className={styles.pdf__page}>
-                                    {/* Canvas (основное изображение PDF-страницы) */}
-                                    <div >
-                                        {canvasLayer.children}
-                                    </div>
-                                    {/* Текстовый слой (для выделения текста) */}
-                                    <div >
-                                        {textLayer.children}
-                                    </div>
-                                    {/* Аннотации (ссылки, поля форм) */}
-                                    <div >
-                                        {annotationLayer.children}
-                                    </div>
-
+                                    <div>{canvasLayer.children}</div>
+                                    <div>{textLayer.children}</div>
+                                    <div>{annotationLayer.children}</div>
                                 </div>
                                 <div className={styles.pdf__line}></div>
                             </div>

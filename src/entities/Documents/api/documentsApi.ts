@@ -39,6 +39,7 @@ export const getDocumentsSigned = async (type_document: string, token: string) =
         headers: {
             "Accept-Language": "ru",
             "Authorization": `Token ${token}`,
+            "Content-Type": "application/json",
         },
     });
     return response.data;

@@ -7,20 +7,22 @@ import workerUrl from "pdfjs-dist/build/pdf.worker.min.js?url";
 
 const base64toBlob = (data: string) => {
     // Проверяем, содержит ли строка префикс, и убираем его, если есть
-    const base64WithoutPrefix = data.startsWith("data:application/pdf;base64,")
-        ? data.replace("data:application/pdf;base64,", "")
-        : data;
+    if (data) {
+        const base64WithoutPrefix = data.startsWith("data:application/pdf;base64,")
+            ? data.replace("data:application/pdf;base64,", "")
+            : data;
 
-    try {
-        const bytes = atob(base64WithoutPrefix);
-        const out = new Uint8Array(bytes.length);
-        for (let i = 0; i < bytes.length; i++) {
-            out[i] = bytes.charCodeAt(i);
+        try {
+            const bytes = atob(base64WithoutPrefix);
+            const out = new Uint8Array(bytes.length);
+            for (let i = 0; i < bytes.length; i++) {
+                out[i] = bytes.charCodeAt(i);
+            }
+            return new Blob([out], { type: "application/pdf" });
+        } catch (error) {
+            console.error("Ошибка декодирования Base64:", error);
+            return null;
         }
-        return new Blob([out], { type: "application/pdf" });
-    } catch (error) {
-        console.error("Ошибка декодирования Base64:", error);
-        return null;
     }
 };
 
@@ -34,11 +36,6 @@ interface PdfViewerProps {
 export const PdfViewerrr: React.FC<PdfViewerProps> = ({ base64, style, className }) => {
     const blob = base64toBlob(base64);
     const pdfUrl = blob ? URL.createObjectURL(blob) : "";
-
-    useEffect(() => {
-        console.log("Base64:", base64);
-        console.log("Base64 длина:", base64.length);
-    }, [base64])
 
     return (
         <Worker workerUrl={workerUrl}>

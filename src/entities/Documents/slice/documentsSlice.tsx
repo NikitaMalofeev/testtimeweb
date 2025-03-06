@@ -49,7 +49,10 @@ interface DocumentsState {
     userDocuments: DocumentConfirmationInfo[];
     timeoutBetweenConfirmation: number;
     allNotSignedDocumentsHtml: Record<string, string> | null;
-    currentSugnedDocument: string;
+    currentSugnedDocument: {
+        document: string,
+        type: string;
+    };
 }
 
 const initialState: DocumentsState = {
@@ -60,7 +63,10 @@ const initialState: DocumentsState = {
     confirmationMethod: 'EMAIL',
     timeoutBetweenConfirmation: 0,
     allNotSignedDocumentsHtml: null,
-    currentSugnedDocument: '',
+    currentSugnedDocument: {
+        document: '',
+        type: ''
+    },
     userDocuments: [] // теперь тут храним объекты
 };
 
@@ -164,7 +170,7 @@ export const getUserDocumentsNotSignedThunk = createAsyncThunk<
     void,
     { rejectValue: string; state: RootState }
 >(
-    "documents/getUserDocumentsStateThunk",
+    "documents/getUserDocumentsNotSignedThunk",
     async (_, { getState, dispatch, rejectWithValue }) => {
         try {
             const token = getState().user.token;
@@ -200,9 +206,8 @@ export const getUserDocumentsSignedThunk = createAsyncThunk<
             }
             const response = await getDocumentsSigned(type_document, token);
 
-            const documents = response.document;
-            console.log(response)
-            dispatch(setCurrentSignedDocuments(documents));
+            console.log('ответ подписанного pdf' + response)
+            dispatch(setCurrentSignedDocuments({ type: type_document, document: response }));
         } catch (error: any) {
             console.log(error);
             const msg =
@@ -233,7 +238,7 @@ export const documentsSlice = createSlice({
         setNotSignedDocumentsHtmls(state, action: PayloadAction<Record<string, string>>) {
             state.allNotSignedDocumentsHtml = action.payload;
         },
-        setCurrentSignedDocuments(state, action: PayloadAction<string>) {
+        setCurrentSignedDocuments(state, action: PayloadAction<{ document: string, type: string }>) {
             state.currentSugnedDocument = action.payload;
         },
 
@@ -261,6 +266,32 @@ export const documentsSlice = createSlice({
                 state.success = true;
             })
             .addCase(getUserDocumentsStateThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
+            .addCase(getUserDocumentsNotSignedThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+                state.success = false;
+            })
+            .addCase(getUserDocumentsNotSignedThunk.fulfilled, (state) => {
+                state.loading = false;
+                state.success = true;
+            })
+            .addCase(getUserDocumentsNotSignedThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
+            .addCase(getUserDocumentsSignedThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+                state.success = false;
+            })
+            .addCase(getUserDocumentsSignedThunk.fulfilled, (state) => {
+                state.loading = false;
+                state.success = true;
+            })
+            .addCase(getUserDocumentsSignedThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
             })

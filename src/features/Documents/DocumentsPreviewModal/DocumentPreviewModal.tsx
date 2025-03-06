@@ -12,6 +12,9 @@ import styles from "./styles.module.scss";
 import { Icon } from "shared/ui/Icon/Icon";
 import CloseIcon from "shared/assets/svg/close.svg";
 import { RiskProfileAllData } from "features/RiskProfile/RiskProfileAllData/RiskProfileAllData";
+import { PdfViewerrr } from "shared/ui/PDFViewer/Viewer";
+import { Loader } from "shared/ui/Loader/Loader";
+import { PdfViewer } from "shared/ui/PDFViewer/PDFViewer";
 
 interface PreviewModalProps {
     isOpen: boolean;       // Открыта ли модалка
@@ -31,6 +34,13 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
     // Все HTML-документы лежат в Redux-стейте (ключ -> html-строка)
     const allDocumentsHtml = useSelector(
         (state: RootState) => state.documents.allNotSignedDocumentsHtml
+    );
+    const hasCurrentSighedDocument = useSelector(
+        (state: RootState) => state.documents.currentSugnedDocument
+    );
+
+    const { loading } = useSelector(
+        (state: RootState) => state.documents
     );
 
     // Глобальная проверка "есть ли в системе другие открытые модалки"
@@ -97,19 +107,31 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                 </div>
 
                 <div className={styles.modalContent}>
-                    {docId === 'type_doc_passport' ?
-                        <RiskProfileAllData /> :
-                        <>
-                            {docHtml ? (
-                                <div
-                                    className={styles.htmlContainer}
-                                    dangerouslySetInnerHTML={{ __html: docHtml }}
-                                />
-                            ) : (
-                                <div>Документ не найден (пустой HTML)</div>
-                            )}
-                        </>
+                    {loading ? <Loader /> : <>
+                        {hasCurrentSighedDocument.document
+                            ?
+                            <PdfViewer documentData={hasCurrentSighedDocument.document} />
+                            :
+                            <>
+                                {docId === 'type_doc_passport' ?
+                                    <RiskProfileAllData /> :
+                                    <>
+                                        {docHtml ? (
+                                            <div
+                                                className={styles.htmlContainer}
+                                                dangerouslySetInnerHTML={{ __html: docHtml }}
+                                            />
+                                        ) : (
+                                            <div>Документ не найден (пустой HTML)</div>
+                                        )}
+                                    </>
+                                }
+                            </>
+                        }
+                    </>
                     }
+
+
 
                 </div>
             </motion.div>

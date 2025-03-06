@@ -41,6 +41,7 @@ import styles from "./styles.module.scss";
 import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/DocumentPreviewModal";
 import { selectIsAnyModalOpen } from "entities/ui/Modal/selectors/selectorsModals";
 import { getAllUserInfoThunk } from "entities/User/slice/userSlice";
+import { getDocumentsSigned } from "entities/Documents/api/documentsApi";
 
 const DocumentsPage: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -54,7 +55,7 @@ const DocumentsPage: React.FC = () => {
         dispatch(getUserDocumentsStateThunk());
         dispatch(getUserDocumentsNotSignedThunk());
         dispatch(getAllUserInfoThunk());
-    }, [dispatch]);
+    }, []);
 
     const isAnyModalOpen = useSelector(selectIsAnyModalOpen);
 
@@ -214,14 +215,14 @@ const DocumentsPage: React.FC = () => {
         };
     });
 
-    // Состояние для открытия модалки превью
-    const [isPreviewOpen, setPreviewOpen] = useState(false);
     const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
 
     const handleOpenPreview = (docId: string) => {
-        dispatch(getUserDocumentsSignedThunk({ type_document: docId }))
-        setSelectedDocId(docId);
-        dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
+        if (docId !== 'doc_type_passport') {
+            dispatch(getUserDocumentsSignedThunk({ type_document: docId }))
+            setSelectedDocId(docId);
+            dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
+        } else return
     };
 
     const handleClosePreview = () => {

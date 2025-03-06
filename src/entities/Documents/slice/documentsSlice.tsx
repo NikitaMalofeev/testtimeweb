@@ -49,7 +49,7 @@ interface DocumentsState {
     userDocuments: DocumentConfirmationInfo[];
     timeoutBetweenConfirmation: number;
     allNotSignedDocumentsHtml: Record<string, string> | null;
-    allSignedDocuments: Record<string, string> | null;
+    currentSugnedDocument: string;
 }
 
 const initialState: DocumentsState = {
@@ -60,7 +60,7 @@ const initialState: DocumentsState = {
     confirmationMethod: 'EMAIL',
     timeoutBetweenConfirmation: 0,
     allNotSignedDocumentsHtml: null,
-    allSignedDocuments: null,
+    currentSugnedDocument: '',
     userDocuments: [] // теперь тут храним объекты
 };
 
@@ -200,9 +200,9 @@ export const getUserDocumentsSignedThunk = createAsyncThunk<
             }
             const response = await getDocumentsSigned(type_document, token);
 
-            const documents = response.signed_documents;
+            const documents = response.document;
             console.log(response)
-            dispatch(setAllSignedDocuments(documents));
+            dispatch(setCurrentSignedDocuments(documents));
         } catch (error: any) {
             console.log(error);
             const msg =
@@ -233,8 +233,8 @@ export const documentsSlice = createSlice({
         setNotSignedDocumentsHtmls(state, action: PayloadAction<Record<string, string>>) {
             state.allNotSignedDocumentsHtml = action.payload;
         },
-        setAllSignedDocuments(state, action: PayloadAction<Record<string, string>>) {
-            state.allSignedDocuments = action.payload;
+        setCurrentSignedDocuments(state, action: PayloadAction<string>) {
+            state.currentSugnedDocument = action.payload;
         },
 
         nextDocType(state) {
@@ -275,7 +275,7 @@ export const {
     nextDocType,
     setTimeoutBetweenConfirmation,
     setNotSignedDocumentsHtmls,
-    setAllSignedDocuments
+    setCurrentSignedDocuments
 } = documentsSlice.actions;
 
 export default documentsSlice.reducer;

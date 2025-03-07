@@ -27,11 +27,11 @@ function App() {
   const dispatch = useAppDispatch()
   const location = useLocation()
 
-  const isMainPages = location.pathname === '/lk' || location.pathname === '/auth'
+  const isMainPages = location.pathname === '/lk' || location.pathname === '/'
 
   useEffect(() => {
     if (!token) {
-      navigate('/auth')
+      navigate('/')
     } else if (token) {
       navigate('/lk')
     }

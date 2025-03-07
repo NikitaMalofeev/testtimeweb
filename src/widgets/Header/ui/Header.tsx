@@ -23,7 +23,7 @@ export const Header = () => {
 
     useEffect(() => {
         if (!token) {
-            navigate('/auth')
+            navigate('/')
         } else if (token && !modalState.isOpen) {
             navigate('/lk')
         }

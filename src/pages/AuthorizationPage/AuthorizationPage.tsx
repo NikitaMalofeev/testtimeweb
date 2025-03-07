@@ -23,7 +23,7 @@ const AuthorizationPage = () => {
 
     const modalState = useSelector((state: StateSchema) => state.modal);
     const { loading } = useSelector((state: RootState) => state.user);
-    const isAuthPath = location.pathname === "/auth";
+    const isAuthPath = location.pathname === "/";
 
     const formik = useFormik({
         initialValues: {

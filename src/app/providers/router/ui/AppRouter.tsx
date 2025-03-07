@@ -12,16 +12,16 @@ const PageLoader = () => <div></div>;
 function AppRouter() {
     return (
         <Routes>
-            <Route
+            {/* <Route
                 path="/"
                 element={
                     <Suspense fallback={<PageLoader />}>
                         <StartPage />
                     </Suspense>
                 }
-            />
+            /> */}
             <Route
-                path="/auth"
+                path="/"
                 element={
                     <Suspense fallback={<PageLoader />}>
                         <AuthorizationPage />

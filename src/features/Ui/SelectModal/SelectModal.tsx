@@ -91,6 +91,10 @@ export const SelectModal: React.FC<SelectModalProps> = ({
         onClose();
     };
 
+    useEffect(() => {
+        handleChoose()
+    }, [localSelectedValue])
+
     // Нажатие на «Назад»
     const handleBack = () => {
         onClose();
@@ -145,7 +149,7 @@ export const SelectModal: React.FC<SelectModalProps> = ({
                 {/* Блок кнопок. Если не дошли до низа — добавляем тень. */}
 
             </div>
-            <div
+            {/* <div
                 className={`${styles.buttons} ${!isBottom ? styles.shadow : ""
                     }`}
             >
@@ -157,7 +161,7 @@ export const SelectModal: React.FC<SelectModalProps> = ({
                 >
                     Продолжить
                 </Button>
-            </div>
+            </div> */}
         </Modal>
     );
 };

@@ -6,6 +6,11 @@
     flex-grow: 1;
     background-color: #E1ECFB;
 
+    &__wrapper {
+        height: 100%;
+        width: 100%;
+    }
+
     &__icon {
         margin: 33px auto;
     }
@@ -44,11 +49,7 @@
 }
 
 .auth__container {
-    bottom: 0;
     display: flex;
-    flex-grow: 1;
-    height: 100%;
-    width: 100%;
     background-color: white;
     border-radius: 50px 50px 0 0;
     flex-direction: column;

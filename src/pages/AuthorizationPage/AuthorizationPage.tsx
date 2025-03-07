@@ -65,62 +65,64 @@ const AuthorizationPage = () => {
     return (
         <>
             <div className={styles.auth}>
-                <div className={styles.auth__container}>
-                    <Icon Svg={WhiteLogo} width={73} height={73} className={styles.auth__icon} />
-                    <div className={styles.auth__tabs}>
-                        <div className={`${styles.auth__tab} ${isAuthPath ? styles.auth__tab_active : ""}`}>
-                            Авторизация
+                <div className={styles.auth__wrapper}>
+                    <div className={styles.auth__container}>
+                        <Icon Svg={WhiteLogo} width={73} height={73} className={styles.auth__icon} />
+                        <div className={styles.auth__tabs}>
+                            <div className={`${styles.auth__tab} ${isAuthPath ? styles.auth__tab_active : ""}`}>
+                                Авторизация
+                            </div>
+                            <div
+                                className={styles.auth__tab}
+                                onClick={() => {
+                                    dispatch(openModal({
+                                        type: ModalType.IDENTIFICATION,
+                                        size: ModalSize.FULL,
+                                        animation: ModalAnimation.LEFT
+                                    }));
+                                }}
+                            >
+                                Регистрация
+                            </div>
                         </div>
-                        <div
-                            className={styles.auth__tab}
-                            onClick={() => {
-                                dispatch(openModal({
-                                    type: ModalType.IDENTIFICATION,
-                                    size: ModalSize.FULL,
-                                    animation: ModalAnimation.LEFT
-                                }));
-                            }}
-                        >
-                            Регистрация
-                        </div>
+
+                        <form onSubmit={formik.handleSubmit} className={styles.auth__form}>
+                            <Input
+                                autoComplete="new-password"
+                                placeholder="Email/телефон"
+                                name="identifier"
+                                type="text"
+                                value={formik.values.identifier}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                error={formik.touched.identifier && formik.errors.identifier}
+                                needValue
+                            />
+                            <Input
+                                autoComplete="new-password"
+                                placeholder="Пароль"
+                                name="password"
+                                type="password"
+                                value={formik.values.password}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                error={formik.touched.password && formik.errors.password}
+                                needValue
+                            />
+
+                            {/* <span className={styles.forgotPassword}>Не помню пароль</span> */}
+
+                            <Button
+                                type="button"
+                                onClick={handleSubmit}
+                                theme={ButtonTheme.BLUE}
+                                className={styles.button}
+                                disabled={!(formik.isValid && formik.dirty)}
+                            >
+                                {loading ? <Loader theme={LoaderTheme.WHITE} size={LoaderSize.SMALL} /> : 'Войти'}
+                            </Button>
+                        </form>
                     </div>
-
-                    <form onSubmit={formik.handleSubmit} className={styles.auth__form}>
-                        <Input
-                            autoComplete="new-password"
-                            placeholder="Email/телефон"
-                            name="identifier"
-                            type="text"
-                            value={formik.values.identifier}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            error={formik.touched.identifier && formik.errors.identifier}
-                            needValue
-                        />
-                        <Input
-                            autoComplete="new-password"
-                            placeholder="Пароль"
-                            name="password"
-                            type="password"
-                            value={formik.values.password}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            error={formik.touched.password && formik.errors.password}
-                            needValue
-                        />
-
-                        {/* <span className={styles.forgotPassword}>Не помню пароль</span> */}
-
-                        <Button
-                            type="button"
-                            onClick={handleSubmit}
-                            theme={ButtonTheme.BLUE}
-                            className={styles.button}
-                            disabled={!(formik.isValid && formik.dirty)}
-                        >
-                            {loading ? <Loader theme={LoaderTheme.WHITE} size={LoaderSize.SMALL} /> : 'Войти'}
-                        </Button>
-                    </form>
                 </div>
             </div>
         </>

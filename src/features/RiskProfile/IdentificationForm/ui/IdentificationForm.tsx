@@ -11,6 +11,7 @@ import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { Checkbox } from "shared/ui/Checkbox/Checkbox";
 import { Button, ButtonForm, ButtonTheme } from "shared/ui/Button/Button";
 import {
+    closeModal,
     openModal,
     setCurrentConfirmModalType
 } from "entities/ui/Modal/slice/modalSlice";
@@ -24,6 +25,8 @@ import { RootState } from "app/providers/store/config/store";
 import { userType } from "entities/User/types/userTypes";
 import { setUserAllData, setUserData, updateUserAllData } from "entities/User/slice/userSlice";
 import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
+import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/DocumentPreviewModal";
+import PrivacyPdf from 'shared/assets/documents/PersonalPolicy.pdf'
 
 const IdentificationProfileForm: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -34,6 +37,7 @@ const IdentificationProfileForm: React.FC = () => {
     const recaptchaRef = useRef<ReCAPTCHA | null>(null);
     const [captchaVerified, setCaptchaVerified] = useState(false);
     const { loading } = useSelector((state: RootState) => state.riskProfile)
+    const modalState = useSelector((state: RootState) => state.modal.documentsPreview)
 
     const checkConfirmmationSuccess = useSelector((state: RootState) => state.ui.confirmationStatusSuccess);
 
@@ -107,6 +111,12 @@ const IdentificationProfileForm: React.FC = () => {
         }));
     };
 
+    const handleOpenPrivacy = (e: any) => {
+        e.preventDefault()
+        // dispatch(closeModal(ModalType.IDENTIFICATION))
+        dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
+    }
+
     const handleSubmitForm = async () => {
         if (isButtonDisabled) return;
 
@@ -147,143 +157,146 @@ const IdentificationProfileForm: React.FC = () => {
     };
 
     return (
-        <form onSubmit={formik.handleSubmit} className={styles.form}>
-            <div>
-                <Input
-                    name="lastName"
-                    value={formik.values.lastName}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    placeholder="Фамилия"
-                    needValue
-                    type="text"
-                />
-                <Input
-                    name="firstName"
-                    value={formik.values.firstName}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    placeholder="Имя"
-                    needValue
-                    type="text"
-                />
-                <Input
-                    name="patronymic"
-                    value={formik.values.patronymic}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    placeholder="Отчество (при наличии)"
-                    type="text"
-                />
-                <Input
-                    name="phone"
-                    value={formik.values.phone}
-                    onChange={(e) => {
-                        let value = e.target.value.replace(/[^\d+]/g, ""); // Убираем все символы, кроме цифр и "+"
+        <>
+            <form onSubmit={formik.handleSubmit} className={styles.form}>
+                <div>
+                    <Input
+                        name="lastName"
+                        value={formik.values.lastName}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        placeholder="Фамилия"
+                        needValue
+                        type="text"
+                    />
+                    <Input
+                        name="firstName"
+                        value={formik.values.firstName}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        placeholder="Имя"
+                        needValue
+                        type="text"
+                    />
+                    <Input
+                        name="patronymic"
+                        value={formik.values.patronymic}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        placeholder="Отчество (при наличии)"
+                        type="text"
+                    />
+                    <Input
+                        name="phone"
+                        value={formik.values.phone}
+                        onChange={(e) => {
+                            let value = e.target.value.replace(/[^\d+]/g, ""); // Убираем все символы, кроме цифр и "+"
 
-                        if (!value.startsWith("+")) {
-                            value = "+" + value; // Добавляем "+" в начало, если его нет
+                            if (!value.startsWith("+")) {
+                                value = "+" + value; // Добавляем "+" в начало, если его нет
+                            }
+
+                            formik.setFieldValue("phone", value);
+                        }}
+                        onBlur={formik.handleBlur}
+                        placeholder="Номер телефона"
+                        needValue
+                        type="text"
+                        error={formik.touched.phone && formik.errors.phone}
+                    />
+                    <Input
+                        autoComplete="new-password"
+                        name="email"
+                        value={formik.values.email}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        placeholder="E-mail"
+                        needValue
+                        type="text"
+                        error={formik.touched.email && formik.errors.email}
+                    />
+                    <Input
+                        autoComplete="new-password"
+                        name="password"
+                        value={formik.values.password}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        placeholder="Пароль"
+                        needValue
+                        type="password"
+                        error={formik.touched.password && formik.errors.password}
+                    />
+                    <Input
+                        name="password2"
+                        value={formik.values.password2}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        placeholder="Повтор пароля"
+                        needValue
+                        type="password"
+                        error={formik.touched.password2 && formik.errors.password2}
+                    />
+                    <Checkbox
+                        name="is_agreement"
+                        value={formik.values.is_agreement}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        label={
+                            <span className={styles.checkbox__text}>
+                                Вы соглашаетесь с{" "}
+                                <a
+                                    className={styles.checkbox__link}
+                                    href="#"
+                                    onClick={(e) => handleOpenPrivacy(e)}
+                                >
+                                    Условиями использования и Политикой конфиденциальности
+                                </a>
+                            </span>
                         }
+                        error={formik.touched.is_agreement && formik.errors.is_agreement}
+                    />
+                </div>
 
-                        formik.setFieldValue("phone", value);
-                    }}
-                    onBlur={formik.handleBlur}
-                    placeholder="Номер телефона"
-                    needValue
-                    type="text"
-                    error={formik.touched.phone && formik.errors.phone}
-                />
-                <Input
-                    autoComplete="new-password"
-                    name="email"
-                    value={formik.values.email}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    placeholder="E-mail"
-                    needValue
-                    type="text"
-                    error={formik.touched.email && formik.errors.email}
-                />
-                <Input
-                    autoComplete="new-password"
-                    name="password"
-                    value={formik.values.password}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    placeholder="Пароль"
-                    needValue
-                    type="password"
-                    error={formik.touched.password && formik.errors.password}
-                />
-                <Input
-                    name="password2"
-                    value={formik.values.password2}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    placeholder="Повтор пароля"
-                    needValue
-                    type="password"
-                    error={formik.touched.password2 && formik.errors.password2}
-                />
-                <Checkbox
-                    name="is_agreement"
-                    value={formik.values.is_agreement}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    label={
-                        <span className={styles.checkbox__text}>
-                            Вы соглашаетесь с{" "}
-                            <a
-                                className={styles.checkbox__link}
-                                href="#"
-                                onClick={(e) => e.preventDefault()}
-                            >
-                                Условиями использования и Политикой конфиденциальности
-                            </a>
-                        </span>
-                    }
-                    error={formik.touched.is_agreement && formik.errors.is_agreement}
-                />
-            </div>
+                <div>
+                    <span className={styles.buttons__method__title}>Отправить код подтверждения на:</span>
+                    <div className={styles.buttons__method}>
+                        <Button
+                            theme={selectedMethod === 'whatsapp' ? ButtonTheme.GREEN : ButtonTheme.GREENuNDERLINE}
+                            className={styles.button_select}
+                            onClick={() => handleMethodChange('whatsapp')}
+                        >
+                            WhatsApp
+                        </Button>
+                        <Button
+                            theme={selectedMethod === 'phone' ? ButtonTheme.BLUE : ButtonTheme.UNDERLINE}
+                            className={styles.button_select}
+                            onClick={() => handleMethodChange('phone')}
+                        >
+                            SMS
+                        </Button>
+                    </div>
+                </div>
 
-            <div>
-                <span className={styles.buttons__method__title}>Отправить код подтверждения на:</span>
-                <div className={styles.buttons__method}>
-                    <Button
-                        theme={selectedMethod === 'whatsapp' ? ButtonTheme.GREEN : ButtonTheme.GREENuNDERLINE}
-                        className={styles.button_select}
-                        onClick={() => handleMethodChange('whatsapp')}
-                    >
-                        WhatsApp
-                    </Button>
-                    <Button
-                        theme={selectedMethod === 'phone' ? ButtonTheme.BLUE : ButtonTheme.UNDERLINE}
-                        className={styles.button_select}
-                        onClick={() => handleMethodChange('phone')}
-                    >
-                        SMS
+                <div style={{ minHeight: '74px' }}>
+                    <ReCAPTCHA
+                        ref={recaptchaRef}
+                        sitekey={`${gcaptchaSiteKey}`}
+                        onChange={handleCaptchaChange}
+                    />
+                </div>
+                {formik.touched.g_recaptcha && formik.errors.g_recaptcha && (
+                    <div className={styles.error}>{formik.errors.g_recaptcha}</div>
+                )}
+
+                <div className={`${styles.buttons} ${!isBottom ? styles.shadow : ""
+                    }`}>
+                    <Button onClick={handleSubmitForm} theme={ButtonTheme.BLUE} className={styles.button} disabled={isButtonDisabled}>
+                        {loading ? <Loader theme={LoaderTheme.WHITE} size={LoaderSize.SMALL} /> : 'Подтвердить данные'}
                     </Button>
                 </div>
-            </div>
-
-            <div style={{ minHeight: '74px' }}>
-                <ReCAPTCHA
-                    ref={recaptchaRef}
-                    sitekey={`${gcaptchaSiteKey}`}
-                    onChange={handleCaptchaChange}
-                />
-            </div>
-            {formik.touched.g_recaptcha && formik.errors.g_recaptcha && (
-                <div className={styles.error}>{formik.errors.g_recaptcha}</div>
-            )}
-
-            <div className={`${styles.buttons} ${!isBottom ? styles.shadow : ""
-                }`}>
-                <Button onClick={handleSubmitForm} theme={ButtonTheme.BLUE} className={styles.button} disabled={isButtonDisabled}>
-                    {loading ? <Loader theme={LoaderTheme.WHITE} size={LoaderSize.SMALL} /> : 'Подтвердить данные'}
-                </Button>
-            </div>
-        </form>
+            </form>
+            <DocumentPreviewModal justPreview={PrivacyPdf} isOpen={modalState.isOpen} onClose={() => dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW))} docId={'type_doc_agreement_personal_data_policy'} />
+        </>
     );
 };
 

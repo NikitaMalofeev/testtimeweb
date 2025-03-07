@@ -74,6 +74,9 @@ export const createRiskProfile = createAsyncThunk<
             if (error.response.data.phone) {
                 dispatch(setError(error.response.data.phone))
             }
+            if (error.response.data.email) {
+                dispatch(setError(error.response.data.email))
+            }
             if (error.response.data.info) {
                 dispatch(setError(error.response.data.info))
             }

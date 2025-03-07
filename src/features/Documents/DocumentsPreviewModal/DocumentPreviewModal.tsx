@@ -21,6 +21,7 @@ interface PreviewModalProps {
     onClose: () => void;   // Закрытие модалки
     title?: string;        // Заголовок (необязательно)
     docId?: string | null; // Ключ документа
+    justPreview?: string;
 }
 
 export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
@@ -28,6 +29,7 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
     onClose,
     title,
     docId,
+    justPreview,
 }) => {
     const dispatch = useDispatch();
 
@@ -107,7 +109,11 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                 </div>
 
                 <div className={styles.modalContent}>
-                    {loading ? <Loader /> : (
+                    {justPreview ? (
+                        <PdfViewer assetUrl={justPreview} />
+                    ) : loading ? (
+                        <Loader />
+                    ) : (
                         <>
                             {docId === 'type_doc_passport' ? (
                                 <RiskProfileAllData />
@@ -120,6 +126,7 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                             )}
                         </>
                     )}
+
                 </div>
             </motion.div>
         </div>,

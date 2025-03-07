@@ -219,14 +219,14 @@ const DocumentsPage: React.FC = () => {
     const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
 
     const handleOpenPreview = (docId: string) => {
-        if (docId !== 'doc_type_passport') {
+        if (docId !== 'type_doc_passport') {
             dispatch(getUserDocumentsSignedThunk({ type_document: docId, purpose: 'preview', onSuccess: () => { } }))
             setSelectedDocId(docId);
             dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
         } else return
     };
     const handleDownloadPdf = (docId: string) => {
-        if (docId !== 'doc_type_passport') {
+        if (docId !== 'type_doc_passport') {
             dispatch(getUserDocumentsSignedThunk({
                 type_document: docId,
                 purpose: 'download',

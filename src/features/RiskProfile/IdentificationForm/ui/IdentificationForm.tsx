@@ -27,12 +27,13 @@ import { setUserAllData, setUserData, updateUserAllData } from "entities/User/sl
 import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
 import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/DocumentPreviewModal";
 import PrivacyPdf from 'shared/assets/documents/PersonalPolicy.pdf'
+import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 
 const IdentificationProfileForm: React.FC = () => {
     const dispatch = useAppDispatch();
     const gcaptchaSiteKey = import.meta.env.VITE_RANKS_GRCAPTCHA_SITE_KEY;
     const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
-    const [selectedMethod, setSelectedMethod] = useState<'phone' | 'email' | 'whatsapp' | ''>('phone');
+    const [selectedMethod, setSelectedMethod] = useState<'phone' | 'whatsapp' | ''>('phone');
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
     const recaptchaRef = useRef<ReCAPTCHA | null>(null);
     const [captchaVerified, setCaptchaVerified] = useState(false);
@@ -54,7 +55,7 @@ const IdentificationProfileForm: React.FC = () => {
             password2: "",
             is_agreement: false,
             g_recaptcha: "",
-            type_sms_message: "",
+            type_sms_message: "email",
         },
         validationSchema: Yup.object({
             lastName: Yup.string()
@@ -95,21 +96,20 @@ const IdentificationProfileForm: React.FC = () => {
         setCaptchaVerified(!!value);
     };
 
+    const messageTypeOptions = {
+        "phone": 'SMS',
+        "whatsapp": 'Whatsapp'
+    }
+
     /**
      * Устанавливаем локальное состояние выбранного метода (whatsapp, phone, email).
      * Одновременно диспатчим экшен setCurrentConfirmModalType для записи
      * в Redux, чтобы ConfirmInfoModal знал, какой тип показывать.
      */
-    const handleMethodChange = (method: 'phone' | 'email' | 'whatsapp') => {
-        if (selectedMethod === method) {
-            setSelectedMethod("");
-            dispatch(setCurrentConfirmModalType("phone"));
-            formik.setFieldValue("type_sms_message", "");
-        } else {
-            setSelectedMethod(method);
-            dispatch(setCurrentConfirmModalType(method));
-            formik.setFieldValue("type_sms_message", method === 'whatsapp' ? "WHATSAPP" : "");
-        }
+    const handleMethodChange = (method: 'phone' | 'whatsapp') => {
+        setSelectedMethod(method);
+        dispatch(setCurrentConfirmModalType(method));
+        formik.setFieldValue("type_sms_message", method === 'whatsapp' ? "WHATSAPP" : "SMS");
 
         // Сбрасываем капчу и статус верификации
         setCaptchaVerified(false);
@@ -280,20 +280,19 @@ const IdentificationProfileForm: React.FC = () => {
                 <div>
                     <span className={styles.buttons__method__title}>Отправить код подтверждения на:</span>
                     <div className={styles.buttons__method}>
-                        <Button
-                            theme={selectedMethod === 'whatsapp' ? ButtonTheme.GREEN : ButtonTheme.GREENuNDERLINE}
-                            className={styles.button_select}
-                            onClick={() => handleMethodChange('whatsapp')}
-                        >
-                            WhatsApp
-                        </Button>
-                        <Button
-                            theme={selectedMethod === 'phone' ? ButtonTheme.BLUE : ButtonTheme.UNDERLINE}
-                            className={styles.button_select}
-                            onClick={() => handleMethodChange('phone')}
-                        >
-                            SMS
-                        </Button>
+                        <CheckboxGroup
+                            name="type_sms_message"
+                            label=""
+                            direction="row"
+                            options={Object.entries(messageTypeOptions).map(([value, label]) => ({
+                                label,
+                                value,
+                            }))}
+                            value={selectedMethod}
+                            onChange={(name, selectedValue) => {
+                                handleMethodChange(selectedValue as 'phone' | 'whatsapp');
+                            }}
+                        />
                     </div>
                 </div>
 

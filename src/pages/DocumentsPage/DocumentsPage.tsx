@@ -110,7 +110,7 @@ const DocumentsPage: React.FC = () => {
         switch (docId) {
             case "type_doc_RP_questionnairy":
                 if (!isRpFilled) {
-                    dispatch(setStepAdditionalMenuUI(1));
+                    dispatch(setStepAdditionalMenuUI(0));
                     dispatch(
                         openModal({
                             type: ModalType.IDENTIFICATION,
@@ -119,7 +119,7 @@ const DocumentsPage: React.FC = () => {
                         })
                     );
                 } else {
-                    dispatch(setStepAdditionalMenuUI(5));
+                    dispatch(setStepAdditionalMenuUI(4));
                     dispatch(
                         openModal({
                             type: ModalType.IDENTIFICATION,
@@ -133,7 +133,7 @@ const DocumentsPage: React.FC = () => {
             case "type_doc_passport":
                 if (!isPasportFilled) {
                     dispatch(setCurrentConfirmableDoc('type_doc_passport'));
-                    dispatch(setStepAdditionalMenuUI(3));
+                    dispatch(setStepAdditionalMenuUI(2));
                     dispatch(
                         openModal({
                             type: ModalType.IDENTIFICATION,
@@ -143,7 +143,7 @@ const DocumentsPage: React.FC = () => {
                     );
                 } else {
                     dispatch(setCurrentConfirmableDoc('type_doc_passport'));
-                    dispatch(setStepAdditionalMenuUI(5));
+                    dispatch(setStepAdditionalMenuUI(3));
                     dispatch(
                         openModal({
                             type: ModalType.IDENTIFICATION,
@@ -160,7 +160,7 @@ const DocumentsPage: React.FC = () => {
             case "type_doc_agreement_personal_data_policy":
             case "type_doc_investment_profile_certificate":
                 dispatch(setCurrentConfirmableDoc(docId));
-                dispatch(setStepAdditionalMenuUI(5));
+                dispatch(setStepAdditionalMenuUI(4));
                 dispatch(
                     openModal({
                         type: ModalType.IDENTIFICATION,

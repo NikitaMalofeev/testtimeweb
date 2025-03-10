@@ -215,11 +215,11 @@ export const ConfirmDocsModal = memo(
                                 })
                             );
                             if (docsType === 'type_doc_passport') {
-                                dispatch(setStepAdditionalMenuUI(4))
+                                dispatch(setStepAdditionalMenuUI(3))
                             }
 
                             if (docsType === 'type_doc_investment_profile_certificate') {
-                                dispatch(setStepAdditionalMenuUI(6))
+                                dispatch(setStepAdditionalMenuUI(5))
                             }
                             // dispatch(nextDocType());
                             setSmsCodeFirst(Array(codeLength).fill(""));

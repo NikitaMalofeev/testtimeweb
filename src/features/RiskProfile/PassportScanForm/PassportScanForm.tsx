@@ -99,7 +99,7 @@ export const PasportScanForm: React.FC = () => {
         dispatch(
             postPasportScanThunk({
                 data: formData,
-                onSuccess: () => dispatch(setStepAdditionalMenuUI(5)),
+                onSuccess: () => dispatch(setStepAdditionalMenuUI(4)),
             })
         );
     };

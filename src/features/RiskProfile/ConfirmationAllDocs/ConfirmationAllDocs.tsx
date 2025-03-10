@@ -70,7 +70,7 @@ export const ConfirmAllDocs: React.FC = () => {
         }),
         onSubmit: () => {
             if (currentTypeDoc === 'type_doc_passport' && !isPasportFilled) {
-                dispatch(setStepAdditionalMenuUI(3))
+                dispatch(setStepAdditionalMenuUI(2))
             } else {
                 dispatch(
                     confirmDocsRequestThunk({

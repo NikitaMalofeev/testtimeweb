@@ -9,6 +9,7 @@
     &__wrapper {
         height: 100%;
         width: 100%;
+        margin-top: 20px;
     }
 
     &__icon {
@@ -16,31 +17,47 @@
     }
 
     &__tabs {
+        position: relative; /* для абсолютного позиционирования фона */
         display: flex;
         background-color: #EBEBED;
         border-radius: 50px;
         max-width: 90%;
-        margin: 0 auto;
-        margin-bottom: 50px;
+        margin: 0 auto 50px;
+        overflow: hidden; /* чтобы анимируемый фон не «вылезал» */
     }
 
     &__tab {
+        position: relative;
+        z-index: 2; /* чтобы текст был поверх анимируемого фона */
+        flex: 1; /* вкладки по 50% ширины */
+        text-align: center;
+
         padding: 12px 29px;
         border-radius: 50px;
-
         font-weight: 400;
         font-size: 16px;
         line-height: 19.36px;
-        letter-spacing: 0%;
-        color: #000000;
+        color: #000000; /* по умолчанию текст чёрный */
 
+        cursor: pointer;
+        user-select: none;
+        transition: color 0.3s;
     }
 
     &__tab_active {
+        color: #ffffff; /* активная вкладка становится белой */
+    }
+
+    /* Анимированный фон под вкладками */
+    &__activeBg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 50%;   /* фон занимает половину контейнера, т.к. вкладок 2 */
+        height: 100%;
         background-color: #0F0E0E;
-        padding: 12px 29px;
-        color: white;
         border-radius: 50px;
+        z-index: 1;
     }
 
     &__form {
@@ -54,6 +71,7 @@
     border-radius: 50px 50px 0 0;
     flex-direction: column;
     padding-bottom: 16px;
+    transition: height 0.3s ease;
 }
 
 .forgotPassword {
@@ -63,11 +81,11 @@
     text-align: center;
     margin-bottom: 40px;
 }
+
 .button {
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 18.5px 42px;
     width: 100%;
-    
 }

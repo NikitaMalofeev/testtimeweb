@@ -14,7 +14,6 @@ interface WithStepContentProps {
 }
 
 const stepTitles = [
-    "Идентификация",
     "Риск-профилирование",
     "Уточнение риск профиля",
     "Паспортные данные",
@@ -25,7 +24,6 @@ const stepTitles = [
 ];
 
 const stepContents = [
-    <IdentificationProfileForm />,
     <RiskProfileFirstForm />,
     <RiskProfileSecondForm />,
     <PasportDataForm />,
@@ -36,7 +34,6 @@ const stepContents = [
 
 
 const stepTooltipDescriptions = [
-    'Настройка параметров защиты цифрового профиля от несанкционированного доступа',
     'Пройдите анкетирование для определения вашего инвестиционного профиля',
     <div className={styles.description}>
         <div className={styles.description__container}>

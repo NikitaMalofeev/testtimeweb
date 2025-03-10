@@ -338,7 +338,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
     // Если необходимо закрыть модалку, когда оба запроса завершены
     useEffect(() => {
         if ((phoneSuccess === "пройдено" || whatsappSuccess === "пройдено") && emailSuccess === "пройдено") {
-            dispatch(setStepAdditionalMenuUI(1));
+            dispatch(setStepAdditionalMenuUI(0));
             onClose();
         }
     }, [phoneSuccess, whatsappSuccess, emailSuccess]);

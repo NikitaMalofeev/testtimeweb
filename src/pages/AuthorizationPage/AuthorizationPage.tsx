@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useSelector } from "react-redux";
@@ -13,8 +13,9 @@ import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
 import { userLoginThunk } from "entities/User/slice/userSlice";
 import IdentificationProfileForm from "features/RiskProfile/IdentificationForm/ui/IdentificationForm";
 
-// Импортируем motion из framer-motion
 import { motion } from "framer-motion";
+import AnimateHeightWrapper from "shared/lib/helpers/animation/AnimateHeightWrapper";
+
 
 const AuthorizationPage = () => {
     const dispatch = useAppDispatch();
@@ -55,83 +56,102 @@ const AuthorizationPage = () => {
         }
     };
 
+    const [showCrutch, setShowCrutch] = useState(true);
+
+    useEffect(() => {
+        if (activeTab === 'login') {
+            setTimeout(() => setShowCrutch(false), 300); // Через 0.4s скрываем crutch
+        } else {
+            setShowCrutch(true); // Показываем при открытии
+        }
+    }, [activeTab]);
+
+
+
     return (
         <div className={styles.auth}>
-            <div className={styles.auth__wrapper}>
-                <div
-                    className={`${styles.auth__container} ${activeTab === 'registration' ? styles.auth__container_extended : ''
-                        }`}
-                >
-                    <Icon Svg={WhiteLogo} width={73} height={73} className={styles.auth__icon} />
+            <AnimateHeightWrapper isOpen={activeTab === 'registration'}>
+                <div className={styles.auth__wrapper}>
+                    <div
+                        className={`${styles.auth__container} ${activeTab === 'registration' ? styles.auth__container_extended : ''
+                            }`}
 
-                    {/* Вкладки */}
-                    <div className={styles.auth__tabs}>
-                        {/* Анимированный «хайлайт» (чёрный фон) */}
-                        <motion.div
-                            className={styles.auth__activeBg}
-                            // При переключении вкладок двигаем фон на 0% или 50%
-                            animate={{ x: activeTab === "login" ? "0%" : "100%" }}
-                            transition={{ duration: 0.3 }}
-                        />
-                        <div
-                            className={`${styles.auth__tab} ${activeTab === 'login' ? styles.auth__tab_active : ""
-                                }`}
-                            onClick={() => setActiveTab('login')}
-                        >
-                            Авторизация
-                        </div>
-                        <div
-                            className={`${styles.auth__tab} ${activeTab === 'registration' ? styles.auth__tab_active : ""
-                                }`}
-                            onClick={() => setActiveTab('registration')}
-                        >
-                            Регистрация
-                        </div>
-                    </div>
+                    >
 
-                    {/* Контент в зависимости от вкладки */}
-                    {activeTab === 'login' && (
-                        <form onSubmit={formik.handleSubmit} className={styles.auth__form}>
-                            <Input
-                                autoComplete="new-password"
-                                placeholder="Email/телефон"
-                                name="identifier"
-                                type="text"
-                                value={formik.values.identifier}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
-                                error={formik.touched.identifier && formik.errors.identifier}
-                                needValue
+                        <Icon Svg={WhiteLogo} width={73} height={73} className={styles.auth__icon} />
+                        {/* Вкладки */}
+                        <div className={styles.auth__tabs} >
+                            {/* Анимированный «хайлайт» (чёрный фон) */}
+                            <motion.div
+                                className={styles.auth__activeBg}
+                                // При переключении вкладок двигаем фон на 0% или 50%
+                                animate={{ x: activeTab === "login" ? "0%" : "100%" }}
+                                transition={{ duration: 0.4 }}
                             />
-                            <Input
-                                autoComplete="new-password"
-                                placeholder="Пароль"
-                                name="password"
-                                type="password"
-                                value={formik.values.password}
-                                onChange={formik.handleChange}
-                                onBlur={formik.handleBlur}
-                                error={formik.touched.password && formik.errors.password}
-                                needValue
-                            />
-
-                            <Button
-                                type="button"
-                                onClick={handleSubmit}
-                                theme={ButtonTheme.BLUE}
-                                className={styles.button}
-                                disabled={!(formik.isValid && formik.dirty)}
+                            <div
+                                className={`${styles.auth__tab} ${activeTab === 'login' ? styles.auth__tab_active : ""
+                                    }`}
+                                onClick={() => setActiveTab('login')}
                             >
-                                {loading ? <Loader theme={LoaderTheme.WHITE} size={LoaderSize.SMALL} /> : 'Войти'}
-                            </Button>
-                        </form>
-                    )}
+                                Авторизация
+                            </div>
+                            <div
+                                className={`${styles.auth__tab} ${activeTab === 'registration' ? styles.auth__tab_active : ""
+                                    }`}
+                                onClick={() => setActiveTab('registration')}
+                            >
+                                Регистрация
+                            </div>
+                        </div>
 
-                    {activeTab === 'registration' && (
-                        <IdentificationProfileForm />
-                    )}
+                        {/* Контент в зависимости от вкладки */}
+                        {activeTab === 'login' && (
+                            <form onSubmit={formik.handleSubmit} className={styles.auth__form}>
+                                <div style={{ position: 'relative', zIndex: '5' }}>
+                                    <Input
+                                        autoComplete="new-password"
+                                        placeholder="Email/телефон"
+                                        name="identifier"
+                                        type="text"
+                                        value={formik.values.identifier}
+                                        onChange={formik.handleChange}
+                                        onBlur={formik.handleBlur}
+                                        error={formik.touched.identifier && formik.errors.identifier}
+                                        needValue
+                                    />
+                                    <Input
+                                        autoComplete="new-password"
+                                        placeholder="Пароль"
+                                        name="password"
+                                        type="password"
+                                        value={formik.values.password}
+                                        onChange={formik.handleChange}
+                                        onBlur={formik.handleBlur}
+                                        error={formik.touched.password && formik.errors.password}
+                                        needValue
+                                    />
+
+                                    <Button
+                                        type="button"
+                                        onClick={handleSubmit}
+                                        theme={ButtonTheme.BLUE}
+                                        className={styles.button}
+                                        disabled={!(formik.isValid && formik.dirty)}
+                                    >
+                                        {loading ? <Loader theme={LoaderTheme.WHITE} size={LoaderSize.SMALL} /> : 'Войти'}
+                                    </Button>
+                                </div>
+                                {showCrutch && <div className={styles.crutch}></div>}
+                            </form>
+                        )}
+
+                        {activeTab === 'registration' && (
+                            <IdentificationProfileForm />
+                        )}
+                    </div>
                 </div>
-            </div>
+            </AnimateHeightWrapper>
+
         </div>
     );
 };

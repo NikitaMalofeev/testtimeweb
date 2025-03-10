@@ -41,6 +41,8 @@ const IdentificationProfileForm: React.FC = () => {
 
     const checkConfirmmationSuccess = useSelector((state: RootState) => state.ui.confirmationStatusSuccess);
 
+    const NAME_REGEX = /^[А-Яа-яЁё\s-]+$/;
+
     const formik = useFormik({
         initialValues: {
             lastName: "",
@@ -55,8 +57,20 @@ const IdentificationProfileForm: React.FC = () => {
             type_sms_message: "",
         },
         validationSchema: Yup.object({
-            lastName: Yup.string().required("Фамилия обязательна"),
-            firstName: Yup.string().required("Имя обязательно"),
+            lastName: Yup.string()
+                .matches(NAME_REGEX, "Допустимы только буквы, пробел и дефис")
+                .min(2, "Минимум 2 символа")
+                .required("Фамилия обязательна"),
+            firstName: Yup.string()
+                .matches(NAME_REGEX, "Допустимы только буквы, пробел и дефис")
+                .min(2, "Минимум 2 символа")
+                .required("Имя обязательно"),
+            patronymic: Yup.string()
+                .matches(NAME_REGEX, "Допустимы только буквы, пробел и дефис")
+                // patronymic может быть необязательным, но если хотите – можно добавить:
+                .min(2, "Минимум 2 символа")
+                .nullable(), // или .notRequired()
+            // Остальные поля по вашему усмотрению...
             email: Yup.string().required("E-mail обязательно"),
             phone: Yup.string()
                 .required("Номер в формате +"),
@@ -111,6 +125,12 @@ const IdentificationProfileForm: React.FC = () => {
         }));
     };
 
+    const handleNameChange = (fieldName: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const rawValue = e.target.value;
+        const sanitizedValue = rawValue.replace(/[^А-Яа-яЁё\s-]/g, "");
+        formik.setFieldValue(fieldName, sanitizedValue);
+    };
+
     const handleOpenPrivacy = (e: any) => {
         e.preventDefault()
         // dispatch(closeModal(ModalType.IDENTIFICATION))
@@ -163,7 +183,7 @@ const IdentificationProfileForm: React.FC = () => {
                     <Input
                         name="lastName"
                         value={formik.values.lastName}
-                        onChange={formik.handleChange}
+                        onChange={handleNameChange("lastName")}
                         onBlur={formik.handleBlur}
                         placeholder="Фамилия"
                         needValue
@@ -172,7 +192,7 @@ const IdentificationProfileForm: React.FC = () => {
                     <Input
                         name="firstName"
                         value={formik.values.firstName}
-                        onChange={formik.handleChange}
+                        onChange={handleNameChange("firstName")}
                         onBlur={formik.handleBlur}
                         placeholder="Имя"
                         needValue
@@ -181,7 +201,7 @@ const IdentificationProfileForm: React.FC = () => {
                     <Input
                         name="patronymic"
                         value={formik.values.patronymic}
-                        onChange={formik.handleChange}
+                        onChange={handleNameChange("patronymic")}
                         onBlur={formik.handleBlur}
                         placeholder="Отчество (при наличии)"
                         type="text"

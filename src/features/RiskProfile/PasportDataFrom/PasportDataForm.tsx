@@ -13,6 +13,7 @@ import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { closeModal, openModal, setCurrentConfirmModalType, setCurrentConfirmModalType2 } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { ConfirmDocsModal } from "../ConfirmDocsModal/ConfirmDocsModal";
+import * as Yup from "yup";
 
 export const PasportDataForm: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -23,6 +24,24 @@ export const PasportDataForm: React.FC = () => {
     const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
     const modalState = useSelector((state: RootState) => state.modal);
 
+    const NAME_REGEX = /^[А-Яа-яЁё\s-]+$/;
+
+    // Общая Yup-схема для полей ФИО
+    const passportValidationSchema = Yup.object().shape({
+        last_name: Yup.string()
+            .matches(NAME_REGEX, "Только буквы, пробел и дефис")
+            .min(2, "Минимум 2 символа")
+            .required("Фамилия обязательна"),
+        first_name: Yup.string()
+            .matches(NAME_REGEX, "Только буквы, пробел и дефис")
+            .min(2, "Минимум 2 символа")
+            .required("Имя обязательно"),
+        patronymic: Yup.string()
+            .matches(NAME_REGEX, "Только буквы, пробел и дефис")
+            .min(2, "Минимум 2 символа")
+            .nullable(), // или notRequired()
+        // и т.д. для остальных полей
+    });
     const formik = useFormik({
         initialValues: {
             g_recaptcha: "",
@@ -52,6 +71,7 @@ export const PasportDataForm: React.FC = () => {
             address_residential_house: "",
             address_residential_apartment: "",
         },
+        validationSchema: passportValidationSchema,
         onSubmit: (values) => {
         },
     });
@@ -74,6 +94,12 @@ export const PasportDataForm: React.FC = () => {
             }
         }))
     }
+
+    const handleNameChange = (fieldName: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const rawValue = e.target.value;
+        const sanitizedValue = rawValue.replace(/[^А-Яа-яЁё\s-]/g, "");
+        formik.setFieldValue(fieldName, sanitizedValue);
+    };
 
     useEffect(() => {
         console.log(userPersonalAccount)
@@ -158,10 +184,44 @@ export const PasportDataForm: React.FC = () => {
     return (
         <>
             <form className={styles.form}>
-                <Input placeholder="Фамилия" name="last_name" type="text" value={formik.values.last_name || ''} onChange={handleTextInputChange} needValue />
-                <Input placeholder="Имя" name="first_name" type="text" value={formik.values.first_name || ''} onChange={handleTextInputChange} needValue />
+                <Input
+                    placeholder="Фамилия"
+                    name="last_name"
+                    type="text"
+                    value={formik.values.last_name || ''}
+                    onChange={handleNameChange("last_name")}
+                    onBlur={formik.handleBlur}
+                    needValue
+                />
+                {formik.touched.last_name && formik.errors.last_name && (
+                    <div className={styles.error}>{formik.errors.last_name}</div>
+                )}
 
-                <Input placeholder="Отчество" name="patronymic" type="text" value={formik.values.patronymic || ''} onChange={handleTextInputChange} needValue />
+                <Input
+                    placeholder="Имя"
+                    name="first_name"
+                    type="text"
+                    value={formik.values.first_name || ''}
+                    onChange={handleNameChange("first_name")}
+                    onBlur={formik.handleBlur}
+                    needValue
+                />
+                {formik.touched.first_name && formik.errors.first_name && (
+                    <div className={styles.error}>{formik.errors.first_name}</div>
+                )}
+
+                <Input
+                    placeholder="Отчество"
+                    name="patronymic"
+                    type="text"
+                    value={formik.values.patronymic || ''}
+                    onChange={handleNameChange("patronymic")}
+                    onBlur={formik.handleBlur}
+                    needValue
+                />
+                {formik.touched.patronymic && formik.errors.patronymic && (
+                    <div className={styles.error}>{formik.errors.patronymic}</div>
+                )}
                 <CheckboxGroup
                     name='gender'
                     label="Пол"

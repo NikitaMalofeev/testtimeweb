@@ -71,21 +71,23 @@ export const ConfirmAllDocs: React.FC = () => {
         onSubmit: () => {
             if (currentTypeDoc === 'type_doc_passport' && !isPasportFilled) {
                 dispatch(setStepAdditionalMenuUI(3))
+            } else {
+                dispatch(
+                    confirmDocsRequestThunk({
+                        data: formik.values,
+                        onSuccess: () => {
+                            dispatch(
+                                openModal({
+                                    type: ModalType.CONFIRM_DOCS,
+                                    size: ModalSize.MIDDLE,
+                                    animation: ModalAnimation.LEFT,
+                                })
+                            );
+                        },
+                    })
+                );
             }
-            dispatch(
-                confirmDocsRequestThunk({
-                    data: formik.values,
-                    onSuccess: () => {
-                        dispatch(
-                            openModal({
-                                type: ModalType.CONFIRM_DOCS,
-                                size: ModalSize.MIDDLE,
-                                animation: ModalAnimation.LEFT,
-                            })
-                        );
-                    },
-                })
-            );
+
         },
     });
 

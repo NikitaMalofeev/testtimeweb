@@ -22,6 +22,7 @@ import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { TrustedPersonInfo } from "entities/RiskProfile/model/types";
 import { setUserAllData, updateUserAllData } from "entities/User/slice/userSlice";
+import { useNavigate } from "react-router-dom";
 
 interface Question {
     name: string;
@@ -39,6 +40,7 @@ export const RiskProfileFirstForm: React.FC = () => {
     );
     const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
     const [currentStep, setCurrentStep] = useState(0);
+    const navigate = useNavigate()
 
     useEffect(() => {
         dispatch(fetchAllSelects() as any);
@@ -193,6 +195,7 @@ export const RiskProfileFirstForm: React.FC = () => {
             document.body.style.position = "";
             document.body.style.width = "";
             document.documentElement.style.overflow = "";
+            navigate('/lk')
         } else {
             setCurrentStep((prev) => prev - 1);
             dispatch(prevRiskProfileStep());

@@ -80,6 +80,9 @@ export const createRiskProfile = createAsyncThunk<
             if (error.response.data.info) {
                 dispatch(setError(error.response.data.info))
             }
+            if (error.response.data.errorText) {
+                dispatch(setError(error.response.data.errorText))
+            }
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке данных"
             );
@@ -464,14 +467,25 @@ const riskProfileSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload as string;
             })
-            .addCase(postSecondRiskProfileForm.pending, (state) => {
+            // .addCase(postSecondRiskProfileForm.pending, (state) => {
+            //     state.loading = true;
+            //     state.error = null;
+            // })
+            // .addCase(postSecondRiskProfileForm.fulfilled, (state) => {
+            //     state.loading = false;
+            // })
+            // .addCase(postSecondRiskProfileForm.rejected, (state, action) => {
+            //     state.loading = false;
+            //     state.error = action.payload as string;
+            // })
+            .addCase(postFirstRiskProfileForm.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(postSecondRiskProfileForm.fulfilled, (state) => {
+            .addCase(postFirstRiskProfileForm.fulfilled, (state) => {
                 state.loading = false;
             })
-            .addCase(postSecondRiskProfileForm.rejected, (state, action) => {
+            .addCase(postFirstRiskProfileForm.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
             });

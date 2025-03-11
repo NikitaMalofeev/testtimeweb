@@ -47,7 +47,7 @@ const DocumentsPage: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const modalPreviewState = useSelector((state: RootState) => state.modal.documentsPreview)
-    const { userDocuments, loading } = useSelector((state: RootState) => state.documents);
+    const { userDocuments, loading, is_risk_profile_complete } = useSelector((state: RootState) => state.documents);
     const isPasportFilled = useSelector((state: RootState) => state.user.allUserDataForDocuments?.address_residential_apartment);
     const isRpFilled = useSelector((state: RootState) => state.user.allUserDataForDocuments?.invest_target);
     const currentDocument = useSelector((state: RootState) => state.documents.currentSugnedDocument.document);
@@ -110,6 +110,15 @@ const DocumentsPage: React.FC = () => {
         switch (docId) {
             case "type_doc_RP_questionnairy":
                 if (!isRpFilled) {
+                    dispatch(setStepAdditionalMenuUI(0));
+                    dispatch(
+                        openModal({
+                            type: ModalType.IDENTIFICATION,
+                            size: ModalSize.FULL,
+                            animation: ModalAnimation.LEFT,
+                        })
+                    );
+                } else if (!is_risk_profile_complete && isRpFilled) {
                     dispatch(setStepAdditionalMenuUI(0));
                     dispatch(
                         openModal({

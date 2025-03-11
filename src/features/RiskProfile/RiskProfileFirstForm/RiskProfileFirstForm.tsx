@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
@@ -39,9 +39,7 @@ export const RiskProfileFirstForm: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
 
-    // ============
-    //  REDUX STATE
-    // ============
+    // ============ REDUX STATE ============
     const {
         loading,
         error,
@@ -49,20 +47,20 @@ export const RiskProfileFirstForm: React.FC = () => {
         formValues,
         stepsFirstForm: { currentStep },
     } = useSelector((state: RootState) => state.riskProfile);
-
     const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
 
-    // =========================
-    // 1. On MOUNT -> read localStorage & dispatch to Redux
-    // =========================
+    // Локальный флаг, сигнализирующий, что localStorage уже загружен
+    const [isLSLoaded, setIsLSLoaded] = useState(false);
+
+    // ========================= 1. Загрузка данных из localStorage =========================
     useEffect(() => {
         const savedData = localStorage.getItem("riskProfileFormData");
         if (savedData) {
             try {
                 const parsed = JSON.parse(savedData);
-                // Expecting { step: number; data: Record<string, any> }
+                // Ожидается структура: { step: number; data: Record<string, any> }
                 if (typeof parsed.step === "number" && parsed.data) {
-                    // Dispatch to Redux: set step and form values
+                    // Обновляем Redux-стейт значениями из localStorage
                     dispatch(setStep(parsed.step));
                     dispatch(updateRiskProfileForm(parsed.data));
                 }
@@ -70,31 +68,26 @@ export const RiskProfileFirstForm: React.FC = () => {
                 console.error("Ошибка парсинга из localStorage: ", error);
             }
         }
+        // Устанавливаем флаг, что загрузка из localStorage завершена
+        setIsLSLoaded(true);
     }, [dispatch]);
 
-    // =========================
-    // 2. Also fetch all "selectors"
-    // =========================
+    // ========================= 2. Получение селекторов =========================
     useEffect(() => {
         dispatch(fetchAllSelects() as any);
     }, [dispatch]);
 
-    // =========================
-    // 3. Sync Redux -> localStorage
-    // =========================
+    // ========================= 3. Синхронизация Redux → localStorage (только после загрузки LS) =========================
     useEffect(() => {
+        if (!isLSLoaded) return; // до загрузки не синхронизируем
         const dataToSave = {
             step: currentStep,
             data: formValues,
         };
         localStorage.setItem("riskProfileFormData", JSON.stringify(dataToSave));
-    }, [currentStep, formValues]);
+    }, [currentStep, formValues, isLSLoaded]);
 
-
-
-    // =========================
-    // 4. Helpers for question labels
-    // =========================
+    // ========================= 4. Вспомогательная функция для меток вопросов =========================
     const getLabelByKey = (key: string) => {
         const map: Record<string, string> = {
             age_parameters: "Ваш возраст",
@@ -119,13 +112,11 @@ export const RiskProfileFirstForm: React.FC = () => {
         return map[key] || key;
     };
 
-    // =========================
-    // 5. Build the questions
-    // =========================
+    // ========================= 5. Построение вопросов =========================
     const questions: Question[] = React.useMemo(() => {
         if (!riskProfileSelectors) return [];
 
-        // (1) Citizenship
+        // (1) Вопрос о гражданстве
         const citizenshipQuestion: Question = {
             name: "citizenship",
             label: "Гражданство, в том числе ВНЖ",
@@ -134,7 +125,7 @@ export const RiskProfileFirstForm: React.FC = () => {
             options: riskProfileSelectors.countries,
         };
 
-        // (2) Server-based
+        // (2) Вопросы с сервера
         const serverQuestions: Question[] = Object.entries(riskProfileSelectors)
             .filter(([key]) => key !== "countries")
             .map(([key, value]) => ({
@@ -144,7 +135,7 @@ export const RiskProfileFirstForm: React.FC = () => {
                 fieldType: "checkboxGroup",
             }));
 
-        // (3) Extra for trusted person, etc.
+        // (3) Дополнительные вопросы
         const extraTextQuestions: Question[] = [
             {
                 name: "trusted_person",
@@ -167,39 +158,28 @@ export const RiskProfileFirstForm: React.FC = () => {
         return [citizenshipQuestion, ...extraTextQuestions, ...serverQuestions];
     }, [riskProfileSelectors]);
 
-    // =========================
-    // 6. Setup Formik: initial values come from Redux
-    //    enableReinitialize => if Redux changes, Formik updates
-    // =========================
+    // ========================= 6. Настройка Formik =========================
+    // enableReinitialize: true позволит обновлять форму, когда Redux-стейт меняется (например, после загрузки LS)
     const formik = useFormik({
-        enableReinitialize: false,
+        enableReinitialize: true,
         initialValues: formValues,
         onSubmit: async (values) => {
             alert("Данные отправлены");
         },
     });
 
-    useEffect(() => {
-        console.log(formik.values)
-        updateRiskProfileForm(formik.values)
-    }, [formik.values])
-    // We want every Formik change to also dispatch to Redux
-    // so Redux remains the single source of truth.
     const handleChangeAndDispatch =
         (fieldName: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
             formik.handleChange(e);
             dispatch(updateFieldValue({ name: fieldName, value: e.target.value }));
         };
 
-    // If using setFieldValue for e.g. selects, we can do:
     const handleSelectChange = (fieldName: string, value: any) => {
         formik.setFieldValue(fieldName, value);
         dispatch(updateFieldValue({ name: fieldName, value }));
     };
 
-    // =========================
-    // 7. Conditionals
-    // =========================
+    // ========================= 7. Условия рендера =========================
     if (loading) return <Loader theme={LoaderTheme.BLUE} />;
     if (error) return <p style={{ color: "red" }}>{error}</p>;
     if (!riskProfileSelectors || questions.length === 0) return null;
@@ -208,12 +188,9 @@ export const RiskProfileFirstForm: React.FC = () => {
     const isLastStep = currentStep === totalSteps - 1;
     const currentQuestion = questions[currentStep];
 
-    // =========================
-    // 8. Check for "trusted_person" special case
-    // =========================
+    // ========================= 8. Обработка доверенного лица =========================
     const checkTrustedPerson = () => {
         const { trusted_person_fio, trusted_person_phone, trusted_person_other_contact } = formik.values;
-
         const trustedPersonInfo: TrustedPersonInfo = {
             trusted_person_fio,
             trusted_person_phone,
@@ -228,17 +205,13 @@ export const RiskProfileFirstForm: React.FC = () => {
         );
     };
 
-    // =========================
-    // 9. Navigation
-    // =========================
+    // ========================= 9. Навигация =========================
     const goNext = () => {
         if (isLastStep) {
-            // final step => post
             dispatch(postFirstRiskProfileForm(formik.values) as any);
             dispatch(updateUserAllData({ gender: String(formik.values.gender) }));
             dispatch(setStepAdditionalMenuUI(1));
         } else {
-            // Just next step
             dispatch(updateRiskProfileForm(formik.values));
             dispatch(nextRiskProfileStep());
         }
@@ -247,7 +220,6 @@ export const RiskProfileFirstForm: React.FC = () => {
     const goBack = () => {
         if (currentStep === 0) {
             dispatch(closeModal(ModalType.IDENTIFICATION));
-            // restore scroll
             document.body.style.overflow = "";
             document.body.style.position = "";
             document.body.style.width = "";
@@ -258,11 +230,8 @@ export const RiskProfileFirstForm: React.FC = () => {
         }
     };
 
-    // =========================
-    // 10. Validate if question answered
-    // =========================
+    // ========================= 10. Проверка заполненности вопроса =========================
     const isQuestionAnswered = (question: Question) => {
-        // For "trusted_person" => check 3 fields
         if (question.name === "trusted_person") {
             return (
                 formik.values.trusted_person_fio &&
@@ -270,32 +239,20 @@ export const RiskProfileFirstForm: React.FC = () => {
                 formik.values.trusted_person_other_contact
             );
         }
-        // Checkbox group
         if (question.fieldType === "checkboxGroup") {
-            return (
-                formik.values[question.name] && formik.values[question.name].length > 0
-            );
+            return formik.values[question.name] && formik.values[question.name].length > 0;
         }
-        // customSelect (countries)
         if (question.fieldType === "customSelect") {
             return !!formik.values[question.name];
         }
-        // numberinput
         if (question.fieldType === "numberinput") {
-            return (
-                formik.values[question.name] !== undefined &&
-                formik.values[question.name] !== ""
-            );
+            return formik.values[question.name] !== undefined && formik.values[question.name] !== "";
         }
-        // fallback => just non-empty
         return !!formik.values[question.name];
     };
 
-    // =========================
-    // 11. Render question's input
-    // =========================
+    // ========================= 11. Рендеринг полей вопросов =========================
     const renderQuestionField = (question: Question) => {
-        // (A) "trusted_person" => 3 separate Inputs
         if (question.name === "trusted_person") {
             return (
                 <>
@@ -324,7 +281,6 @@ export const RiskProfileFirstForm: React.FC = () => {
             );
         }
 
-        // (B) Citizenship => 2 selects
         if (question.name === "citizenship") {
             const countryOptions = Object.entries(question.options || {}).map(([key, val]) => ({
                 value: key,
@@ -336,36 +292,28 @@ export const RiskProfileFirstForm: React.FC = () => {
                     <Select
                         label="Гражданство"
                         needValue
-                        value={formik.values.citizenship || ''}
+                        value={formik.values.citizenship || ""}
                         title="Выберите страну"
                         items={countryOptions}
-                        onChange={(selectedVal) => {
-                            handleSelectChange("citizenship", selectedVal);
-                        }}
+                        onChange={(selectedVal) => handleSelectChange("citizenship", selectedVal)}
                     />
                     <Select
                         label="Вид на жительство"
                         needValue={false}
-                        value={formik.values.citizenship_including_residence_permit || ''}
+                        value={formik.values.citizenship_including_residence_permit || ""}
                         title="Выберите страну"
                         items={countryOptions}
-                        onChange={(selectedVal) => {
-                            handleSelectChange("citizenship_including_residence_permit", selectedVal);
-                        }}
+                        onChange={(selectedVal) => handleSelectChange("citizenship_including_residence_permit", selectedVal)}
                     />
                 </>
             );
         }
 
-        // (C) checkboxGroup
         if (question.fieldType === "checkboxGroup" && question.options) {
             return (
                 <CheckboxGroup
                     name={question.name}
-                    options={Object.entries(question.options).map(([value, label]) => ({
-                        label,
-                        value,
-                    }))}
+                    options={Object.entries(question.options).map(([value, label]) => ({ label, value }))}
                     value={String(formik.values[question.name])}
                     onChange={(name, selectedValue) => {
                         formik.setFieldValue(name, selectedValue);
@@ -375,7 +323,6 @@ export const RiskProfileFirstForm: React.FC = () => {
             );
         }
 
-        // (D) textarea
         if (question.fieldType === "textarea") {
             return (
                 <Input
@@ -388,7 +335,6 @@ export const RiskProfileFirstForm: React.FC = () => {
             );
         }
 
-        // (E) numberinput
         if (question.fieldType === "numberinput") {
             return (
                 <Input
@@ -401,7 +347,6 @@ export const RiskProfileFirstForm: React.FC = () => {
             );
         }
 
-        // (F) fallback => normal text
         return (
             <Input
                 placeholder={question.placeholder}
@@ -413,9 +358,7 @@ export const RiskProfileFirstForm: React.FC = () => {
         );
     };
 
-    // =========================
-    // RENDER
-    // =========================
+    // ========================= 12. Рендер компонента =========================
     return (
         <div className={styles.form}>
             <p className={styles.form__steps}>
@@ -448,10 +391,7 @@ export const RiskProfileFirstForm: React.FC = () => {
                         theme={ButtonTheme.BLUE}
                         onClick={currentStep !== 1 ? goNext : checkTrustedPerson}
                         className={styles.button}
-                        disabled={
-                            !isQuestionAnswered(currentQuestion) &&
-                            currentQuestion.name !== "trusted_person"
-                        }
+                        disabled={!isQuestionAnswered(currentQuestion) && currentQuestion.name !== "trusted_person"}
                     >
                         Продолжить
                     </Button>

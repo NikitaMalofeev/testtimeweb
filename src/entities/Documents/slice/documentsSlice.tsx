@@ -53,6 +53,7 @@ interface DocumentsState {
         document: Uint8Array | null;
         type: string;
     };
+    is_risk_profile_complete: boolean;
 }
 
 const initialState: DocumentsState = {
@@ -67,7 +68,8 @@ const initialState: DocumentsState = {
         document: null,
         type: ''
     },
-    userDocuments: [] // теперь тут храним объекты
+    userDocuments: [],
+    is_risk_profile_complete: false
 };
 
 export const confirmDocsRequestThunk = createAsyncThunk<
@@ -150,6 +152,7 @@ export const getUserDocumentsStateThunk = createAsyncThunk<
                 return rejectWithValue("Отсутствует токен авторизации");
             }
             const response = await getDocumentsState(token);
+            setIsRiksProfileComplete(response.is_risk_profile_complete)
             // См. пример структуры: { confirmed_documents: DocumentConfirmationInfo[] }
             const confirmedDocuments = response.confirmed_documents;
 
@@ -252,6 +255,12 @@ export const documentsSlice = createSlice({
         ) {
             state.currentSugnedDocument = action.payload;
         },
+        setIsRiksProfileComplete(
+            state,
+            action: PayloadAction<boolean>
+        ) {
+            state.is_risk_profile_complete = action.payload;
+        },
 
         nextDocType(state) {
             const currentIndex = docTypes.findIndex(
@@ -317,7 +326,8 @@ export const {
     nextDocType,
     setTimeoutBetweenConfirmation,
     setNotSignedDocumentsHtmls,
-    setCurrentSignedDocuments
+    setCurrentSignedDocuments,
+    setIsRiksProfileComplete
 } = documentsSlice.actions;
 
 export default documentsSlice.reducer;

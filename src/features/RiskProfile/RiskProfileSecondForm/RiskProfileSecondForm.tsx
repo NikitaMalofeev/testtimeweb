@@ -31,6 +31,14 @@ const SWIPER_PARAM_VALUES: SwiperParametrValues = {
     risk_prof_aggressive: 'Агрессивный',
     risk_prof_aggressive_super: 'Супер-агрессивный',
 };
+const RISK_PROFILE_DESCRIPTIONS: { [key: string]: string } = {
+    risk_prof_conservative: "Главная цель — сохранение и защита капитала. Инвесторам с таким профилем подходят наиболее безопасные финансовые инструменты: депозиты и государственные облигации. До 100% - государственные облигации.",
+    risk_prof_conservative_moderately: "Подразумевает готовность принять разумный уровень риска в обмен на потенциальную возможность получить доход на уровне существующих процентных ставок по депозитам. До 100% портфеля — корпоративные, муниципальные и государственные облигации.",
+    risk_prof_balanced: "Это золотая середина. Инвесторы с таким профилем распределяют активы между стабильными облигациями и более рискованными акциями. 50% портфеля занимают облигации. 50% акции.",
+    risk_prof_aggressive_moderately: "Повышенный уровень риска и повышенная волатильность стоимости портфеля в обмен на повышенный доход. Портфель на 75% состоит из акций, на 25% облигаций.",
+    risk_prof_aggressive: "Высокую склонность к риску и большой опыт самостоятельной торговли на бирже. Агрессивный инвестор допускает сильную просадку портфеля в обмен на высокую потенциальную доходность. 100% - портфеля в акциях.",
+    risk_prof_aggressive_super: "Максимально агрессивная стратегия с низкой диверсификацией, с высоким риском и с максимальным потенциалом доходности. 100% портфеля в акциях. Сильная концентрация (низкая диверсификация)"
+};
 
 export const RiskProfileSecondForm: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -40,13 +48,14 @@ export const RiskProfileSecondForm: React.FC = () => {
     const thirdRiskProfileResponse = useSelector((state: RootState) => state.riskProfile.thirdRiskProfileResponse);
 
     const goBack = () => dispatch(prevStep());
+        
 
     const formik = useFormik({
         enableReinitialize: true,
         initialValues: {
             amount_expected_replenishment: secondRiskProfileData?.min_amount_expected_replenishment ?? 0,
             portfolio_parameters: secondRiskProfileData?.recommended_risk_profiles
-                ? Object.keys(secondRiskProfileData.recommended_risk_profiles)[0]
+                ? Object.keys(secondRiskProfileData.recommended_risk_profiles)[Object.keys(secondRiskProfileData.recommended_risk_profiles).length - 1]
                 : '',
             risk_profiling_final: ''
         },
@@ -75,7 +84,7 @@ export const RiskProfileSecondForm: React.FC = () => {
 
     useEffect(() => {
         if (!formik.values.portfolio_parameters && secondRiskProfileData?.recommended_risk_profiles) {
-            const firstKey = Object.keys(secondRiskProfileData.recommended_risk_profiles)[0] || '';
+            const firstKey = Object.keys(secondRiskProfileData.recommended_risk_profiles)[Object.keys(secondRiskProfileData.recommended_risk_profiles).length - 1] || '';
             formik.setFieldValue('portfolio_parameters', firstKey);
         }
     }, [secondRiskProfileData]);
@@ -255,7 +264,11 @@ export const RiskProfileSecondForm: React.FC = () => {
                             <div className={styles.form__final}>
                                 <Tooltip
                                     className={styles.form__item__tooltip_report}
-                                    description={secondRiskProfileData.info}
+                                    description={
+                                        RISK_PROFILE_DESCRIPTIONS[
+                                        Object.keys(secondRiskProfileData.recommended_risk_profiles)[Object.keys(secondRiskProfileData.recommended_risk_profiles).length - 1]
+                                        ]
+                                    }
                                     topForCenteringIcons="24px"
                                     direction='left'
                                     positionBox={{ top: '12px', right: '32px' }}
@@ -263,7 +276,7 @@ export const RiskProfileSecondForm: React.FC = () => {
                                 />
                                 <div className={styles.report__container}>
                                     <p className={styles.report}>Рекомендуемый риск-профиль по результатам риск-профилирования </p>
-                                    <b className={styles.report__value}>{Object.values(secondRiskProfileData.recommended_risk_profiles)[0]}</b>
+                                    <b className={styles.report__value}>{Object.values(secondRiskProfileData.recommended_risk_profiles)[Object.keys(secondRiskProfileData.recommended_risk_profiles).length - 1]}</b>
                                 </div>
                                 <Select
                                     label="Подтвердить выбор риск профиля"

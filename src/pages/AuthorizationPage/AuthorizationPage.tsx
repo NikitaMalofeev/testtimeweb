@@ -12,15 +12,12 @@ import { RootState } from "app/providers/store/config/store";
 import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
 import { userLoginThunk } from "entities/User/slice/userSlice";
 import IdentificationProfileForm from "features/RiskProfile/IdentificationForm/ui/IdentificationForm";
-
 import { motion } from "framer-motion";
 import AnimateHeightWrapper from "shared/lib/helpers/animation/AnimateHeightWrapper";
-
 
 const AuthorizationPage = () => {
     const dispatch = useAppDispatch();
     const { loading } = useSelector((state: RootState) => state.user);
-
     const [activeTab, setActiveTab] = useState<"login" | "registration">("login");
 
     // Форма для авторизации
@@ -56,49 +53,51 @@ const AuthorizationPage = () => {
         }
     };
 
-    const [showCrutch, setShowCrutch] = useState(false);
+    // Используем ref для управления видимостью элемента "crutch"
+    const crutchRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (activeTab === 'login') {
-            setShowCrutch(true);
-            setTimeout(() => setShowCrutch(false), 400); // 400 мс = 0.4 секунда
+            if (crutchRef.current) {
+                // Сразу показываем элемент без задержки
+                crutchRef.current.style.display = "block";
+            }
+            setTimeout(() => {
+                if (crutchRef.current) {
+                    crutchRef.current.style.display = "none";
+                }
+            }, 400); // скрыть через 400 мс
         } else {
-            setShowCrutch(false); // На регистрации не показываем crutch
+            if (crutchRef.current) {
+                crutchRef.current.style.display = "none";
+            }
         }
     }, [activeTab]);
-
-
 
     return (
         <div className={styles.auth}>
             <AnimateHeightWrapper isOpen={activeTab === 'registration'}>
                 <div className={styles.auth__wrapper}>
                     <div
-                        className={`${styles.auth__container} ${activeTab === 'registration' ? styles.auth__container_extended : ''
-                            }`}
-
+                        className={`${styles.auth__container} ${activeTab === 'registration' ? styles.auth__container_extended : ''}`}
                     >
-
                         <Icon Svg={WhiteLogo} width={73} height={73} className={styles.auth__icon} />
                         {/* Вкладки */}
-                        <div className={styles.auth__tabs} >
+                        <div className={styles.auth__tabs}>
                             {/* Анимированный «хайлайт» (чёрный фон) */}
                             <motion.div
                                 className={styles.auth__activeBg}
-                                // При переключении вкладок двигаем фон на 0% или 50%
                                 animate={{ x: activeTab === "login" ? "0%" : "100%" }}
                                 transition={{ duration: 0.4 }}
                             />
                             <div
-                                className={`${styles.auth__tab} ${activeTab === 'login' ? styles.auth__tab_active : ""
-                                    }`}
+                                className={`${styles.auth__tab} ${activeTab === 'login' ? styles.auth__tab_active : ""}`}
                                 onClick={() => setActiveTab('login')}
                             >
                                 Авторизация
                             </div>
                             <div
-                                className={`${styles.auth__tab} ${activeTab === 'registration' ? styles.auth__tab_active : ""
-                                    }`}
+                                className={`${styles.auth__tab} ${activeTab === 'registration' ? styles.auth__tab_active : ""}`}
                                 onClick={() => setActiveTab('registration')}
                             >
                                 Регистрация
@@ -142,10 +141,10 @@ const AuthorizationPage = () => {
                                         {loading ? <Loader theme={LoaderTheme.WHITE} size={LoaderSize.SMALL} /> : 'Войти'}
                                     </Button>
                                 </div>
-                                {showCrutch && <div className={styles.crutch}></div>}
+                                {/* Элемент crutch всегда отрисовывается, но изначально скрыт */}
+                                <div ref={crutchRef} className={styles.crutch} style={{ display: "none" }}></div>
                             </form>
                         )}
-
 
                         {activeTab === 'registration' && (
                             <IdentificationProfileForm />
@@ -153,7 +152,6 @@ const AuthorizationPage = () => {
                     </div>
                 </div>
             </AnimateHeightWrapper>
-
         </div>
     );
 };

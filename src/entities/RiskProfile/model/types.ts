@@ -108,12 +108,12 @@ export interface PasportFormData {
     first_name?: string;
     patronymic?: string;
     last_name?: string;
-    birth_date: string;
+    birth_date: Date | null;
     birth_place: string;
     passport_series: string;
     passport_number: string;
     department_code: string;
-    issue_date: string;
+    issue_date: Date | null;
     issue_whom: string;
     inn: string;
     region: string;

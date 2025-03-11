@@ -14,6 +14,8 @@ import { closeModal, openModal, setCurrentConfirmModalType, setCurrentConfirmMod
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { ConfirmDocsModal } from "../ConfirmDocsModal/ConfirmDocsModal";
 import * as Yup from "yup";
+import { Datepicker } from "shared/ui/DatePicker/DatePicker";
+import { format } from "date-fns";
 
 export const PasportDataForm: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -50,13 +52,13 @@ export const PasportDataForm: React.FC = () => {
             first_name: userPersonalAccount?.first_name,
             last_name: userPersonalAccount?.last_name,
             patronymic: userPersonalAccount?.patronymic,
-            birth_date: "",
+            birth_date: null,
             birth_place: "",
             passport_series: "",
             passport_number: "",
             department_code: "",
-            issue_date: "",
-            issue_whom: "",
+            issue_date: null,
+            issue_whom: '',
             inn: "",
             region: "",
             city: "",
@@ -236,7 +238,13 @@ export const PasportDataForm: React.FC = () => {
                         dispatch(updateFieldValue({ name, value: selectedValue }));
                     }}
                 />
-                <Input placeholder="Дата рождения" name="birth_date" type="text" value={formik.values.birth_date} onChange={handleDateInputChange} needValue />
+                <Datepicker
+                    value={formik.values.birth_date}
+                    onChange={(date) => date && formik.setFieldValue("birth_date", format(date, 'yyyy-MM-dd'))}
+                    placeholder="Дата рождения"
+                    maxDate={new Date()}
+                />
+
                 <Input placeholder="Место рождения" name="birth_place" type="text" value={formik.values.birth_place} onChange={handleTextInputChange} needValue />
                 <div className={styles.form__duoInputs}>
                     <Input placeholder="Серия паспорта" type="number" maxLength={4} name="passport_series" value={formik.values.passport_series} onChange={handleTextInputChange} needValue />
@@ -257,7 +265,13 @@ export const PasportDataForm: React.FC = () => {
                 <Input placeholder="Кем выдан" name="issue_whom" type="text" value={formik.values.issue_whom} onChange={handleTextInputChange} needValue />
                 <div className={styles.form__duoInputs}>
                     <Input placeholder="ИНН" name="inn" type="number" maxLength={12} value={formik.values.inn} onChange={handleTextInputChange} needValue />
-                    <Input placeholder="Дата выдачи" name="issue_date" type="text" value={formik.values.issue_date} onChange={handleDateInputChange} needValue />
+                    <Datepicker
+                        value={formik.values.issue_date}
+                        onChange={(date) => date && formik.setFieldValue("issue_date", format(date, 'yyyy-MM-dd'))}
+
+                        placeholder="Дата выдачи"
+                        maxDate={new Date()}
+                    />
                 </div>
                 <div>
                     <h2 className={styles.form__subtitle}>Адрес регистрации</h2>

@@ -83,17 +83,9 @@ export const SelectModal: React.FC<SelectModalProps> = ({
     // При выборе опции — запоминаем значение
     const handleSelectOption = (optionValue: string) => {
         setLocalSelectedValue(optionValue);
-    };
-
-    // Нажатие на «Выбрать»
-    const handleChoose = () => {
-        onChoose(localSelectedValue);
+        onChoose(optionValue);
         onClose();
     };
-
-    useEffect(() => {
-        handleChoose()
-    }, [localSelectedValue])
 
     // Нажатие на «Назад»
     const handleBack = () => {

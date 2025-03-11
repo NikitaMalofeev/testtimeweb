@@ -382,7 +382,14 @@ const riskProfileSlice = createSlice({
     initialState,
     reducers: {
         updateFieldValue: (state, action: PayloadAction<{ name: string; value: string }>) => {
+            const { name, value } = action.payload;
+            if (state.formValues[name] !== value) {
+                state.formValues[name] = value;
+            }
             state.formValues[action.payload.name] = action.payload.value;
+        },
+        updateRiskProfileForm: (state, action: PayloadAction<Record<string, string>>) => {
+            state.formValues = action.payload;
         },
         nextRiskProfileStep(state) {
             state.stepsFirstForm.currentStep += 1;
@@ -472,5 +479,5 @@ const riskProfileSlice = createSlice({
     },
 });
 
-export const { updateFieldValue, setCurrentConfirmingDoc, nextRiskProfileStep, prevRiskProfileStep, setThirdRiskProfileResponse, setFirstRiskProfileData } = riskProfileSlice.actions;
+export const { updateFieldValue, updateRiskProfileForm, setStep, setCurrentConfirmingDoc, nextRiskProfileStep, prevRiskProfileStep, setThirdRiskProfileResponse, setFirstRiskProfileData } = riskProfileSlice.actions;
 export default riskProfileSlice.reducer;

@@ -55,7 +55,7 @@ const IdentificationProfileForm: React.FC = () => {
             password2: "",
             is_agreement: false,
             g_recaptcha: "",
-            type_sms_message: "email",
+            type_sms_message: "phone",
         },
         validationSchema: Yup.object({
             lastName: Yup.string()

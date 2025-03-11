@@ -10,7 +10,7 @@ type AnimateHeightWrapperProps = {
 const AnimateHeightWrapper: React.FC<AnimateHeightWrapperProps> = ({
     isOpen,
     children,
-    minHeight = '77.5dvh'
+    minHeight = '68dvh'
 }) => {
     const contentRef = useRef<HTMLDivElement | null>(null);
     const [height, setHeight] = useState<string | number>(minHeight);
@@ -29,8 +29,10 @@ const AnimateHeightWrapper: React.FC<AnimateHeightWrapperProps> = ({
             style={{ width: '100%', overflow: 'hidden' }}
             animate={{ height }}
             transition={{ duration: 0.4, ease: "easeInOut" }}
+
         >
             <div ref={contentRef}>{children}</div>
+
         </motion.div>
     );
 };

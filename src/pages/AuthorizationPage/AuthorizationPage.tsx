@@ -56,13 +56,14 @@ const AuthorizationPage = () => {
         }
     };
 
-    const [showCrutch, setShowCrutch] = useState(true);
+    const [showCrutch, setShowCrutch] = useState(false);
 
     useEffect(() => {
         if (activeTab === 'login') {
-            setTimeout(() => setShowCrutch(false), 300); // Через 0.4s скрываем crutch
+            setShowCrutch(true);
+            setTimeout(() => setShowCrutch(false), 400); // 400 мс = 0.4 секунда
         } else {
-            setShowCrutch(true); // Показываем при открытии
+            setShowCrutch(false); // На регистрации не показываем crutch
         }
     }, [activeTab]);
 
@@ -107,7 +108,7 @@ const AuthorizationPage = () => {
                         {/* Контент в зависимости от вкладки */}
                         {activeTab === 'login' && (
                             <form onSubmit={formik.handleSubmit} className={styles.auth__form}>
-                                <div style={{ position: 'relative', zIndex: '5' }}>
+                                <div>
                                     <Input
                                         autoComplete="new-password"
                                         placeholder="Email/телефон"
@@ -144,6 +145,7 @@ const AuthorizationPage = () => {
                                 {showCrutch && <div className={styles.crutch}></div>}
                             </form>
                         )}
+
 
                         {activeTab === 'registration' && (
                             <IdentificationProfileForm />

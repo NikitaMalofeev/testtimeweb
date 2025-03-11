@@ -42,6 +42,7 @@ import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/D
 import { selectIsAnyModalOpen } from "entities/ui/Modal/selectors/selectorsModals";
 import { getAllUserInfoThunk } from "entities/User/slice/userSlice";
 import { getDocumentsSigned } from "entities/Documents/api/documentsApi";
+import { setCurrentConfirmingDoc } from "entities/RiskProfile/slice/riskProfileSlice";
 
 const DocumentsPage: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -118,16 +119,8 @@ const DocumentsPage: React.FC = () => {
                             animation: ModalAnimation.LEFT,
                         })
                     );
-                } else if (!is_risk_profile_complete && isRpFilled) {
-                    dispatch(setStepAdditionalMenuUI(0));
-                    dispatch(
-                        openModal({
-                            type: ModalType.IDENTIFICATION,
-                            size: ModalSize.FULL,
-                            animation: ModalAnimation.LEFT,
-                        })
-                    );
                 } else {
+                    dispatch(setCurrentConfirmableDoc('type_doc_RP_questionnairy'))
                     dispatch(setStepAdditionalMenuUI(4));
                     dispatch(
                         openModal({
@@ -137,6 +130,16 @@ const DocumentsPage: React.FC = () => {
                         })
                     );
                 }
+                // else if (!is_risk_profile_complete && isRpFilled) {
+                //     dispatch(setStepAdditionalMenuUI(0));
+                //     dispatch(
+                //         openModal({
+                //             type: ModalType.IDENTIFICATION,
+                //             size: ModalSize.FULL,
+                //             animation: ModalAnimation.LEFT,
+                //         })
+                //     );
+                // }
 
                 break;
             case "type_doc_passport":
@@ -232,8 +235,12 @@ const DocumentsPage: React.FC = () => {
             dispatch(getUserDocumentsSignedThunk({ type_document: docId, purpose: 'preview', onSuccess: () => { } }))
             setSelectedDocId(docId);
             dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
-        } else return
+        } else {
+            setSelectedDocId(docId);
+            dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
+        }
     };
+
     const handleDownloadPdf = (docId: string) => {
         if (docId !== 'type_doc_passport') {
             dispatch(getUserDocumentsSignedThunk({

@@ -10,7 +10,7 @@ type AnimateHeightWrapperProps = {
 const AnimateHeightWrapper: React.FC<AnimateHeightWrapperProps> = ({
     isOpen,
     children,
-    minHeight = 'calc(var(--vh, 1vh) * 68)'
+    minHeight = '500px'
 }) => {
     const contentRef = useRef<HTMLDivElement | null>(null);
     const [height, setHeight] = useState<string | number>(minHeight);

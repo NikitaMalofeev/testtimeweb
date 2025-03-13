@@ -135,6 +135,10 @@ const AuthorizationPage = () => {
                                             needValue
                                         />
 
+                                        <div className={styles.resetPassword} onClick={() => {
+                                            dispatch(openModal({ type: ModalType.RESET_PASSWORD, animation: ModalAnimation.BOTTOM, size: ModalSize.MINI }))
+                                        }}>Не помню пароль</div>
+
                                         <Button
                                             type="button"
                                             onClick={handleSubmit}
@@ -145,9 +149,7 @@ const AuthorizationPage = () => {
                                             {loading ? <Loader theme={LoaderTheme.WHITE} size={LoaderSize.SMALL} /> : 'Войти'}
                                         </Button>
                                     </div>
-                                    <div className={styles.resetPassword} onClick={() => {
-                                        dispatch(openModal({ type: ModalType.RESET_PASSWORD, animation: ModalAnimation.BOTTOM, size: ModalSize.MINI }))
-                                    }}>Не помню пароль</div>
+
                                     {/* Элемент crutch всегда отрисовывается, но изначально скрыт */}
                                     <div ref={crutchRef} className={styles.crutch} style={{ display: "none" }}></div>
                                 </form>

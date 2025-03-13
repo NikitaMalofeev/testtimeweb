@@ -223,7 +223,7 @@ export const Datepicker = memo((props: DatepickerProps) => {
                         // Кастомный контейнер календаря (с инпутом)
                         calendarContainer={({ children }) => (
                             <div className={cls.customCalendarContainer}>
-                                <div className={cls.customInputs}>
+                                {/* <div className={cls.customInputs}>
                                     <input
                                         type="text"
                                         placeholder={placeholder}
@@ -232,7 +232,7 @@ export const Datepicker = memo((props: DatepickerProps) => {
                                         onChange={(e) => setInputValue(e.target.value)}
                                         onBlur={handleBlur}
                                     />
-                                </div>
+                                </div> */}
                                 {children}
                                 {/* Убрали кнопку "Сохранить", теперь выбор даты автоматический */}
                             </div>

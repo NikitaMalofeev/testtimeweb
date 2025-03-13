@@ -23,13 +23,6 @@
     flex-direction: column;
 }
 
-.customInputs {
-    display: flex;
-    gap: 8px;
-    max-width: 240px;
-    margin-bottom: 8px;
-}
-
 .select {
     font-weight: 600;
     font-size: 13px;
@@ -54,7 +47,7 @@
 
 .header__month {
     display: flex;
-    align-items: center;
+    align-items: center !important;
     gap: 5px;
     max-width: 106px;
 }

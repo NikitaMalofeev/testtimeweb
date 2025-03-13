@@ -34,6 +34,7 @@ interface RiskProfileFormState {
         currentStep: number;
     };
     currentConfirmingDoc: string;
+    pasportScanSocketId: string
 }
 
 
@@ -52,6 +53,7 @@ const initialState: RiskProfileFormState = {
         currentStep: 0
     },
     currentConfirmingDoc: 'type_doc_passport',
+    pasportScanSocketId: ''
 };
 
 export const createRiskProfile = createAsyncThunk<
@@ -201,7 +203,9 @@ export const postPasportInfo = createAsyncThunk<
                 return rejectWithValue("Отсутствует токен авторизации");
             }
             const response = await postPasportData(data, token);
+            dispatch(setPasportScanSocketId(response.group_name_upload_scans_progress))
             onSuccess();
+
             return response
         } catch (error: any) {
             console.log(error)
@@ -416,6 +420,9 @@ const riskProfileSlice = createSlice({
         setCurrentConfirmingDoc(state, action: PayloadAction<string>) {
             state.currentConfirmingDoc = action.payload;
         },
+        setPasportScanSocketId(state, action: PayloadAction<string>) {
+            state.pasportScanSocketId = action.payload;
+        },
 
     },
     extraReducers: (builder) => {
@@ -495,5 +502,5 @@ const riskProfileSlice = createSlice({
     },
 });
 
-export const { updateFieldValue, updateRiskProfileForm, setStep, setCurrentConfirmingDoc, nextRiskProfileStep, prevRiskProfileStep, setThirdRiskProfileResponse, setFirstRiskProfileData } = riskProfileSlice.actions;
+export const { updateFieldValue, setPasportScanSocketId, updateRiskProfileForm, setStep, setCurrentConfirmingDoc, nextRiskProfileStep, prevRiskProfileStep, setThirdRiskProfileResponse, setFirstRiskProfileData } = riskProfileSlice.actions;
 export default riskProfileSlice.reducer;

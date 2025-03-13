@@ -22,6 +22,7 @@ export const PasportScanForm: React.FC = () => {
     const dispatch = useAppDispatch();
     const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
     const loading = useSelector((state: RootState) => state.riskProfile.loading)
+    const pasportScanSocketId = useSelector((state: RootState) => state.riskProfile.pasportScanSocketId)
     // === STATE для превью файлов ===
     const [previewFirst, setPreviewFirst] = useState<string | null>(null);
     const [isPdfFirst, setIsPdfFirst] = useState(false);

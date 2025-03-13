@@ -102,7 +102,7 @@ export const Datepicker = memo((props: DatepickerProps) => {
                     onClick={() => setIsOpen(true)}
                     className={cls.button_date}
                 >
-                    {selectedDate ? format(selectedDate, 'yyyy.MM.dd') : ''}
+                    {selectedDate ? format(selectedDate, 'dd.MM.yyyy') : ''}
                 </div>
             </div>
 

@@ -33,7 +33,7 @@ const IdentificationProfileForm: React.FC = () => {
     const dispatch = useAppDispatch();
     const gcaptchaSiteKey = import.meta.env.VITE_RANKS_GRCAPTCHA_SITE_KEY;
     const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
-    const [selectedMethod, setSelectedMethod] = useState<'phone' | 'whatsapp' | ''>('phone');
+    const [selectedMethod, setSelectedMethod] = useState<'SMS' | 'WHATSAPP' | ''>('SMS');
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
     const recaptchaRef = useRef<ReCAPTCHA | null>(null);
     const [captchaVerified, setCaptchaVerified] = useState(false);
@@ -55,7 +55,7 @@ const IdentificationProfileForm: React.FC = () => {
             password2: "",
             is_agreement: false,
             g_recaptcha: "",
-            type_sms_message: "phone",
+            type_sms_message: "SMS",
         },
         validationSchema: Yup.object({
             lastName: Yup.string()
@@ -97,8 +97,8 @@ const IdentificationProfileForm: React.FC = () => {
     };
 
     const messageTypeOptions = {
-        "phone": 'SMS',
-        "whatsapp": 'Whatsapp'
+        "SMS": 'SMS',
+        "WHATSAPP": 'Whatsapp'
     }
 
     /**
@@ -106,10 +106,10 @@ const IdentificationProfileForm: React.FC = () => {
      * Одновременно диспатчим экшен setCurrentConfirmModalType для записи
      * в Redux, чтобы ConfirmInfoModal знал, какой тип показывать.
      */
-    const handleMethodChange = (method: 'phone' | 'whatsapp') => {
+    const handleMethodChange = (method: 'SMS' | 'WHATSAPP') => {
         setSelectedMethod(method);
         dispatch(setCurrentConfirmModalType(method));
-        formik.setFieldValue("type_sms_message", method === 'whatsapp' ? "WHATSAPP" : "SMS");
+        formik.setFieldValue("type_sms_message", method === 'WHATSAPP' ? "WHATSAPP" : "SMS");
 
         // Сбрасываем капчу и статус верификации
         setCaptchaVerified(false);
@@ -290,7 +290,7 @@ const IdentificationProfileForm: React.FC = () => {
                             }))}
                             value={selectedMethod}
                             onChange={(name, selectedValue) => {
-                                handleMethodChange(selectedValue as 'phone' | 'whatsapp');
+                                handleMethodChange(selectedValue as 'SMS' | 'WHATSAPP');
                             }}
                         />
                     </div>

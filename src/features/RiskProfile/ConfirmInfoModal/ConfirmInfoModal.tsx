@@ -65,7 +65,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
 
     // Флаг двойного подтверждения (телефон/whatsapp + email)
     const isDoubleConfirmationMethod =
-        confirmationMethod === "phone" || confirmationMethod === "whatsapp";
+        confirmationMethod === "SMS" || confirmationMethod === "WHATSAPP";
 
     // --------------------- ТАЙМЕРЫ ---------------------
     const [phoneTimeLeft, setPhoneTimeLeft] = useState(60);
@@ -257,7 +257,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
 
     // Текст для ПЕРВОЙ формы (phone / whatsapp)
     const renderFirstFormText = () => {
-        if (confirmationMethod === "whatsapp") {
+        if (confirmationMethod === "WHATSAPP") {
             return (
                 <span className={styles.modalContent__description}>
                     Код направлен в WhatsApp <b>{phone}</b>, указанный при идентификации

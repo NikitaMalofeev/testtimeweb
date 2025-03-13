@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ModalType, ModalSize, ModalAnimation, ModalState, ModalStateItem } from '../model/modalTypes';
 
 interface ExtendedModalState extends ModalState {
-    confirmationMethod: 'phone' | 'email' | 'whatsapp';
+    confirmationMethod: 'SMS' | 'email' | 'WHATSAPP';
     confirmationMethod2: 'SMS' | 'EMAIL' | 'WHATSAPP';
     selectedCountry: string;
     currentProblemScreen: string | undefined;
@@ -45,8 +45,14 @@ const initialState: ExtendedModalState = {
         animation: ModalAnimation.LEFT,
         isScrolled: false
     },
+    [ModalType.RESET_PASSWORD]: {
+        isOpen: false,
+        size: ModalSize.MINI,
+        animation: ModalAnimation.BOTTOM,
+        isScrolled: false
+    },
     [ModalType.PREVIEW]: { isOpen: false, size: ModalSize.FULL, animation: ModalAnimation.LEFT, isScrolled: false },
-    confirmationMethod: 'phone',
+    confirmationMethod: 'SMS',
     confirmationMethod2: 'EMAIL',
     selectedCountry: "",
     currentProblemScreen: ''
@@ -64,7 +70,7 @@ const modalSlice = createSlice({
             state[type] = { ...state[type], isOpen: true, size, animation };
         },
 
-        setCurrentConfirmModalType: (state, action: PayloadAction<'phone' | 'email' | 'whatsapp'>) => {
+        setCurrentConfirmModalType: (state, action: PayloadAction<'SMS' | 'email' | 'WHATSAPP'>) => {
             state.confirmationMethod = action.payload;
         },
         setCurrentConfirmModalType2: (state, action: PayloadAction<'SMS' | 'EMAIL' | 'WHATSAPP'>) => {

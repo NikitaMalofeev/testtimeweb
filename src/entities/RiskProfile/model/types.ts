@@ -64,7 +64,7 @@ export interface SendCodePayload {
     user_id: string;
     codeFirst: string;        // Код из первой формы
     codeSecond?: string;      // Код из второй формы (при методе 'phone' + email)
-    method: 'phone' | 'email' | 'whatsapp'  // Как в вашем modalSlice
+    method: 'SMS' | 'email' | 'WHATSAPP'  // Как в вашем modalSlice
     onSuccess?: (data?: any) => void;
     onError?: (data?: any) => void;
     onClose?: () => void;

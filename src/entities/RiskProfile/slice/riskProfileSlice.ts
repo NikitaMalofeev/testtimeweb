@@ -331,7 +331,7 @@ export const sendEmailConfirmationCode = createAsyncThunk<
 
 export const resendConfirmationCode = createAsyncThunk<
     void,
-    { user_id: string; method: "whatsapp" | "phone" | "email" },
+    { user_id: string; method: "WHATSAPP" | "SMS" | "email" | 'phone' },
     { rejectValue: string }
 >(
     "riskProfile/resendConfirmationCode",
@@ -342,14 +342,16 @@ export const resendConfirmationCode = createAsyncThunk<
                 user_id,
             };
 
-            if (method === "whatsapp") {
-                payload.type_confirm = "phone";
+            if (method === "WHATSAPP") {
+                payload.type_confirm = "SMS";
                 payload.type_message = "WHATSAPP";
-            } else if (method === "phone") {
-                payload.type_confirm = "phone";
+            } else if (method === "SMS") {
+                payload.type_confirm = "SMS";
                 payload.type_message = "SMS";
             } else if (method === "email") {
                 payload.type_confirm = "email";
+            } else if (method === 'phone') {
+                payload.type_confirm = "phone";
             }
 
             // Единственный вызов, без второго

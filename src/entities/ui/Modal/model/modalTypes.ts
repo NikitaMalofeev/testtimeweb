@@ -19,7 +19,8 @@ export enum ModalType {
     CONFIRM_DOCS = 'confirmDocsModal',
     PROBLEM_WITH_CODE = 'problemWithCodeModal',
     PREVIEW = 'preview',
-    DOCUMENTS_PREVIEW = 'documentsPreview'
+    DOCUMENTS_PREVIEW = 'documentsPreview',
+    RESET_PASSWORD = 'resetPassword'
 }
 
 /** Состояние одной конкретной модалки */

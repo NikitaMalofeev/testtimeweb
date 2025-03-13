@@ -33,7 +33,7 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
     const modalState = useSelector((state: RootState) => state.modal);
     const loading = useSelector((state: RootState) => state.personalAccount.loading);
     const userIdForReset = useSelector((state: RootState) => state.personalAccount.user_id);
-    const [isBottom, setIsBottom] = useState(false);
+    const [isBottom, setIsBottom] = useState(true);
     /**
      * =============== ЛОГИКА ОТСЛЕЖИВАНИЯ ПРОКРУТКИ ===============
      */
@@ -43,41 +43,36 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
     const isScrolled = useSelector((state: RootState) =>
         selectModalState(state, ModalType.RESET_PASSWORD)?.isScrolled
     );
+    const scrollTop = contentRef.current?.scrollTop;
 
     useLayoutEffect(() => {
         const handleScroll = () => {
             if (contentRef.current) {
                 const { scrollTop, scrollHeight, clientHeight } = contentRef.current;
 
-                // Проверяем, находится ли пользователь внизу
                 const atBottom = Math.abs(scrollTop + clientHeight - scrollHeight) < 10;
                 setIsBottom(atBottom);
 
-                // Проверяем, прокручен ли контент сверху
                 dispatch(
                     setModalScrolled({
                         type: ModalType.RESET_PASSWORD,
-                        isScrolled: scrollTop > 0,
+                        isScrolled: scrollTop > 0
                     })
                 );
             }
         };
-
         const content = contentRef.current;
         if (content) {
             content.addEventListener("scroll", handleScroll);
-            handleScroll(); // проверка положения скролла при первом рендере
+            handleScroll();
         }
-
         return () => {
             if (content) {
                 content.removeEventListener("scroll", handleScroll);
             }
         };
-    }, [dispatch]);
-    /**
-     * ===========================================================
-     */
+    }, [isOpen]);
+
 
     // Выбор способа отправки кода
     const [selectedMethod, setSelectedMethod] = useState<"email" | "phone">("email");
@@ -295,7 +290,7 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
                         />
 
                         <span className={styles.methodTitle}>
-                            Куда отправить код подтверждения
+                            Куда будет отправлен код подтверждения
                         </span>
                         <CheckboxGroup
                             name="type"

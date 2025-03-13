@@ -116,7 +116,7 @@ export const getUserPersonalAccountInfoThunk = createAsyncThunk<
     async (_, { getState, rejectWithValue, dispatch }) => {
         try {
             const token = getState().user.token
-            const response = await getUserPersonalAccountInfo(token); // Сохраняем результат в переменную
+            const response = await getUserPersonalAccountInfo(token);
             dispatch(setUserPersonalAccountInfo(response))
             return response;
         } catch (error: any) {

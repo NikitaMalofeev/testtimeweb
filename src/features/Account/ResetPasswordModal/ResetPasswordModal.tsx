@@ -50,8 +50,8 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
                 const { scrollTop, scrollHeight, clientHeight } = contentRef.current;
 
                 // Проверяем, находится ли пользователь внизу
-                const atBottom = Math.abs(scrollTop + clientHeight - scrollHeight) < 1;
-                setIsBottom(atBottom); // Обновляем состояние
+                const atBottom = Math.abs(scrollTop + clientHeight - scrollHeight) < 10;
+                setIsBottom(atBottom);
 
                 // Проверяем, прокручен ли контент сверху
                 dispatch(

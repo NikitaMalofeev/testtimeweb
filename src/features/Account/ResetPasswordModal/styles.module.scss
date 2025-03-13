@@ -23,6 +23,7 @@ margin-bottom: 36px;
     align-items: center;
     justify-content: center;
     padding: 19px 107px;
+    max-width: 100%;
 }
 
 .codeInput__container {
@@ -80,4 +81,26 @@ margin-bottom: 36px;
     line-height: 16px;
     color: #989898;
     margin-bottom: 20px;
+}
+
+.modalContent__shadow_top {
+    box-shadow: inset 0px 10px 13.4px -5px rgba(0, 0, 0, 0.15);
+}
+
+.button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    z-index: 2;
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    border-radius: 0 0 40px 40px;
+    padding: 16px;
+}
+
+.shadow {
+    box-shadow: 0px -1px 13.4px 0px #00000026;
 }

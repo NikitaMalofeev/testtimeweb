@@ -1,4 +1,4 @@
-import React, { memo, useState, useRef, useEffect } from "react";
+import React, { memo, useState, useRef, useEffect, useLayoutEffect } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { Modal } from "shared/ui/Modal/Modal";
@@ -9,9 +9,15 @@ import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/mo
 import { useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
-import { getUserIdThunk, resetPasswordThunk, setPasswordResetData, setResetCode } from "entities/PersonalAccount/slice/personalAccountSlice";
+import {
+    getUserIdThunk,
+    resetPasswordThunk,
+    setPasswordResetData,
+    setResetCode
+} from "entities/PersonalAccount/slice/personalAccountSlice";
 import { resendConfirmationCode } from "entities/RiskProfile/slice/riskProfileSlice";
-import { openModal } from "entities/ui/Modal/slice/modalSlice";
+import { setModalScrolled, openModal } from "entities/ui/Modal/slice/modalSlice";
+import { selectModalState } from "entities/ui/Modal/selectors/selectorsModals";
 import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { setTooltipActive } from "entities/ui/Ui/slice/uiSlice";
 import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
@@ -23,105 +29,148 @@ interface ConfirmInfoModalProps {
 
 export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps) => {
     const dispatch = useAppDispatch();
+    // Используем наш новый ключ под ResetPassword – в store он должен быть.
     const modalState = useSelector((state: RootState) => state.modal);
     const loading = useSelector((state: RootState) => state.personalAccount.loading);
-    const userIdForReset = useSelector((state: RootState) => state.personalAccount.user_id)
+    const userIdForReset = useSelector((state: RootState) => state.personalAccount.user_id);
+    const [isBottom, setIsBottom] = useState(false);
     /**
-     * Track which method we send the code by: 'email' or 'phone'.
-     * We’ll auto-detect based on whether `contact` has '@'.
+     * =============== ЛОГИКА ОТСЛЕЖИВАНИЯ ПРОКРУТКИ ===============
      */
-    const [selectedMethod, setSelectedMethod] = useState<'email' | 'phone'>('email');
+    const contentRef = useRef<HTMLDivElement>(null);
 
-    /** Local state to switch tabs: 'form' (enter contact/password) or 'code' (enter 4-digit code) */
+    // Забираем из store текущее значение isScrolled для нужного типа модалки
+    const isScrolled = useSelector((state: RootState) =>
+        selectModalState(state, ModalType.RESET_PASSWORD)?.isScrolled
+    );
+
+    useLayoutEffect(() => {
+        const handleScroll = () => {
+            if (contentRef.current) {
+                const { scrollTop, scrollHeight, clientHeight } = contentRef.current;
+
+                // Проверяем, находится ли пользователь внизу
+                const atBottom = Math.abs(scrollTop + clientHeight - scrollHeight) < 1;
+                setIsBottom(atBottom); // Обновляем состояние
+
+                // Проверяем, прокручен ли контент сверху
+                dispatch(
+                    setModalScrolled({
+                        type: ModalType.RESET_PASSWORD,
+                        isScrolled: scrollTop > 0,
+                    })
+                );
+            }
+        };
+
+        const content = contentRef.current;
+        if (content) {
+            content.addEventListener("scroll", handleScroll);
+            handleScroll(); // проверка положения скролла при первом рендере
+        }
+
+        return () => {
+            if (content) {
+                content.removeEventListener("scroll", handleScroll);
+            }
+        };
+    }, [dispatch]);
+    /**
+     * ===========================================================
+     */
+
+    // Выбор способа отправки кода
+    const [selectedMethod, setSelectedMethod] = useState<"email" | "phone">("email");
+    // Локальная вкладка: форма или ввод кода
     const [activeTab, setActiveTab] = useState<"form" | "code">("form");
 
-    /**
-     * FORM TAB
-     */
+    // Формик для вкладки "form"
     const formik = useFormik({
         initialValues: {
             contact: "",
             password: "",
             password2: "",
-            type: 'email', // We'll sync this with `selectedMethod`.
+            type_confirm: "email"
         },
         validationSchema: Yup.object({
-            // For simplicity, still using `email` for the contact validation,
-            // but you could extend or replace it with phone validation logic.
-            contact: Yup.string().required("Контакт обязателен").email("Некорректный E-mail"),
-            password: Yup.string().min(8, "Пароль минимум 8 символов").required("Пароль обязателен"),
+            contact: Yup.string()
+                .required("Контакт обязателен")
+                .email("Некорректный E-mail"),
+            password: Yup.string()
+                .min(8, "Пароль минимум 8 символов")
+                .required("Пароль обязателен"),
             password2: Yup.string()
                 .oneOf([Yup.ref("password")], "Пароли не совпадают")
                 .required("Подтверждение пароля обязательно"),
         }),
-        onSubmit: (values) => {
-            // We won't do the final submission here yet; 
-            // we'll do it in `handleSubmit` below based on the activeTab.
+        onSubmit: () => {
+            // Вся логика отправки у нас ниже, внутри handleSubmit
         },
     });
 
-    /** Whenever the user changes the contact field, detect if it’s an email or phone */
     const handleContactChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const value = e.target.value.trim();
         formik.setFieldValue("contact", value);
 
+        // Определяем метод (email/phone) по наличию "@" или цифр
         if (value.includes("@")) {
             handleMethodChange("email");
-        } else if (/^[+\d]+$/.test(value)) {  // Только цифры и "+"
+        } else if (/^[+\d]+$/.test(value)) {
             handleMethodChange("phone");
         }
     };
 
-
-    /** Programmatically set the method in both state and formik */
-    const handleMethodChange = (method: 'email' | 'phone') => {
+    const handleMethodChange = (method: "email" | "phone") => {
         setSelectedMethod(method);
         formik.setFieldValue("type", method);
     };
 
-    /** Click "Отправить" -> Save data, send code, switch to 'code' tab */
     const handleSubmit = () => {
         if (activeTab === "form") {
-            // Определяем, передавать phone или email
-            const userData = selectedMethod === "phone"
-                ? { phone: formik.values.contact }
-                : { email: formik.values.contact };
+            if (!formik.isValid) return;
 
-            // Диспатчим получение user_id
-            dispatch(getUserIdThunk({
-                ...userData,
-                onSuccess: () => {
-                    // Переключаемся на вкладку кода после успешного получения user_id
-                    setActiveTab("code");
-                }
-            }));
+            const userData =
+                selectedMethod === "phone"
+                    ? { phone: formik.values.contact }
+                    : { email: formik.values.contact };
 
-            // Сохраняем данные сброса пароля в Redux
+            // Запрашиваем user_id
+            dispatch(
+                getUserIdThunk({
+                    ...userData,
+                    onSuccess: () => {
+                        // Если нашло, переходим на ввод кода
+                        setActiveTab("code");
+                    },
+                })
+            );
+
+            // Сохраняем данные для сброса (пароли, контакт и т.п.)
             dispatch(setPasswordResetData(formik.values));
         }
     };
 
-
+    // Если появился userId, автоматически отправляем код подтверждения
     useEffect(() => {
         if (userIdForReset) {
-            dispatch(resendConfirmationCode({
-                user_id: userIdForReset,
-                method: selectedMethod
-            }));
+            dispatch(
+                resendConfirmationCode({
+                    user_id: userIdForReset,
+                    method: selectedMethod,
+                })
+            );
         }
     }, [userIdForReset, dispatch, selectedMethod]);
 
-
     /**
-     * CODE TAB
+     *  Вкладка "code"
      */
     const codeLength = 4;
     const [codeDigits, setCodeDigits] = useState<string[]>(Array(codeLength).fill(""));
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-    // Handle digit changes
     const handleDigitChange = (value: string, index: number) => {
-        const cleanValue = value.slice(0, 1); // only 1 char
+        const cleanValue = value.slice(0, 1);
         setCodeDigits((prev) => {
             const next = [...prev];
             next[index] = cleanValue;
@@ -132,7 +181,6 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
         }
     };
 
-    // Handle backspace for code inputs
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
         if (e.key === "Backspace" && !codeDigits[index] && index > 0) {
             setCodeDigits((prev) => {
@@ -144,7 +192,6 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
         }
     };
 
-    // Handle paste for code inputs
     const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
         e.preventDefault();
         const pasteData = e.clipboardData.getData("text");
@@ -156,23 +203,31 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
         }
         setCodeDigits(newCode);
 
-        // Move focus to the first empty input
+        // Фокус на первое пустое поле
         const firstEmpty = pasteValue.length;
         if (firstEmpty < codeLength) {
             inputRefs.current[firstEmpty]?.focus();
         }
     };
 
-    // Submit the code
     const handleCodeSubmit = () => {
         const code = codeDigits.join("");
         if (code.length === codeLength) {
-            // Save code in Redux (or verify)
             dispatch(setResetCode(code));
-            // Then close the modal or do more steps
-            onClose();
-        } {
-            dispatch(resetPasswordThunk({ onSuccess: () => { setTooltipActive({ active: true, message: `Пароль для аккаунта ${formik.values.contact} успешно сменен` }) } }))
+            // Отправляем финальный запрос на сброс пароля
+            dispatch(
+                resetPasswordThunk({
+                    onSuccess: () => {
+                        dispatch(
+                            setTooltipActive({
+                                active: true,
+                                message: `Пароль для аккаунта ${formik.values.contact} успешно сменен`,
+                            })
+                        );
+                        onClose();
+                    },
+                })
+            );
         }
     };
 
@@ -180,123 +235,143 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            size={modalState.resetPassword.size}
-            animation={modalState.resetPassword.animation}
+            // важный момент: используем ModalType.RESET_PASSWORD
+            type={ModalType.RESET_PASSWORD}
+            size={modalState[ModalType.RESET_PASSWORD].size}
+            animation={modalState[ModalType.RESET_PASSWORD].animation}
             withCloseIcon
-            titleWidth="250px"
-            type={ModalType.PROBLEM_WITH_CODE}
             withTitle="Восстановление пароля"
+            titleWidth="250px"
         >
-            {activeTab === "form" && (
-                <form onSubmit={formik.handleSubmit} className={styles.modalContent}>
-                    <span className={styles.subtitle}>
-                        Укажите e-mail или телефон, с которого была регистрация, и новый пароль
-                    </span>
+            {/* 
+              Оборачиваем ВСЁ содержимое в единый скролл-контейнер 
+              + вешаем динамический класс для тени 
+            */}
+            <div
+                className={`
+                    ${styles.modalContent}
+                    ${isScrolled ? styles.modalContent__shadow_top : ""}
+                `}
+                style={activeTab === 'code' ? {} : { paddingBottom: '88px' }}
+                ref={contentRef}
 
-                    <Input
-                        name="contact"
-                        placeholder="E-mail/Телефон"
-                        value={formik.values.contact}
-                        autoComplete="new-password"
-                        onChange={handleContactChange}
-                        onBlur={formik.handleBlur}
-                        error={formik.touched.contact && formik.errors.contact}
-                    />
+            >
+                {activeTab === "form" && (
+                    <>
+                        <span className={styles.subtitle}>
+                            Укажите e-mail или телефон, с которого была регистрация, и новый пароль
+                        </span>
 
-                    <Input
-                        type="password"
-                        name="password"
-                        autoComplete="new-password"
-                        placeholder="Новый пароль"
-                        value={formik.values.password}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        error={formik.touched.password && formik.errors.password}
-                    />
+                        <Input
+                            name="contact"
+                            autoComplete="new-password"
+                            placeholder="E-mail или Телефон"
+                            value={formik.values.contact}
+                            onChange={handleContactChange}
+                            onBlur={formik.handleBlur}
+                            error={formik.touched.contact && formik.errors.contact}
+                        />
 
-                    <Input
-                        type="password"
-                        name="password2"
-                        placeholder="Повторите пароль"
-                        value={formik.values.password2}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        error={formik.touched.password2 && formik.errors.password2}
-                    />
+                        <Input
+                            type="password"
+                            name="password"
+                            autoComplete="new-password"
+                            placeholder="Новый пароль"
+                            value={formik.values.password}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            error={formik.touched.password && formik.errors.password}
+                        />
 
-                    <span className={styles.methodTitle}>Код будет отправлен на</span>
-                    <div className={styles.method}>
-                        {/* If you still want to let the user pick manually, keep this.
-                            Otherwise, you can remove it since we auto-detect. */}
+                        <Input
+                            type="password"
+                            name="password2"
+                            autoComplete="new-password"
+                            placeholder="Повторите пароль"
+                            value={formik.values.password2}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            error={formik.touched.password2 && formik.errors.password2}
+                        />
+
+                        <span className={styles.methodTitle}>
+                            Куда отправить код подтверждения
+                        </span>
                         <CheckboxGroup
                             name="type"
                             label=""
                             direction="row"
                             options={[
-                                { label: 'Email', value: 'email' },
-                                { label: 'SMS', value: 'phone' },
+                                { label: "Email", value: "email" },
+                                { label: "SMS", value: "phone" },
                             ]}
                             value={selectedMethod}
-                            onChange={() => { return }
-                            }
+                            onChange={() => {
+                                // Если хотите ручную смену - можно реализовать
+                                // Пока автодетект через handleContactChange
+                            }}
                         />
-                    </div>
 
-                    <Button
-                        theme={ButtonTheme.BLUE}
-                        type="button"
-                        onClick={handleSubmit}
-                        disabled={!(formik.isValid && formik.dirty)}
-                        className={styles.submitButton}
-                    >
-                        {loading ? <Loader size={LoaderSize.SMALL} theme={LoaderTheme.WHITE} /> : 'Отправить'}
-                    </Button>
-                </form>
-            )}
+                        <div className={`${styles.button} ${!isBottom ? styles.shadow : ""}`}>
+                            <Button
+                                theme={ButtonTheme.BLUE}
+                                type="button"
+                                onClick={handleSubmit}
+                                disabled={!(formik.isValid && formik.dirty)}
+                                className={styles.submitButton}
+                            >
+                                {loading ? (
+                                    <Loader size={LoaderSize.SMALL} theme={LoaderTheme.WHITE} />
+                                ) : (
+                                    "Отправить"
+                                )}
+                            </Button>
+                        </div>
+                    </>
+                )}
 
-            {activeTab === "code" && (
-                <div className={styles.modalContent}>
-                    {selectedMethod === 'email' ? (
+                {activeTab === "code" && (
+                    <>
                         <span className={styles.subtitle}>
-                            Введите код подтверждения, который мы отправили на e-mail:<br />
+                            {selectedMethod === "email"
+                                ? "Введите код подтверждения, который мы отправили на e-mail:"
+                                : "Введите код подтверждения, который мы отправили на телефон:"}
+                            <br />
                             <b>{formik.values.contact}</b>
                         </span>
-                    ) : (
-                        <span className={styles.subtitle}>
-                            Введите код подтверждения, который мы отправили на телефон:<br />
-                            <b>{formik.values.contact}</b>
-                        </span>
-                    )}
 
-                    <div className={styles.codeInput__container}>
-                        {codeDigits.map((digit, index) => (
-                            <input
-                                key={`code-${index}`}
-                                type="text"
-                                maxLength={1}
-                                inputMode="numeric"
-                                pattern="[0-9]*"
-                                value={digit}
-                                autoComplete="one-time-code"
-                                name={`otp-${index}`}
-                                onChange={(e) => handleDigitChange(e.target.value, index)}
-                                onKeyDown={(e) => handleKeyDown(e, index)}
-                                onPaste={handlePaste}
-                                ref={(el) => (inputRefs.current[index] = el)}
-                                className={styles.codeInput__box}
-                            />
-                        ))}
-                    </div>
+                        <div className={styles.codeInput__container}>
+                            {codeDigits.map((digit, index) => (
+                                <input
+                                    key={`code-${index}`}
+                                    type="text"
+                                    maxLength={1}
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    value={digit}
+                                    onChange={(e) => handleDigitChange(e.target.value, index)}
+                                    onKeyDown={(e) => handleKeyDown(e, index)}
+                                    onPaste={handlePaste}
+                                    ref={(el) => (inputRefs.current[index] = el)}
+                                    className={styles.codeInput__box}
+                                />
+                            ))}
+                        </div>
 
-                    <Button
-                        theme={ButtonTheme.BLUE}
-                        onClick={handleCodeSubmit}
-                        className={styles.submitButton}
-                    >
-                        {loading ? <Loader size={LoaderSize.SMALL} theme={LoaderTheme.WHITE} /> : 'Подтвердить код'}
-                    </Button>
-                </div>
-            )}
+                        <Button
+                            theme={ButtonTheme.BLUE}
+                            onClick={handleCodeSubmit}
+                            className={styles.submitButton}
+                        >
+                            {loading ? (
+                                <Loader size={LoaderSize.SMALL} theme={LoaderTheme.WHITE} />
+                            ) : (
+                                "Подтвердить код"
+                            )}
+                        </Button>
+                    </>
+                )}
+            </div>
         </Modal>
     );
 });

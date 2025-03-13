@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ModalType, ModalSize, ModalAnimation, ModalState, ModalStateItem } from '../model/modalTypes';
 
 interface ExtendedModalState extends ModalState {
-    confirmationMethod: 'SMS' | 'email' | 'WHATSAPP';
+    confirmationMethod: 'SMS' | 'email' | 'WHATSAPP' | 'whatsapp' | 'phone' | 'EMAIL';
     confirmationMethod2: 'SMS' | 'EMAIL' | 'WHATSAPP';
     selectedCountry: string;
     currentProblemScreen: string | undefined;

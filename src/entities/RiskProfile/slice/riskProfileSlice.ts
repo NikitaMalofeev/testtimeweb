@@ -331,7 +331,7 @@ export const sendEmailConfirmationCode = createAsyncThunk<
 
 export const resendConfirmationCode = createAsyncThunk<
     void,
-    { user_id: string; method: "WHATSAPP" | "SMS" | "email" | 'phone' },
+    { user_id: string; method: 'SMS' | 'email' | 'WHATSAPP' | 'whatsapp' | 'phone' | 'EMAIL' },
     { rejectValue: string }
 >(
     "riskProfile/resendConfirmationCode",

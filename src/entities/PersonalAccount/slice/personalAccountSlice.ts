@@ -4,7 +4,7 @@ import { getUserId, resetPassword } from "shared/api/userApi/userApi";
 import { setError } from "entities/Error/slice/errorSlice";
 
 interface PasswordResetState {
-    type: string;
+    type_confirm: string;
     password: string;
     password2: string;
     email: string;
@@ -29,7 +29,7 @@ const initialState: PersonalAccountState = {
     menuItems: [],
 
     passwordReset: {
-        type: "",
+        type_confirm: "",
         password: "",
         password2: "",
         email: ''
@@ -78,7 +78,7 @@ export const resetPasswordThunk = createAsyncThunk<
 
             const requestData = {
                 user_id,
-                type: passwordReset.type,
+                type_confirm: passwordReset.type_confirm,
                 code: state.resetCode,
                 password: passwordReset.password,
                 password2: passwordReset.password2,

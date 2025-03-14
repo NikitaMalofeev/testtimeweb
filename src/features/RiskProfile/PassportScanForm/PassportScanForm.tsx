@@ -7,73 +7,55 @@ import { Button, ButtonTheme } from "shared/ui/Button/Button";
 import { Icon } from "shared/ui/Icon/Icon";
 import UploadIcon from "shared/assets/svg/UploadIcon.svg";
 import UploadPDFIcon from "shared/assets/svg/UploadPDFIcon.svg";
-import SuccessLabel from 'shared/assets/svg/SuccessLabel.svg'
+import SuccessLabel from "shared/assets/svg/SuccessLabel.svg";
 import styles from "./styles.module.scss";
 import { postPasportScanThunk } from "entities/RiskProfile/slice/riskProfileSlice";
 import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
 import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
 
 export interface PasportScanData {
-    file_scan_page_first: null | string,
-    file_scan_page_registration: null | string,
+    file_scan_page_first: null | string;
+    file_scan_page_registration: null | string;
 }
 
 export const PasportScanForm: React.FC = () => {
     const dispatch = useAppDispatch();
     const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
-    const loading = useSelector((state: RootState) => state.riskProfile.loading)
-    const pasportScanSocketId = useSelector((state: RootState) => state.riskProfile.pasportScanSocketId)
-    // === STATE для превью файлов ===
+    const loading = useSelector((state: RootState) => state.riskProfile.loading);
+    const pasportScanSocketId = useSelector((state: RootState) => state.riskProfile.pasportScanSocketId);
     const [previewFirst, setPreviewFirst] = useState<string | null>(null);
     const [isPdfFirst, setIsPdfFirst] = useState(false);
-
     const [previewReg, setPreviewReg] = useState<string | null>(null);
     const [isPdfReg, setIsPdfReg] = useState(false);
-
     const [dragActiveFirst, setDragActiveFirst] = useState(false);
     const [dragActiveReg, setDragActiveReg] = useState(false);
-
-    // === Состояния для большого просмотра (два отдельных)
     const [isPreviewOpenFirst, setIsPreviewOpenFirst] = useState(false);
     const [isPreviewOpenReg, setIsPreviewOpenReg] = useState(false);
-
-    // Счетчики для DragEnter/DragLeave
     const dragCounterFirst = useRef(0);
     const dragCounterReg = useRef(0);
-
-    // Рефы на инпуты
     const fileInputFirstRef = useRef<HTMLInputElement>(null);
     const fileInputRegRef = useRef<HTMLInputElement>(null);
 
-    // Инициализация formik
     const formik = useFormik({
         initialValues: {
             file_scan_page_first: null,
-            file_scan_page_registration: null,
+            file_scan_page_registration: null
         },
-        onSubmit: (values) => {
-            // handle submit
-        },
+        onSubmit: (values) => { }
     });
 
     const isButtonDisabled = !(formik.values.file_scan_page_first && formik.values.file_scan_page_registration);
 
-    // === Действия по клику, чтобы открыть диалог загрузки ===
     const handleClickFirst = () => fileInputFirstRef.current?.click();
     const handleClickReg = () => fileInputRegRef.current?.click();
 
-    // 1) Выбор файлов (через onChange у <input type="file" />)
     const handleFileChange = (
         e: React.ChangeEvent<HTMLInputElement>,
         fieldName: "file_scan_page_first" | "file_scan_page_registration"
     ) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
-
-            // Записываем сам `File` в Formik
             formik.setFieldValue(fieldName, file);
-
-            // Обновляем превью
             updatePreview(
                 file,
                 fieldName === "file_scan_page_first" ? setPreviewFirst : setPreviewReg,
@@ -82,31 +64,24 @@ export const PasportScanForm: React.FC = () => {
         }
     };
 
-    // 2) При клике "Продолжить" собираем FormData из **Formik**
     const handleSubmit = async () => {
-        console.log("Отправка скана через postPasportScanThunk...");
-
         const formData = new FormData();
         const fileFirst = formik.values.file_scan_page_first;
         const fileReg = formik.values.file_scan_page_registration;
-
         if (fileFirst) {
             formData.append("file_scan_page_first", fileFirst);
         }
         if (fileReg) {
             formData.append("file_scan_page_registration", fileReg);
         }
-
         dispatch(
             postPasportScanThunk({
                 data: formData,
-                onSuccess: () => dispatch(setStepAdditionalMenuUI(4)),
+                onSuccess: () => dispatch(setStepAdditionalMenuUI(4))
             })
         );
     };
 
-
-    // === Обработчики Drag & Drop ===
     const handleDragEnter = (
         e: React.DragEvent<HTMLDivElement>,
         setDragActive: React.Dispatch<React.SetStateAction<boolean>>,
@@ -143,7 +118,6 @@ export const PasportScanForm: React.FC = () => {
         setDragActive(false);
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
             formik.setFieldValue(fieldName, e.dataTransfer.files[0]);
-
             if (fieldName === "file_scan_page_first") {
                 updatePreview(e.dataTransfer.files[0], setPreviewFirst, setIsPdfFirst);
             } else {
@@ -157,9 +131,6 @@ export const PasportScanForm: React.FC = () => {
         e.stopPropagation();
     };
 
-    // === Функция обновления превью ===
-    // Мы НЕ отзываем URL внутри самого setState, чтобы не ломать другие превью.
-    // Вместо этого будем отзывать предыдущий URL через эффект.
     const updatePreview = (
         file: File,
         setPreview: React.Dispatch<React.SetStateAction<string | null>>,
@@ -175,19 +146,16 @@ export const PasportScanForm: React.FC = () => {
         }
     };
 
-    // === Открытие/закрытие первого изображения
     const toggleFullPreviewFirst = (e?: React.MouseEvent) => {
         if (e) e.stopPropagation();
-        setIsPreviewOpenFirst(prev => !prev);
+        setIsPreviewOpenFirst((prev) => !prev);
     };
 
-    // === Открытие/закрытие второго изображения
     const toggleFullPreviewReg = (e?: React.MouseEvent) => {
         if (e) e.stopPropagation();
-        setIsPreviewOpenReg(prev => !prev);
+        setIsPreviewOpenReg((prev) => !prev);
     };
 
-    // === При смене previewFirst или размонтировании компонента — отзываем предыдущий URL
     useEffect(() => {
         return () => {
             if (previewFirst) {
@@ -196,7 +164,6 @@ export const PasportScanForm: React.FC = () => {
         };
     }, [previewFirst]);
 
-    // === При смене previewReg или размонтировании компонента — отзываем предыдущий URL
     useEffect(() => {
         return () => {
             if (previewReg) {
@@ -206,15 +173,14 @@ export const PasportScanForm: React.FC = () => {
     }, [previewReg]);
 
     useEffect(() => {
-        console.log('значения фото', {
+        console.log({
             file_scan_page_first: formik.values.file_scan_page_first,
-            file_scan_page_registration: formik.values.file_scan_page_registration,
+            file_scan_page_registration: formik.values.file_scan_page_registration
         });
     }, [formik.values]);
 
     return (
         <>
-            {/* Модалка для первого файла (если открыт) */}
             {isPreviewOpenFirst && previewFirst && (
                 <div
                     className={styles.fullPreviewOverlay}
@@ -229,8 +195,6 @@ export const PasportScanForm: React.FC = () => {
                     />
                 </div>
             )}
-
-            {/* Модалка для второго файла (если открыт) */}
             {isPreviewOpenReg && previewReg && (
                 <div
                     className={styles.fullPreviewOverlay}
@@ -245,7 +209,6 @@ export const PasportScanForm: React.FC = () => {
                     />
                 </div>
             )}
-
             <form onSubmit={formik.handleSubmit} className={styles.form}>
                 <p className={styles.form__title}>
                     Скан/фото паспорта для идентификации клиента необходимо предоставлять в следующем виде:
@@ -267,15 +230,12 @@ export const PasportScanForm: React.FC = () => {
                         пальцы рук не должны попадать в кадр.
                     </li>
                 </ol>
-
-                {/* Первая страница паспорта */}
                 <div className={styles.uploadBlock__header}>
                     <span className={styles.uploadBlock__headerTitle}>ПЕРВАЯ СТРАНИЦА: &nbsp;</span>
                     <span className={styles.uploadBlock__headerExample} onClick={(e) => e.preventDefault()}>
                         СМ. ОБРАЗЕЦ
                     </span>
                 </div>
-
                 <div className={`${styles.uploadBlock} ${dragActiveFirst ? styles.uploadBlock_active : ""}`}>
                     <div
                         className={styles.uploadBlock__dropzone}
@@ -293,9 +253,12 @@ export const PasportScanForm: React.FC = () => {
                             onChange={(e) => handleFileChange(e, "file_scan_page_first")}
                         />
                         <div className={styles.uploadBlock__content}>
-                            {previewFirst && <div className={styles.uploadBlock__preview_success}><Icon Svg={SuccessLabel} /></div>}
+                            {previewFirst && (
+                                <div className={styles.uploadBlock__preview_success}>
+                                    <Icon Svg={SuccessLabel} />
+                                </div>
+                            )}
                             <div className={styles.uploadBlock__preview}>
-                                {/* Если есть превью и это не pdf */}
                                 {previewFirst && !isPdfFirst && (
                                     <img
                                         src={previewFirst}
@@ -304,16 +267,9 @@ export const PasportScanForm: React.FC = () => {
                                         onClick={toggleFullPreviewFirst}
                                     />
                                 )}
-                                {/* Если PDF */}
-                                {isPdfFirst && (
-                                    <Icon Svg={UploadPDFIcon} width={50} height={35} />
-                                )}
-                                {/* Если нет ничего, показываем иконку загрузки */}
-                                {!previewFirst && !isPdfFirst && (
-                                    <Icon Svg={UploadIcon} width={50} height={35} />
-                                )}
+                                {isPdfFirst && <Icon Svg={UploadPDFIcon} width={50} height={35} />}
+                                {!previewFirst && !isPdfFirst && <Icon Svg={UploadIcon} width={50} height={35} />}
                             </div>
-
                             <div className={styles.uploadBlock__text}>
                                 перенесите изображение или <span>нажмите для загрузки</span> <br />
                                 PNG/JPG/PDF, не более 5 Мбайт
@@ -321,15 +277,12 @@ export const PasportScanForm: React.FC = () => {
                         </div>
                     </div>
                 </div>
-
-                {/* Страница регистрации */}
                 <div className={styles.uploadBlock__header}>
                     <span className={styles.uploadBlock__headerTitle}>СТРАНИЦА РЕГИСТРАЦИИ: &nbsp;</span>
                     <span className={styles.uploadBlock__headerExample} onClick={(e) => e.preventDefault()}>
                         СМ. ОБРАЗЕЦ
                     </span>
                 </div>
-
                 <div className={`${styles.uploadBlock} ${dragActiveReg ? styles.uploadBlock_active : ""}`}>
                     <div
                         className={styles.uploadBlock__dropzone}
@@ -347,10 +300,12 @@ export const PasportScanForm: React.FC = () => {
                             onChange={(e) => handleFileChange(e, "file_scan_page_registration")}
                         />
                         <div className={styles.uploadBlock__content}>
-                            {previewReg && <div className={styles.uploadBlock__preview_success}><Icon Svg={SuccessLabel} /></div>}
+                            {previewReg && (
+                                <div className={styles.uploadBlock__preview_success}>
+                                    <Icon Svg={SuccessLabel} />
+                                </div>
+                            )}
                             <div className={styles.uploadBlock__preview}>
-
-                                {/* Если есть превью и это не pdf */}
                                 {previewReg && !isPdfReg && (
                                     <img
                                         src={previewReg}
@@ -359,14 +314,8 @@ export const PasportScanForm: React.FC = () => {
                                         onClick={toggleFullPreviewReg}
                                     />
                                 )}
-                                {/* Если PDF */}
-                                {isPdfReg && (
-                                    <Icon Svg={UploadPDFIcon} width={50} height={35} />
-                                )}
-                                {/* Если нет ничего, показываем иконку загрузки */}
-                                {!previewReg && !isPdfReg && (
-                                    <Icon Svg={UploadIcon} width={50} height={35} />
-                                )}
+                                {isPdfReg && <Icon Svg={UploadPDFIcon} width={50} height={35} />}
+                                {!previewReg && !isPdfReg && <Icon Svg={UploadIcon} width={50} height={35} />}
                             </div>
                             <div className={styles.uploadBlock__text}>
                                 перенесите изображение или <span>нажмите для загрузки</span> <br />
@@ -375,7 +324,6 @@ export const PasportScanForm: React.FC = () => {
                         </div>
                     </div>
                 </div>
-
                 <div className={`${styles.buttons} ${!isBottom ? styles.shadow : ""}`}>
                     <Button
                         onClick={handleSubmit}
@@ -383,7 +331,7 @@ export const PasportScanForm: React.FC = () => {
                         className={styles.button}
                         disabled={isButtonDisabled}
                     >
-                        {loading ? <Loader theme={LoaderTheme.WHITE} size={LoaderSize.SMALL} /> : 'Продолжить'}
+                        {loading ? <Loader theme={LoaderTheme.WHITE} size={LoaderSize.SMALL} /> : "Продолжить"}
                     </Button>
                 </div>
             </form>

@@ -41,9 +41,65 @@ export const PasportDataForm: React.FC = () => {
         patronymic: Yup.string()
             .matches(NAME_REGEX, "Только буквы, пробел и дефис")
             .min(2, "Минимум 2 символа")
-            .nullable(), // или notRequired()
-        // и т.д. для остальных полей
+            .required("Отчество обязательно"), // Сделали обязательным
+        birth_date: Yup.date()
+            .typeError("Некорректная дата")
+            .required("Дата рождения обязательна"),
+        birth_place: Yup.string()
+            .min(2, "Минимум 2 символа")
+            .required("Место рождения обязательно"),
+        passport_series: Yup.string()
+            .matches(/^\d{4}$/, "Серия паспорта должна содержать 4 цифры")
+            .required("Серия паспорта обязательна"),
+        passport_number: Yup.string()
+            .matches(/^\d{6}$/, "Номер паспорта должен содержать 6 цифр")
+            .required("Номер паспорта обязателен"),
+        department_code: Yup.string()
+            .matches(/^\d{6}$/, "Код подразделения должен содержать 6 цифр")
+            .required("Код подразделения обязателен"),
+        issue_date: Yup.date()
+            .typeError("Некорректная дата")
+            .required("Дата выдачи паспорта обязательна"),
+        issue_whom: Yup.string()
+            .min(2, "Минимум 2 символа")
+            .required("Кем выдан паспорт обязательно"),
+        inn: Yup.string()
+            .matches(/^\d{12}$/, "ИНН должен содержать 12 цифр")
+            .required("ИНН обязателен"),
+        region: Yup.string()
+            .min(2, "Минимум 2 символа")
+            .required("Регион/район обязателен"),
+        city: Yup.string()
+            .min(2, "Минимум 2 символа")
+            .required("Город/населенный пункт обязателен"),
+        street: Yup.string()
+            .min(2, "Минимум 2 символа")
+            .required("Улица обязательна"),
+        house: Yup.string()
+            .required("Дом обязателен"),
+        apartment: Yup.string()
+            .required("Квартира обязательна"),
+        address_residential_region: Yup.string()
+            .min(2, "Минимум 2 символа")
+            .required("Регион проживания обязателен"),
+        address_residential_city: Yup.string()
+            .min(2, "Минимум 2 символа")
+            .required("Город проживания обязателен"),
+        address_residential_street: Yup.string()
+            .min(2, "Минимум 2 символа")
+            .required("Улица проживания обязательна"),
+        address_residential_house: Yup.string()
+            .required("Дом проживания обязателен"),
+        address_residential_apartment: Yup.string()
+            .required("Квартира проживания обязательна"),
+        type_message: Yup.string()
+            .oneOf(["SMS", "EMAIL", "WHATSAPP"], "Выберите способ отправки кода")
+            .required("Способ отправки кода обязателен"),
+        g_recaptcha: Yup.string()
+            .required("Пройдите проверку reCAPTCHA"),
     });
+
+
     const formik = useFormik({
         initialValues: {
             g_recaptcha: "",
@@ -194,10 +250,8 @@ export const PasportDataForm: React.FC = () => {
                     onChange={handleNameChange("last_name")}
                     onBlur={formik.handleBlur}
                     needValue
+                    error={formik.touched.last_name && formik.errors.last_name}
                 />
-                {formik.touched.last_name && formik.errors.last_name && (
-                    <div className={styles.error}>{formik.errors.last_name}</div>
-                )}
 
                 <Input
                     placeholder="Имя"
@@ -207,10 +261,8 @@ export const PasportDataForm: React.FC = () => {
                     onChange={handleNameChange("first_name")}
                     onBlur={formik.handleBlur}
                     needValue
+                    error={formik.touched.first_name && formik.errors.first_name}
                 />
-                {formik.touched.first_name && formik.errors.first_name && (
-                    <div className={styles.error}>{formik.errors.first_name}</div>
-                )}
 
                 <Input
                     placeholder="Отчество"
@@ -220,10 +272,8 @@ export const PasportDataForm: React.FC = () => {
                     onChange={handleNameChange("patronymic")}
                     onBlur={formik.handleBlur}
                     needValue
+                    error={formik.touched.patronymic && formik.errors.patronymic}
                 />
-                {formik.touched.patronymic && formik.errors.patronymic && (
-                    <div className={styles.error}>{formik.errors.patronymic}</div>
-                )}
                 <CheckboxGroup
                     name='gender'
                     label="Пол"
@@ -245,10 +295,36 @@ export const PasportDataForm: React.FC = () => {
                     maxDate={new Date()}
                 />
 
-                <Input placeholder="Место рождения" name="birth_place" type="text" value={formik.values.birth_place} onChange={handleTextInputChange} needValue />
+                <Input
+                    placeholder="Место рождения"
+                    name="birth_place"
+                    type="text"
+                    value={formik.values.birth_place}
+                    onChange={handleTextInputChange}
+                    needValue
+                    error={formik.touched.birth_place && formik.errors.birth_place}
+                />
                 <div className={styles.form__duoInputs}>
-                    <Input placeholder="Серия паспорта" type="number" maxLength={4} name="passport_series" value={formik.values.passport_series} onChange={handleTextInputChange} needValue />
-                    <Input placeholder="Номер паспорта" type="number" maxLength={6} name="passport_number" value={formik.values.passport_number} onChange={handleTextInputChange} needValue />
+                    <Input
+                        placeholder="Серия паспорта"
+                        type="number"
+                        maxLength={4}
+                        name="passport_series"
+                        value={formik.values.passport_series}
+                        onChange={handleTextInputChange}
+                        needValue
+                        error={formik.touched.passport_series && formik.errors.passport_series}
+                    />
+                    <Input
+                        placeholder="Номер паспорта"
+                        type="number"
+                        maxLength={6}
+                        name="passport_number"
+                        value={formik.values.passport_number}
+                        onChange={handleTextInputChange}
+                        needValue
+                        error={formik.touched.passport_number && formik.errors.passport_number}
+                    />
                 </div>
 
                 <Input
@@ -258,13 +334,31 @@ export const PasportDataForm: React.FC = () => {
                     value={maskDepartmentCode(formik.values.department_code)}
                     onChange={handleDepartmentCodeChange}
                     needValue
+                    error={formik.touched.department_code && formik.errors.department_code}
                 />
 
 
 
-                <Input placeholder="Кем выдан" name="issue_whom" type="text" value={formik.values.issue_whom} onChange={handleTextInputChange} needValue />
+                <Input
+                    placeholder="Кем выдан"
+                    name="issue_whom"
+                    type="text"
+                    value={formik.values.issue_whom}
+                    onChange={handleTextInputChange}
+                    needValue
+                    error={formik.touched.issue_whom && formik.errors.issue_whom}
+                />
                 <div className={styles.form__duoInputs}>
-                    <Input placeholder="ИНН" name="inn" type="number" maxLength={12} value={formik.values.inn} onChange={handleTextInputChange} needValue />
+                    <Input
+                        placeholder="ИНН"
+                        name="inn"
+                        type="number"
+                        maxLength={12}
+                        value={formik.values.inn}
+                        onChange={handleTextInputChange}
+                        needValue
+                        error={formik.touched.inn && formik.errors.inn}
+                    />
                     <Datepicker
                         value={formik.values.issue_date}
                         onChange={(date) => date && formik.setFieldValue("issue_date", format(date, 'yyyy-MM-dd'))}
@@ -276,23 +370,60 @@ export const PasportDataForm: React.FC = () => {
                 <div>
                     <h2 className={styles.form__subtitle}>Адрес регистрации</h2>
 
-                    <Input placeholder="Регион/район" name="region" type="text" value={formik.values.region} onChange={handleTextInputChange} needValue />
-                    <Input placeholder="Город/населенный пункт" name="city" type="text" value={formik.values.city} onChange={handleTextInputChange} needValue />
-                    <Input placeholder="Улица" name="street" type="text" value={formik.values.street} onChange={handleTextInputChange} needValue />
+                    <Input
+                        placeholder="Регион/район"
+                        name="region"
+                        type="text"
+                        value={formik.values.region}
+                        onChange={handleTextInputChange}
+                        needValue
+                        error={formik.touched.region && formik.errors.region}
+                    />
+                    <Input
+                        placeholder="Город/населенный пункт"
+                        name="city"
+                        type="text"
+                        value={formik.values.city}
+                        onChange={handleTextInputChange}
+                        needValue
+                        error={formik.touched.city && formik.errors.city}
+                    />
+                    <Input
+                        placeholder="Улица"
+                        name="street"
+                        type="text"
+                        value={formik.values.street}
+                        onChange={handleTextInputChange}
+                        needValue
+                        error={formik.touched.street && formik.errors.street}
+                    />
                     <div className={styles.form__duoInputs}>
-                        <Input placeholder="Дом" name="house" type="text" value={formik.values.house} onChange={handleTextInputChange} needValue />
-                        <Input placeholder="Квартира" name="apartment" type="text" value={formik.values.apartment} onChange={handleTextInputChange} needValue />
+                        <Input
+                            placeholder="Дом"
+                            name="house"
+                            type="text"
+                            value={formik.values.house}
+                            onChange={handleTextInputChange}
+                            needValue
+                            error={formik.touched.house && formik.errors.house}
+                        />
+                        <Input
+                            placeholder="Квартира"
+                            name="apartment"
+                            type="text"
+                            value={formik.values.apartment}
+                            onChange={handleTextInputChange}
+                            needValue
+                            error={formik.touched.apartment && formik.errors.apartment}
+                        />
                     </div>
+
                     <Checkbox
                         name="is_live_this_address"
                         value={formik.values.is_live_this_address}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
-                        label={
-                            <span className={styles.checkbox__text}>
-                                Живу по этому адресу
-                            </span>
-                        }
+                        label={<span className={styles.checkbox__text}>Живу по этому адресу</span>}
                         error={formik.touched.is_live_this_address && formik.errors.is_live_this_address}
                     />
                     <Checkbox
@@ -300,22 +431,58 @@ export const PasportDataForm: React.FC = () => {
                         value={formik.values.is_receive_mail_this_address}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
-                        label={
-                            <span className={styles.checkbox__text}>
-                                Получать почту по этому адресу
-                            </span>
-                        }
+                        label={<span className={styles.checkbox__text}>Получать почту по этому адресу</span>}
                         error={formik.touched.is_receive_mail_this_address && formik.errors.is_receive_mail_this_address}
                     />
 
                     <div>
                         <h2 className={styles.form__subtitle}>Адрес проживания</h2>
-                        <Input placeholder="Регион/район" name="address_residential_region" type="text" value={formik.values.address_residential_region} onChange={handleTextInputChange} needValue />
-                        <Input placeholder="Город/населенный пункт" name="address_residential_city" type="text" value={formik.values.address_residential_city} onChange={handleTextInputChange} needValue />
-                        <Input placeholder="Улица" name="address_residential_street" type="text" value={formik.values.address_residential_street} onChange={handleTextInputChange} needValue />
+                        <Input
+                            placeholder="Регион/район"
+                            name="address_residential_region"
+                            type="text"
+                            value={formik.values.address_residential_region}
+                            onChange={handleTextInputChange}
+                            needValue
+                            error={formik.touched.address_residential_region && formik.errors.address_residential_region}
+                        />
+                        <Input
+                            placeholder="Город/населенный пункт"
+                            name="address_residential_city"
+                            type="text"
+                            value={formik.values.address_residential_city}
+                            onChange={handleTextInputChange}
+                            needValue
+                            error={formik.touched.address_residential_city && formik.errors.address_residential_city}
+                        />
+                        <Input
+                            placeholder="Улица"
+                            name="address_residential_street"
+                            type="text"
+                            value={formik.values.address_residential_street}
+                            onChange={handleTextInputChange}
+                            needValue
+                            error={formik.touched.address_residential_street && formik.errors.address_residential_street}
+                        />
                         <div className={styles.form__duoInputs}>
-                            <Input placeholder="Дом" name="address_residential_house" type="text" value={formik.values.address_residential_house} onChange={handleTextInputChange} needValue />
-                            <Input placeholder="Квартира" name="address_residential_apartment" type="text" value={formik.values.address_residential_apartment} onChange={handleTextInputChange} needValue />
+                            <Input
+                                placeholder="Дом"
+                                name="address_residential_house"
+                                type="text"
+                                value={formik.values.address_residential_house}
+                                onChange={handleTextInputChange}
+                                needValue
+                                error={formik.touched.address_residential_house && formik.errors.address_residential_house}
+                            />
+                            <Input
+                                placeholder="Квартира"
+                                name="address_residential_apartment"
+                                type="text"
+                                value={formik.values.address_residential_apartment}
+                                onChange={handleTextInputChange}
+                                needValue
+                                error={formik.touched.address_residential_apartment && formik.errors.address_residential_apartment}
+                            />
                         </div>
                     </div>
                     <span className={styles.method__title}>Куда отправить код</span>
@@ -333,12 +500,12 @@ export const PasportDataForm: React.FC = () => {
                                 handleMethodChange(selectedValue as 'SMS' | 'EMAIL' | 'WHATSAPP');
                             }}
                         />
-
                     </div>
 
                     <div style={{ minHeight: "74px", marginTop: '20px' }}>
                         <ReCAPTCHA ref={recaptchaRef} sitekey={gcaptchaSiteKey} onChange={handleCaptchaChange} />
                     </div>
+
 
                     <div className={`${styles.buttons} ${!isBottom ? styles.shadow : ""
                         }`}>
@@ -346,6 +513,7 @@ export const PasportDataForm: React.FC = () => {
                             Подтвердить данные
                         </Button>
                     </div>
+
                 </div>
             </form >
             <ConfirmDocsModal lastData={{ type_message: formik.values.type_message, type_document: 'type_doc_passport', is_agree: formik.values.g_recaptcha.length > 0 }} isOpen={modalState.confirmDocsModal.isOpen} onClose={() => { dispatch(closeModal(ModalType.CONFIRM_DOCS)) }} docsType="type_doc_passport" />

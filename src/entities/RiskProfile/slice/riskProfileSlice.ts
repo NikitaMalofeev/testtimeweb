@@ -14,30 +14,42 @@ import {
     SendCodeDocsConfirmPayload,
     SecondRiskProfileFinalPayload
 } from "../model/types";
-import { getAllSelects, postConfirmationCode, postConfirmationDocsCode, postFirstRiskProfile, postIdentificationData, postNeedHelpRequest, postPasportData, postPasportScanData, postResendConfirmationCode, postSecondRiskProfile, postSecondRiskProfileFinal, postTrustedPersonInfoApi } from "shared/api/RiskProfileApi/riskProfileApi";
+import {
+    getAllSelects,
+    postConfirmationCode,
+    postConfirmationDocsCode,
+    postFirstRiskProfile,
+    postIdentificationData,
+    postNeedHelpRequest,
+    postPasportData,
+    postPasportScanData,
+    postResendConfirmationCode,
+    postSecondRiskProfile,
+    postSecondRiskProfileFinal,
+    postTrustedPersonInfoApi
+} from "shared/api/RiskProfileApi/riskProfileApi";
 import { setUserId, setUserIsActive, setUserToken, updateUserAllData } from "entities/User/slice/userSlice";
 import { setConfirmationEmailSuccess, setConfirmationPhoneSuccess, setConfirmationStatusSuccess, setConfirmationWhatsappSuccess } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
 import { RootState } from "app/providers/store/config/store";
 import { PasportScanData } from "features/RiskProfile/PassportScanForm/PassportScanForm";
+
 interface RiskProfileFormState {
     loading: boolean;
     error: string | null;
     success: boolean;
     IdentificationFromData: IdentificationProfileData | null;
     riskProfileForm: RiskProfileFormData | null;
-    secondRiskProfileData: SecondRiskProfileResponse | null,
-    thirdRiskProfileResponse: ThirdRiskProfileResponse | null,
-    riskProfileSelectors: RiskProfileSelectors | null
+    secondRiskProfileData: SecondRiskProfileResponse | null;
+    thirdRiskProfileResponse: ThirdRiskProfileResponse | null;
+    riskProfileSelectors: RiskProfileSelectors | null;
     formValues: Record<string, string>;
     stepsFirstForm: {
         currentStep: number;
     };
     currentConfirmingDoc: string;
-    pasportScanSocketId: string
+    pasportScanSocketId: string;
 }
-
-
 
 const initialState: RiskProfileFormState = {
     loading: false,
@@ -69,21 +81,24 @@ export const createRiskProfile = createAsyncThunk<
             dispatch(setUserIsActive(is_active));
             dispatch(setUserId(id));
             dispatch(setUserToken(token));
+
+            //Очищаю прохождение риск профиля если создан новый пользователь 
+            localStorage.removeItem("riskProfileFormData");
         } catch (error: any) {
             if (error.response.data.password) {
-                dispatch(setError(error.response.data.password))
+                dispatch(setError(error.response.data.password));
             }
             if (error.response.data.phone) {
-                dispatch(setError(error.response.data.phone))
+                dispatch(setError(error.response.data.phone));
             }
             if (error.response.data.email) {
-                dispatch(setError(error.response.data.email))
+                dispatch(setError(error.response.data.email));
             }
             if (error.response.data.info) {
-                dispatch(setError(error.response.data.info))
+                dispatch(setError(error.response.data.info));
             }
             if (error.response.data.errorText) {
-                dispatch(setError(error.response.data.errorText))
+                dispatch(setError(error.response.data.errorText));
             }
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке данных"
@@ -102,7 +117,7 @@ export const postSecondRiskProfileForm = createAsyncThunk<
         try {
             const token = getState().user.token;
             const response = await postSecondRiskProfile(data, token);
-            dispatch(setThirdRiskProfileResponse(response))
+            dispatch(setThirdRiskProfileResponse(response));
         } catch (error: any) {
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке данных"
@@ -121,8 +136,8 @@ export const postSecondRiskProfileFormFinal = createAsyncThunk<
         try {
             const token = getState().user.token;
             const response = await postSecondRiskProfileFinal(data, token);
-            dispatch(updateUserAllData({ first_name: response.first_name, last_name: response.last_name, patronymic: response.patronymic, gender: response.gender }))
-            return response
+            dispatch(updateUserAllData({ first_name: response.first_name, last_name: response.last_name, patronymic: response.patronymic, gender: response.gender }));
+            return response;
         } catch (error: any) {
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке данных"
@@ -143,15 +158,11 @@ export const postFirstRiskProfileForm = createAsyncThunk<
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");
             }
-
-            // Убираем ненужные поля
             const { trusted_person_fio, trusted_person_phone, trusted_person_other_contact, ...filteredData } = data;
-
             const transformedData = {
                 ...filteredData,
-                is_qualified_investor_status: filteredData.is_qualified_investor_status === "true",
+                is_qualified_investor_status: filteredData.is_qualified_investor_status === "true"
             };
-
             const response = await postFirstRiskProfile(transformedData, token);
             dispatch(setFirstRiskProfileData(response));
         } catch (error: any) {
@@ -161,7 +172,6 @@ export const postFirstRiskProfileForm = createAsyncThunk<
         }
     }
 );
-
 
 export const postTrustedPersonInfo = createAsyncThunk<
     void,
@@ -180,8 +190,7 @@ export const postTrustedPersonInfo = createAsyncThunk<
                 onSuccess();
             }
         } catch (error: any) {
-            console.log(error)
-            dispatch(setError(error.response.data.trusted_person_phone))
+            dispatch(setError(error.response.data.trusted_person_phone));
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке данных"
             );
@@ -197,19 +206,16 @@ export const postPasportInfo = createAsyncThunk<
     "riskProfile/postFirstRiskProfileForm",
     async ({ data, onSuccess }, { getState, rejectWithValue, dispatch }) => {
         try {
-            console.log('submit2')
             const token = getState().user.token;
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");
             }
             const response = await postPasportData(data, token);
-            dispatch(setPasportScanSocketId(response.group_name_upload_scans_progress))
+            dispatch(setPasportScanSocketId(response.group_name_upload_scans_progress));
             onSuccess();
-
-            return response
+            return response;
         } catch (error: any) {
-            console.log(error)
-            dispatch(setError('Ошибка отправки данных паспорта'))
+            dispatch(setError('Ошибка отправки данных паспорта'));
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке данных"
             );
@@ -226,25 +232,49 @@ export const postPasportScanThunk = createAsyncThunk<
     async ({ data, onSuccess }, { getState, rejectWithValue, dispatch }) => {
         try {
             const token = getState().user.token;
-
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");
             }
-            const response = await postPasportScanData(data, token);
-            onSuccess();
-
-            return response
+            const response = await postPasportScanData(data, token)
+            const socketId = getState().riskProfile.pasportScanSocketId;
+            return await new Promise((resolve, reject) => {
+                const socket = new WebSocket(`wss://test.webbroker.ranks.pro/ws/upload_scans_progress/${socketId}/`);
+                socket.onopen = () => {
+                    const entries = Array.from(data.entries());
+                    const files: any = {};
+                    for (const [key, value] of entries) {
+                        if (value instanceof File) {
+                            files[key] = {
+                                name: value.name,
+                                type: value.type
+                            };
+                        }
+                    }
+                    socket.send(JSON.stringify({ token, files }));
+                };
+                socket.onmessage = (event) => {
+                    const responseData = JSON.parse(event.data);
+                    if (responseData.data.progress === 100) {
+                        onSuccess();
+                        resolve(responseData);
+                        socket.close();
+                    }
+                };
+                socket.onerror = () => {
+                    dispatch(setError('Ошибка отправки скана документов'));
+                    reject("Ошибка при отправке данных");
+                    socket.close();
+                };
+                socket.onclose = () => { };
+            });
         } catch (error: any) {
-            console.log(error)
-            dispatch(setError('Ошибка отправки скана документов'))
+            dispatch(setError('Ошибка отправки скана документов'));
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке данных"
             );
         }
     }
 );
-
-
 
 export const fetchAllSelects = createAsyncThunk<
     any,
@@ -283,20 +313,16 @@ export const sendPhoneConfirmationCode = createAsyncThunk<
                     const msg =
                         responsePhone.data?.errorText ||
                         "Ошибка при отправке кода (непредвиденная)";
-                    dispatch(setError(msg))
+                    dispatch(setError(msg));
                     onSuccess?.(responsePhone);
                 }
-
             }
         } catch (error: any) {
-            dispatch(setConfirmationPhoneSuccess(
-                'не пройдено'
-            ))
-            console.log(error)
+            dispatch(setConfirmationPhoneSuccess('не пройдено'));
             const msg =
                 error.response.data?.errorText ||
                 "Ошибка при отправке кода (непредвиденная)";
-            dispatch(setError(msg))
+            dispatch(setError(msg));
         }
     }
 );
@@ -316,22 +342,17 @@ export const sendEmailConfirmationCode = createAsyncThunk<
             if (responseEmail.status === "success") {
                 onSuccess?.(responseEmail);
             } else if (responseEmail.code !== 200) {
-
                 onSuccess?.(responseEmail);
             }
         } catch (error: any) {
-            dispatch(setConfirmationEmailSuccess(
-                'не пройдено'
-            ))
-            console.log(error)
+            dispatch(setConfirmationEmailSuccess('не пройдено'));
             const msg =
                 error.response.data?.errorText ||
                 "Ошибка при отправке кода (непредвиденная)";
-            dispatch(setError(msg))
+            dispatch(setError(msg));
         }
     }
-)
-
+);
 
 export const resendConfirmationCode = createAsyncThunk<
     void,
@@ -341,11 +362,9 @@ export const resendConfirmationCode = createAsyncThunk<
     "riskProfile/resendConfirmationCode",
     async ({ user_id, method }, { rejectWithValue }) => {
         try {
-            // Подготовим body в зависимости от типа кода
             const payload: Record<string, any> = {
-                user_id,
+                user_id
             };
-
             if (method === "WHATSAPP") {
                 payload.type_confirm = "SMS";
                 payload.type_message = "WHATSAPP";
@@ -357,10 +376,7 @@ export const resendConfirmationCode = createAsyncThunk<
             } else if (method === 'phone') {
                 payload.type_confirm = "phone";
             }
-
-            // Единственный вызов, без второго
             await postResendConfirmationCode(payload);
-
         } catch (error: any) {
             return rejectWithValue(
                 error.response?.data?.message ||
@@ -370,21 +386,22 @@ export const resendConfirmationCode = createAsyncThunk<
     }
 );
 
-
 export const requestNeedHelp = createAsyncThunk<
     void,
     NeedHelpData,
     { rejectValue: string }
->("riskProfile/requestNeedHelp", async (data, { rejectWithValue }) => {
-    try {
-        await postNeedHelpRequest(data);
-    } catch (error: any) {
-        return rejectWithValue(
-            error.response?.data?.message || "Ошибка при запросе помощи"
-        );
+>(
+    "riskProfile/requestNeedHelp",
+    async (data, { rejectWithValue }) => {
+        try {
+            await postNeedHelpRequest(data);
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message || "Ошибка при запросе помощи"
+            );
+        }
     }
-});
-
+);
 
 const riskProfileSlice = createSlice({
     name: "riskProfile",
@@ -422,8 +439,7 @@ const riskProfileSlice = createSlice({
         },
         setPasportScanSocketId(state, action: PayloadAction<string>) {
             state.pasportScanSocketId = action.payload;
-        },
-
+        }
     },
     extraReducers: (builder) => {
         builder
@@ -476,17 +492,6 @@ const riskProfileSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload as string;
             })
-            // .addCase(postSecondRiskProfileForm.pending, (state) => {
-            //     state.loading = true;
-            //     state.error = null;
-            // })
-            // .addCase(postSecondRiskProfileForm.fulfilled, (state) => {
-            //     state.loading = false;
-            // })
-            // .addCase(postSecondRiskProfileForm.rejected, (state, action) => {
-            //     state.loading = false;
-            //     state.error = action.payload as string;
-            // })
             .addCase(postFirstRiskProfileForm.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -498,9 +503,18 @@ const riskProfileSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload as string;
             });
-
-    },
+    }
 });
 
-export const { updateFieldValue, setPasportScanSocketId, updateRiskProfileForm, setStep, setCurrentConfirmingDoc, nextRiskProfileStep, prevRiskProfileStep, setThirdRiskProfileResponse, setFirstRiskProfileData } = riskProfileSlice.actions;
+export const {
+    updateFieldValue,
+    setPasportScanSocketId,
+    updateRiskProfileForm,
+    setStep,
+    setCurrentConfirmingDoc,
+    nextRiskProfileStep,
+    prevRiskProfileStep,
+    setThirdRiskProfileResponse,
+    setFirstRiskProfileData
+} = riskProfileSlice.actions;
 export default riskProfileSlice.reducer;

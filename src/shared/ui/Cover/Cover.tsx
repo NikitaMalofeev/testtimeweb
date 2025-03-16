@@ -21,8 +21,8 @@ export const Cover = () => {
                 Svg={CoverIcon}
                 width="100%"
                 height="100%"
-                maxWidth={1200}
-                maxHeight={1200}
+                maxWidth={2000}
+                maxHeight={2000}
                 objectFit="cover"
             />
         </div>

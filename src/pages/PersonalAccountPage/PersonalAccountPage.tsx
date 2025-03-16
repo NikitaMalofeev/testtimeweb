@@ -17,6 +17,7 @@ import AccountSettingsIcon from 'shared/assets/svg/AccountSettingsIcon.svg'
 import AccountTarifsIcon from 'shared/assets/svg/AccountTarifsIcon.svg'
 import AccountPhoneIcon from 'shared/assets/svg/AccountPhoneIcon.svg'
 import AccountMailIcon from 'shared/assets/svg/AccountMailIcon.svg'
+import AccountChatIcon from 'shared/assets/svg/AccountChatIcon.svg'
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { getUserPersonalAccountInfoThunk } from "entities/User/slice/userSlice";
 import { useNavigate } from "react-router-dom";
@@ -49,6 +50,14 @@ const PersonalAccountMenu: React.FC = () => {
             route: "/documents",
             notificationsCount: 6,
             iconWidth: 23,
+            iconHeight: 28,
+        },
+        {
+            icon: AccountChatIcon,
+            title: "Чат поддержки",
+            action: () => navigate("/support"),
+            iconWidth: 28,
+            notificationsCount: 0,
             iconHeight: 28,
         },
         {
@@ -123,7 +132,7 @@ const PersonalAccountMenu: React.FC = () => {
                     {items.map((item, index) => (
                         <div
                             key={index}
-                            style={(item.title !== 'Документы' && item.title !== 'Выйти из учетной записи') ? { opacity: '0.5' } : {}}
+                            style={(item.title !== 'Документы' && item.title !== 'Чат поддержки' && item.title !== 'Выйти из учетной записи') ? { opacity: '0.5' } : {}}
                             onClick={() => {
                                 if (item.route) {
                                     navigate(item.route);

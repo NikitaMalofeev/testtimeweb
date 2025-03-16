@@ -1,0 +1,129 @@
+.chat {
+    padding: 13px 24px 0;
+    width: 100%;
+    flex-grow: 1;
+
+    &__header {
+        position: relative;
+        display: flex;
+        gap: 26px;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 13px;
+    }
+
+    &__header__status {
+border-radius: 13.65px;
+        background-color: #52C417;
+        padding: 1.5px 8px 3.5px ;
+        font-weight: 500;
+        font-size: 12px;
+        line-height: 100%;
+        letter-spacing: 0%;
+        text-align: right;
+        color: white;
+    }
+
+    &__header__content {
+        display: flex;
+        gap: 2px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    &__header__title {
+
+        font-weight: 500;
+        font-size: 24px;
+        line-height: 120%;
+        letter-spacing: 0%;
+        color: #0F0E0E;
+    }
+
+    &__header__description {
+        position: absolute;
+        bottom: -45px;
+        font-weight: 400;
+        font-size: 12px;
+        line-height: 100%;
+        letter-spacing: 0%;
+        text-align: center;
+        color: #A8A8A8;
+    }
+
+    &__chat__container {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: calc(100% - 42px);
+        overflow-y: auto; 
+        min-height: 0;
+        padding-bottom: 24px;
+    }
+
+    &__chat {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        justify-content: end;
+        flex-grow: 1;
+        width: 100%;
+    }
+
+    &__input {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+.message {
+    &_support {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        align-items: start;
+    }
+
+    &_user {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        align-items: end;
+    }
+
+    &__date {
+        font-weight: 400;
+        font-size: 12px;
+        line-height: 100%;
+        letter-spacing: 0%;
+        color: #797979;
+    }
+
+    &__message_support {
+        font-family: Inter;
+        font-weight: 400;
+        font-size: 12px;
+        line-height: 130%;
+        letter-spacing: 0%;
+        color: #0F0E0E;
+        padding: 10px;
+        background-color: #EBEBED;
+        border-radius: 15px;
+        max-width: 85%;
+    }
+
+    &__message_user {
+        font-family: Inter;
+        font-weight: 400;
+        font-size: 12px;
+        line-height: 130%;
+        letter-spacing: 0%;
+        color: #0F0E0E;
+        padding: 10px;
+        background-color: #E1ECFB;
+        border-radius: 15px;
+        max-width: 85%;
+    }
+}

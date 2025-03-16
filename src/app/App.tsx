@@ -57,6 +57,7 @@ function App() {
       <SuccessPopup />
 
 
+      {/* FIXME Перенести в компоненты где используются */}
       {/* Модальные окна */}
       <RiskProfileModal isOpen={modalState.identificationModal.isOpen} onClose={() => {
         dispatch(closeModal(ModalType.IDENTIFICATION));

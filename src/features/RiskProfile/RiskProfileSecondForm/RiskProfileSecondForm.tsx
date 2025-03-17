@@ -8,12 +8,11 @@ import { prevStep, setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice"
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { Tooltip } from "shared/ui/Tooltip/Tooltip";
 import { Input } from "shared/ui/Input/Input";
-import { postSecondRiskProfileForm, postSecondRiskProfileFormFinal } from "entities/RiskProfile/slice/riskProfileSlice";
+import { postFirstRiskProfileForm, postSecondRiskProfileForm, postSecondRiskProfileFormFinal } from "entities/RiskProfile/slice/riskProfileSlice";
 import { debounce } from "lodash";
 import { SecondRiskProfilePayload } from "entities/RiskProfile/model/types";
 import { Select } from "shared/ui/Select/Select";
 import { Loader } from "shared/ui/Loader/Loader";
-
 
 interface SwiperParametrValues {
     risk_prof_conservative: string;
@@ -48,7 +47,6 @@ export const RiskProfileSecondForm: React.FC = () => {
     const thirdRiskProfileResponse = useSelector((state: RootState) => state.riskProfile.thirdRiskProfileResponse);
 
     const goBack = () => dispatch(prevStep());
-        
 
     const formik = useFormik({
         enableReinitialize: true,
@@ -64,14 +62,20 @@ export const RiskProfileSecondForm: React.FC = () => {
         },
     });
 
-
-
     const debouncedPostForm = useCallback(
         debounce((values) => {
             handleGetNewPercentage(values)
         }, 500),
         [dispatch]
     );
+
+    useEffect(() => {
+        const riskProfileDataLS = localStorage.getItem('riskProfileFormData');
+        if (riskProfileDataLS) {
+            const parsedData = JSON.parse(riskProfileDataLS);
+            dispatch(postFirstRiskProfileForm({ ...parsedData.data }));
+        }
+    }, []);
 
     useEffect(() => {
         if (formik.values.amount_expected_replenishment && formik.values.portfolio_parameters) {
@@ -89,15 +93,12 @@ export const RiskProfileSecondForm: React.FC = () => {
         }
     }, [secondRiskProfileData]);
 
-
     const finalRiskProfileOptions = Object.entries(secondRiskProfileData?.recommended_risk_profiles || {}).map(
         ([key, value]) => ({
             value: key,
             label: value,
         })
     );
-
-
 
     const handleGetNewPercentage = (values: SecondRiskProfilePayload) => {
         dispatch(postSecondRiskProfileForm({
@@ -128,7 +129,6 @@ export const RiskProfileSecondForm: React.FC = () => {
         } catch (error) {
             console.error("Ошибка при отправке данных:", error);
         }
-
     };
 
     if (loading) {
@@ -147,7 +147,6 @@ export const RiskProfileSecondForm: React.FC = () => {
                                     topForCenteringIcons="24px"
                                     direction='top'
                                     squerePosition={{ bottom: '-4px' }}
-
                                 />
                             </div>
                             <span>0 ₽</span>
@@ -196,7 +195,6 @@ export const RiskProfileSecondForm: React.FC = () => {
                             <span className={styles.parametrs__value}>
                                 {SWIPER_PARAM_VALUES[formik.values.portfolio_parameters as keyof SwiperParametrValues]}
                             </span>
-
                         </div>
 
                         <div className={styles.form__item}>
@@ -256,12 +254,14 @@ export const RiskProfileSecondForm: React.FC = () => {
                         </div>
                         <div className={styles.potential__capital__change}>
                             {thirdRiskProfileResponse ? thirdRiskProfileResponse.potential_income : secondRiskProfileData?.potential_income} ₽
-
                         </div>
                     </div>
+                    {/* <h4 className={styles.title}>Завершение настроек риск профиля</h4> */}
                     <div className={styles.form__container} style={{ minHeight: '180px' }}>
+
                         {secondRiskProfileData && (
                             <div className={styles.form__final}>
+
                                 <Tooltip
                                     className={styles.form__item__tooltip_report}
                                     description={
@@ -286,12 +286,16 @@ export const RiskProfileSecondForm: React.FC = () => {
                                     items={finalRiskProfileOptions}
                                     onChange={(selectedVal) => {
                                         formik.setFieldValue("risk_profiling_final", selectedVal);
+                                        // Если выбрано "не выбрано" (пустая строка), сбрасываем touched,
+                                        // чтобы placeholder отобразился сразу
+                                        if (selectedVal === "") {
+                                            formik.setFieldTouched("risk_profiling_final", false);
+                                        }
                                     }}
                                 />
                             </div>
                         )}
                     </div>
-
 
                     <div className={`${styles.buttons} ${isBottom ? "" : styles.shadow}`}>
                         <Button
@@ -316,5 +320,4 @@ export const RiskProfileSecondForm: React.FC = () => {
             </div>
         );
     }
-
 };

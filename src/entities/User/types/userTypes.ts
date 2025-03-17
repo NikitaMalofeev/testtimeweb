@@ -15,7 +15,7 @@ export interface UserPersonalAccount {
     is_confirmed_email: boolean;
     phone: string;
     is_confirmed_phone: boolean;
-    gender: string | null;
+    gender: string | null | undefined;
     birth_date: Date | null;
     risk_profiling_summ: number | null;
     risk_profiling_text: string | null;

@@ -18,6 +18,7 @@ interface DatepickerProps {
     placeholder?: string;
     maxDate?: Date;
     minDate?: Date;
+    needValue?: boolean;
 }
 
 export const Datepicker = memo((props: DatepickerProps) => {
@@ -27,6 +28,7 @@ export const Datepicker = memo((props: DatepickerProps) => {
         placeholder = 'Выберите дату',
         maxDate,
         minDate,
+        needValue,
     } = props;
 
     // Локальный стейт для выбранной даты и видимости календаря
@@ -94,7 +96,7 @@ export const Datepicker = memo((props: DatepickerProps) => {
                 <label
                     className={`${cls.label} ${(isOpen || selectedDate) ? cls.active : ''}`}
                 >
-                    {placeholder}
+                    {placeholder}  {needValue && !value && <span style={{ color: '#FF3C53', position: 'absolute', top: '0px', right: '-10px' }}>*</span>}
                 </label>
 
                 {/* Блок, который визуально выглядит как input, но по клику открывает календарь */}
@@ -103,127 +105,130 @@ export const Datepicker = memo((props: DatepickerProps) => {
                     className={cls.button_date}
                 >
                     {selectedDate ? format(selectedDate, 'dd.MM.yyyy') : ''}
+
                 </div>
+
             </div>
 
-            {isOpen && (
-                <div className={cls.calendarWrapper} ref={calendarRef}>
-                    <DatePicker
-                        selected={selectedDate}
-                        onChange={handleCalendarChange}
-                        locale={ru}
-                        inline
-                        showWeekNumbers
-                        minDate={minDate}
-                        maxDate={maxDate}
-                        // Кастомный хедер
-                        renderCustomHeader={({
-                            date,
-                            changeYear,
-                            changeMonth,
-                            decreaseMonth,
-                            increaseMonth,
-                            prevMonthButtonDisabled,
-                            nextMonthButtonDisabled,
-                        }) => {
-                            const currentYear = getYear(date);
-                            const lowerYear = 1990;
-                            const upperYear = getYear(new Date());
-                            const years = Array.from(
-                                { length: upperYear - lowerYear + 1 },
-                                (_, i) => lowerYear + i
-                            );
-                            const months = [
-                                'Январь',
-                                'Февраль',
-                                'Март',
-                                'Апрель',
-                                'Май',
-                                'Июнь',
-                                'Июль',
-                                'Август',
-                                'Сентябрь',
-                                'Октябрь',
-                                'Ноябрь',
-                                'Декабрь',
-                            ];
+            {
+                isOpen && (
+                    <div className={cls.calendarWrapper} ref={calendarRef}>
+                        <DatePicker
+                            selected={selectedDate}
+                            onChange={handleCalendarChange}
+                            locale={ru}
+                            inline
+                            showWeekNumbers
+                            minDate={minDate}
+                            maxDate={maxDate}
+                            // Кастомный хедер
+                            renderCustomHeader={({
+                                date,
+                                changeYear,
+                                changeMonth,
+                                decreaseMonth,
+                                increaseMonth,
+                                prevMonthButtonDisabled,
+                                nextMonthButtonDisabled,
+                            }) => {
+                                const currentYear = getYear(date);
+                                const lowerYear = 1900;
+                                const upperYear = getYear(new Date());
+                                const years = Array.from(
+                                    { length: upperYear - lowerYear + 1 },
+                                    (_, i) => lowerYear + i
+                                );
+                                const months = [
+                                    'Январь',
+                                    'Февраль',
+                                    'Март',
+                                    'Апрель',
+                                    'Май',
+                                    'Июнь',
+                                    'Июль',
+                                    'Август',
+                                    'Сентябрь',
+                                    'Октябрь',
+                                    'Ноябрь',
+                                    'Декабрь',
+                                ];
 
-                            return (
-                                <div className={cls.header}>
-                                    {/* Блок года */}
-                                    <div className={cls.header__year}>
-                                        <button
-                                            type="button"
-                                            onClick={() => changeYear(currentYear - 1)}
-                                            disabled={currentYear <= lowerYear}
-                                            className={cls.button__arrow}
-                                        >
-                                            <Icon Svg={ArrowLeft} />
-                                        </button>
-                                        <select
-                                            className={cls.select}
-                                            value={currentYear}
-                                            onChange={(e) =>
-                                                changeYear(parseInt(e.target.value, 10))
-                                            }
-                                        >
-                                            {years.map((year) => (
-                                                <option key={year} value={year}>
-                                                    {year}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <button
-                                            type="button"
-                                            onClick={() => changeYear(currentYear + 1)}
-                                            disabled={currentYear >= upperYear}
-                                            className={cls.button__arrow}
-                                        >
-                                            <Icon Svg={ArrowRight} />
-                                        </button>
-                                    </div>
+                                return (
+                                    <div className={cls.header}>
+                                        {/* Блок года */}
+                                        <div className={cls.header__year}>
+                                            <button
+                                                type="button"
+                                                onClick={() => changeYear(currentYear - 1)}
+                                                disabled={currentYear <= lowerYear}
+                                                className={cls.button__arrow}
+                                            >
+                                                <Icon Svg={ArrowLeft} />
+                                            </button>
+                                            <select
+                                                className={cls.select}
+                                                value={currentYear}
+                                                onChange={(e) =>
+                                                    changeYear(parseInt(e.target.value, 10))
+                                                }
+                                            >
+                                                {years.map((year) => (
+                                                    <option key={year} value={year}>
+                                                        {year}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <button
+                                                type="button"
+                                                onClick={() => changeYear(currentYear + 1)}
+                                                disabled={currentYear >= upperYear}
+                                                className={cls.button__arrow}
+                                            >
+                                                <Icon Svg={ArrowRight} />
+                                            </button>
+                                        </div>
 
-                                    {/* Блок месяца */}
-                                    <div className={cls.header__month}>
-                                        <button
-                                            type="button"
-                                            className={cls.button__arrow}
-                                            onClick={decreaseMonth}
-                                            disabled={prevMonthButtonDisabled}
-                                        >
-                                            <Icon Svg={ArrowLeft} />
-                                        </button>
-                                        <select
-                                            className={cls.select}
-                                            value={months[getMonth(date)]}
-                                            onChange={(e) =>
-                                                changeMonth(
-                                                    months.indexOf(e.target.value)
-                                                )
-                                            }
-                                        >
-                                            {months.map((month) => (
-                                                <option key={month} value={month}>
-                                                    {month}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <button
-                                            type="button"
-                                            className={cls.button__arrow}
-                                            onClick={increaseMonth}
-                                            disabled={nextMonthButtonDisabled}
-                                        >
-                                            <Icon Svg={ArrowRight} />
-                                        </button>
+                                        {/* Блок месяца */}
+                                        <div className={cls.header__month}>
+                                            <button
+                                                type="button"
+                                                className={cls.button__arrow}
+                                                onClick={decreaseMonth}
+                                                disabled={prevMonthButtonDisabled}
+                                            >
+                                                <Icon Svg={ArrowLeft} />
+                                            </button>
+                                            <select
+                                                className={cls.select}
+                                                value={months[getMonth(date)]}
+                                                onChange={(e) =>
+                                                    changeMonth(
+                                                        months.indexOf(e.target.value)
+                                                    )
+                                                }
+                                            >
+                                                {months.map((month) => (
+                                                    <option key={month} value={month}>
+                                                        {month}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <button
+                                                type="button"
+                                                className={cls.button__arrow}
+                                                onClick={increaseMonth}
+                                                disabled={nextMonthButtonDisabled}
+                                            >
+                                                <Icon Svg={ArrowRight} />
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-                            );
-                        }}
-                        // Кастомный контейнер календаря (с инпутом)
-                        calendarContainer={({ children }) => (
-                            <div className={cls.customCalendarContainer}>
-                                {/* <div className={cls.customInputs}>
+                                );
+                            }}
+                            // Кастомный контейнер календаря (с инпутом)
+                            calendarContainer={({ children }) => (
+                                <div className={cls.customCalendarContainer}>
+                                    {/* <div className={cls.customInputs}>
                                     <input
                                         type="text"
                                         placeholder={placeholder}
@@ -233,13 +238,14 @@ export const Datepicker = memo((props: DatepickerProps) => {
                                         onBlur={handleBlur}
                                     />
                                 </div> */}
-                                {children}
-                                {/* Убрали кнопку "Сохранить", теперь выбор даты автоматический */}
-                            </div>
-                        )}
-                    />
-                </div>
-            )}
-        </div>
+                                    {children}
+                                    {/* Убрали кнопку "Сохранить", теперь выбор даты автоматический */}
+                                </div>
+                            )}
+                        />
+                    </div>
+                )
+            }
+        </div >
     );
 });

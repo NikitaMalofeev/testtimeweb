@@ -1,5 +1,5 @@
 import { SelectModal } from "features/Ui/SelectModal/SelectModal";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./styles.module.scss";
 import { Icon } from "../Icon/Icon";
 import ErrorIcon from 'shared/assets/svg/errorCircle.svg';
@@ -32,6 +32,9 @@ export const Select: React.FC<CustomSelectProps> = ({
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
 
+    // Добавляем опцию по умолчанию, если её нет в начале массива
+    const modifiedItems = items[0]?.value === '' ? items : [{ value: '', label: 'не выбрано' }, ...items];
+
     const handleOpenModal = () => {
         setIsModalOpen(true);
         setIsFocused(true);
@@ -39,19 +42,24 @@ export const Select: React.FC<CustomSelectProps> = ({
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
-        setIsFocused(!!value);
     };
 
     const handleChooseItem = (chosenValue: string) => {
         onChange(chosenValue);
-        setIsFocused(true);
     };
 
-    const currentLabel = items.find((i) => i.value === value)?.label ?? "";
+    useEffect(() => {
+        setIsFocused(value !== '');
+    }, [value]);
+
+    // Если значение не выбрано (value === ''), в инпуте выводим пустую строку, а не исходный label
+    const currentLabel = value ? (modifiedItems.find((i) => i.value === value)?.label ?? "") : "";
 
     return (
         <div className={`${styles.inputWrapper} ${isFocused ? styles.active : ""}`}>
-            <label className={`${styles.label} ${isFocused || value ? styles.active : ""}`}>{label} {needValue && <span style={{ color: '#FF3C53' }}>*</span>}</label>
+            <label className={`${styles.label} ${isFocused || value ? styles.active : ""}`}>
+                {label} {needValue && <span style={{ color: '#FF3C53' }}>*</span>}
+            </label>
             <div
                 className={`${styles.inputContainer} ${styles.selectContainer} ${error ? styles.error : ""}`}
                 onClick={handleOpenModal}
@@ -77,7 +85,7 @@ export const Select: React.FC<CustomSelectProps> = ({
             <SelectModal
                 title={title}
                 withCloseIcon
-                items={items}
+                items={modifiedItems}
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
                 onChoose={handleChooseItem}

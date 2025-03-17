@@ -2,7 +2,7 @@
 
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "app/providers/store/config/store";
-import { ConfirmDocsPayload } from "../types/documentsTypes";
+import { ConfirmDocsPayload, FilledRiskProfileChapters } from "../types/documentsTypes";
 import { confirmDocsRequest, getDocumentsNotSigned, getDocumentsSigned, getDocumentsState } from "../api/documentsApi";
 import { setCurrentConfirmingDoc } from "entities/RiskProfile/slice/riskProfileSlice";
 import { setConfirmationDocsSuccess } from "entities/ui/Ui/slice/uiSlice";
@@ -53,7 +53,8 @@ interface DocumentsState {
         document: Uint8Array | null;
         type: string;
     };
-    is_risk_profile_complete: boolean;
+    filledRiskProfileChapters: FilledRiskProfileChapters
+
 }
 
 const initialState: DocumentsState = {
@@ -69,7 +70,12 @@ const initialState: DocumentsState = {
         type: ''
     },
     userDocuments: [],
-    is_risk_profile_complete: false
+    filledRiskProfileChapters: {
+        is_risk_profile_complete: false,
+        is_risk_profile_complete_final: false,
+        is_complete_passport: false,
+        is_exist_scan_passport: false,
+    }
 };
 
 export const confirmDocsRequestThunk = createAsyncThunk<
@@ -152,7 +158,9 @@ export const getUserDocumentsStateThunk = createAsyncThunk<
                 return rejectWithValue("Отсутствует токен авторизации");
             }
             const response = await getDocumentsState(token);
-            setIsRiksProfileComplete(response.is_risk_profile_complete)
+            const { is_risk_profile_complete, is_risk_profile_complete_final, is_exist_scan_passport, is_complete_passport } = response
+
+            dispatch(setIsRiksProfileComplete({ is_risk_profile_complete, is_risk_profile_complete_final, is_complete_passport, is_exist_scan_passport }))
             // См. пример структуры: { confirmed_documents: DocumentConfirmationInfo[] }
             const confirmedDocuments = response.confirmed_documents;
 
@@ -257,9 +265,9 @@ export const documentsSlice = createSlice({
         },
         setIsRiksProfileComplete(
             state,
-            action: PayloadAction<boolean>
+            action: PayloadAction<FilledRiskProfileChapters>
         ) {
-            state.is_risk_profile_complete = action.payload;
+            state.filledRiskProfileChapters = action.payload;
         },
 
         nextDocType(state) {

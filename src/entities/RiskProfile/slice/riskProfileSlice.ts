@@ -203,7 +203,7 @@ export const postPasportInfo = createAsyncThunk<
     { data: PasportFormData; onSuccess: () => void; },
     { state: RootState; rejectValue: string }
 >(
-    "riskProfile/postFirstRiskProfileForm",
+    "riskProfile/postPasportInfo",
     async ({ data, onSuccess }, { getState, rejectWithValue, dispatch }) => {
         try {
             const token = getState().user.token;
@@ -215,7 +215,7 @@ export const postPasportInfo = createAsyncThunk<
             onSuccess();
             return response;
         } catch (error: any) {
-            dispatch(setError('Ошибка отправки данных паспорта'));
+            dispatch(setError(error.response.data.errorText));
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке данных"
             );
@@ -237,6 +237,7 @@ export const postPasportScanThunk = createAsyncThunk<
             }
             const response = await postPasportScanData(data, token)
             const socketId = getState().riskProfile.pasportScanSocketId;
+            onSuccess()
             return await new Promise((resolve, reject) => {
                 const socket = new WebSocket(`wss://test.webbroker.ranks.pro/ws/upload_scans_progress/${socketId}/`);
                 socket.onopen = () => {
@@ -268,7 +269,7 @@ export const postPasportScanThunk = createAsyncThunk<
                 socket.onclose = () => { };
             });
         } catch (error: any) {
-            dispatch(setError('Ошибка отправки скана документов'));
+            dispatch(setError(error.response.data.errorText));
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке данных"
             );
@@ -500,6 +501,17 @@ const riskProfileSlice = createSlice({
                 state.loading = false;
             })
             .addCase(postFirstRiskProfileForm.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
+            .addCase(postPasportInfo.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(postPasportInfo.fulfilled, (state) => {
+                state.loading = false;
+            })
+            .addCase(postPasportInfo.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
             });

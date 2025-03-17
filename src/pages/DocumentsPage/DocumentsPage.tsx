@@ -48,7 +48,7 @@ const DocumentsPage: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const modalPreviewState = useSelector((state: RootState) => state.modal.documentsPreview)
-    const { userDocuments, loading, is_risk_profile_complete } = useSelector((state: RootState) => state.documents);
+    const { userDocuments, loading, filledRiskProfileChapters } = useSelector((state: RootState) => state.documents);
     const isPasportFilled = useSelector((state: RootState) => state.user.allUserDataForDocuments?.address_residential_apartment);
     const isRpFilled = useSelector((state: RootState) => state.user.allUserDataForDocuments?.invest_target);
     const currentDocument = useSelector((state: RootState) => state.documents.currentSugnedDocument.document);
@@ -110,8 +110,8 @@ const DocumentsPage: React.FC = () => {
     const handleSignDocument = (docId: string) => {
         switch (docId) {
             case "type_doc_RP_questionnairy":
-                if (!isRpFilled) {
-                    dispatch(setStepAdditionalMenuUI(0));
+                if (filledRiskProfileChapters.is_risk_profile_complete && !filledRiskProfileChapters.is_risk_profile_complete_final) {
+                    dispatch(setStepAdditionalMenuUI(1));
                     dispatch(
                         openModal({
                             type: ModalType.IDENTIFICATION,
@@ -119,8 +119,8 @@ const DocumentsPage: React.FC = () => {
                             animation: ModalAnimation.LEFT,
                         })
                     );
-                } else {
-                    dispatch(setCurrentConfirmableDoc('type_doc_RP_questionnairy'))
+                } else if (filledRiskProfileChapters.is_risk_profile_complete_final) {
+                    dispatch(setCurrentConfirmableDoc('type_doc_RP_questionnairy'));
                     dispatch(setStepAdditionalMenuUI(4));
                     dispatch(
                         openModal({
@@ -129,21 +129,19 @@ const DocumentsPage: React.FC = () => {
                             animation: ModalAnimation.LEFT,
                         })
                     );
+                } else {
+                    dispatch(setStepAdditionalMenuUI(0));
+                    dispatch(
+                        openModal({
+                            type: ModalType.IDENTIFICATION,
+                            size: ModalSize.FULL,
+                            animation: ModalAnimation.LEFT,
+                        })
+                    );
                 }
-                // else if (!is_risk_profile_complete && isRpFilled) {
-                //     dispatch(setStepAdditionalMenuUI(0));
-                //     dispatch(
-                //         openModal({
-                //             type: ModalType.IDENTIFICATION,
-                //             size: ModalSize.FULL,
-                //             animation: ModalAnimation.LEFT,
-                //         })
-                //     );
-                // }
-
                 break;
             case "type_doc_passport":
-                if (!isPasportFilled) {
+                if (!filledRiskProfileChapters.is_complete_passport) {
                     dispatch(setCurrentConfirmableDoc('type_doc_passport'));
                     dispatch(setStepAdditionalMenuUI(2));
                     dispatch(
@@ -153,7 +151,7 @@ const DocumentsPage: React.FC = () => {
                             animation: ModalAnimation.LEFT,
                         })
                     );
-                } else {
+                } else if (!filledRiskProfileChapters.is_exist_scan_passport) {
                     dispatch(setCurrentConfirmableDoc('type_doc_passport'));
                     dispatch(setStepAdditionalMenuUI(3));
                     dispatch(
@@ -163,8 +161,17 @@ const DocumentsPage: React.FC = () => {
                             animation: ModalAnimation.LEFT,
                         })
                     );
+                } else {
+                    dispatch(setCurrentConfirmableDoc('type_doc_passport'));
+                    dispatch(setStepAdditionalMenuUI(4));
+                    dispatch(
+                        openModal({
+                            type: ModalType.IDENTIFICATION,
+                            size: ModalSize.FULL,
+                            animation: ModalAnimation.LEFT,
+                        })
+                    );
                 }
-
                 break;
             case "type_doc_EDS_agreement":
             case "type_doc_agreement_investment_advisor":
@@ -185,6 +192,7 @@ const DocumentsPage: React.FC = () => {
                 console.log("Неподдерживаемый тип документа");
         }
     };
+
 
     // Генерируем список документов с учётом даты из userDocuments.
     // Если date_last_confirmed === null => "not signed" (или "signable").

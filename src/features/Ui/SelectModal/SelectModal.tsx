@@ -38,17 +38,18 @@ export const SelectModal: React.FC<SelectModalProps> = ({
         selectModalState(state, ModalType.SELECT)?.isScrolled
     );
     const [isBottom, setIsBottom] = useState(false);
-    const dispatch = useAppDispatch()
+    const dispatch = useAppDispatch();
     const contentRef = useRef<HTMLDivElement>(null);
     // Реф на прокручиваемый контейнер, чтобы отслеживать scroll
     const scrollableRef = useRef<HTMLDivElement | null>(null);
 
+    // Добавляем опцию по умолчанию, если её нет в начале массива
+    const modifiedItems = items[0]?.value === '' ? items : [{ value: '', label: 'Не выбрано' }, ...items];
+
     // Фильтрация списка по полю search
-    const filteredOptions = items.filter((item) =>
+    const filteredOptions = modifiedItems.filter((item) =>
         item.label.toLowerCase().includes(search.toLowerCase())
     );
-
-
 
     useEffect(() => {
         const handleScroll = () => {
@@ -79,7 +80,6 @@ export const SelectModal: React.FC<SelectModalProps> = ({
         };
     }, [dispatch]);
 
-
     // При выборе опции — запоминаем значение
     const handleSelectOption = (optionValue: string) => {
         setLocalSelectedValue(optionValue);
@@ -91,7 +91,6 @@ export const SelectModal: React.FC<SelectModalProps> = ({
     const handleBack = () => {
         onClose();
     };
-
 
     return (
         <Modal
@@ -118,10 +117,7 @@ export const SelectModal: React.FC<SelectModalProps> = ({
                 />
 
                 {/* Прокручиваемая зона */}
-                <div
-
-                    className={styles.scrollContainer}
-                >
+                <div className={styles.scrollContainer}>
                     <ul className={styles.list}>
                         {filteredOptions.map((option) => (
                             <li
@@ -139,7 +135,6 @@ export const SelectModal: React.FC<SelectModalProps> = ({
                 </div>
 
                 {/* Блок кнопок. Если не дошли до низа — добавляем тень. */}
-
             </div>
             {/* <div
                 className={`${styles.buttons} ${!isBottom ? styles.shadow : ""

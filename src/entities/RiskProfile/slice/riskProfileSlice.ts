@@ -85,6 +85,12 @@ export const createRiskProfile = createAsyncThunk<
             //Очищаю прохождение риск профиля если создан новый пользователь 
             localStorage.removeItem("riskProfileFormData");
         } catch (error: any) {
+
+            if (error.response.status === 502) {
+                const msg = "Ошибка сервера. Пожалуйста, повторите попытку";
+                dispatch(setError(msg));
+                return rejectWithValue(msg);
+            }
             if (error.response.data.password) {
                 dispatch(setError(error.response.data.password));
             }

@@ -160,6 +160,10 @@ export const ConfirmAllDocs: React.FC = () => {
         dispatch(getAllUserInfoThunk())
     }, [])
 
+    useEffect(() => {
+        formik.setFieldValue("is_agree", false);
+    }, [currentTypeDoc])
+
 
     return (
         <>

@@ -92,7 +92,7 @@ export const PasportDataForm: React.FC = () => {
         initialValues: {
             g_recaptcha: "",
             type_message: "EMAIL",
-            gender: userPersonalAccountInfo?.gender,
+            gender: userPersonalAccountInfo?.gender || '',
             first_name: userPersonalAccountInfo?.first_name,
             last_name: userPersonalAccountInfo?.last_name,
             patronymic: userPersonalAccountInfo?.patronymic,

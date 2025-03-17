@@ -39,6 +39,8 @@ const IdentificationProfileForm: React.FC = () => {
     const [captchaVerified, setCaptchaVerified] = useState(false);
     const { loading } = useSelector((state: RootState) => state.riskProfile)
     const modalState = useSelector((state: RootState) => state.modal.documentsPreview)
+    const systemError = useSelector((state: RootState) => state.error.error)
+    const modalConfirmOpen = useSelector((state: RootState) => state.modal.confirmCodeModal.isOpen)
 
     const checkConfirmmationSuccess = useSelector((state: RootState) => state.ui.confirmationStatusSuccess);
 
@@ -136,6 +138,15 @@ const IdentificationProfileForm: React.FC = () => {
         // dispatch(closeModal(ModalType.IDENTIFICATION))
         dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
     }
+
+    useEffect(() => {
+        if (systemError === "Ошибка сервера. Пожалуйста, повторите попытку") {
+
+        }
+        if (!modalConfirmOpen) {
+            formik.setFieldValue("g_recaptcha", "");
+        }
+    }, [systemError, modalConfirmOpen])
 
     const handleSubmitForm = async () => {
         if (isButtonDisabled) return;

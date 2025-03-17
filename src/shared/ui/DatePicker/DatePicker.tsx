@@ -6,7 +6,7 @@ import ArrowRight from 'shared/assets/svg/CalendarArrowRight.svg';
 import ArrowLeft from 'shared/assets/svg/CalendarArrowLeft.svg';
 import { Icon } from '../Icon/Icon';
 import { Button, ButtonTheme } from '../Button/Button';
-
+import ErrorIcon from "shared/assets/svg/errorCircle.svg";
 import 'react-datepicker/dist/react-datepicker.css';
 import '../../../app/styles/index.scss'
 import cls from './styles.module.scss';
@@ -19,6 +19,7 @@ interface DatepickerProps {
     maxDate?: Date;
     minDate?: Date;
     needValue?: boolean;
+    error?: string | boolean;
 }
 
 export const Datepicker = memo((props: DatepickerProps) => {
@@ -29,6 +30,7 @@ export const Datepicker = memo((props: DatepickerProps) => {
         maxDate,
         minDate,
         needValue,
+        error,
     } = props;
 
     // Локальный стейт для выбранной даты и видимости календаря
@@ -107,6 +109,18 @@ export const Datepicker = memo((props: DatepickerProps) => {
                     {selectedDate ? format(selectedDate, 'dd.MM.yyyy') : ''}
 
                 </div>
+
+                {error && (
+                    <div className={cls.input__error}>
+                        <Icon
+                            Svg={ErrorIcon}
+                            className={cls.input__error__icon}
+                            width={16}
+                            height={16}
+                        />
+                        <span>{error}</span>
+                    </div>
+                )}
 
             </div>
 

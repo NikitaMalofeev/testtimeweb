@@ -37,10 +37,6 @@ const stepTooltipDescriptions = [
     'Пройдите анкетирование для определения вашего инвестиционного профиля',
     <div className={styles.description}>
         <div className={styles.description__container}>
-            <span className={styles.description__title}>Текущий риск профиль</span>
-            <span className={styles.description__value}>Консервативный</span>
-        </div>
-        <div className={styles.description__container}>
             <span className={styles.description__title}>Максимально допустимый риск профиль</span>
             <span className={styles.description__value}>Супер-агрессивный</span>
         </div>

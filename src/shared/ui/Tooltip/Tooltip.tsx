@@ -134,7 +134,7 @@ export const Tooltip = ({
             )}
 
             {isHovered && (
-                <div className={styles.tooltip__box} style={boxStyle}>
+                <div className={styles.tooltip__box} style={boxStyle} onClick={() => setIsHovered(false)}>
                     <div className={styles.tooltip__content}>{description}</div>
                     <div className={styles.tooltip__square} style={arrowStyle} />
                 </div>

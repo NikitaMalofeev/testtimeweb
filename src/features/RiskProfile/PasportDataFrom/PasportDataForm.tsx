@@ -18,6 +18,7 @@ import { Datepicker } from "shared/ui/DatePicker/DatePicker";
 import { format } from "date-fns";
 import { getAllUserInfoThunk } from "entities/User/slice/userSlice";
 import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
+import { setError } from "entities/Error/slice/errorSlice";
 
 export const PasportDataForm: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -30,7 +31,7 @@ export const PasportDataForm: React.FC = () => {
 
     const NAME_REGEX = /^[А-Яа-яЁё\s-]+$/;
 
-    // Общая Yup-схема для полей ФИО
+    // Yup-схема валидации
     const passportValidationSchema = Yup.object().shape({
         last_name: Yup.string()
             .matches(NAME_REGEX, "Только буквы, пробел и дефис")
@@ -84,6 +85,8 @@ export const PasportDataForm: React.FC = () => {
         type_message: Yup.string()
             .oneOf(["SMS", "EMAIL", "WHATSAPP"], "Выберите способ отправки кода")
             .required("Способ отправки кода обязателен"),
+        is_receive_mail_this_address: Yup.boolean()
+            .oneOf([true], "Этот пункт обязателен к соглашению"),
         g_recaptcha: Yup.string()
             .required("Пройдите проверку reCAPTCHA"),
     });
@@ -119,7 +122,16 @@ export const PasportDataForm: React.FC = () => {
         },
         validationSchema: passportValidationSchema,
         onSubmit: (values) => {
-            // обработка сабмита
+            dispatch(postPasportInfo({
+                data: values,
+                onSuccess: () => {
+                    dispatch(openModal({
+                        type: ModalType.CONFIRM_DOCS,
+                        size: ModalSize.MIDDLE,
+                        animation: ModalAnimation.LEFT
+                    }));
+                }
+            }));
         },
     });
 
@@ -134,12 +146,28 @@ export const PasportDataForm: React.FC = () => {
         "gender_female": 'Женщина',
     };
 
-    const handleSubmit = () => {
-        dispatch(postPasportInfo({
-            data: formik.values, onSuccess: () => {
-                dispatch(openModal({ type: ModalType.CONFIRM_DOCS, size: ModalSize.MIDDLE, animation: ModalAnimation.LEFT }));
-            }
-        }));
+    // Функция, которая вызывается, если валидация не прошла
+    const handleValidationFailure = () => {
+        dispatch(setError('Не все поля заполнены корректно'))
+        setCaptchaVerified(false);
+        formik.setFieldValue("g_recaptcha", "");
+        recaptchaRef.current?.reset();
+    };
+
+    // Обёртка для сабмита формы: если валидация не проходит, вызываем handleValidationFailure,
+    // иначе передаём данные в onSubmit.
+    const handleSubmitWrapper = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const errors = await formik.validateForm();
+        // Отмечаем все поля как touched, чтобы ошибки отобразились
+        formik.setTouched(
+            Object.keys(formik.values).reduce((acc, key) => ({ ...acc, [key]: true }), {})
+        );
+        if (Object.keys(errors).length > 0) {
+            handleValidationFailure();
+        } else {
+            formik.handleSubmit();
+        }
     };
 
     const handleNameChange = (fieldName: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -209,7 +237,8 @@ export const PasportDataForm: React.FC = () => {
     } else {
         return (
             <>
-                <form className={styles.form}>
+                {/* Форма использует onSubmit={handleSubmitWrapper} */}
+                <form className={styles.form} onSubmit={handleSubmitWrapper}>
                     <Input
                         placeholder="Фамилия"
                         name="last_name"
@@ -264,6 +293,7 @@ export const PasportDataForm: React.FC = () => {
                         placeholder="Дата рождения"
                         maxDate={new Date()}
                         needValue={true}
+                        error={formik.touched.birth_date && formik.errors.birth_date}
                     />
 
                     <Input
@@ -276,9 +306,12 @@ export const PasportDataForm: React.FC = () => {
                         needValue
                         error={formik.touched.birth_place && formik.errors.birth_place}
                     />
+
                     <Input
                         placeholder="Серия паспорта"
                         type="number"
+                        min={0}
+                        max={9999}
                         maxLength={4}
                         name="passport_series"
                         value={formik.values.passport_series}
@@ -287,10 +320,13 @@ export const PasportDataForm: React.FC = () => {
                         needValue
                         error={formik.touched.passport_series && formik.errors.passport_series}
                     />
+
                     <Input
                         placeholder="Номер паспорта"
                         type="number"
                         maxLength={6}
+                        min={0}
+                        max={999999}
                         name="passport_number"
                         value={formik.values.passport_number}
                         onChange={handleTextInputChange}
@@ -320,10 +356,13 @@ export const PasportDataForm: React.FC = () => {
                         needValue
                         error={formik.touched.issue_whom && formik.errors.issue_whom}
                     />
+
                     <Input
                         placeholder="ИНН"
                         name="inn"
                         type="number"
+                        min={0}
+                        max={999999999999}
                         maxLength={12}
                         value={formik.values.inn}
                         onChange={handleTextInputChange}
@@ -331,12 +370,14 @@ export const PasportDataForm: React.FC = () => {
                         needValue
                         error={formik.touched.inn && formik.errors.inn}
                     />
+
                     <Datepicker
                         value={formik.values.issue_date}
                         onChange={(date) => date && formik.setFieldValue("issue_date", format(date, 'yyyy-MM-dd'))}
                         needValue={true}
                         placeholder="Дата выдачи"
                         maxDate={new Date()}
+                        error={formik.touched.issue_date && formik.errors.issue_date}
                     />
 
                     <div>
@@ -374,7 +415,7 @@ export const PasportDataForm: React.FC = () => {
                         />
                         <div className={styles.form__duoInputs}>
                             <Input
-                                placeholder="Дом"
+                                placeholder="Дом/корпус"
                                 name="house"
                                 type="text"
                                 value={formik.values.house}
@@ -394,24 +435,26 @@ export const PasportDataForm: React.FC = () => {
                                 error={formik.touched.apartment && formik.errors.apartment}
                             />
                         </div>
+                    </div>
 
-                        <Checkbox
-                            name="is_live_this_address"
-                            value={formik.values.is_live_this_address}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            label={<span className={styles.checkbox__text}>Живу по этому адресу</span>}
-                            error={formik.touched.is_live_this_address && formik.errors.is_live_this_address}
-                        />
-                        <Checkbox
-                            name="is_receive_mail_this_address"
-                            value={formik.values.is_receive_mail_this_address}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            label={<span className={styles.checkbox__text}>Получать почту по этому адресу</span>}
-                            error={formik.touched.is_receive_mail_this_address && formik.errors.is_receive_mail_this_address}
-                        />
+                    <Checkbox
+                        name="is_live_this_address"
+                        value={formik.values.is_live_this_address}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        label={<span className={styles.checkbox__text}>Живу по этому адресу</span>}
+                        error={formik.touched.is_live_this_address && formik.errors.is_live_this_address}
+                    />
+                    <Checkbox
+                        name="is_receive_mail_this_address"
+                        value={formik.values.is_receive_mail_this_address}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        label={<span className={styles.checkbox__text}>Получать почту по этому адресу</span>}
+                        error={formik.touched.is_receive_mail_this_address && formik.errors.is_receive_mail_this_address}
+                    />
 
+                    {!formik.values.is_live_this_address && (
                         <div>
                             <h2 className={styles.form__subtitle}>Адрес проживания</h2>
                             <Input
@@ -443,7 +486,7 @@ export const PasportDataForm: React.FC = () => {
                             />
                             <div className={styles.form__duoInputs}>
                                 <Input
-                                    placeholder="Дом"
+                                    placeholder="Дом/корпус"
                                     name="address_residential_house"
                                     type="text"
                                     value={formik.values.address_residential_house}
@@ -462,32 +505,33 @@ export const PasportDataForm: React.FC = () => {
                                 />
                             </div>
                         </div>
-                        <span className={styles.method__title}>Куда отправить код</span>
-                        <div className={styles.method}>
-                            <CheckboxGroup
-                                name="type_message"
-                                label=""
-                                direction="row"
-                                options={Object.entries(messageTypeOptions).map(([value, label]) => ({
-                                    label,
-                                    value,
-                                }))}
-                                value={formik.values.type_message}
-                                onChange={(name, selectedValue) => {
-                                    handleMethodChange(selectedValue as 'SMS' | 'EMAIL' | 'WHATSAPP');
-                                }}
-                            />
-                        </div>
+                    )}
 
-                        <div style={{ minHeight: "74px", marginTop: '20px' }}>
-                            <ReCAPTCHA ref={recaptchaRef} sitekey={gcaptchaSiteKey} onChange={handleCaptchaChange} />
-                        </div>
+                    <span className={styles.method__title}>Куда отправить код</span>
+                    <div className={styles.method}>
+                        <CheckboxGroup
+                            name="type_message"
+                            label=""
+                            direction="row"
+                            options={Object.entries(messageTypeOptions).map(([value, label]) => ({
+                                label,
+                                value,
+                            }))}
+                            value={formik.values.type_message}
+                            onChange={(name, selectedValue) => {
+                                handleMethodChange(selectedValue as 'SMS' | 'EMAIL' | 'WHATSAPP');
+                            }}
+                        />
+                    </div>
 
-                        <div className={`${styles.buttons} ${!isBottom ? styles.shadow : ""}`}>
-                            <Button onClick={handleSubmit} theme={ButtonTheme.BLUE} className={styles.button} disabled={!(formik.isValid && formik.dirty && captchaVerified)}>
-                                {loading ? <Loader theme={LoaderTheme.WHITE} size={LoaderSize.SMALL} /> : 'Подтвердить данные'}
-                            </Button>
-                        </div>
+                    <div style={{ minHeight: "74px", marginTop: '20px' }}>
+                        <ReCAPTCHA ref={recaptchaRef} sitekey={gcaptchaSiteKey} onChange={handleCaptchaChange} />
+                    </div>
+
+                    <div className={`${styles.buttons} ${!isBottom ? styles.shadow : ""}`}>
+                        <Button type="submit" theme={ButtonTheme.BLUE} className={styles.button} disabled={!captchaVerified}>
+                            {loading ? <Loader theme={LoaderTheme.WHITE} size={LoaderSize.SMALL} /> : 'Подтвердить данные'}
+                        </Button>
                     </div>
                 </form>
                 <ConfirmDocsModal

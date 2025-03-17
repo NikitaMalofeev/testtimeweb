@@ -268,7 +268,7 @@ export const postPasportScanThunk = createAsyncThunk<
                     }
                 };
                 socket.onerror = () => {
-                    dispatch(setError('Ошибка отправки скана документов'));
+                    // dispatch(setError('Ошибка отправки скана документов'));
                     reject("Ошибка при отправке данных");
                     socket.close();
                 };

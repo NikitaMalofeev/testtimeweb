@@ -31,45 +31,57 @@ function App() {
 
   const lastExitSignature = localStorage.getItem('lastExitSignature');
 
-  // При монтировании проверяем localStorage для восстановления токена
   useEffect(() => {
+    const savedToken = localStorage.getItem('savedToken');
+    const lastExit = localStorage.getItem('lastExit');
+    const lastExitSignature = localStorage.getItem('lastExitSignature');
     if (savedToken && lastExit && lastExitSignature) {
       const expectedSignature = btoa(lastExit + SECRET_KEY);
       const lastExitTime = parseInt(lastExit, 10);
       const now = Date.now();
-      // Если прошло не более 2 минут и подпись совпадает, восстанавливаем токен
-      if (lastExitSignature === expectedSignature && now - lastExitTime <= 2 * 60 * 1000) {
+
+      if (
+        lastExitSignature === expectedSignature &&
+        now - lastExitTime <= 2 * 60 * 1000
+      ) {
         dispatch(setUserToken(savedToken));
       } else {
-        // Иначе очищаем сохранённые данные и сбрасываем токен
         localStorage.removeItem('savedToken');
         localStorage.removeItem('lastExit');
         localStorage.removeItem('lastExitSignature');
         dispatch(setUserToken(''));
       }
     }
-  }, [dispatch, token]);
+  }, [dispatch]);
 
-  // При выгрузке страницы сохраняем токен, время ухода и подпись
+  // // 2. Сохраняем в localStorage при каждом изменении token
+  // useEffect(() => {
+  //   if (token) {
+  //     const now = Date.now();
+  //     localStorage.setItem('savedToken', token);
+  //     localStorage.setItem('lastExit', now.toString());
+  //     const signature = btoa(now.toString() + SECRET_KEY);
+  //     localStorage.setItem('lastExitSignature', signature);
+  //   } else {
+  //     localStorage.removeItem('savedToken');
+  //     localStorage.removeItem('lastExit');
+  //     localStorage.removeItem('lastExitSignature');
+  //   }
+  // }, [token]);
+
+  // 3. (Опционально) Используем pagehide для доп. гарантии
   useEffect(() => {
-    const handleBeforeUnload = () => {
+    const handlePageHide = () => {
       if (token) {
-        const lastExitTime = Date.now();
+        const now = Date.now();
         localStorage.setItem('savedToken', token);
-        localStorage.setItem('lastExit', lastExitTime.toString());
-        const signature = btoa(lastExitTime.toString() + SECRET_KEY);
+        localStorage.setItem('lastExit', now.toString());
+        const signature = btoa(now.toString() + SECRET_KEY);
         localStorage.setItem('lastExitSignature', signature);
-      } else {
-        localStorage.removeItem('savedToken');
-        localStorage.removeItem('lastExit');
-        localStorage.removeItem('lastExitSignature');
       }
     };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
+    window.addEventListener('pagehide', handlePageHide);
+    return () => window.removeEventListener('pagehide', handlePageHide);
   }, [token]);
 
   useEffect(() => {

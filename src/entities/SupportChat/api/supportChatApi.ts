@@ -3,13 +3,13 @@ import axios from "axios";
 const apiUrl = import.meta.env.VITE_RANKS_TEST_API_URL;
 
 // Пример существующей функции
-export const getGroupWs = async () => {
+export const getGroupWs = async (token: string) => {
     const response = await axios.post(
-        `${apiUrl}/main/create_doc_user/get_group_ws/`,
+        `${apiUrl}create_doc_user/get_group_ws/`,
         { group_ws: "wsg_support_chat" },
         {
             headers: {
-                Authorization: "Token 808fe060b46a34eeef760a0af6828b85d2cdc7f4",
+                Authorization: `Token ${token}`,
                 "Content-Type": "application/json",
             },
         }
@@ -18,14 +18,14 @@ export const getGroupWs = async () => {
 };
 
 // 1) POST-запрос на ручку /main/user_lk/ask_question/
-export const askQuestion = async (data: any) => {
+export const askQuestion = async (data: any, token: string) => {
     // data — объект с данными вопроса (например, { text: 'Вопрос', ... })
     const response = await axios.post(
-        `${apiUrl}/main/user_lk/ask_question/`,
+        `${apiUrl}user_lk/ask_question/`,
         data,
         {
             headers: {
-                Authorization: "Token 808fe060b46a34eeef760a0af6828b85d2cdc7f4",
+                Authorization: `Token ${token}`,
                 "Content-Type": "application/json",
             },
         }
@@ -34,12 +34,12 @@ export const askQuestion = async (data: any) => {
 };
 
 // 2) GET-запрос на ручку /main/user_lk/get_all_question/
-export const getAllQuestions = async () => {
+export const getAllQuestions = async (token: string) => {
     const response = await axios.get(
-        `${apiUrl}/main/user_lk/get_all_question/`,
+        `${apiUrl}user_lk/get_all_question/`,
         {
             headers: {
-                Authorization: "Token 808fe060b46a34eeef760a0af6828b85d2cdc7f4",
+                Authorization: `Token ${token}`,
                 "Content-Type": "application/json",
             },
         }

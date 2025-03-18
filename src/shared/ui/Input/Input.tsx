@@ -39,6 +39,7 @@ interface InputProps extends CommonHTMLProps {
     placeholder?: string;
     disabled?: boolean;
     needValue?: boolean;
+    withoutCloudyLabel?: boolean;
     className?: string;
 
     /**
@@ -96,6 +97,7 @@ export const Input: React.FC<InputProps> = ({
     discreteValues,
     swiperDiscreteSubtitles,
     maxLength,
+    withoutCloudyLabel,
     ...restProps
 }) => {
     const [isFocused, setIsFocused] = useState(false);
@@ -209,10 +211,8 @@ export const Input: React.FC<InputProps> = ({
     return (
         <div className={`${styles.inputWrapper} ${styles[theme]}`}>
             {/* Заголовок (placeholder) – в виде лейбла, кроме textarea (уже есть встроенный placeholder) */}
-            {type !== "textarea" && (
-                <label
-                    className={`${styles.label} ${isFocused || value ? styles.active : ""}`}
-                >
+            {type !== "textarea" && (withoutCloudyLabel ? value === "" : true) && (
+                <label className={`${styles.label} ${!withoutCloudyLabel && (isFocused || value) ? styles.active : ""}`}>
                     {type === "search" && (
                         <Icon
                             className={styles.input__search__icon}
@@ -227,6 +227,7 @@ export const Input: React.FC<InputProps> = ({
                     )}
                 </label>
             )}
+
 
             <div className={styles.inputContainer}>
                 {(() => {

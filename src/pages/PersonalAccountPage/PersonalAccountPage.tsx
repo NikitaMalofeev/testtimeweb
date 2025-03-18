@@ -119,7 +119,7 @@ const PersonalAccountMenu: React.FC = () => {
         },
     ];
 
-    return loading ? <Loader /> : (
+    return loading || !userPersonalAccountInfo?.first_name ? <Loader /> : (
         <div className={styles.page}>
             <div className={styles.page__container}>
                 <div>{userPersonalAccountInfo?.tariff_is_active ? <div className={styles.page__status_active}>активна</div> : <div className={styles.page__status_inactive}>остановлена</div>}</div>

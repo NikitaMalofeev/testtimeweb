@@ -19,7 +19,7 @@ import AccountPhoneIcon from 'shared/assets/svg/AccountPhoneIcon.svg'
 import AccountMailIcon from 'shared/assets/svg/AccountMailIcon.svg'
 import AccountChatIcon from 'shared/assets/svg/AccountChatIcon.svg'
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
-import { getUserPersonalAccountInfoThunk } from "entities/User/slice/userSlice";
+import { getUserPersonalAccountInfoThunk, setUserToken } from "entities/User/slice/userSlice";
 import { useNavigate } from "react-router-dom";
 import { Loader } from "shared/ui/Loader/Loader";
 
@@ -99,7 +99,12 @@ const PersonalAccountMenu: React.FC = () => {
         {
             icon: AccountLogoutIcon,
             title: "Выйти из учетной записи",
-            action: () => window.location.reload(),
+            action: () => {
+                localStorage.removeItem('savedToken');
+                localStorage.removeItem('lastExit');
+                localStorage.removeItem('lastExitSignature');
+                dispatch(setUserToken(''));
+            },
             iconWidth: 21,
             iconHeight: 21,
         },

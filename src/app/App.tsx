@@ -82,7 +82,7 @@ function App() {
     };
     window.addEventListener('pagehide', handlePageHide);
     return () => window.removeEventListener('pagehide', handlePageHide);
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     if (!token && !savedToken) {

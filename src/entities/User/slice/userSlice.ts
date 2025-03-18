@@ -57,11 +57,11 @@ export const sendProblems = createAsyncThunk<
 
 export const userLoginThunk = createAsyncThunk<
     void,
-    UserLogin,
+    { data: UserLogin, onSuccess: () => void },
     { rejectValue: string }
 >(
     "user/userLoginThunk",
-    async (data, { rejectWithValue, dispatch }) => {
+    async ({ data, onSuccess }, { rejectWithValue, dispatch }) => {
         try {
             const response = await userLogin(data);
             console.log("Токен из API:", response.token);
@@ -73,6 +73,7 @@ export const userLoginThunk = createAsyncThunk<
                     phone: response.phone ?? "",
                     email: response.email ?? "",
                 }));
+                onSuccess()
             } else {
                 console.error("Токен отсутствует в ответе сервера:", response);
             }
@@ -95,6 +96,9 @@ export const getAllUserInfoThunk = createAsyncThunk<
     async (_, { getState, rejectWithValue, dispatch }) => {
         try {
             const token = getState().user.token
+            if (!token) {
+                return
+            }
             const response = await getAllUserInfo(token); // Сохраняем результат в переменную
             dispatch(setUserAllInfo(response))
             return response;
@@ -116,6 +120,9 @@ export const getUserPersonalAccountInfoThunk = createAsyncThunk<
     async (_, { getState, rejectWithValue, dispatch }) => {
         try {
             const token = getState().user.token
+            if (!token) {
+                return
+            }
             const response = await getUserPersonalAccountInfo(token);
             dispatch(setUserPersonalAccountInfo(response))
             return response;

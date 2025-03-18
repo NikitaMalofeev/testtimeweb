@@ -35,6 +35,20 @@ const PersonalAccountMenu: React.FC = () => {
     useEffect(() => {
         dispatch(getUserPersonalAccountInfoThunk())
     }, [])
+    const handleLogout = () => {
+        // Удаляем данные из localStorage
+        localStorage.removeItem('savedToken');
+        localStorage.removeItem('lastExit');
+        localStorage.removeItem('lastExitSignature');
+
+        // Очищаем токен в Redux
+        dispatch(setUserToken(''));
+
+        // Перенаправляем на страницу входа или перезагружаем страницу
+        navigate('/');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Или можно вызвать: window.location.reload();
+    };
 
     const { currentTab, menuItems } = useSelector((state: RootState) => state.personalAccount);
     const { userPersonalAccountInfo, loading } = useSelector((state: RootState) => state.user)
@@ -99,12 +113,7 @@ const PersonalAccountMenu: React.FC = () => {
         {
             icon: AccountLogoutIcon,
             title: "Выйти из учетной записи",
-            action: () => {
-                localStorage.removeItem('savedToken');
-                localStorage.removeItem('lastExit');
-                localStorage.removeItem('lastExitSignature');
-                dispatch(setUserToken(''));
-            },
+            action: () => handleLogout(),
             iconWidth: 21,
             iconHeight: 21,
         },

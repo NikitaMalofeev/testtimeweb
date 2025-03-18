@@ -16,9 +16,7 @@ import { closeModal } from 'entities/ui/Modal/slice/modalSlice';
 import { ModalType } from 'entities/ui/Modal/model/modalTypes';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
 import { Footer } from 'shared/ui/Footer/Footer';
-import { setUserToken } from 'entities/User/slice/userSlice'; // корректируйте путь импорта, если необходимо
-
-const SECRET_KEY = 'SOME_SECRET_KEY'; // Замените на более сложный ключ
+import { setUserToken } from 'entities/User/slice/userSlice';
 
 function App() {
   const { token } = useSelector((state: RootState) => state.user);
@@ -29,6 +27,8 @@ function App() {
   const isMainPages = location.pathname === '/lk' || location.pathname === '/';
   const savedToken = localStorage.getItem('savedToken');
   const lastExit = localStorage.getItem('lastExit');
+  const SECRET_KEY = import.meta.env.VITE_RANKS_AUTHTOKEN_LS_KEY;
+
   const lastExitSignature = localStorage.getItem('lastExitSignature');
 
   // При монтировании проверяем localStorage для восстановления токена
@@ -48,7 +48,7 @@ function App() {
         dispatch(setUserToken(''));
       }
     }
-  }, []);
+  }, [dispatch, token]);
 
   // При выгрузке страницы сохраняем токен, время ухода и подпись
   useEffect(() => {
@@ -72,15 +72,11 @@ function App() {
     };
   }, [token]);
 
-  // useEffect(() => {
-  //   if (!token && !savedToken) {
-  //     navigate('/');
-  //   } else if (!token && savedToken) {
-  //     navigate('/');
-  //   } else {
-  //     navigate('/lk');
-  //   }
-  // }, [token, navigate, savedToken]);
+  useEffect(() => {
+    if (!token && !savedToken) {
+      navigate('/');
+    }
+  }, [token, navigate, savedToken]);
 
   useEffect(() => {
     const userVh = window.innerHeight / 100;

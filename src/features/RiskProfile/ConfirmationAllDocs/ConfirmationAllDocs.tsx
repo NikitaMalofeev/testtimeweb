@@ -114,6 +114,7 @@ export const ConfirmAllDocs: React.FC = () => {
     useEffect(() => {
         if (currentTypeDoc) {
             formik.setFieldValue("type_document", currentTypeDoc)
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }, [currentTypeDoc])
 

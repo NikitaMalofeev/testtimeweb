@@ -17,12 +17,15 @@ import AnimateHeightWrapper from "shared/lib/helpers/animation/AnimateHeightWrap
 import { ResetPasswordModal } from "features/Account/ResetPasswordModal/ResetPasswordModal";
 import { closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
+import { useNavigate } from "react-router-dom";
 
 const AuthorizationPage = () => {
     const dispatch = useAppDispatch();
     const { loading } = useSelector((state: RootState) => state.user);
     const [activeTab, setActiveTab] = useState<"login" | "registration">("login");
     const ModalState = useSelector((state: RootState) => state.modal.resetPassword)
+    const navigate = useNavigate()
+
     // Форма для авторизации    
     const formik = useFormik({
         initialValues: {
@@ -50,9 +53,9 @@ const AuthorizationPage = () => {
         const { identifier, password } = formik.values;
         const isEmail = identifier.includes("@");
         if (isEmail) {
-            dispatch(userLoginThunk({ email: identifier, password }));
+            dispatch(userLoginThunk({ data: { email: identifier, password }, onSuccess: () => navigate('/lk') }));
         } else {
-            dispatch(userLoginThunk({ phone: identifier, password }));
+            dispatch(userLoginThunk({ data: { phone: identifier, password }, onSuccess: () => navigate('/lk') }));
         }
     };
 

@@ -21,13 +21,13 @@ export const Header = () => {
     const dispatch = useAppDispatch()
     const modalState = useSelector((state: RootState) => state.modal.identificationModal)
 
-    useEffect(() => {
-        if (!token) {
-            navigate('/')
-        } else if (token && !modalState.isOpen) {
-            navigate('/lk')
-        }
-    }, [token])
+    // useEffect(() => {
+    //     if (!token) {
+    //         navigate('/')
+    //     } else if (token && !modalState.isOpen) {
+    //         navigate('/lk')
+    //     }
+    // }, [token])
 
     const toggleBurger = () => {
         setIsActive((prev) => !prev);

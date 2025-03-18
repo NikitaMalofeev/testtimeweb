@@ -195,7 +195,7 @@ export const supportChatSlice = createSlice({
              * Обработка fetchWebsocketId
              */
             .addCase(fetchWebsocketId.pending, (state) => {
-                // state.loading = true;
+                state.loading = true;
                 state.error = null;
                 state.success = false;
             })
@@ -205,7 +205,7 @@ export const supportChatSlice = createSlice({
                 state.websocketId = action.payload;
             })
             .addCase(fetchWebsocketId.rejected, (state, action) => {
-                // state.loading = false;
+                state.loading = false;
                 state.error = action.payload as string;
             })
 
@@ -213,7 +213,7 @@ export const supportChatSlice = createSlice({
              * Обработка openWebSocketConnection
              */
             .addCase(openWebSocketConnection.pending, (state) => {
-                // state.loading = true;
+                state.loading = true;
                 state.error = null;
             })
             .addCase(openWebSocketConnection.fulfilled, (state) => {
@@ -221,7 +221,7 @@ export const supportChatSlice = createSlice({
                 state.isWsConnected = true;
             })
             .addCase(openWebSocketConnection.rejected, (state, action) => {
-                // state.loading = false;
+                state.loading = false;
                 state.isWsConnected = false;
                 state.error = action.payload as string;
             })
@@ -230,18 +230,18 @@ export const supportChatSlice = createSlice({
              * Обработка postMessage
              */
             .addCase(postMessage.pending, (state) => {
-                // state.loading = true;
+                state.loading = true;
                 state.error = null;
                 state.success = false;
             })
             .addCase(postMessage.fulfilled, (state, action) => {
-                // state.loading = false;
+                state.loading = false;
                 state.success = true;
                 // Добавляем своё же отправленное сообщение в список
                 // state.messages.push(action.payload);
             })
             .addCase(postMessage.rejected, (state, action) => {
-                // state.loading = false;
+                state.loading = false;
                 state.error = action.payload as string;
             })
             .addCase(getAllMessagesThunk.pending, (state) => {

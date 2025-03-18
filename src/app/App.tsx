@@ -52,24 +52,24 @@ function App() {
         dispatch(setUserToken(''));
       }
     }
-  }, [dispatch]);
+  }, []);
 
   // // 2. Сохраняем в localStorage при каждом изменении token
-  // useEffect(() => {
-  //   if (token) {
-  //     const now = Date.now();
-  //     localStorage.setItem('savedToken', token);
-  //     localStorage.setItem('lastExit', now.toString());
-  //     const signature = btoa(now.toString() + SECRET_KEY);
-  //     localStorage.setItem('lastExitSignature', signature);
-  //   } else {
-  //     localStorage.removeItem('savedToken');
-  //     localStorage.removeItem('lastExit');
-  //     localStorage.removeItem('lastExitSignature');
-  //   }
-  // }, [token]);
+  useEffect(() => {
+    if (token) {
+      const now = Date.now();
+      localStorage.setItem('savedToken', token);
+      localStorage.setItem('lastExit', now.toString());
+      const signature = btoa(now.toString() + SECRET_KEY);
+      localStorage.setItem('lastExitSignature', signature);
+    } else {
+      localStorage.removeItem('savedToken');
+      localStorage.removeItem('lastExit');
+      localStorage.removeItem('lastExitSignature');
+    }
+  }, [token]);
 
-  // 3. (Опционально) Используем pagehide для доп. гарантии
+  // 3.(Опционально) Используем pagehide для доп.гарантии в ios
   useEffect(() => {
     const handlePageHide = () => {
       if (token) {

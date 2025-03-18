@@ -113,6 +113,12 @@
         }
       }
 
+      @media (max-width: 370px) {
+        &__content {
+          padding: 6px 25px;
+        }
+      }
+
     &__icon {
         width: 48px;
         height: 48px;

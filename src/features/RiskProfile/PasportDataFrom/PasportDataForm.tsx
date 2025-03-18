@@ -16,7 +16,7 @@ import { ConfirmDocsModal } from "../ConfirmDocsModal/ConfirmDocsModal";
 import * as Yup from "yup";
 import { Datepicker } from "shared/ui/DatePicker/DatePicker";
 import { format } from "date-fns";
-import { getAllUserInfoThunk } from "entities/User/slice/userSlice";
+import { getAllUserInfoThunk, getUserPersonalAccountInfoThunk } from "entities/User/slice/userSlice";
 import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
 import { setError } from "entities/Error/slice/errorSlice";
 
@@ -30,6 +30,10 @@ export const PasportDataForm: React.FC = () => {
     const modalState = useSelector((state: RootState) => state.modal);
 
     const NAME_REGEX = /^[А-Яа-яЁё\s-]+$/;
+
+    useEffect(() => {
+        dispatch(getUserPersonalAccountInfoThunk())
+    }, [])
 
     // Yup-схема валидации
     const passportValidationSchema = Yup.object().shape({
@@ -457,6 +461,59 @@ export const PasportDataForm: React.FC = () => {
                     {!formik.values.is_live_this_address && (
                         <div>
                             <h2 className={styles.form__subtitle}>Адрес проживания</h2>
+                            <Input
+                                placeholder="Регион/район"
+                                name="address_residential_region"
+                                type="text"
+                                value={formik.values.address_residential_region}
+                                onChange={handleTextInputChange}
+                                onBlur={formik.handleBlur}
+                                error={formik.touched.address_residential_region && formik.errors.address_residential_region}
+                            />
+                            <Input
+                                placeholder="Город/населенный пункт"
+                                name="address_residential_city"
+                                type="text"
+                                value={formik.values.address_residential_city}
+                                onChange={handleTextInputChange}
+                                onBlur={formik.handleBlur}
+                                error={formik.touched.address_residential_city && formik.errors.address_residential_city}
+                            />
+                            <Input
+                                placeholder="Улица"
+                                name="address_residential_street"
+                                type="text"
+                                value={formik.values.address_residential_street}
+                                onChange={handleTextInputChange}
+                                onBlur={formik.handleBlur}
+                                error={formik.touched.address_residential_street && formik.errors.address_residential_street}
+                            />
+                            <div className={styles.form__duoInputs}>
+                                <Input
+                                    placeholder="Дом/корпус"
+                                    name="address_residential_house"
+                                    type="text"
+                                    value={formik.values.address_residential_house}
+                                    onChange={handleTextInputChange}
+                                    onBlur={formik.handleBlur}
+                                    error={formik.touched.address_residential_house && formik.errors.address_residential_house}
+                                />
+                                <Input
+                                    placeholder="Квартира"
+                                    name="address_residential_apartment"
+                                    type="text"
+                                    value={formik.values.address_residential_apartment}
+                                    onChange={handleTextInputChange}
+                                    onBlur={formik.handleBlur}
+                                    error={formik.touched.address_residential_apartment && formik.errors.address_residential_apartment}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {formik.values.is_live_this_address && !formik.values.is_receive_mail_this_address && (
+                        <div>
+                            <h2 className={styles.form__subtitle}>Почтовый адрес</h2>
                             <Input
                                 placeholder="Регион/район"
                                 name="address_residential_region"

@@ -40,6 +40,7 @@ export const SupportMessage = ({ message }: { message: ChatMessage }) => {
 export const SupportChat = () => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
+    const token = useSelector((state: RootState) => state.user.token)
 
     // Берём из Redux
     const { websocketId, messages, loading, error } = useSelector(
@@ -62,7 +63,7 @@ export const SupportChat = () => {
     useEffect(() => {
         dispatch(fetchWebsocketId());
         dispatch(getAllMessagesThunk());
-    }, []);
+    }, [token]);
 
     /**
      * Как только websocketId появится, открываем WebSocket
@@ -95,21 +96,6 @@ export const SupportChat = () => {
         }
     }, [messages]);
 
-
-    //Костыль для остановки прокрутки страницы из-за chat_container height
-    useEffect(() => {
-        document.body.style.overflow = "hidden";
-        document.body.style.position = "fixed";
-        document.body.style.width = "100%";
-        document.documentElement.style.overflow = "hidden";
-
-        setTimeout(() => {
-            document.body.style.overflow = "";
-            document.body.style.position = "";
-            document.body.style.width = "";
-            document.documentElement.style.overflow = "";
-        }, 50);
-    }, [])
 
     /**
      * Отправка сообщения пользователем

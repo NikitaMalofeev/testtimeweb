@@ -31,11 +31,12 @@ import { Loader } from "shared/ui/Loader/Loader";
 const PersonalAccountMenu: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate()
+    const token = useSelector((state: RootState) => state.user.token)
 
     useEffect(() => {
         dispatch(getUserPersonalAccountInfoThunk())
         window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, [])
+    }, [token])
 
     const handleLogout = () => {
         // Удаляем данные из localStorage

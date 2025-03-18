@@ -34,7 +34,9 @@ const PersonalAccountMenu: React.FC = () => {
 
     useEffect(() => {
         dispatch(getUserPersonalAccountInfoThunk())
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }, [])
+
     const handleLogout = () => {
         // Удаляем данные из localStorage
         localStorage.removeItem('savedToken');

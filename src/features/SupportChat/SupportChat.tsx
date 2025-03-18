@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 // Импортируем нужные хуки и типы
 import { Icon } from "shared/ui/Icon/Icon";
@@ -16,7 +16,6 @@ import { useSelector } from "react-redux";
 import { fetchWebsocketId, getAllMessagesThunk, openWebSocketConnection, postMessage } from "entities/SupportChat/slice/supportChatSlice";
 import { Loader } from "shared/ui/Loader/Loader";
 
-/** Компонент пользовательского сообщения */
 export const UserMessage = ({ message }: { message: ChatMessage }) => {
     return (
         <div className={styles.message_user}>
@@ -50,24 +49,51 @@ export const SupportChat = () => {
     // Локальное состояние для текста, который вводит пользователь
     const [messageText, setMessageText] = useState("");
 
+    // Состояния для отслеживания скролла
+    const [isScrolled, setIsScrolled] = useState(false);
+    const [isBottom, setIsBottom] = useState(true);
+
+    // Реф для контейнера с сообщениями
+    const chatContainerRef = useRef<HTMLDivElement>(null);
+
     /**
-     * При монтировании — получаем websocketId
+     * При монтировании — получаем websocketId и историю сообщений
      */
     useEffect(() => {
         dispatch(fetchWebsocketId());
-        dispatch(getAllMessagesThunk())
+        dispatch(getAllMessagesThunk());
     }, []);
 
     /**
      * Как только websocketId появится, открываем WebSocket
      */
     useEffect(() => {
-        console.log('открытие вебсокета 0')
         if (websocketId) {
-            console.log('открытие вебсокета 1')
             dispatch(openWebSocketConnection(websocketId));
         }
     }, [websocketId]);
+
+    /**
+     * Обработчик скролла для контейнера с сообщениями.
+     * Выставляет тень для header, если скролл начался,
+     * и для инпута, если скролл не дошёл до конца.
+     */
+    const handleScroll = () => {
+        if (chatContainerRef.current) {
+            const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+            setIsScrolled(scrollTop > 0);
+            setIsBottom(scrollTop + clientHeight >= scrollHeight - 10);
+        }
+    };
+
+    /**
+     * Автопрокрутка контейнера с сообщениями в самый низ при обновлении сообщений.
+     */
+    useEffect(() => {
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+    }, [messages]);
 
     /**
      * Отправка сообщения пользователем
@@ -77,15 +103,14 @@ export const SupportChat = () => {
 
         // Формируем объект сообщения
         const newMessage: ChatMessage = {
-            // В реальном проекте пригодятся поля id, sender, createdAt и т.д.
             text: messageText,
-            // примитивная дата для примера
+            // Дополнительные поля можно добавить при необходимости
         };
 
         // Отправляем на сервер через наш thunk
         dispatch(postMessage(newMessage));
 
-        // По желанию можно очистить инпут
+        // Очищаем инпут
         setMessageText("");
     };
 
@@ -95,15 +120,19 @@ export const SupportChat = () => {
     };
 
     if (loading) {
-        return (
-            <Loader />
-        )
+        return <Loader />;
     } else {
         return (
             <div className={styles.chat}>
+                {/* Добавляем тень к header, если скролл начался */}
                 <div className={styles.chat__header}>
                     <div className={styles.chat__header__content}>
-                        <Icon Svg={ArrowBack} width={24} height={24} onClick={() => navigate(-1)} />
+                        <Icon
+                            Svg={ArrowBack}
+                            width={24}
+                            height={24}
+                            onClick={() => navigate(-1)}
+                        />
                         <h2 className={styles.chat__header__title}>Чат поддержки</h2>
                     </div>
                     <div className={styles.chat__header__status}>онлайн</div>
@@ -116,12 +145,16 @@ export const SupportChat = () => {
                     )}
                 </div>
 
-                <div className={styles.chat__chat__container}>
-                    <div style={{ padding: '13px 24px 0' }}>
+                {/* Контейнер для сообщений с привязанным рефом и обработчиком скролла */}
+                <div
+                    className={`${styles.chat__chat__container} ${isScrolled ? styles.shadow_top : ""}`}
+                    ref={chatContainerRef}
+                    onScroll={handleScroll}
+                >
+                    <div style={{ padding: "13px 24px 0" }}>
                         <div className={styles.chat__chat}>
-                            {/* Показываем историю сообщений */}
-                            {messages.map((msg, index) =>
-                                msg.is_answer ? (
+                            {messages.slice().reverse().map((msg, index) =>
+                                !msg.is_answer ? (
                                     <UserMessage key={index} message={msg} />
                                 ) : (
                                     <SupportMessage key={index} message={msg} />
@@ -130,9 +163,14 @@ export const SupportChat = () => {
                         </div>
                     </div>
 
-                    {/* Инпут и кнопка отправки */}
-                    <div className={styles.chat__input}>
-                        <Icon Svg={ChatImportIcon} width={24} height={24} className={styles.chat__input__icon} />
+                    {/* Добавляем тень к инпуту, если скролл не достиг низа */}
+                    <div className={`${styles.chat__input} ${!isBottom ? styles.shadow : ""}`}>
+                        <Icon
+                            Svg={ChatImportIcon}
+                            width={24}
+                            height={24}
+                            className={styles.chat__input__icon}
+                        />
 
                         <Input
                             placeholder="Написать сообщение..."
@@ -155,6 +193,6 @@ export const SupportChat = () => {
                     </div>
                 </div>
             </div>
-        )
+        );
     }
 };

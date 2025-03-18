@@ -178,7 +178,7 @@ export const supportChatSlice = createSlice({
         },
         // Редьюсер для добавления нового сообщения в массив
         addMessage: (state, action: PayloadAction<ChatMessage>) => {
-            state.messages.push(action.payload);
+            state.messages.unshift(action.payload);
         },
         // Закрыть соединение (по желанию)
         closeWebSocketConnection: (state) => {

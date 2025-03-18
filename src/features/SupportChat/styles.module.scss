@@ -1,7 +1,7 @@
 .chat {
-    padding: 13px 24px 0;
     width: 100%;
     flex-grow: 1;
+    max-height: calc(100vh - 56px);
 
     &__header {
         position: relative;
@@ -9,11 +9,11 @@
         gap: 26px;
         align-items: center;
         justify-content: space-between;
-        padding-bottom: 13px;
+        padding: 13px 24px;
     }
 
     &__header__status {
-border-radius: 13.65px;
+        border-radius: 13.65px;
         background-color: #52C417;
         padding: 1.5px 8px 3.5px ;
         font-weight: 500;
@@ -55,9 +55,11 @@ border-radius: 13.65px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        height: calc(100% - 42px);
+        max-height: calc(100vh - 112px);
+
         overflow-y: auto; 
         min-height: 0;
+        padding-bottom: 73px;
     }
 
     &__chat {
@@ -70,6 +72,10 @@ border-radius: 13.65px;
     }
 
     &__input {
+        padding: 13px 24px 0;
+        position: fixed;
+        background-color: white;
+        bottom: 0;
         display: flex;
         gap: 20px;
         align-items: center;

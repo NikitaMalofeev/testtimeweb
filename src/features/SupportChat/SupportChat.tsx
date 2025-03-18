@@ -107,23 +107,27 @@ export const SupportChat = () => {
                         <h2 className={styles.chat__header__title}>Чат поддержки</h2>
                     </div>
                     <div className={styles.chat__header__status}>онлайн</div>
-                    <div className={styles.chat__header__description}>
-                        <span>
-                            Вы общаетесь с Дмитрием из службы поддержки RANKS autopilot, пожалуйста, опишите вашу проблему
-                        </span>
-                    </div>
+                    {messages.length < 1 && (
+                        <div className={styles.chat__header__description}>
+                            <span>
+                                Вы общаетесь с Дмитрием из службы поддержки RANKS autopilot, пожалуйста, опишите вашу проблему
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 <div className={styles.chat__chat__container}>
-                    <div className={styles.chat__chat}>
-                        {/* Показываем историю сообщений */}
-                        {messages.map((msg, index) =>
-                            msg.is_answer ? (
-                                <UserMessage key={index} message={msg} />
-                            ) : (
-                                <SupportMessage key={index} message={msg} />
-                            )
-                        )}
+                    <div style={{ padding: '13px 24px 0' }}>
+                        <div className={styles.chat__chat}>
+                            {/* Показываем историю сообщений */}
+                            {messages.map((msg, index) =>
+                                msg.is_answer ? (
+                                    <UserMessage key={index} message={msg} />
+                                ) : (
+                                    <SupportMessage key={index} message={msg} />
+                                )
+                            )}
+                        </div>
                     </div>
 
                     {/* Инпут и кнопка отправки */}

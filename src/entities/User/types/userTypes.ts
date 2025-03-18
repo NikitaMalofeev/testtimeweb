@@ -98,4 +98,10 @@ export type AllUserInfo = {
     trusted_person_fio: string;
     trusted_person_other_contact: string;
     trusted_person_phone: string;
+    passport_series: string;
+    passport_number: string;
+    department_code: string;
+    issue_date: string;
+    issue_whom: string;
+    inn: string;
 };

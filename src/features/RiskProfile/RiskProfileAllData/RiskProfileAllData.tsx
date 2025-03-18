@@ -4,12 +4,13 @@ import { useAppDispatch } from 'shared/hooks/useAppDispatch';
 import { getAllUserInfoThunk } from 'entities/User/slice/userSlice';
 import { useSelector } from 'react-redux';
 import { RootState } from 'app/providers/store/config/store';
+import { Loader } from 'shared/ui/Loader/Loader';
 
 export const RiskProfileAllData = () => {
     const dispatch = useAppDispatch();
 
-    const allUserData = useSelector(
-        (state: RootState) => state.user.allUserDataForDocuments
+    const { allUserDataForDocuments, loading } = useSelector(
+        (state: RootState) => state.user
     );
 
     useEffect(() => {
@@ -23,40 +24,48 @@ export const RiskProfileAllData = () => {
         </div>
     );
 
-    return (
-        <div className={styles.page}>
-            <div className={styles.page__item}>
-                <h2 className={styles.page__subtitle}>Паспортные данные</h2>
-                {renderField('Фамилия', allUserData?.last_name)}
-                {renderField('Имя', allUserData?.first_name)}
-                {renderField('Отчество', allUserData?.patronymic)}
-                {renderField('Пол', allUserData?.gender === 'male' ? 'Мужской' : 'Женский')}
-                {renderField('Дата рождения', allUserData?.birth_date)}
-                {renderField('Место рождения', allUserData?.city)}
-                {renderField('Серия и номер паспорта', '9423 425793')}
-                {renderField('Код подразделения', '150-007')}
-                {renderField('Дата выдачи', '17.09.2012')}
-                {renderField('Кем выдан', 'Отделением отдела УФМС РФ по г.Тамбов')}
-                {renderField('ИНН', '174787273304')}
-            </div>
+    if (loading) {
+        return (
+            <Loader />
+        )
+    } else {
+        return (
+            <div className={styles.page}>
+                <div className={styles.page__item}>
+                    <h2 className={styles.page__subtitle}>Паспортные данные</h2>
+                    {renderField('Фамилия', allUserDataForDocuments?.last_name)}
+                    {renderField('Имя', allUserDataForDocuments?.first_name)}
+                    {renderField('Отчество', allUserDataForDocuments?.patronymic)}
+                    {renderField('Пол', allUserDataForDocuments?.gender === 'male' ? 'Мужской' : 'Женский')}
+                    {renderField('Дата рождения', allUserDataForDocuments?.birth_date)}
+                    {renderField('Место рождения', allUserDataForDocuments?.city)}
+                    {renderField('Серия паспорта', allUserDataForDocuments?.passport_series)}
+                    {renderField('Номер паспорта', allUserDataForDocuments?.passport_number)}
+                    {renderField('Код подразделения', allUserDataForDocuments?.department_code)}
+                    {renderField('Дата выдачи', allUserDataForDocuments?.issue_date)}
+                    {renderField('Кем выдан', allUserDataForDocuments?.issue_whom)}
+                    {renderField('ИНН', allUserDataForDocuments?.inn)}
+                </div>
 
-            <div className={styles.page__item}>
-                <h2 className={styles.page__subtitle}>Адрес регистрации</h2>
-                {renderField('Регион', allUserData?.region)}
-                {renderField('Город', allUserData?.city)}
-                {renderField('Улица', allUserData?.street)}
-                {renderField('Дом', allUserData?.house)}
-                {renderField('Квартира', allUserData?.apartment)}
-            </div>
+                <div className={styles.page__item}>
+                    <h2 className={styles.page__subtitle}>Адрес регистрации</h2>
+                    {renderField('Регион', allUserDataForDocuments?.region)}
+                    {renderField('Город', allUserDataForDocuments?.city)}
+                    {renderField('Улица', allUserDataForDocuments?.street)}
+                    {renderField('Дом', allUserDataForDocuments?.house)}
+                    {renderField('Квартира', allUserDataForDocuments?.apartment)}
+                </div>
 
-            <div className={styles.page__item}>
-                <h2 className={styles.page__subtitle}>Адрес проживания</h2>
-                {renderField('Регион', allUserData?.address_residential_region)}
-                {renderField('Город', allUserData?.address_residential_city)}
-                {renderField('Улица', allUserData?.address_residential_street)}
-                {renderField('Дом', allUserData?.address_residential_house)}
-                {renderField('Квартира', allUserData?.address_residential_apartment)}
+                <div className={styles.page__item}>
+                    <h2 className={styles.page__subtitle}>Адрес проживания</h2>
+                    {renderField('Регион', allUserDataForDocuments?.address_residential_region)}
+                    {renderField('Город', allUserDataForDocuments?.address_residential_city)}
+                    {renderField('Улица', allUserDataForDocuments?.address_residential_street)}
+                    {renderField('Дом', allUserDataForDocuments?.address_residential_house)}
+                    {renderField('Квартира', allUserDataForDocuments?.address_residential_apartment)}
+                </div>
             </div>
-        </div>
-    );
+        );
+    }
+
 };

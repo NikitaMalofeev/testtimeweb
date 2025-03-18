@@ -6,6 +6,7 @@ import errorReducer from 'entities/Error/slice/errorSlice';
 import documentsReducer from 'entities/Documents/slice/documentsSlice';
 import riskProfileReducer from 'entities/RiskProfile/slice/riskProfileSlice'
 import personalAccountReducer from 'entities/PersonalAccount/slice/personalAccountSlice'
+import supportChatReducer from 'entities/SupportChat/slice/supportChatSlice'
 export const store = configureStore({
     reducer: {
         ui: uiReducer,
@@ -15,6 +16,7 @@ export const store = configureStore({
         error: errorReducer,
         documents: documentsReducer,
         personalAccount: personalAccountReducer,
+        supportChat: supportChatReducer
     },
 });
 

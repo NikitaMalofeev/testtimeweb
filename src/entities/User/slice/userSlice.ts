@@ -91,7 +91,7 @@ export const getAllUserInfoThunk = createAsyncThunk<
     void,
     { state: RootState, rejectValue: string }
 >(
-    "user/getAllUserInfo",
+    "user/getAllUserInfoThunk",
     async (_, { getState, rejectWithValue, dispatch }) => {
         try {
             const token = getState().user.token
@@ -198,6 +198,19 @@ export const userSlice = createSlice({
                 state.success = true;
             })
             .addCase(getUserPersonalAccountInfoThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
+            .addCase(getAllUserInfoThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+                state.success = false;
+            })
+            .addCase(getAllUserInfoThunk.fulfilled, (state) => {
+                state.loading = false;
+                state.success = true;
+            })
+            .addCase(getAllUserInfoThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
             })

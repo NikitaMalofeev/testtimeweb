@@ -1,4 +1,4 @@
-import React, { ButtonHTMLAttributes, memo, ReactNode } from 'react';
+import React, { ButtonHTMLAttributes, CSSProperties, memo, ReactNode } from 'react';
 import styles from './styles.module.scss';
 import { classNames, Mods } from 'shared/lib/helpers/classNames/classNames';
 
@@ -10,6 +10,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     theme?: ButtonTheme;
     buttonForm?: ButtonForm;
     onClick?: () => void;
+    padding?: string
 }
 
 export enum ButtonForm {
@@ -33,6 +34,7 @@ export const Button = memo((props: ButtonProps) => {
         buttonForm = ButtonForm.CIRCLE,
         square = false,
         disabled = false,
+        padding,
         onClick,
         ...otherProps
     } = props;
@@ -59,6 +61,7 @@ export const Button = memo((props: ButtonProps) => {
             type="button"
             className={classNames(styles.Button, mods, [className, buttonClasses])}
             disabled={disabled}
+            style={{ padding: `${padding}` }}
             {...otherProps}
             onClick={onClick}
         >

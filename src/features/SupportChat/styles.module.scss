@@ -3,6 +3,7 @@
     flex-grow: 1;
     max-height: 100%;
     overflow-y: hidden;
+    max-height: calc(100vh - 56px);
 
     &__header {
         position: relative;
@@ -64,9 +65,9 @@
     }
 
     &__wrapper {
-        max-height: calc(100vh - 110.8px);
+        max-height: calc(100vh - 183.8px);
         overflow-y: auto;
-        padding: 13px 24px 73px;
+        padding: 13px 24px 0;
     }
 
     &__chat {
@@ -80,12 +81,11 @@
     }
 
     &__input {
+        height: 73px;
         flex-shrink: 0;
         padding: 13px 24px 0;
         width: 100%;
-        position: fixed;
         background-color: white;
-        bottom: 0;
         display: flex;
         gap: 20px;
         align-items: center;

@@ -26,6 +26,7 @@ import { PushNotification } from "features/PushNotifications/PushNotification/Pu
 import { RiskProfileModal } from "features/RiskProfile/RiskProfileModal/RiskProfileModal";
 import { closeModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalType } from "entities/ui/Modal/model/modalTypes";
+import WarningIcon from 'shared/assets/svg/Warning.svg'
 
 /**
  * Иконки можно подключать по-разному: через svg-спрайт, через иконки из MaterialUI и т.п.
@@ -37,6 +38,7 @@ const PersonalAccountMenu: React.FC = () => {
     const navigate = useNavigate()
     const token = useSelector((state: RootState) => state.user.token)
     const modalRPState = useSelector((state: RootState) => state.modal.identificationModal)
+    const { userDocuments } = useSelector((state: RootState) => state.documents)
 
     useEffect(() => {
         dispatch(getUserPersonalAccountInfoThunk())
@@ -73,6 +75,7 @@ const PersonalAccountMenu: React.FC = () => {
             notificationsCount: 6,
             iconWidth: 23,
             iconHeight: 28,
+            warningMessage: <div className={styles.warning}><Icon Svg={WarningIcon} width={16} height={16} />Есть неподписанные документы ({6 - userDocuments.length} шт.)</div>
         },
         {
             icon: AccountChatIcon,
@@ -154,26 +157,39 @@ const PersonalAccountMenu: React.FC = () => {
                     </div>
                     <div>
                         {items.map((item, index) => (
-                            <div
-                                key={index}
-                                style={(item.title !== 'Документы' && item.title !== 'Чат поддержки' && item.title !== 'Выйти из учетной записи') ? { opacity: '0.5' } : {}}
-                                onClick={() => {
-                                    if (item.route) {
-                                        navigate(item.route);
-                                    } else if (item.action) {
-                                        item.action();
-                                    }
-                                }}
-                                className={styles.menu__item}
-                            >
-                                <Icon Svg={item.icon} width={item.iconWidth} height={item.iconHeight} />
-                                <span>{item.title}</span>
-                                {item.notificationsCount !== undefined && (
-                                    <div className={styles.page__count}>
-                                        {item.notificationsCount}
-                                    </div>
-                                )}
-                            </div>
+                            <>
+                                <div
+                                    key={index}
+                                    style={{
+                                        // Если title не Документы/Чат поддержки/Выйти, ставим opacity: 0.5
+                                        ...(item.title !== 'Документы'
+                                            && item.title !== 'Чат поддержки'
+                                            && item.title !== 'Выйти из учетной записи'
+                                        ) && { opacity: '0.5' },
+
+                                        // Если есть warningMessage, добавляем padding
+                                        ...(item.warningMessage && { padding: '18px 0 34px' }),
+                                    }}
+                                    onClick={() => {
+                                        if (item.route) {
+                                            navigate(item.route);
+                                        } else if (item.action) {
+                                            item.action();
+                                        }
+                                    }}
+                                    className={styles.menu__item}
+                                >
+                                    <Icon Svg={item.icon} width={item.iconWidth} height={item.iconHeight} />
+                                    <span>{item.title}</span>
+                                    {item.notificationsCount !== undefined && (
+                                        <div className={styles.page__count}>
+                                            {item.notificationsCount}
+                                        </div>
+                                    )}
+                                    {item.warningMessage}
+                                </div>
+
+                            </>
                         ))}
 
                     </div>

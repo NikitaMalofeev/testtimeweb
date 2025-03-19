@@ -142,3 +142,19 @@
 .menu__item:last-child::after {
     content: none;
 }
+
+
+.warning {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    bottom: 16px;
+    left: 52px;
+    position: absolute;
+    font-family: Inter;
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 0%;
+    color: #0F0E0E;
+}

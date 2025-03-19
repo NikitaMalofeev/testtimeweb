@@ -5,6 +5,7 @@
     padding: 13px 10px;
     display: flex;
     gap: 10px;
+    max-height: max-content;
 
     &__title {
         font-family: Inter;

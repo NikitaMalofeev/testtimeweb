@@ -13,7 +13,7 @@ import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/mo
 
 
 export const PushNotification = () => {
-    const pushNotification = useSelector((state: RootState) => state.ui.isPushNotificationActive);
+    const { active, purpose } = useSelector((state: RootState) => state.ui.isPushNotificationActive);
     const variants = {
         hidden: { scale: 0, opacity: 0 },
         visible: { scale: 1, opacity: 1 },
@@ -30,20 +30,20 @@ export const PushNotification = () => {
                 dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }));
             }
         },
-        anotherPurpose: {
-            title: "Другое уведомление",
-            description: "Это описание для другого уведомления.",
-            action: () => {
+        // anotherPurpose: {
+        //     title: "Другое уведомление",
+        //     description: "Это описание для другого уведомления.",
+        //     action: () => {
 
-            }
-        },
-        default: {
-            title: "Уведомление",
-            description: "Описание уведомления по умолчанию.",
-            action: () => {
+        //     }
+        // },
+        // default: {
+        //     title: "Уведомление",
+        //     description: "Описание уведомления по умолчанию.",
+        //     action: () => {
 
-            }
-        },
+        //     }
+        // },
     };
 
     useEffect(() => {
@@ -58,22 +58,28 @@ export const PushNotification = () => {
         dispatch(getUserDocumentsStateThunk());
     }, []);
 
-    const purposeData = pushPurpose[pushNotification.purpose] || pushPurpose.default;
+    const purposeData = pushPurpose[purpose] || pushPurpose.default;
 
     return (
-        <motion.div
-            initial="hidden"
-            animate={pushNotification.active ? variants.visible : variants.hidden}
-            variants={variants}
-            transition={{ duration: 0.5, ease: "easeInOut" }}
-            className={styles.pushNotification}
-            onClick={purposeData.action}
-        >
-            <img src={MiniLogo} alt="Mini Logo" className={styles.pushNotification__logo} />
-            <div>
-                <h3 className={styles.pushNotification__title}>{purposeData.title}</h3>
-                <p className={styles.pushNotification__description}>{purposeData.description}</p>
-            </div>
-        </motion.div>
+        <>
+            {
+                purpose.length > 0 && (
+                    <motion.div
+                        initial="hidden"
+                        animate={active ? variants.visible : variants.hidden}
+                        variants={variants}
+                        transition={{ duration: 0.5, ease: "easeInOut" }}
+                        className={styles.pushNotification}
+                        onClick={purposeData.action}
+                    >
+                        <img src={MiniLogo} alt="Mini Logo" className={styles.pushNotification__logo} />
+                        <div>
+                            <h3 className={styles.pushNotification__title}>{purposeData.title}</h3>
+                            <p className={styles.pushNotification__description}>{purposeData.description}</p>
+                        </div>
+                    </motion.div>
+                )
+            }
+        </>
     );
 };

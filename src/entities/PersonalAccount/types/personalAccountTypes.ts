@@ -1,4 +1,4 @@
-import { FC, SVGProps } from "react";
+import { FC, ReactElement, SVGProps } from "react";
 
 export interface PersonalAccountItem {
     /** Иконка (может быть компонентом React, URL-строкой, любым подходящим типом) */
@@ -10,6 +10,7 @@ export interface PersonalAccountItem {
     action?: () => void;
     /** Опциональное количество уведомлений */
     notificationsCount?: number;
+    warningMessage?: ReactElement | null
     iconWidth: number;
     iconHeight: number;
 }

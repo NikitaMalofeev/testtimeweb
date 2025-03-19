@@ -211,6 +211,7 @@ export const RiskProfileSecondForm: React.FC = () => {
                                     "risk_prof_aggressive",
                                     "risk_prof_aggressive_super"
                                 ]}
+                                customSliderDivisions={5}
                                 value={formik.values.portfolio_parameters}
                                 onChange={(e) => {
                                     // e.target.value здесь будет строка из массива discreteValues

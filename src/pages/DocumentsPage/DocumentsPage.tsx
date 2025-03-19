@@ -49,7 +49,7 @@ const DocumentsPage: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const modalPreviewState = useSelector((state: RootState) => state.modal.documentsPreview)
-    
+
     const { userDocuments, loading, filledRiskProfileChapters } = useSelector((state: RootState) => state.documents);
     const isPasportFilled = useSelector((state: RootState) => state.user.allUserDataForDocuments?.address_residential_apartment);
     const isRpFilled = useSelector((state: RootState) => state.user.allUserDataForDocuments?.invest_target);
@@ -132,7 +132,7 @@ const DocumentsPage: React.FC = () => {
                         })
                     );
                 } else {
-                    dispatch(setStepAdditionalMenuUI(0));
+                    dispatch(setStepAdditionalMenuUI(1));
                     dispatch(
                         openModal({
                             type: ModalType.IDENTIFICATION,

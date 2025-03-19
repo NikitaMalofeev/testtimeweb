@@ -72,6 +72,7 @@ interface InputProps extends CommonHTMLProps {
      */
     discreteValues?: string[];
     swiperDiscreteSubtitles?: string[];
+    customSliderDivisions?: number;
 
     /**
      * **Новый проп**: ограничение на количество символов для type="number".
@@ -82,6 +83,7 @@ interface InputProps extends CommonHTMLProps {
 
 export const Input: React.FC<InputProps> = ({
     theme = "default",
+    customSliderDivisions,
     value,
     name,
     onChange,
@@ -364,7 +366,7 @@ export const Input: React.FC<InputProps> = ({
                                             <span
                                                 style={{
                                                     position: "absolute",
-                                                    bottom: 0,
+                                                    bottom: -17,
                                                     left: 0,
                                                     fontSize: "12px",
                                                     color: "#989898",
@@ -376,6 +378,7 @@ export const Input: React.FC<InputProps> = ({
                                             <CustomSlider
                                                 sliderValue={discreteIndex}
                                                 min={0}
+                                                divisions={customSliderDivisions}
                                                 max={(discreteValues?.length || 1) - 1}
                                                 step={1}
                                                 disabled={disabled}
@@ -409,7 +412,7 @@ export const Input: React.FC<InputProps> = ({
                                             <span
                                                 style={{
                                                     position: "absolute",
-                                                    bottom: 0,
+                                                    bottom: -17,
                                                     right: 0,
                                                     fontSize: "12px",
                                                     color: "#989898",

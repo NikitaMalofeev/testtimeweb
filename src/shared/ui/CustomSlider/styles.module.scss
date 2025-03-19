@@ -8,9 +8,9 @@
 /* Дорожка (трек) */
 .customSliderTrack {
   position: relative;
+  z-index: 3;
   height: 6px;
   width: 100%;
-  border-radius: 3px;
   background-color: #eee; // <-- Цвет трека по умолчанию
   cursor: pointer;
 }
@@ -24,11 +24,14 @@
     #F99500 59.07%,
     #E93147 125.08%
   );
+  z-index: 3;
+  position: relative;
 }
 
 /* Заполненная часть (только в default-режиме показываем). */
 .customSliderTrackFill {
   position: absolute;
+  z-index: 3;
   left: 0;
   top: 0;
   height: 6px;
@@ -40,6 +43,7 @@
 /* Ползунок (thumb) */
 .customSliderThumb {
   position: absolute;
+  z-index: 3;
   top: 50%;
   transform: translate(-50%, -50%);
   width: 33px;
@@ -57,4 +61,51 @@
 .customSliderThumb.gradient {
   /* Можно поставить любой цвет или градиент, например: */
   background-color: #045FDD;
+
+}
+
+.tick {
+  top: -7px;
+  width: 3px;
+  height: 36px;
+  border-top-left-radius: 2px;
+  transform: translateX(-2px);
+  border-top-right-radius: 2px;
+  background-color: #C0C0C0; // или другой цвет, соответствующий вашему дизайну
+}
+
+.tick:nth-child(4) {
+  transform: translateX(0);
+  width: 3px;
+}
+.tick:nth-child(2) {
+  transform: translateX(0);
+}
+
+.tick:nth-child(7) {
+  transform: translateX(-3px);
+  
+}
+
+.subline {
+  position: absolute;
+  width: 100%;
+  z-index: 3;
+  top: 9px;
+  display: flex;
+  justify-content: space-between;
+  height: 20px;
+  background-color: rgba(240, 240, 243, 0.5);
+  padding: 2px 3px;
+  font-family: Inter;
+font-weight: 400;
+font-size: 11px;
+line-height: 16px;
+letter-spacing: 0%;
+text-align: center;
+
+&__text {
+  opacity: 1;
+}
+
 }

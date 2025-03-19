@@ -16,6 +16,7 @@ interface CustomSliderProps {
     max: number;
     step?: number;
     disabled?: boolean;
+    divisions?: number;
     onChange: (val: number) => void; // Вызывается, когда значение меняется
     sliderTheme?: SliderTheme;       // Тема слайдера
 }
@@ -26,6 +27,7 @@ export const CustomSlider: React.FC<CustomSliderProps> = memo(({
     max,
     step = 1,
     disabled,
+    divisions,
     onChange,
     sliderTheme = "default",
 }) => {
@@ -128,6 +130,29 @@ export const CustomSlider: React.FC<CustomSliderProps> = memo(({
         [disabled, calcPercentage, sliderValue]
     );
 
+    const renderTicks = () => {
+        if (!divisions || divisions <= 0) return null;
+
+        const ticks = [];
+        // Если делим на 7 сегментов, отрисуем 8 тиков (начало + 7 разделителей)
+        for (let i = 0; i <= divisions; i++) {
+            const leftPercent = (i / divisions) * 100;
+            ticks.push(
+                <div
+                    key={i}
+                    className={styles.tick}
+                    style={{
+                        position: "absolute",
+                        left: `calc(${leftPercent}%)`,
+                        // Чтобы линия была по центру, можно добавить transform:
+
+                    }}
+                />
+            );
+        }
+        return ticks;
+    };
+
     // Отпускаем мышь/палец
     const handlePointerUp = useCallback(() => {
         setIsDragging(false);
@@ -187,11 +212,19 @@ export const CustomSlider: React.FC<CustomSliderProps> = memo(({
                 onMouseDown={handleTrackClick}
                 onTouchStart={handleTrackClick}
             >
+
                 {sliderTheme !== "gradient" && (
                     <div
                         className={styles.customSliderTrackFill}
                         style={{ width: `${percentage}%` }}
                     />
+                )}
+                {divisions && (
+                    <div className={styles.subline}>
+                        <span className={styles.subline__text}>Облигации</span>
+                        <span className={styles.subline__text}>Смешанные</span>
+                        <span className={styles.subline__text}>Акции</span>
+                    </div>
                 )}
                 <div
                     className={thumbClass}
@@ -200,6 +233,7 @@ export const CustomSlider: React.FC<CustomSliderProps> = memo(({
                     onTouchStart={handleThumbPointerDown}
                 />
             </div>
+            {renderTicks()}
         </div>
     );
 });

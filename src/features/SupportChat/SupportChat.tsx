@@ -151,9 +151,9 @@ export const SupportChat = () => {
                 <div
                     className={`${styles.chat__chat__container} ${isScrolled ? styles.shadow_top : ""}`}
 
-                    onScroll={handleScroll}
+
                 >
-                    <div className={styles.chat__wrapper} ref={chatContainerRef}>
+                    <div className={styles.chat__wrapper} ref={chatContainerRef} onScroll={handleScroll}>
                         <div className={styles.chat__chat}>
                             {messages.slice().reverse().map((msg, index) =>
                                 !msg.is_answer ? (

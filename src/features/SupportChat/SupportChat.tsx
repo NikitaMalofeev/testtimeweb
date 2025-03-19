@@ -43,7 +43,7 @@ export const SupportChat = () => {
     const token = useSelector((state: RootState) => state.user.token)
 
     // Берём из Redux
-    const { websocketId, messages, loading, error } = useSelector(
+    const { websocketId, messages, loading, error, success } = useSelector(
         (state: RootState) => state.supportChat
     );
 
@@ -121,7 +121,7 @@ export const SupportChat = () => {
         setMessageText(e.target.value);
     };
 
-    if (loading) {
+    if (loading && !success) {
         return <Loader />;
     } else {
         return (

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import AppRouter from './providers/router/ui/AppRouter';
 import './styles/index.scss';
 import { Header } from 'widgets/Header/ui/Header';
@@ -28,7 +28,7 @@ function App() {
   const savedToken = localStorage.getItem('savedToken');
   const lastExit = localStorage.getItem('lastExit');
   const SECRET_KEY = import.meta.env.VITE_RANKS_AUTHTOKEN_LS_KEY;
-
+  const [lastActivity, setLastActivity] = useState<number>(Date.now());
   const lastExitSignature = localStorage.getItem('lastExitSignature');
 
   useEffect(() => {
@@ -42,7 +42,7 @@ function App() {
 
       if (
         lastExitSignature === expectedSignature &&
-        now - lastExitTime <= 2 * 60 * 1000
+        now - lastExitTime <= 3 * 60 * 1000
       ) {
         dispatch(setUserToken(savedToken));
       } else {
@@ -55,19 +55,49 @@ function App() {
   }, []);
 
   // // 2. Сохраняем в localStorage при каждом изменении token
-  // useEffect(() => {
-  //   if (token) {
-  //     const now = Date.now();
-  //     localStorage.setItem('savedToken', token);
-  //     localStorage.setItem('lastExit', now.toString());
-  //     const signature = btoa(now.toString() + SECRET_KEY);
-  //     localStorage.setItem('lastExitSignature', signature);
-  //   } else {
-  //     localStorage.removeItem('savedToken');
-  //     localStorage.removeItem('lastExit');
-  //     localStorage.removeItem('lastExitSignature');
-  //   }
-  // }, [token]);
+  useEffect(() => {
+    const handleActivity = () => {
+      setLastActivity(Date.now());
+    };
+
+    window.addEventListener('mousemove', handleActivity);
+    window.addEventListener('keydown', handleActivity);
+    window.addEventListener('click', handleActivity);
+    window.addEventListener('scroll', handleActivity);
+
+    return () => {
+      window.removeEventListener('mousemove', handleActivity);
+      window.removeEventListener('keydown', handleActivity);
+      window.removeEventListener('click', handleActivity);
+      window.removeEventListener('scroll', handleActivity);
+    };
+  }, []);
+
+  // 2) Следим за изменениями token и последней активностью
+  useEffect(() => {
+    const now = Date.now();
+    // Если с последнего действия прошло > 2 минут (120000 мс)
+    if (now - lastActivity > 3 * 60 * 1000) {
+      // ...значит "иначе"-сценарий (превышен лимит бездействия) => сбрасываем localStorage
+      localStorage.removeItem('savedToken');
+      localStorage.removeItem('lastExit');
+      localStorage.removeItem('lastExitSignature');
+    } else {
+      // Иначе (пользователь активен):
+      // Если есть токен, сохраняем его в localStorage с текущим timeStamp
+      if (token) {
+        localStorage.setItem('savedToken', token);
+        localStorage.setItem('lastExit', lastActivity.toString());
+        const signature = btoa(lastActivity.toString() + SECRET_KEY);
+        localStorage.setItem('lastExitSignature', signature);
+      } else {
+        // Если токен = пустой (пользователь разлогинен вручную?), всё чистим
+        localStorage.removeItem('savedToken');
+        localStorage.removeItem('lastExit');
+        localStorage.removeItem('lastExitSignature');
+      }
+    }
+  }, [token, lastActivity]);
 
   // 3.(Опционально) Используем pagehide для доп.гарантии в ios
   useEffect(() => {

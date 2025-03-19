@@ -68,7 +68,7 @@
     &__wrapper {
         max-height: calc(100vh - 193.8px);
         overflow-y: auto;
-        padding: 13px 24px 83px;
+        padding: 13px 24px 0;
     }
 
     &__chat {
@@ -82,8 +82,6 @@
     }
 
     &__input {
-        position: fixed;
-        bottom: 0;
         height: 73px;
         flex-shrink: 0;
         padding: 13px 24px 0;

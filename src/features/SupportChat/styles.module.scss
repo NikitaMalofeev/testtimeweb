@@ -4,6 +4,7 @@
     max-height: 100%;
     overflow-y: hidden;
     max-height: calc(100vh - 56px);
+    padding-bottom: 73px;
 
     &__header {
         position: relative;
@@ -66,12 +67,13 @@
     }
 
     &__wrapper {
-        max-height: calc(100vh - 193.8px);
+        max-height: calc(100vh - 183.8px);
         overflow-y: auto;
         padding: 13px 24px 0;
     }
 
     &__chat {
+
         display: flex;
         flex-direction: column;
         gap: 10px;
@@ -82,6 +84,8 @@
     }
 
     &__input {
+        position: fixed;
+        bottom: 0;
         height: 73px;
         flex-shrink: 0;
         padding: 13px 24px 0;

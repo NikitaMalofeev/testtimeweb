@@ -65,6 +65,14 @@ export const SupportChat = () => {
         dispatch(getAllMessagesThunk());
     }, [token]);
 
+    useEffect(() => {
+        const originalOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => {
+            document.body.style.overflow = originalOverflow;
+        };
+    }, []);
+
     /**
      * Как только websocketId появится, открываем WebSocket
      */
@@ -121,7 +129,7 @@ export const SupportChat = () => {
         setMessageText(e.target.value);
     };
 
-    if (loading && !success) {
+    if (loading && messages.length === 0) {
         return <Loader />;
     } else {
         return (

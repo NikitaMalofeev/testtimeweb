@@ -5,6 +5,7 @@ import { getAllUserInfoThunk } from 'entities/User/slice/userSlice';
 import { useSelector } from 'react-redux';
 import { RootState } from 'app/providers/store/config/store';
 import { Loader } from 'shared/ui/Loader/Loader';
+import { getUserDocumentsInfoThunk } from 'entities/Documents/slice/documentsSlice';
 
 export const RiskProfileAllData = () => {
     const dispatch = useAppDispatch();
@@ -12,9 +13,11 @@ export const RiskProfileAllData = () => {
     const { allUserDataForDocuments, loading } = useSelector(
         (state: RootState) => state.user
     );
+    const { userPassportData } = useSelector((state: RootState) => state.documents);
 
     useEffect(() => {
         dispatch(getAllUserInfoThunk());
+        dispatch(getUserDocumentsInfoThunk());
     }, [dispatch]);
 
     const renderField = (label: string, value: string | undefined) => (
@@ -36,15 +39,15 @@ export const RiskProfileAllData = () => {
                     {renderField('Фамилия', allUserDataForDocuments?.last_name)}
                     {renderField('Имя', allUserDataForDocuments?.first_name)}
                     {renderField('Отчество', allUserDataForDocuments?.patronymic)}
-                    {renderField('Пол', allUserDataForDocuments?.gender === 'male' ? 'Мужской' : 'Женский')}
+                    {renderField('Пол', allUserDataForDocuments?.gender === 'gender_male' ? 'Мужской' : 'Женский')}
                     {renderField('Дата рождения', allUserDataForDocuments?.birth_date)}
                     {renderField('Место рождения', allUserDataForDocuments?.city)}
-                    {renderField('Серия паспорта', allUserDataForDocuments?.passport_series)}
-                    {renderField('Номер паспорта', allUserDataForDocuments?.passport_number)}
-                    {renderField('Код подразделения', allUserDataForDocuments?.department_code)}
-                    {renderField('Дата выдачи', allUserDataForDocuments?.issue_date)}
-                    {renderField('Кем выдан', allUserDataForDocuments?.issue_whom)}
-                    {renderField('ИНН', allUserDataForDocuments?.inn)}
+                    {renderField('Серия паспорта', userPassportData?.passport_series)}
+                    {renderField('Номер паспорта', userPassportData?.passport_number)}
+                    {renderField('Код подразделения', userPassportData?.department_code)}
+                    {renderField('Дата выдачи', userPassportData?.issue_date)}
+                    {renderField('Кем выдан', userPassportData?.issue_whom)}
+                    {renderField('ИНН', userPassportData?.inn)}
                 </div>
 
                 <div className={styles.page__item}>
@@ -56,14 +59,16 @@ export const RiskProfileAllData = () => {
                     {renderField('Квартира', allUserDataForDocuments?.apartment)}
                 </div>
 
-                <div className={styles.page__item}>
-                    <h2 className={styles.page__subtitle}>Адрес проживания</h2>
-                    {renderField('Регион', allUserDataForDocuments?.address_residential_region)}
-                    {renderField('Город', allUserDataForDocuments?.address_residential_city)}
-                    {renderField('Улица', allUserDataForDocuments?.address_residential_street)}
-                    {renderField('Дом', allUserDataForDocuments?.address_residential_house)}
-                    {renderField('Квартира', allUserDataForDocuments?.address_residential_apartment)}
-                </div>
+                {allUserDataForDocuments?.address_residential_region && allUserDataForDocuments?.address_residential_house && (
+                    <div className={styles.page__item}>
+                        <h2 className={styles.page__subtitle}>Адрес проживания</h2>
+                        {renderField('Регион', allUserDataForDocuments?.address_residential_region)}
+                        {renderField('Город', allUserDataForDocuments?.address_residential_city)}
+                        {renderField('Улица', allUserDataForDocuments?.address_residential_street)}
+                        {renderField('Дом', allUserDataForDocuments?.address_residential_house)}
+                        {renderField('Квартира', allUserDataForDocuments?.address_residential_apartment)}
+                    </div>
+                )}
             </div>
         );
     }

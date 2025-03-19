@@ -3,7 +3,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "app/providers/store/config/store";
 import { ConfirmDocsPayload, FilledRiskProfileChapters } from "../types/documentsTypes";
-import { confirmDocsRequest, getDocumentsNotSigned, getDocumentsSigned, getDocumentsState } from "../api/documentsApi";
+import { confirmDocsRequest, getDocumentsInfo, getDocumentsNotSigned, getDocumentsSigned, getDocumentsState } from "../api/documentsApi";
 import { setCurrentConfirmingDoc } from "entities/RiskProfile/slice/riskProfileSlice";
 import { setConfirmationDocsSuccess } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
@@ -14,6 +14,16 @@ import { postConfirmationDocsCode } from "shared/api/RiskProfileApi/riskProfileA
 export interface DocumentConfirmationInfo {
     key: string;
     date_last_confirmed: string | null; // null, если документ не подписан
+}
+
+export interface UserPassportData {
+    birth_place: string;
+    passport_series: string;
+    passport_number: string;
+    department_code: string;
+    issue_date: string;    // лучше хранить в формате ISO-строки
+    issue_whom: string;
+    inn: string;
 }
 
 // Массив с последовательностью типов документов,
@@ -53,7 +63,8 @@ interface DocumentsState {
         document: Uint8Array | null;
         type: string;
     };
-    filledRiskProfileChapters: FilledRiskProfileChapters
+    filledRiskProfileChapters: FilledRiskProfileChapters;
+    userPassportData: UserPassportData | null;
 
 }
 
@@ -75,7 +86,8 @@ const initialState: DocumentsState = {
         is_risk_profile_complete_final: false,
         is_complete_passport: false,
         is_exist_scan_passport: false,
-    }
+    },
+    userPassportData: null
 };
 
 export const confirmDocsRequestThunk = createAsyncThunk<
@@ -176,6 +188,30 @@ export const getUserDocumentsStateThunk = createAsyncThunk<
     }
 );
 
+export const getUserDocumentsInfoThunk = createAsyncThunk<
+    void,
+    void,
+    { rejectValue: string; state: RootState }
+>(
+    "documents/getUserDocumentsInfoThunk",
+    async (_, { getState, dispatch, rejectWithValue }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+            const response = await getDocumentsInfo(token);
+            dispatch(setUserPasportData(response))
+        } catch (error: any) {
+            console.log(error);
+            const msg =
+                error.response?.data?.errorText ||
+                "Ошибка при отправке кода (непредвиденная)";
+            dispatch(setError(msg));
+        }
+    }
+);
+
 export const getUserDocumentsNotSignedThunk = createAsyncThunk<
     void,
     void,
@@ -250,6 +286,9 @@ export const documentsSlice = createSlice({
         // Сохраняем массив объектов (документов) в стейт.
         setUserDocuments(state, action: PayloadAction<DocumentConfirmationInfo[]>) {
             state.userDocuments = action.payload;
+        },
+        setUserPasportData(state, action: PayloadAction<UserPassportData>) {
+            state.userPassportData = action.payload;
         },
         setTimeoutBetweenConfirmation(state, action: PayloadAction<number>) {
             state.timeoutBetweenConfirmation = action.payload;
@@ -335,7 +374,8 @@ export const {
     setTimeoutBetweenConfirmation,
     setNotSignedDocumentsHtmls,
     setCurrentSignedDocuments,
-    setIsRiksProfileComplete
+    setIsRiksProfileComplete,
+    setUserPasportData
 } = documentsSlice.actions;
 
 export default documentsSlice.reducer;

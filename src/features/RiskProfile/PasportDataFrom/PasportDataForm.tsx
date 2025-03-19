@@ -19,13 +19,14 @@ import { format } from "date-fns";
 import { getAllUserInfoThunk, getUserPersonalAccountInfoThunk } from "entities/User/slice/userSlice";
 import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
 import { setError } from "entities/Error/slice/errorSlice";
+import { getUserDocumentsInfoThunk, getUserDocumentsStateThunk } from "entities/Documents/slice/documentsSlice";
 
 export const PasportDataForm: React.FC = () => {
     const dispatch = useAppDispatch();
     const recaptchaRef = useRef<ReCAPTCHA | null>(null);
     const gcaptchaSiteKey = import.meta.env.VITE_RANKS_GRCAPTCHA_SITE_KEY;
     const [captchaVerified, setCaptchaVerified] = useState(false);
-    const { loading, userPersonalAccountInfo } = useSelector((state: RootState) => state.user);
+    const { loading, userPersonalAccountInfo, success } = useSelector((state: RootState) => state.user);
     const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
     const modalState = useSelector((state: RootState) => state.modal);
 
@@ -33,6 +34,8 @@ export const PasportDataForm: React.FC = () => {
 
     useEffect(() => {
         dispatch(getUserPersonalAccountInfoThunk())
+        dispatch(getUserDocumentsStateThunk())
+        dispatch(getUserDocumentsInfoThunk())
     }, [])
 
     // Yup-схема валидации
@@ -124,6 +127,7 @@ export const PasportDataForm: React.FC = () => {
             address_residential_house: "",
             address_residential_apartment: "",
         },
+        enableReinitialize: true,
         validationSchema: passportValidationSchema,
         onSubmit: (values) => {
             dispatch(postPasportInfo({

@@ -132,7 +132,7 @@ const DocumentsPage: React.FC = () => {
                         })
                     );
                 } else {
-                    dispatch(setStepAdditionalMenuUI(1));
+                    dispatch(setStepAdditionalMenuUI(0));
                     dispatch(
                         openModal({
                             type: ModalType.IDENTIFICATION,

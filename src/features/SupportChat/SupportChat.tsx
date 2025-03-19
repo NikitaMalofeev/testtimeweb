@@ -150,10 +150,10 @@ export const SupportChat = () => {
                 {/* Контейнер для сообщений с привязанным рефом и обработчиком скролла */}
                 <div
                     className={`${styles.chat__chat__container} ${isScrolled ? styles.shadow_top : ""}`}
-                    ref={chatContainerRef}
+
                     onScroll={handleScroll}
                 >
-                    <div className={styles.chat__wrapper}>
+                    <div className={styles.chat__wrapper} ref={chatContainerRef}>
                         <div className={styles.chat__chat}>
                             {messages.slice().reverse().map((msg, index) =>
                                 !msg.is_answer ? (

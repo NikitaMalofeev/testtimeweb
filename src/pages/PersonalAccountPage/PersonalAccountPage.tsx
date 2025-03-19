@@ -1,11 +1,8 @@
-// PersonalAccountMenu.tsx
-
+// entities/PersonalAccount/PersonalAccountMenu.tsx
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
-import {
-    setCurrentTab,
-} from "entities/PersonalAccount/slice/personalAccountSlice";
+import { setCurrentTab } from "entities/PersonalAccount/slice/personalAccountSlice";
 import styles from "./styles.module.scss";
 import { PersonalAccountItem } from "entities/PersonalAccount/types/personalAccountTypes";
 import { Icon } from "shared/ui/Icon/Icon";
@@ -20,10 +17,7 @@ import AccountPhoneIcon from "shared/assets/svg/AccountPhoneIcon.svg";
 import AccountMailIcon from "shared/assets/svg/AccountMailIcon.svg";
 import AccountChatIcon from "shared/assets/svg/AccountChatIcon.svg";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
-import {
-    getUserPersonalAccountInfoThunk,
-    setUserToken,
-} from "entities/User/slice/userSlice";
+import { getUserPersonalAccountInfoThunk, setUserToken } from "entities/User/slice/userSlice";
 import { useNavigate } from "react-router-dom";
 import { Loader } from "shared/ui/Loader/Loader";
 import { PushNotification } from "features/PushNotifications/PushNotification/PushNotification";
@@ -31,69 +25,46 @@ import { RiskProfileModal } from "features/RiskProfile/RiskProfileModal/RiskProf
 import { closeModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalType } from "entities/ui/Modal/model/modalTypes";
 import WarningIcon from "shared/assets/svg/Warning.svg";
-
-/**
- * Импортируем Thunk для получения сообщений
- * и экшены (например, incrementNewAnswersCount), если он есть
- */
 import {
     getAllMessagesThunk,
-    incrementNewAnswersCount
+    incrementNewAnswersCount,
+    resetPersonalNewAnswers
 } from "entities/SupportChat/slice/supportChatSlice";
 
 const PersonalAccountMenu: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
-
     const token = useSelector((state: RootState) => state.user.token);
     const modalRPState = useSelector((state: RootState) => state.modal.identificationModal);
     const { userDocuments } = useSelector((state: RootState) => state.documents);
-
-    /**
-     * Берём из Redux количество «новых» сообщений (newAnswersCount),
-     * а также все сообщения (messages), чтобы сравнивать с localStorage
-     */
-    const { newAnswersCount, messages } = useSelector((state: RootState) => state.supportChat);
-
+    const { messages, personalNewAnswersCount } = useSelector((state: RootState) => state.supportChat);
     const { userPersonalAccountInfo, loading } = useSelector((state: RootState) => state.user);
 
-    // Получаем данные аккаунта
     useEffect(() => {
         dispatch(getUserPersonalAccountInfoThunk());
         window.scrollTo({ top: 0, behavior: "smooth" });
-    }, [token]);
+    }, [token, dispatch]);
 
-    /**
-     * Вызываем getAllMessagesThunk, чтобы вытащить сообщения чата
-     * и сохранить их в Redux (сразу при загрузке личного кабинета).
-     */
-    // useEffect(() => {
-    //     setInterval(() => {
-    //         dispatch(getAllMessagesThunk());
-    //     }, 1000);
-    // }, []);
+    // Обновляем сообщения в личном кабинете каждую секунду
+    useEffect(() => {
+        const interval = setInterval(() => {
+            dispatch(getAllMessagesThunk());
+        }, 30000);
+        return () => clearInterval(interval);
+    }, [dispatch]);
 
-    /**
-     * ЛОГИКА сравнения localStorage и вычисления новых сообщений:
-     * Аналогично тому, как это делается в чате, но теперь и на странице
-     * личного кабинета — чтобы сразу видеть количество новых сообщений.
-     */
+    // Логика для вычисления разницы новых сообщений по сравнению с localStorage
     useEffect(() => {
         if (!messages || messages.length === 0) return;
-
         const oldCount = Number(localStorage.getItem("answerCount") || 0);
-        // Считаем, сколько всего ответов от поддержки
         const currentAnswers = messages.filter((m) => m.is_answer);
         const newCount = currentAnswers.length;
         const difference = newCount - oldCount;
-
         if (difference > 0) {
-            // Увеличиваем счётчик «новых ответов» на разницу
             dispatch(incrementNewAnswersCount(difference));
-            // Обновляем локальное хранилище
             localStorage.setItem("answerCount", String(newCount));
         }
-    }, [messages]);
+    }, [messages, dispatch]);
 
     const handleLogout = () => {
         localStorage.removeItem("savedToken");
@@ -122,11 +93,13 @@ const PersonalAccountMenu: React.FC = () => {
         {
             icon: AccountChatIcon,
             title: "Чат поддержки",
-            action: () => navigate("/support"),
+            action: () => {
+                navigate("/support");
+                dispatch(resetPersonalNewAnswers());
+            },
             iconWidth: 28,
             iconHeight: 28,
-            // Здесь отображаем реальное количество новых сообщений
-            notificationsCount: newAnswersCount,
+            notificationsCount: personalNewAnswersCount,
         },
         {
             icon: AccountNotificationIcon,

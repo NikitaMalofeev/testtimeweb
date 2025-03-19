@@ -1,5 +1,4 @@
 // SupportChat.tsx
-
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Icon } from "shared/ui/Icon/Icon";
@@ -18,7 +17,8 @@ import {
     openWebSocketConnection,
     postMessage,
     resetNewAnswers,
-    removeHighlight
+    removeHighlight,
+    addHighlight,
 } from "entities/SupportChat/slice/supportChatSlice";
 import { Loader } from "shared/ui/Loader/Loader";
 
@@ -45,9 +45,7 @@ export const SupportMessage = ({ message, highlight }: SupportMessageProps) => {
                 {new Date(`${message.created}`).toLocaleDateString("ru-RU")}
                 {highlight && <div className={styles.highlight}></div>}
             </span>
-            <p className={styles.message__message_support}>
-                {message.text}
-            </p>
+            <p className={styles.message__message_support}>{message.text}</p>
         </div>
     );
 };
@@ -56,7 +54,7 @@ export const SupportChat = () => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
 
-    const { websocketId, messages, loading, highlightedAnswers } = useSelector(
+    const { websocketId, messages, loading, highlightedAnswers, personalNewAnswersCount } = useSelector(
         (state: RootState) => state.supportChat
     );
     const token = useSelector((state: RootState) => state.user.token);
@@ -69,22 +67,33 @@ export const SupportChat = () => {
     const prevHighlightedRef = useRef<string[]>(highlightedAnswers);
 
     useEffect(() => {
+        if (messages.length && personalNewAnswersCount > 0) {
+            const answerMessages = messages.filter((m) => m.is_answer);
+            const newAnswers = answerMessages.slice(-personalNewAnswersCount);
+            newAnswers.forEach((m) => {
+                const key = `${m.created}-${m.user_id}`;
+                if (!highlightedAnswers.includes(key)) {
+                    dispatch(addHighlight(key));
+                }
+            });
+        }
+    }, [messages, personalNewAnswersCount, highlightedAnswers, dispatch]);
+
+    useEffect(() => {
         const oldKeys = prevHighlightedRef.current;
         const newKeys = highlightedAnswers.filter((key) => !oldKeys.includes(key));
-
         newKeys.forEach((key) => {
             setTimeout(() => {
                 dispatch(removeHighlight(key));
             }, 5000);
         });
-
         prevHighlightedRef.current = highlightedAnswers;
-    }, [highlightedAnswers]);
+    }, [highlightedAnswers, dispatch]);
 
     useEffect(() => {
         dispatch(fetchWebsocketId());
         dispatch(getAllMessagesThunk());
-    }, [token]);
+    }, [token, dispatch]);
 
     useEffect(() => {
         const originalOverflow = document.body.style.overflow;
@@ -98,7 +107,7 @@ export const SupportChat = () => {
         if (websocketId) {
             dispatch(openWebSocketConnection(websocketId));
         }
-    }, [websocketId]);
+    }, [websocketId, dispatch]);
 
     useEffect(() => {
         if (chatContainerRef.current) {
@@ -155,10 +164,8 @@ export const SupportChat = () => {
                     </div>
                 )}
             </div>
-
             <div
-                className={`${styles.chat__chat__container} ${isScrolled ? styles.shadow_top : ""
-                    }`}
+                className={`${styles.chat__chat__container} ${isScrolled ? styles.shadow_top : ""}`}
             >
                 <div
                     className={styles.chat__wrapper}
@@ -173,14 +180,8 @@ export const SupportChat = () => {
                                 const msgKey = `${msg.created}-${msg.user_id}-${index}`;
                                 const highlightKey = `${msg.created}-${msg.user_id}`;
                                 const isHighlighted = highlightedAnswers.includes(highlightKey);
-
                                 if (!msg.is_answer) {
-                                    return (
-                                        <UserMessage
-                                            key={msgKey}
-                                            message={msg}
-                                        />
-                                    );
+                                    return <UserMessage key={msgKey} message={msg} />;
                                 }
                                 return (
                                     <SupportMessage
@@ -193,7 +194,6 @@ export const SupportChat = () => {
                     </div>
                 </div>
             </div>
-
             <div className={`${styles.chat__input} ${!isBottom ? styles.shadow : ""}`}>
                 <Icon
                     Svg={ChatImportIcon}

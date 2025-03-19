@@ -1,3 +1,4 @@
+// entities/SupportChat/slice/supportChatSlice.ts
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { askQuestion, getAllQuestions, getGroupWs } from "../api/supportChatApi";
 import { RootState } from "app/providers/store/config/store";
@@ -10,8 +11,9 @@ interface SupportChatState {
     error: string | null;
     success: boolean;
     isWsConnected: boolean;
-    newAnswersCount: number;      // Количество «новых» сообщений поддержки
-    highlightedAnswers: string[]; // «Ключи» новых сообщений для подсветки
+    newAnswersCount: number;
+    highlightedAnswers: string[];
+    personalNewAnswersCount: number;
 }
 
 const initialState: SupportChatState = {
@@ -23,6 +25,7 @@ const initialState: SupportChatState = {
     isWsConnected: false,
     newAnswersCount: 0,
     highlightedAnswers: [],
+    personalNewAnswersCount: 0,
 };
 
 let chatSocket: WebSocket | null = null;
@@ -58,7 +61,6 @@ export const getAllMessagesThunk = createAsyncThunk<
         try {
             const token = getState().user.token;
             const response = await getAllQuestions(token);
-            const { group_ws } = response;
             dispatch(setMessages(response));
             return response.websocketId;
         } catch (error: any) {
@@ -84,7 +86,6 @@ export const openWebSocketConnection = createAsyncThunk<
                 chatSocket.onopen = () => {
                     console.log("WebSocket connection established");
                 };
-
                 chatSocket.onmessage = (event) => {
                     try {
                         const parsedData = JSON.parse(event.data);
@@ -100,11 +101,9 @@ export const openWebSocketConnection = createAsyncThunk<
                         console.error("Ошибка парсинга сообщения из WebSocket:", e);
                     }
                 };
-
                 chatSocket.onclose = () => {
                     console.log("WebSocket closed");
                 };
-
                 chatSocket.onerror = (error) => {
                     console.error("WebSocket error", error);
                 };
@@ -147,40 +146,41 @@ export const supportChatSlice = createSlice({
         setMessages: (state, action: PayloadAction<ChatMessage[]>) => {
             const newMessages = action.payload;
             state.messages = newMessages;
-
             const oldCount = Number(localStorage.getItem("answerCount") || 0);
             const currentCount = newMessages.filter((m) => m.is_answer).length;
             const diff = currentCount - oldCount;
-
             if (diff > 0) {
-                // Вытаскиваем последние diff ответов
                 const newAnswers = newMessages
                     .filter((m) => m.is_answer)
                     .slice(-diff);
-
                 newAnswers.forEach((m) => {
                     const key = `${m.created}-${m.user_id}`;
                     if (!state.highlightedAnswers.includes(key)) {
                         state.highlightedAnswers.push(key);
                     }
                 });
-
                 state.newAnswersCount += diff;
+                state.personalNewAnswersCount += diff;
                 localStorage.setItem("answerCount", String(currentCount));
             }
         },
         addMessage: (state, action: PayloadAction<ChatMessage>) => {
             const msg = action.payload;
             state.messages.unshift(msg);
-
             if (msg.is_answer) {
                 const oldCount = Number(localStorage.getItem("answerCount") || 0);
                 localStorage.setItem("answerCount", String(oldCount + 1));
                 state.newAnswersCount += 1;
+                state.personalNewAnswersCount += 1;
                 const key = `${msg.created}-${msg.user_id}`;
                 if (!state.highlightedAnswers.includes(key)) {
                     state.highlightedAnswers.push(key);
                 }
+            }
+        },
+        addHighlight: (state, action: PayloadAction<string>) => {
+            if (!state.highlightedAnswers.includes(action.payload)) {
+                state.highlightedAnswers.push(action.payload);
             }
         },
         closeWebSocketConnection: (state) => {
@@ -194,13 +194,15 @@ export const supportChatSlice = createSlice({
             state.newAnswersCount = 0;
             state.highlightedAnswers = [];
         },
+        resetPersonalNewAnswers: (state) => {
+            state.personalNewAnswersCount = 0;
+        },
         removeHighlight: (state, action: PayloadAction<string>) => {
             const index = state.highlightedAnswers.indexOf(action.payload);
             if (index !== -1) {
                 state.highlightedAnswers.splice(index, 1);
             }
         },
-        // ➜➜➜ Добавляем экшен incrementNewAnswersCount:
         incrementNewAnswersCount: (state, action: PayloadAction<number>) => {
             state.newAnswersCount += action.payload;
         },
@@ -267,11 +269,12 @@ export const {
     setWebsocketId,
     setMessages,
     addMessage,
+    addHighlight,
     closeWebSocketConnection,
     resetNewAnswers,
+    resetPersonalNewAnswers,
     removeHighlight,
-    // Экспортируем новый экшен:
-    incrementNewAnswersCount
+    incrementNewAnswersCount,
 } = supportChatSlice.actions;
 
 export default supportChatSlice.reducer;

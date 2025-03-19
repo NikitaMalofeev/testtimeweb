@@ -22,6 +22,10 @@ import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { getUserPersonalAccountInfoThunk, setUserToken } from "entities/User/slice/userSlice";
 import { useNavigate } from "react-router-dom";
 import { Loader } from "shared/ui/Loader/Loader";
+import { PushNotification } from "features/PushNotifications/PushNotification/PushNotification";
+import { RiskProfileModal } from "features/RiskProfile/RiskProfileModal/RiskProfileModal";
+import { closeModal } from "entities/ui/Modal/slice/modalSlice";
+import { ModalType } from "entities/ui/Modal/model/modalTypes";
 
 /**
  * Иконки можно подключать по-разному: через svg-спрайт, через иконки из MaterialUI и т.п.
@@ -32,6 +36,7 @@ const PersonalAccountMenu: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate()
     const token = useSelector((state: RootState) => state.user.token)
+    const modalRPState = useSelector((state: RootState) => state.modal.identificationModal)
 
     useEffect(() => {
         dispatch(getUserPersonalAccountInfoThunk())
@@ -123,56 +128,65 @@ const PersonalAccountMenu: React.FC = () => {
     ];
 
     return loading || !userPersonalAccountInfo?.first_name ? <Loader /> : (
-        <div className={styles.page}>
-            <div className={styles.page__container}>
-                <div>{userPersonalAccountInfo?.tariff_is_active ? <div className={styles.page__status_active}>активна</div> : <div className={styles.page__status_inactive}>остановлена</div>}</div>
-                <h2 className={styles.page__title}>Учетная запись</h2>
-                <div className={styles.page__info}>
-                    <div className={styles.page__avatar}>{userPersonalAccountInfo?.first_name[0]}{userPersonalAccountInfo?.last_name[0]}</div>
-                    <div className={styles.page__personalInfo}>
-                        <div className={styles.page__fio}>
-                            <span>{userPersonalAccountInfo?.first_name}</span>
-                            <span>{userPersonalAccountInfo?.last_name}</span>
-                            <span>{userPersonalAccountInfo?.patronymic}</span>
-                        </div>
-                        <div className={styles.page__contacts}>
-                            <Icon Svg={AccountPhoneIcon} width={16} height={16} />
-                            {userPersonalAccountInfo?.phone}
-                        </div>
-                        <div className={styles.page__contacts}>
-                            <Icon Svg={AccountMailIcon} width={16} height={16} />
-                            {userPersonalAccountInfo?.email}
+        <>
+            <div className={styles.page}>
+                <PushNotification />
+                <div className={styles.page__container}>
+                    <div>{userPersonalAccountInfo?.tariff_is_active ? <div className={styles.page__status_active}>активна</div> : <div className={styles.page__status_inactive}>остановлена</div>}</div>
+                    <h2 className={styles.page__title}>Учетная запись</h2>
+                    <div className={styles.page__info}>
+                        <div className={styles.page__avatar}>{userPersonalAccountInfo?.first_name[0]}{userPersonalAccountInfo?.last_name[0]}</div>
+                        <div className={styles.page__personalInfo}>
+                            <div className={styles.page__fio}>
+                                <span>{userPersonalAccountInfo?.first_name}</span>
+                                <span>{userPersonalAccountInfo?.last_name}</span>
+                                <span>{userPersonalAccountInfo?.patronymic}</span>
+                            </div>
+                            <div className={styles.page__contacts}>
+                                <Icon Svg={AccountPhoneIcon} width={16} height={16} />
+                                {userPersonalAccountInfo?.phone}
+                            </div>
+                            <div className={styles.page__contacts}>
+                                <Icon Svg={AccountMailIcon} width={16} height={16} />
+                                {userPersonalAccountInfo?.email}
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div>
-                    {items.map((item, index) => (
-                        <div
-                            key={index}
-                            style={(item.title !== 'Документы' && item.title !== 'Чат поддержки' && item.title !== 'Выйти из учетной записи') ? { opacity: '0.5' } : {}}
-                            onClick={() => {
-                                if (item.route) {
-                                    navigate(item.route);
-                                } else if (item.action) {
-                                    item.action();
-                                }
-                            }}
-                            className={styles.menu__item}
-                        >
-                            <Icon Svg={item.icon} width={item.iconWidth} height={item.iconHeight} />
-                            <span>{item.title}</span>
-                            {item.notificationsCount !== undefined && (
-                                <div className={styles.page__count}>
-                                    {item.notificationsCount}
-                                </div>
-                            )}
-                        </div>
-                    ))}
+                    <div>
+                        {items.map((item, index) => (
+                            <div
+                                key={index}
+                                style={(item.title !== 'Документы' && item.title !== 'Чат поддержки' && item.title !== 'Выйти из учетной записи') ? { opacity: '0.5' } : {}}
+                                onClick={() => {
+                                    if (item.route) {
+                                        navigate(item.route);
+                                    } else if (item.action) {
+                                        item.action();
+                                    }
+                                }}
+                                className={styles.menu__item}
+                            >
+                                <Icon Svg={item.icon} width={item.iconWidth} height={item.iconHeight} />
+                                <span>{item.title}</span>
+                                {item.notificationsCount !== undefined && (
+                                    <div className={styles.page__count}>
+                                        {item.notificationsCount}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
 
+                    </div>
                 </div>
+
             </div>
-
-        </div>
+            <RiskProfileModal
+                isOpen={modalRPState.isOpen}
+                onClose={() => {
+                    dispatch(closeModal(ModalType.IDENTIFICATION));
+                }}
+            />
+        </>
     );
 };
 

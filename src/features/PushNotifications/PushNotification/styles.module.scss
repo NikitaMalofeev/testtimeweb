@@ -1,0 +1,31 @@
+.pushNotification {
+    background-color: #EDEDED;
+    border-radius: 13px;
+    margin: 16px;
+    padding: 13px 10px;
+    display: flex;
+    gap: 10px;
+
+    &__title {
+        font-family: Inter;
+        font-weight: 600;
+        font-size: 16.71px;
+        line-height: 18.43px;
+        letter-spacing: -0.27px;
+        
+    }
+
+    &__description {
+        font-family: Inter;
+font-weight: 400;
+font-size: 13.82px;
+line-height: 17.28px;
+letter-spacing: -0.27px;
+
+    }
+
+    &__logo {
+        width: 38px;
+        height: 38px;
+    }
+}

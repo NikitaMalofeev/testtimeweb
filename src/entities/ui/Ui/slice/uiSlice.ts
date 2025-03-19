@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { ReactElement } from "react";
 interface UiState {
     additionalMenu: {
         currentStep: number;
@@ -11,6 +12,10 @@ interface UiState {
     isTooltipActive: {
         active: boolean
         message: string
+    }
+    isPushNotificationActive: {
+        active: boolean;
+        purpose: string;
     }
     confirmationDocs: string;
 }
@@ -26,6 +31,10 @@ const initialState: UiState = {
     isTooltipActive: {
         active: false,
         message: ''
+    },
+    isPushNotificationActive: {
+        active: false,
+        purpose: 'filledRP'
     },
     confirmationDocs: 'не определено',
 };
@@ -69,6 +78,9 @@ const uiSlice = createSlice({
         setTooltipActive: (state, action: PayloadAction<{ active: boolean; message: string }>) => {
             state.isTooltipActive = action.payload;
         },
+        setPushNotificationActive: (state, action: PayloadAction<{ active: boolean; purpose: string }>) => {
+            state.isPushNotificationActive = action.payload;
+        },
         setIsBottom: (state, action: PayloadAction<boolean>) => {
             state.isScrollToBottom = action.payload;
         },
@@ -86,7 +98,8 @@ export const {
     setConfirmationWhatsappSuccess,
     setConfirmationDocsSuccess,
     setTooltipActive,
-    setStepAdditionalMenuUI
+    setStepAdditionalMenuUI,
+    setPushNotificationActive
 } = uiSlice.actions;
 
 export default uiSlice.reducer;

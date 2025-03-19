@@ -43,11 +43,13 @@ import { selectIsAnyModalOpen } from "entities/ui/Modal/selectors/selectorsModal
 import { getAllUserInfoThunk } from "entities/User/slice/userSlice";
 import { getDocumentsSigned } from "entities/Documents/api/documentsApi";
 import { setCurrentConfirmingDoc } from "entities/RiskProfile/slice/riskProfileSlice";
+import { RiskProfileModal } from "features/RiskProfile/RiskProfileModal/RiskProfileModal";
 
 const DocumentsPage: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const modalPreviewState = useSelector((state: RootState) => state.modal.documentsPreview)
+    
     const { userDocuments, loading, filledRiskProfileChapters } = useSelector((state: RootState) => state.documents);
     const isPasportFilled = useSelector((state: RootState) => state.user.allUserDataForDocuments?.address_residential_apartment);
     const isRpFilled = useSelector((state: RootState) => state.user.allUserDataForDocuments?.invest_target);
@@ -364,6 +366,7 @@ const DocumentsPage: React.FC = () => {
                 }
                 docId={selectedDocId}
             />
+
         </div>
     );
 };

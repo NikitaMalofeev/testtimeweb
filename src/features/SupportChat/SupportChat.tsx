@@ -153,7 +153,7 @@ export const SupportChat = () => {
                     ref={chatContainerRef}
                     onScroll={handleScroll}
                 >
-                    <div style={{ padding: "13px 24px 0" }}>
+                    <div className={styles.chat__wrapper}>
                         <div className={styles.chat__chat}>
                             {messages.slice().reverse().map((msg, index) =>
                                 !msg.is_answer ? (

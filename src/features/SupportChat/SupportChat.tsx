@@ -1,3 +1,5 @@
+// SupportChat.tsx
+
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Icon } from "shared/ui/Icon/Icon";
@@ -16,7 +18,7 @@ import {
     openWebSocketConnection,
     postMessage,
     resetNewAnswers,
-    removeHighlight, // <-- Импортируем экшен
+    removeHighlight
 } from "entities/SupportChat/slice/supportChatSlice";
 import { Loader } from "shared/ui/Loader/Loader";
 
@@ -41,9 +43,7 @@ export const SupportMessage = ({ message, highlight }: SupportMessageProps) => {
         <div className={styles.message_support}>
             <span className={styles.message__date}>
                 {new Date(`${message.created}`).toLocaleDateString("ru-RU")}
-                {highlight && (
-                    <div className={styles.highlight}></div>
-                )}
+                {highlight && <div className={styles.highlight}></div>}
             </span>
             <p className={styles.message__message_support}>
                 {message.text}
@@ -65,34 +65,26 @@ export const SupportChat = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isBottom, setIsBottom] = useState(true);
 
-    // Реф для контейнера сообщений (прокрутка)
     const chatContainerRef = useRef<HTMLDivElement>(null);
-
-    // Реф для хранения предыдущего массива highlightedAnswers
     const prevHighlightedRef = useRef<string[]>(highlightedAnswers);
 
-    // Эффект, который слушает изменения в highlightedAnswers
     useEffect(() => {
-        // Найдём ключи, которые добавились с момента предыдущего рендера
         const oldKeys = prevHighlightedRef.current;
         const newKeys = highlightedAnswers.filter((key) => !oldKeys.includes(key));
 
-        // Для каждого «свежедобавленного» ключа запускаем таймер на 5 секунд
         newKeys.forEach((key) => {
             setTimeout(() => {
-                // По истечении 5 секунд удаляем ключ из highlightedAnswers
                 dispatch(removeHighlight(key));
             }, 5000);
         });
 
-        // Обновляем реф
         prevHighlightedRef.current = highlightedAnswers;
-    }, [highlightedAnswers, dispatch]);
+    }, [highlightedAnswers]);
 
     useEffect(() => {
         dispatch(fetchWebsocketId());
         dispatch(getAllMessagesThunk());
-    }, [token, dispatch]);
+    }, [token]);
 
     useEffect(() => {
         const originalOverflow = document.body.style.overflow;
@@ -106,7 +98,7 @@ export const SupportChat = () => {
         if (websocketId) {
             dispatch(openWebSocketConnection(websocketId));
         }
-    }, [websocketId, dispatch]);
+    }, [websocketId]);
 
     useEffect(() => {
         if (chatContainerRef.current) {
@@ -131,16 +123,11 @@ export const SupportChat = () => {
     const handleSendMessage = () => {
         if (!messageText.trim()) return;
         const newMessage: ChatMessage = {
-            text: messageText
+            text: messageText,
         };
         dispatch(postMessage(newMessage));
         setMessageText("");
     };
-
-    // Пример сброса счётчика и подсветки вручную:
-    // const handleResetHighlight = () => {
-    //     dispatch(resetNewAnswers());
-    // };
 
     if (loading && messages.length === 0) {
         return <Loader />;
@@ -214,7 +201,6 @@ export const SupportChat = () => {
                     height={24}
                     className={styles.chat__input__icon}
                 />
-
                 <Input
                     placeholder="Написать сообщение..."
                     name="message"
@@ -225,7 +211,6 @@ export const SupportChat = () => {
                     withoutCloudyLabel
                     error={false}
                 />
-
                 <Icon
                     className={styles.chat__input__icon}
                     Svg={ChatSendIcon}

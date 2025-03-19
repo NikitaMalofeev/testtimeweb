@@ -59,7 +59,6 @@ export const getAllMessagesThunk = createAsyncThunk<
             const token = getState().user.token;
             const response = await getAllQuestions(token);
             const { group_ws } = response;
-            // Далее сохраним все сообщения в стор (будет логика в setMessages)
             dispatch(setMessages(response));
             return response.websocketId;
         } catch (error: any) {
@@ -90,7 +89,6 @@ export const openWebSocketConnection = createAsyncThunk<
                     try {
                         const parsedData = JSON.parse(event.data);
                         if (parsedData.type === "message_to_support_chat") {
-                            // Новое сообщение от сервера
                             dispatch(addMessage(parsedData.data));
                         } else {
                             console.log(
@@ -150,31 +148,24 @@ export const supportChatSlice = createSlice({
             const newMessages = action.payload;
             state.messages = newMessages;
 
-            // Считаем старое число ответов (is_answer)
             const oldCount = Number(localStorage.getItem("answerCount") || 0);
-            // Считаем текущее
             const currentCount = newMessages.filter((m) => m.is_answer).length;
             const diff = currentCount - oldCount;
 
             if (diff > 0) {
-                // Получим последние diff сообщений, которые являются is_answer
+                // Вытаскиваем последние diff ответов
                 const newAnswers = newMessages
                     .filter((m) => m.is_answer)
                     .slice(-diff);
 
-                // Запоминаем их «ключи» для подсветки
                 newAnswers.forEach((m) => {
                     const key = `${m.created}-${m.user_id}`;
-                    // Добавляем, только если ещё нет в массиве
                     if (!state.highlightedAnswers.includes(key)) {
                         state.highlightedAnswers.push(key);
                     }
                 });
 
-                // Увеличим счётчик
                 state.newAnswersCount += diff;
-
-                // Обновим localStorage
                 localStorage.setItem("answerCount", String(currentCount));
             }
         },
@@ -183,13 +174,9 @@ export const supportChatSlice = createSlice({
             state.messages.unshift(msg);
 
             if (msg.is_answer) {
-                // Если это новое сообщение поддержки — увеличим счётчик
                 const oldCount = Number(localStorage.getItem("answerCount") || 0);
                 localStorage.setItem("answerCount", String(oldCount + 1));
-
                 state.newAnswersCount += 1;
-
-                // Добавляем в highlightedAnswers
                 const key = `${msg.created}-${msg.user_id}`;
                 if (!state.highlightedAnswers.includes(key)) {
                     state.highlightedAnswers.push(key);
@@ -203,17 +190,19 @@ export const supportChatSlice = createSlice({
             }
             state.isWsConnected = false;
         },
-        // Сбрасывает счётчик «новых» и убирает все подсвеченные сообщения
         resetNewAnswers: (state) => {
             state.newAnswersCount = 0;
             state.highlightedAnswers = [];
         },
         removeHighlight: (state, action: PayloadAction<string>) => {
-            // Ищем индекс нужного ключа в массиве
             const index = state.highlightedAnswers.indexOf(action.payload);
             if (index !== -1) {
                 state.highlightedAnswers.splice(index, 1);
             }
+        },
+        // ➜➜➜ Добавляем экшен incrementNewAnswersCount:
+        incrementNewAnswersCount: (state, action: PayloadAction<number>) => {
+            state.newAnswersCount += action.payload;
         },
     },
     extraReducers: (builder) => {
@@ -280,7 +269,9 @@ export const {
     addMessage,
     closeWebSocketConnection,
     resetNewAnswers,
-    removeHighlight
+    removeHighlight,
+    // Экспортируем новый экшен:
+    incrementNewAnswersCount
 } = supportChatSlice.actions;
 
 export default supportChatSlice.reducer;

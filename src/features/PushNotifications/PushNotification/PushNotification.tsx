@@ -19,7 +19,7 @@ export const PushNotification = () => {
         visible: { scale: 1, opacity: 1 },
     };
     const dispatch = useAppDispatch()
-    const isRpFilled = useSelector((state: RootState) => state.documents.filledRiskProfileChapters)
+    const { filledRiskProfileChapters, loading } = useSelector((state: RootState) => state.documents)
 
     const pushPurpose: { [key: string]: { title: string; description: string, action: () => void } } = {
         filledRP: {
@@ -47,12 +47,12 @@ export const PushNotification = () => {
     };
 
     useEffect(() => {
-        if (!isRpFilled.is_risk_profile_complete_final) {
+        if (!filledRiskProfileChapters.is_risk_profile_complete_final) {
             dispatch(setPushNotificationActive({ active: true, purpose: 'filledRP' }));
         } else {
             dispatch(setPushNotificationActive({ active: false, purpose: '' }));
         }
-    }, [isRpFilled, dispatch]);
+    }, [filledRiskProfileChapters, dispatch]);
 
     useEffect(() => {
         dispatch(getUserDocumentsStateThunk());
@@ -60,26 +60,29 @@ export const PushNotification = () => {
 
     const purposeData = pushPurpose[purpose] || pushPurpose.default;
 
-    return (
-        <>
-            {
-                purpose.length > 0 && (
-                    <motion.div
-                        initial="hidden"
-                        animate={active ? variants.visible : variants.hidden}
-                        variants={variants}
-                        transition={{ duration: 0.5, ease: "easeInOut" }}
-                        className={styles.pushNotification}
-                        onClick={purposeData.action}
-                    >
-                        <img src={MiniLogo} alt="Mini Logo" className={styles.pushNotification__logo} />
-                        <div>
-                            <h3 className={styles.pushNotification__title}>{purposeData.title}</h3>
-                            <p className={styles.pushNotification__description}>{purposeData.description}</p>
-                        </div>
-                    </motion.div>
-                )
-            }
-        </>
-    );
+    if (loading) {
+        return
+    } else
+        return (
+            <>
+                {
+                    purpose.length > 0 && (
+                        <motion.div
+                            initial="hidden"
+                            animate={active ? variants.visible : variants.hidden}
+                            variants={variants}
+                            transition={{ duration: 0.5, ease: "easeInOut" }}
+                            className={styles.pushNotification}
+                            onClick={purposeData.action}
+                        >
+                            <img src={MiniLogo} alt="Mini Logo" className={styles.pushNotification__logo} />
+                            <div>
+                                <h3 className={styles.pushNotification__title}>{purposeData.title}</h3>
+                                <p className={styles.pushNotification__description}>{purposeData.description}</p>
+                            </div>
+                        </motion.div>
+                    )
+                }
+            </>
+        );
 };

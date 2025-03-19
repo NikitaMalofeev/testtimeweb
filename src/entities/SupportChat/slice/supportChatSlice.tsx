@@ -3,9 +3,6 @@ import { askQuestion, getAllQuestions, getGroupWs } from "../api/supportChatApi"
 import { RootState } from "app/providers/store/config/store";
 import { ChatMessage } from "../model/chatModel";
 
-/**
- * Интерфейс состояния слайса supportChat
- */
 interface SupportChatState {
     websocketId: string;
     messages: ChatMessage[];
@@ -13,11 +10,10 @@ interface SupportChatState {
     error: string | null;
     success: boolean;
     isWsConnected: boolean;
+    newAnswersCount: number;      // Количество «новых» сообщений поддержки
+    highlightedAnswers: string[]; // «Ключи» новых сообщений для подсветки
 }
 
-/**
- * Начальное состояние
- */
 const initialState: SupportChatState = {
     websocketId: "",
     messages: [],
@@ -25,30 +21,24 @@ const initialState: SupportChatState = {
     error: null,
     success: false,
     isWsConnected: false,
+    newAnswersCount: 0,
+    highlightedAnswers: [],
 };
 
-/**
- * Пример локальной переменной для хранения открытого WebSocket
- * (Не храните WebSocket в state — это несерилизуемый объект)
- */
 let chatSocket: WebSocket | null = null;
 
-/**
- * Thunk для получения websocketId (например, из API)
- */
 export const fetchWebsocketId = createAsyncThunk<
-    string, // Возвращаемый тип данных при успехе
-    void,   // Тип аргумента, который передаётся в thunk
-    { rejectValue: string, state: RootState }
+    string,
+    void,
+    { rejectValue: string; state: RootState }
 >(
     "supportChat/fetchWebsocketId",
     async (_, { rejectWithValue, getState, dispatch }) => {
         try {
             const token = getState().user.token;
-            // Предположим, getGroupWs возвращает { websocketId: string }
             const response = await getGroupWs(token);
-            const { group_ws } = response
-            dispatch(setWebsocketId(group_ws))
+            const { group_ws } = response;
+            dispatch(setWebsocketId(group_ws));
             return response.websocketId;
         } catch (error: any) {
             return rejectWithValue(
@@ -59,67 +49,60 @@ export const fetchWebsocketId = createAsyncThunk<
 );
 
 export const getAllMessagesThunk = createAsyncThunk<
-    string, // Возвращаемый тип данных при успехе
-    void,   // Тип аргумента, который передаётся в thunk
-    { rejectValue: string, state: RootState }
+    string,
+    void,
+    { rejectValue: string; state: RootState }
 >(
     "supportChat/getAllMessagesThunk",
     async (_, { rejectWithValue, getState, dispatch }) => {
         try {
             const token = getState().user.token;
-            // Предположим, getGroupWs возвращает { websocketId: string }
             const response = await getAllQuestions(token);
-            const { group_ws } = response
-            dispatch(setMessages(response))
+            const { group_ws } = response;
+            // Далее сохраним все сообщения в стор (будет логика в setMessages)
+            dispatch(setMessages(response));
             return response.websocketId;
         } catch (error: any) {
             return rejectWithValue(
-                error.response?.data?.message || "Ошибка получения websocket ID"
+                error.response?.data?.message || "Ошибка получения сообщений"
             );
         }
     }
 );
 
-/**
- * Thunk для открытия WebSocket-соединения.
- * При получении новых сообщений — диспатчим addMessage, чтобы обновить Redux-хранилище.
- */
 export const openWebSocketConnection = createAsyncThunk<
-    void,            // Возвращаем ничего, т.к. сама логика внутри
-    string,          // Параметр — websocketId
-    { rejectValue: string, state: RootState }
+    void,
+    string,
+    { rejectValue: string; state: RootState }
 >(
     "supportChat/openWebSocketConnection",
-    async (websocketId, { dispatch, rejectWithValue, getState }) => {
+    async (websocketId, { dispatch, rejectWithValue }) => {
         try {
-            // Открываем WebSocket
             if (!chatSocket) {
-                chatSocket = new WebSocket(`wss://test.webbroker.ranks.pro/ws/chat_support/${websocketId}/`);
-                console.log('открытие вебсокета 2')
-                // Сразу после открытия
+                chatSocket = new WebSocket(
+                    `wss://test.webbroker.ranks.pro/ws/chat_support/${websocketId}/`
+                );
                 chatSocket.onopen = () => {
                     console.log("WebSocket connection established");
                 };
 
-                // Когда прилетает новое сообщение — добавляем его в общий список
                 chatSocket.onmessage = (event) => {
                     try {
                         const parsedData = JSON.parse(event.data);
-
-                        // Вы можете дополнительно проверить поле 'type'
                         if (parsedData.type === "message_to_support_chat") {
-                            // Вытаскиваем само сообщение
+                            // Новое сообщение от сервера
                             dispatch(addMessage(parsedData.data));
                         } else {
-                            console.log("Неизвестный тип WebSocket-сообщения:", parsedData.type);
+                            console.log(
+                                "Неизвестный тип WebSocket-сообщения:",
+                                parsedData.type
+                            );
                         }
                     } catch (e) {
                         console.error("Ошибка парсинга сообщения из WebSocket:", e);
                     }
                 };
 
-
-                // Когда соединение закрывается
                 chatSocket.onclose = () => {
                     console.log("WebSocket closed");
                 };
@@ -127,25 +110,20 @@ export const openWebSocketConnection = createAsyncThunk<
                 chatSocket.onerror = (error) => {
                     console.error("WebSocket error", error);
                 };
-
             }
-
         } catch (error: any) {
             return rejectWithValue(
-                error.response?.data?.message || "Ошибка открытия WebSocket-соединения"
+                error.response?.data?.message ||
+                "Ошибка открытия WebSocket-соединения"
             );
         }
     }
 );
 
-/**
- * Thunk для отправки сообщения (POST на сервер через REST).
- * Сам WebSocket в данном примере только «слушает» новые входящие сообщения от поддержки.
- */
 export const postMessage = createAsyncThunk<
     ChatMessage,
     ChatMessage,
-    { rejectValue: string, state: RootState }
+    { rejectValue: string; state: RootState }
 >(
     "supportChat/postMessage",
     async (messageData, { rejectWithValue, getState }) => {
@@ -161,26 +139,63 @@ export const postMessage = createAsyncThunk<
     }
 );
 
-/**
- * Создаём слайс supportChat
- */
 export const supportChatSlice = createSlice({
     name: "supportChat",
     initialState,
     reducers: {
-        // Редьюсер для ручной установки websocketId, если нужно
         setWebsocketId: (state, action: PayloadAction<string>) => {
             state.websocketId = action.payload;
         },
-        // Редьюсер для установки массива сообщений
         setMessages: (state, action: PayloadAction<ChatMessage[]>) => {
-            state.messages = action.payload;
+            const newMessages = action.payload;
+            state.messages = newMessages;
+
+            // Считаем старое число ответов (is_answer)
+            const oldCount = Number(localStorage.getItem("answerCount") || 0);
+            // Считаем текущее
+            const currentCount = newMessages.filter((m) => m.is_answer).length;
+            const diff = currentCount - oldCount;
+
+            if (diff > 0) {
+                // Получим последние diff сообщений, которые являются is_answer
+                const newAnswers = newMessages
+                    .filter((m) => m.is_answer)
+                    .slice(-diff);
+
+                // Запоминаем их «ключи» для подсветки
+                newAnswers.forEach((m) => {
+                    const key = `${m.created}-${m.user_id}`;
+                    // Добавляем, только если ещё нет в массиве
+                    if (!state.highlightedAnswers.includes(key)) {
+                        state.highlightedAnswers.push(key);
+                    }
+                });
+
+                // Увеличим счётчик
+                state.newAnswersCount += diff;
+
+                // Обновим localStorage
+                localStorage.setItem("answerCount", String(currentCount));
+            }
         },
-        // Редьюсер для добавления нового сообщения в массив
         addMessage: (state, action: PayloadAction<ChatMessage>) => {
-            state.messages.unshift(action.payload);
+            const msg = action.payload;
+            state.messages.unshift(msg);
+
+            if (msg.is_answer) {
+                // Если это новое сообщение поддержки — увеличим счётчик
+                const oldCount = Number(localStorage.getItem("answerCount") || 0);
+                localStorage.setItem("answerCount", String(oldCount + 1));
+
+                state.newAnswersCount += 1;
+
+                // Добавляем в highlightedAnswers
+                const key = `${msg.created}-${msg.user_id}`;
+                if (!state.highlightedAnswers.includes(key)) {
+                    state.highlightedAnswers.push(key);
+                }
+            }
         },
-        // Закрыть соединение (по желанию)
         closeWebSocketConnection: (state) => {
             if (chatSocket) {
                 chatSocket.close();
@@ -188,12 +203,21 @@ export const supportChatSlice = createSlice({
             }
             state.isWsConnected = false;
         },
+        // Сбрасывает счётчик «новых» и убирает все подсвеченные сообщения
+        resetNewAnswers: (state) => {
+            state.newAnswersCount = 0;
+            state.highlightedAnswers = [];
+        },
+        removeHighlight: (state, action: PayloadAction<string>) => {
+            // Ищем индекс нужного ключа в массиве
+            const index = state.highlightedAnswers.indexOf(action.payload);
+            if (index !== -1) {
+                state.highlightedAnswers.splice(index, 1);
+            }
+        },
     },
     extraReducers: (builder) => {
         builder
-            /**
-             * Обработка fetchWebsocketId
-             */
             .addCase(fetchWebsocketId.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -208,10 +232,6 @@ export const supportChatSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload as string;
             })
-
-            /**
-             * Обработка openWebSocketConnection
-             */
             .addCase(openWebSocketConnection.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -225,20 +245,14 @@ export const supportChatSlice = createSlice({
                 state.isWsConnected = false;
                 state.error = action.payload as string;
             })
-
-            /**
-             * Обработка postMessage
-             */
             .addCase(postMessage.pending, (state) => {
                 state.loading = true;
                 state.error = null;
                 state.success = false;
             })
-            .addCase(postMessage.fulfilled, (state, action) => {
+            .addCase(postMessage.fulfilled, (state) => {
                 state.loading = false;
                 state.success = true;
-                // Добавляем своё же отправленное сообщение в список
-                // state.messages.push(action.payload);
             })
             .addCase(postMessage.rejected, (state, action) => {
                 state.loading = false;
@@ -249,11 +263,9 @@ export const supportChatSlice = createSlice({
                 state.error = null;
                 state.success = false;
             })
-            .addCase(getAllMessagesThunk.fulfilled, (state, action) => {
+            .addCase(getAllMessagesThunk.fulfilled, (state) => {
                 state.loading = false;
                 state.success = true;
-                // Добавляем своё же отправленное сообщение в список
-                // state.messages.push(action.payload);
             })
             .addCase(getAllMessagesThunk.rejected, (state, action) => {
                 state.loading = false;
@@ -262,14 +274,13 @@ export const supportChatSlice = createSlice({
     },
 });
 
-/**
- * Экспортируем экшены и редьюсер
- */
 export const {
     setWebsocketId,
     setMessages,
     addMessage,
     closeWebSocketConnection,
+    resetNewAnswers,
+    removeHighlight
 } = supportChatSlice.actions;
 
 export default supportChatSlice.reducer;

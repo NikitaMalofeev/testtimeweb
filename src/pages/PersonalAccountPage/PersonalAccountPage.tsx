@@ -39,6 +39,7 @@ const PersonalAccountMenu: React.FC = () => {
     const token = useSelector((state: RootState) => state.user.token)
     const modalRPState = useSelector((state: RootState) => state.modal.identificationModal)
     const { userDocuments } = useSelector((state: RootState) => state.documents)
+    const newAnswersCount = useSelector((state: RootState) => state.supportChat.newAnswersCount);
 
     useEffect(() => {
         dispatch(getUserPersonalAccountInfoThunk())
@@ -82,7 +83,7 @@ const PersonalAccountMenu: React.FC = () => {
             title: "Чат поддержки",
             action: () => navigate("/support"),
             iconWidth: 28,
-            notificationsCount: 0,
+            notificationsCount: newAnswersCount,
             iconHeight: 28,
         },
         {

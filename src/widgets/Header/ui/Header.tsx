@@ -9,7 +9,6 @@ import { classNames, Mods } from 'shared/lib/helpers/classNames/classNames';
 import { useNavigate } from 'react-router-dom';
 import { RootState } from 'app/providers/store/config/store';
 import { useSelector } from 'react-redux';
-import { StateSchema } from 'app/providers/store/config/StateSchema';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
 import { closeAllModals } from 'entities/ui/Modal/slice/modalSlice';
 

@@ -11,7 +11,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { RiskProfileModal } from 'features/RiskProfile/RiskProfileModal/RiskProfileModal';
 import { ConfirmInfoModal } from 'features/RiskProfile/ConfirmInfoModal/ConfirmInfoModal';
 import { ProblemsCodeModal } from 'features/RiskProfile/ProblemsCodeModal/ProblemsCodeModal';
-import { StateSchema } from './providers/store/config/StateSchema';
 import { closeModal } from 'entities/ui/Modal/slice/modalSlice';
 import { ModalType } from 'entities/ui/Modal/model/modalTypes';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
@@ -21,7 +20,7 @@ import { getAllMessagesThunk, setUnreadAnswersCount } from 'entities/SupportChat
 import { useAuthTokenManagement } from 'shared/hooks/useAuthTokenManager';
 
 function App() {
-  const modalState = useSelector((state: StateSchema) => state.modal);
+  const modalState = useSelector((state: RootState) => state.modal);
   const dispatch = useAppDispatch();
   const location = useLocation();
   const isMainPages = location.pathname === '/lk' || location.pathname === '/';

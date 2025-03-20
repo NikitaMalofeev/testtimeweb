@@ -24,8 +24,7 @@ import { PushNotification } from "features/PushNotifications/PushNotification/Pu
 import { RiskProfileModal } from "features/RiskProfile/RiskProfileModal/RiskProfileModal";
 import { closeModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalType } from "entities/ui/Modal/model/modalTypes";
-// Импортируем новое действие для установки счётчика непрочитанных ответов
-import { getAllMessagesThunk, setUnreadAnswersCount } from "entities/SupportChat/slice/supportChatSlice";
+import WarningIcon from 'shared/assets/svg/Warning.svg'
 
 const PersonalAccountMenu: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -62,7 +61,7 @@ const PersonalAccountMenu: React.FC = () => {
             iconHeight: 28,
             warningMessage: (
                 <div className={styles.warning}>
-                    <Icon Svg={AccountDocumentIcon} width={16} height={16} />
+                    <Icon Svg={WarningIcon} width={16} height={16} />
                     Есть неподписанные документы ({6 - userDocuments.length} шт.)
                 </div>
             ),

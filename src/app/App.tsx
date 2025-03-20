@@ -135,7 +135,7 @@ function App() {
     const interval = setInterval(() => {
       // Здесь вызывается getAllMessages для получения полного списка сообщений
       dispatch(getAllMessagesThunk()); // если требуется запрос к getAllMessages, замените на соответствующий thunk
-    }, 1000);
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 

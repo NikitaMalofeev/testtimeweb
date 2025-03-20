@@ -13,7 +13,11 @@ import { StateSchema } from 'app/providers/store/config/StateSchema';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
 import { closeAllModals } from 'entities/ui/Modal/slice/modalSlice';
 
-export const Header = () => {
+interface HeaderProps {
+    currentNotificationsCount: number;
+}
+
+export const Header = ({ currentNotificationsCount }: HeaderProps) => {
     const [isActive, setIsActive] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const { token, is_active } = useSelector((state: RootState) => state.user)
@@ -73,7 +77,7 @@ export const Header = () => {
                     navigate('/lk')
 
                 }}>
-                    <div className={styles.header__notifications}>0</div>
+                    <div className={styles.header__notifications}>{currentNotificationsCount}</div>
                     <Icon Svg={AccountIcon} width={24} height={24} />
                 </div>}
 

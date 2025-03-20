@@ -1,4 +1,4 @@
-// SupportChat.tsx
+// entities/SupportChat/SupportChat.tsx
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Icon } from "shared/ui/Icon/Icon";
@@ -16,11 +16,14 @@ import {
     getAllMessagesThunk,
     openWebSocketConnection,
     postMessage,
-    resetNewAnswers,
-    removeHighlight,
-    addHighlight,
+    setUnreadAnswersCount,
 } from "entities/SupportChat/slice/supportChatSlice";
 import { Loader } from "shared/ui/Loader/Loader";
+
+interface SupportMessageProps {
+    message: ChatMessage;
+    highlight?: boolean;
+}
 
 export const UserMessage = ({ message }: { message: ChatMessage }) => {
     return (
@@ -32,11 +35,6 @@ export const UserMessage = ({ message }: { message: ChatMessage }) => {
         </div>
     );
 };
-
-interface SupportMessageProps {
-    message: ChatMessage;
-    highlight?: boolean;
-}
 
 export const SupportMessage = ({ message, highlight }: SupportMessageProps) => {
     return (
@@ -54,7 +52,7 @@ export const SupportChat = () => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
 
-    const { websocketId, messages, loading, highlightedAnswers, personalNewAnswersCount } = useSelector(
+    const { websocketId, messages, loading, unreadAnswersCount } = useSelector(
         (state: RootState) => state.supportChat
     );
     const token = useSelector((state: RootState) => state.user.token);
@@ -64,31 +62,16 @@ export const SupportChat = () => {
     const [isBottom, setIsBottom] = useState(true);
 
     const chatContainerRef = useRef<HTMLDivElement>(null);
-    const prevHighlightedRef = useRef<string[]>(highlightedAnswers);
 
-    useEffect(() => {
-        if (messages.length && personalNewAnswersCount > 0) {
-            const answerMessages = messages.filter((m) => m.is_answer);
-            const newAnswers = answerMessages.slice(-personalNewAnswersCount);
-            newAnswers.forEach((m) => {
-                const key = `${m.created}-${m.user_id}`;
-                if (!highlightedAnswers.includes(key)) {
-                    dispatch(addHighlight(key));
-                }
-            });
-        }
-    }, [messages, personalNewAnswersCount, highlightedAnswers, dispatch]);
-
-    useEffect(() => {
-        const oldKeys = prevHighlightedRef.current;
-        const newKeys = highlightedAnswers.filter((key) => !oldKeys.includes(key));
-        newKeys.forEach((key) => {
-            setTimeout(() => {
-                dispatch(removeHighlight(key));
-            }, 5000);
-        });
-        prevHighlightedRef.current = highlightedAnswers;
-    }, [highlightedAnswers, dispatch]);
+    // Вычисляем ключи для сообщений с is_answer, которые считаются непрочитанными.
+    // Сортируем сообщения с is_answer в хронологическом порядке (от старых к новым)
+    // и берём последние unreadAnswersCount элементов.
+    const unreadMessageKeys = React.useMemo(() => {
+        const answerMessages = messages.filter((m) => m.is_answer).slice().reverse();
+        const count = unreadAnswersCount;
+        const unreadMessages = count > 0 ? answerMessages.slice(-count) : [];
+        return new Set(unreadMessages.map((m) => `${m.created}-${m.user_id}`));
+    }, [messages, unreadAnswersCount]);
 
     useEffect(() => {
         dispatch(fetchWebsocketId());
@@ -109,11 +92,22 @@ export const SupportChat = () => {
         }
     }, [websocketId, dispatch]);
 
+    // Автоскролл вниз при изменении сообщений
     useEffect(() => {
         if (chatContainerRef.current) {
             chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
         }
     }, [messages]);
+
+    // После входа в чат ждем 5 секунд, затем обновляем localStorage и сбрасываем счетчик новых сообщений
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            const currentAnswerCount = messages.filter((m) => m.is_answer).length;
+            localStorage.setItem("chatAnswerCount", String(currentAnswerCount));
+            dispatch(setUnreadAnswersCount(0));
+        }, 5000);
+        return () => clearTimeout(timer);
+    }, [messages, dispatch]);
 
     const handleScroll = () => {
         if (chatContainerRef.current) {
@@ -178,16 +172,16 @@ export const SupportChat = () => {
                             .reverse()
                             .map((msg, index) => {
                                 const msgKey = `${msg.created}-${msg.user_id}-${index}`;
-                                const highlightKey = `${msg.created}-${msg.user_id}`;
-                                const isHighlighted = highlightedAnswers.includes(highlightKey);
                                 if (!msg.is_answer) {
                                     return <UserMessage key={msgKey} message={msg} />;
                                 }
+                                const messageKey = `${msg.created}-${msg.user_id}`;
+                                const highlight = unreadMessageKeys.has(messageKey);
                                 return (
                                     <SupportMessage
                                         key={msgKey}
                                         message={msg}
-                                        highlight={isHighlighted}
+                                        highlight={highlight}
                                     />
                                 );
                             })}

@@ -17,6 +17,7 @@ import { ModalType } from 'entities/ui/Modal/model/modalTypes';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
 import { Footer } from 'shared/ui/Footer/Footer';
 import { setUserToken } from 'entities/User/slice/userSlice';
+import { getAllMessagesThunk, setUnreadAnswersCount } from 'entities/SupportChat/slice/supportChatSlice';
 
 function App() {
   const { token } = useSelector((state: RootState) => state.user);
@@ -30,6 +31,9 @@ function App() {
   const SECRET_KEY = import.meta.env.VITE_RANKS_AUTHTOKEN_LS_KEY;
   const [lastActivity, setLastActivity] = useState<number>(Date.now());
   const lastExitSignature = localStorage.getItem('lastExitSignature');
+  const { messages } = useSelector((state: RootState) => state.supportChat);
+  const { userPersonalAccountInfo, loading } = useSelector((state: RootState) => state.user);
+  const { unreadAnswersCount } = useSelector((state: RootState) => state.supportChat);
 
   useEffect(() => {
     const savedToken = localStorage.getItem('savedToken');
@@ -125,10 +129,29 @@ function App() {
     document.documentElement.style.setProperty('--vh', `${userVh}px`);
   }, []);
 
+  //уведомления чата 
+  // Обновляем сообщения в личном кабинете каждые 30 секунд
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Здесь вызывается getAllMessages для получения полного списка сообщений
+      dispatch(getAllMessagesThunk()); // если требуется запрос к getAllMessages, замените на соответствующий thunk
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Логика для вычисления количества новых сообщений по сравнению с localStorage
+  useEffect(() => {
+    if (!messages || messages.length === 0) return;
+    const storedAnswerCount = Number(localStorage.getItem("chatAnswerCount") || 0);
+    const currentAnswerCount = messages.filter((m) => m.is_answer).length;
+    const unread = currentAnswerCount > storedAnswerCount ? currentAnswerCount - storedAnswerCount : 0;
+    dispatch(setUnreadAnswersCount(unread));
+  }, [messages]);
+
   return (
     <div className='page__wrapper'>
       <div className='page__content'>
-        <Header />
+        <Header currentNotificationsCount={unreadAnswersCount} />
         <Cover />
         <AppRouter />
       </div>

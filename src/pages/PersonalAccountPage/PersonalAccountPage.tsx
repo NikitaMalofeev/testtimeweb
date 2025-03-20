@@ -1,6 +1,6 @@
 // entities/PersonalAccount/PersonalAccountMenu.tsx
 import React, { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
 import { setCurrentTab } from "entities/PersonalAccount/slice/personalAccountSlice";
 import styles from "./styles.module.scss";
@@ -24,12 +24,8 @@ import { PushNotification } from "features/PushNotifications/PushNotification/Pu
 import { RiskProfileModal } from "features/RiskProfile/RiskProfileModal/RiskProfileModal";
 import { closeModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalType } from "entities/ui/Modal/model/modalTypes";
-import WarningIcon from "shared/assets/svg/Warning.svg";
-import {
-    getAllMessagesThunk,
-    incrementNewAnswersCount,
-    resetPersonalNewAnswers
-} from "entities/SupportChat/slice/supportChatSlice";
+// Импортируем новое действие для установки счётчика непрочитанных ответов
+import { getAllMessagesThunk, setUnreadAnswersCount } from "entities/SupportChat/slice/supportChatSlice";
 
 const PersonalAccountMenu: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -37,34 +33,15 @@ const PersonalAccountMenu: React.FC = () => {
     const token = useSelector((state: RootState) => state.user.token);
     const modalRPState = useSelector((state: RootState) => state.modal.identificationModal);
     const { userDocuments } = useSelector((state: RootState) => state.documents);
-    const { messages, personalNewAnswersCount } = useSelector((state: RootState) => state.supportChat);
+    // Используем новое значение unreadAnswersCount вместо personalNewAnswersCount
     const { userPersonalAccountInfo, loading } = useSelector((state: RootState) => state.user);
+    const { unreadAnswersCount } = useSelector((state: RootState) => state.supportChat);
 
     useEffect(() => {
         dispatch(getUserPersonalAccountInfoThunk());
         window.scrollTo({ top: 0, behavior: "smooth" });
     }, [token, dispatch]);
 
-    // Обновляем сообщения в личном кабинете каждую секунду
-    useEffect(() => {
-        const interval = setInterval(() => {
-            dispatch(getAllMessagesThunk());
-        }, 30000);
-        return () => clearInterval(interval);
-    }, [dispatch]);
-
-    // Логика для вычисления разницы новых сообщений по сравнению с localStorage
-    useEffect(() => {
-        if (!messages || messages.length === 0) return;
-        const oldCount = Number(localStorage.getItem("answerCount") || 0);
-        const currentAnswers = messages.filter((m) => m.is_answer);
-        const newCount = currentAnswers.length;
-        const difference = newCount - oldCount;
-        if (difference > 0) {
-            dispatch(incrementNewAnswersCount(difference));
-            localStorage.setItem("answerCount", String(newCount));
-        }
-    }, [messages, dispatch]);
 
     const handleLogout = () => {
         localStorage.removeItem("savedToken");
@@ -85,7 +62,7 @@ const PersonalAccountMenu: React.FC = () => {
             iconHeight: 28,
             warningMessage: (
                 <div className={styles.warning}>
-                    <Icon Svg={WarningIcon} width={16} height={16} />
+                    <Icon Svg={AccountDocumentIcon} width={16} height={16} />
                     Есть неподписанные документы ({6 - userDocuments.length} шт.)
                 </div>
             ),
@@ -95,11 +72,11 @@ const PersonalAccountMenu: React.FC = () => {
             title: "Чат поддержки",
             action: () => {
                 navigate("/support");
-                dispatch(resetPersonalNewAnswers());
+                // Здесь можно сбрасывать уведомления, если это требуется при переходе в чат
             },
             iconWidth: 28,
             iconHeight: 28,
-            notificationsCount: personalNewAnswersCount,
+            notificationsCount: unreadAnswersCount,
         },
         {
             icon: AccountNotificationIcon,

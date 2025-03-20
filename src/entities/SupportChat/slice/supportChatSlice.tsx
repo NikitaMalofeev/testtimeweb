@@ -11,9 +11,7 @@ interface SupportChatState {
     error: string | null;
     success: boolean;
     isWsConnected: boolean;
-    newAnswersCount: number;
-    highlightedAnswers: string[];
-    personalNewAnswersCount: number;
+    unreadAnswersCount: number;
 }
 
 const initialState: SupportChatState = {
@@ -23,9 +21,7 @@ const initialState: SupportChatState = {
     error: null,
     success: false,
     isWsConnected: false,
-    newAnswersCount: 0,
-    highlightedAnswers: [],
-    personalNewAnswersCount: 0,
+    unreadAnswersCount: 0,
 };
 
 let chatSocket: WebSocket | null = null;
@@ -52,7 +48,7 @@ export const fetchWebsocketId = createAsyncThunk<
 );
 
 export const getAllMessagesThunk = createAsyncThunk<
-    string,
+    ChatMessage[],
     void,
     { rejectValue: string; state: RootState }
 >(
@@ -62,7 +58,7 @@ export const getAllMessagesThunk = createAsyncThunk<
             const token = getState().user.token;
             const response = await getAllQuestions(token);
             dispatch(setMessages(response));
-            return response.websocketId;
+            return response;
         } catch (error: any) {
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка получения сообщений"
@@ -144,67 +140,17 @@ export const supportChatSlice = createSlice({
             state.websocketId = action.payload;
         },
         setMessages: (state, action: PayloadAction<ChatMessage[]>) => {
-            const newMessages = action.payload;
-            state.messages = newMessages;
-            const oldCount = Number(localStorage.getItem("answerCount") || 0);
-            const currentCount = newMessages.filter((m) => m.is_answer).length;
-            const diff = currentCount - oldCount;
-            if (diff > 0) {
-                const newAnswers = newMessages
-                    .filter((m) => m.is_answer)
-                    .slice(-diff);
-                newAnswers.forEach((m) => {
-                    const key = `${m.created}-${m.user_id}`;
-                    if (!state.highlightedAnswers.includes(key)) {
-                        state.highlightedAnswers.push(key);
-                    }
-                });
-                state.newAnswersCount += diff;
-                state.personalNewAnswersCount += diff;
-                localStorage.setItem("answerCount", String(currentCount));
-            }
+            state.messages = action.payload;
         },
         addMessage: (state, action: PayloadAction<ChatMessage>) => {
             const msg = action.payload;
             state.messages.unshift(msg);
             if (msg.is_answer) {
-                const oldCount = Number(localStorage.getItem("answerCount") || 0);
-                localStorage.setItem("answerCount", String(oldCount + 1));
-                state.newAnswersCount += 1;
-                state.personalNewAnswersCount += 1;
-                const key = `${msg.created}-${msg.user_id}`;
-                if (!state.highlightedAnswers.includes(key)) {
-                    state.highlightedAnswers.push(key);
-                }
+                state.unreadAnswersCount += 1;
             }
         },
-        addHighlight: (state, action: PayloadAction<string>) => {
-            if (!state.highlightedAnswers.includes(action.payload)) {
-                state.highlightedAnswers.push(action.payload);
-            }
-        },
-        closeWebSocketConnection: (state) => {
-            if (chatSocket) {
-                chatSocket.close();
-                chatSocket = null;
-            }
-            state.isWsConnected = false;
-        },
-        resetNewAnswers: (state) => {
-            state.newAnswersCount = 0;
-            state.highlightedAnswers = [];
-        },
-        resetPersonalNewAnswers: (state) => {
-            state.personalNewAnswersCount = 0;
-        },
-        removeHighlight: (state, action: PayloadAction<string>) => {
-            const index = state.highlightedAnswers.indexOf(action.payload);
-            if (index !== -1) {
-                state.highlightedAnswers.splice(index, 1);
-            }
-        },
-        incrementNewAnswersCount: (state, action: PayloadAction<number>) => {
-            state.newAnswersCount += action.payload;
+        setUnreadAnswersCount: (state, action: PayloadAction<number>) => {
+            state.unreadAnswersCount = action.payload;
         },
     },
     extraReducers: (builder) => {
@@ -265,16 +211,7 @@ export const supportChatSlice = createSlice({
     },
 });
 
-export const {
-    setWebsocketId,
-    setMessages,
-    addMessage,
-    addHighlight,
-    closeWebSocketConnection,
-    resetNewAnswers,
-    resetPersonalNewAnswers,
-    removeHighlight,
-    incrementNewAnswersCount,
-} = supportChatSlice.actions;
+export const { setWebsocketId, setMessages, addMessage, setUnreadAnswersCount } =
+    supportChatSlice.actions;
 
 export default supportChatSlice.reducer;

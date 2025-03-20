@@ -37,6 +37,7 @@ import {
     setStepAdditionalMenuUI
 } from "entities/ui/Ui/slice/uiSlice";
 import { setUserToken } from "entities/User/slice/userSlice";
+import { useNavigate } from "react-router-dom";
 
 interface ConfirmInfoModalProps {
     isOpen: boolean;
@@ -46,7 +47,7 @@ interface ConfirmInfoModalProps {
 export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps) => {
     const dispatch = useAppDispatch();
     const modalState = useSelector((state: RootState) => state.modal);
-
+    const navigate = useNavigate()
     // Состояния успеха/неуспеха подтверждения
     const phoneSuccess = useSelector((state: RootState) => state.ui.confirmationPhoneSuccess)
     const emailSuccess = useSelector((state: RootState) => state.ui.confirmationEmailSuccess);
@@ -299,6 +300,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                 message: "Данные успешно подтверждены",
                             })
                         );
+
                     },
                 })
             );
@@ -339,6 +341,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
     useEffect(() => {
         if ((phoneSuccess === "пройдено" || whatsappSuccess === "пройдено") && emailSuccess === "пройдено") {
             dispatch(setStepAdditionalMenuUI(0));
+            navigate('/lk')
             onClose();
         }
     }, [phoneSuccess, whatsappSuccess, emailSuccess]);

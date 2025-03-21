@@ -115,7 +115,7 @@ export const ConfirmDocsModal = memo(
                     content.removeEventListener("scroll", handleScroll);
                 }
             };
-        }, [dispatch]);
+        }, []);
 
         const codeLength = 4;
 
@@ -140,7 +140,7 @@ export const ConfirmDocsModal = memo(
 
         useEffect(() => {
             dispatch(setConfirmationDocsSuccess("не определено"));
-        }, [docsType, dispatch]);
+        }, [docsType]);
 
         const handleKeyDownFirst = (
             e: React.KeyboardEvent<HTMLInputElement>,

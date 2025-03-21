@@ -78,7 +78,7 @@ export const SelectModal: React.FC<SelectModalProps> = ({
                 content.removeEventListener("scroll", handleScroll);
             }
         };
-    }, [dispatch]);
+    }, []);
 
     // При выборе опции — запоминаем значение
     const handleSelectOption = (optionValue: string) => {

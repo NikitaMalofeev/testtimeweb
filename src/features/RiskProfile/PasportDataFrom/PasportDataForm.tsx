@@ -32,12 +32,17 @@ export const PasportDataForm: React.FC = () => {
     const token = useSelector((state: RootState) => state.user.token);
     const NAME_REGEX = /^[А-Яа-яЁё\s-]+$/;
 
+    const rehydrated = useSelector((state: RootState) => state._persist?.rehydrated);
+
     useEffect(() => {
-        dispatch(getUserPersonalAccountInfoThunk());
-        dispatch(getUserDocumentsStateThunk());
-        dispatch(getUserDocumentsInfoThunk());
-        dispatch(getAllUserInfoThunk());
-    }, []);
+        if (rehydrated) {
+            // Запросы выполняются только после завершения реидратации
+            dispatch(getUserPersonalAccountInfoThunk());
+            dispatch(getUserDocumentsStateThunk());
+            dispatch(getUserDocumentsInfoThunk());
+            dispatch(getAllUserInfoThunk());
+        }
+    }, [rehydrated, dispatch]);
 
 
     // Yup-схема валидации
@@ -104,14 +109,10 @@ export const PasportDataForm: React.FC = () => {
         initialValues: {
             g_recaptcha: "",
             type_message: "EMAIL",
-            // gender: userPersonalAccountInfo?.gender || '',
-            // first_name: userPersonalAccountInfo?.first_name,
-            // last_name: userPersonalAccountInfo?.last_name,
-            // patronymic: userPersonalAccountInfo?.patronymic,
-            gender: '',
-            first_name: '',
-            last_name: '',
-            patronymic: '',
+            gender: userPersonalAccountInfo?.gender || '',
+            first_name: userPersonalAccountInfo?.first_name,
+            last_name: userPersonalAccountInfo?.last_name,
+            patronymic: userPersonalAccountInfo?.patronymic,
             birth_date: null,
             birth_place: "",
             passport_series: "",

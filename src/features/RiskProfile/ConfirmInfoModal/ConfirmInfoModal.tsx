@@ -152,7 +152,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                 content.removeEventListener("scroll", handleScroll);
             }
         };
-    }, [dispatch]);
+    }, []);
 
     const codeLength = 4;
 

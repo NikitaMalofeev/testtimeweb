@@ -40,7 +40,7 @@ const PersonalAccountMenu: React.FC = () => {
     useEffect(() => {
         dispatch(getUserPersonalAccountInfoThunk());
         window.scrollTo({ top: 0, behavior: "smooth" });
-    }, [token, dispatch]);
+    }, [token]);
 
 
     const handleLogout = () => {

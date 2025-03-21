@@ -18,7 +18,7 @@ export const RiskProfileAllData = () => {
     useEffect(() => {
         dispatch(getAllUserInfoThunk());
         dispatch(getUserDocumentsInfoThunk());
-    }, [dispatch]);
+    }, []);
 
     const renderField = (label: string, value: string | undefined) => (
         <div className={styles.page__field}>

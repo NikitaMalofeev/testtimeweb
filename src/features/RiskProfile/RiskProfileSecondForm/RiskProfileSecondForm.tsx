@@ -66,7 +66,7 @@ export const RiskProfileSecondForm: React.FC = () => {
         debounce((values) => {
             handleGetNewPercentage(values)
         }, 500),
-        [dispatch]
+        []
     );
 
     useEffect(() => {

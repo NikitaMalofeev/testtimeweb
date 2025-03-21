@@ -70,12 +70,12 @@ export const RiskProfileFirstForm: React.FC = () => {
         }
         // Устанавливаем флаг, что загрузка из localStorage завершена
         setIsLSLoaded(true);
-    }, [dispatch]);
+    }, []);
 
     // ========================= 2. Получение селекторов =========================
     useEffect(() => {
         dispatch(fetchAllSelects() as any);
-    }, [dispatch]);
+    }, []);
 
     // ========================= 3. Синхронизация Redux → localStorage (только после загрузки LS) =========================
     useEffect(() => {

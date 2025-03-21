@@ -76,7 +76,7 @@ export const SupportChat = () => {
     useEffect(() => {
         dispatch(fetchWebsocketId());
         dispatch(getAllMessagesThunk());
-    }, [token, dispatch]);
+    }, [token]);
 
     useEffect(() => {
         const originalOverflow = document.body.style.overflow;
@@ -90,7 +90,7 @@ export const SupportChat = () => {
         if (websocketId) {
             dispatch(openWebSocketConnection(websocketId));
         }
-    }, [websocketId, dispatch]);
+    }, [websocketId]);
 
     // Автоскролл вниз при изменении сообщений
     useEffect(() => {
@@ -107,7 +107,7 @@ export const SupportChat = () => {
             dispatch(setUnreadAnswersCount(0));
         }, 5000);
         return () => clearTimeout(timer);
-    }, [messages, dispatch]);
+    }, [messages]);
 
     const handleScroll = () => {
         if (chatContainerRef.current) {

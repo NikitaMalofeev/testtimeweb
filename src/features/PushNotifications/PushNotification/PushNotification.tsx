@@ -52,7 +52,7 @@ export const PushNotification = () => {
         } else {
             dispatch(setPushNotificationActive({ active: false, purpose: '' }));
         }
-    }, [filledRiskProfileChapters, dispatch]);
+    }, [filledRiskProfileChapters]);
 
     useEffect(() => {
         dispatch(getUserDocumentsStateThunk());

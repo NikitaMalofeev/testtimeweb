@@ -27,17 +27,18 @@ export function useAuthTokenManagement() {
             const lastExitTime = parseInt(lastExit, 10);
             const now = Date.now();
 
-            if (lastExitSignature === expectedSignature && now - lastExitTime <= 80 * 60 * 1000) {
+            if (lastExitSignature === expectedSignature && now - lastExitTime <= 3 * 60 * 1000) {
                 dispatch(setUserToken(savedToken));
             } else {
                 localStorage.removeItem('savedToken');
                 localStorage.removeItem('lastExit');
                 localStorage.removeItem('lastExitSignature');
                 dispatch(setUserToken(''));
+                navigate('/')
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [dispatch, SECRET_KEY]);
+    }, [SECRET_KEY, savedToken]);
 
     // 2. Отслеживаем активность пользователя и обновляем lastActivity
     useEffect(() => {
@@ -63,11 +64,12 @@ export function useAuthTokenManagement() {
     useEffect(() => {
         const checkToken = () => {
             const now = Date.now();
-            if (now - lastActivity > 80 * 60 * 1000) {
+            if (now - lastActivity > 3 * 60 * 1000) {
                 localStorage.removeItem('savedToken');
                 localStorage.removeItem('lastExit');
                 localStorage.removeItem('lastExitSignature');
                 dispatch(setUserToken(''));
+                navigate('/')
             } else {
                 if (token) {
                     localStorage.setItem('savedToken', token);
@@ -89,7 +91,7 @@ export function useAuthTokenManagement() {
         const interval = setInterval(checkToken, 60000);
 
         return () => clearInterval(interval);
-    }, [lastActivity, token, SECRET_KEY, dispatch]);
+    }, [lastActivity, token, SECRET_KEY]);
 
 
     // 4. Дополнительная гарантия для iOS — сохраняем данные при событии pagehide
@@ -106,16 +108,6 @@ export function useAuthTokenManagement() {
         window.addEventListener('pagehide', handlePageHide);
         return () => window.removeEventListener('pagehide', handlePageHide);
     }, [token, SECRET_KEY]);
-
-    // 5. Редирект: если токена нет, переходим на страницу '/', иначе - на 'lk'
-    useEffect(() => {
-
-        if (token && location.pathname === '/') {
-            navigate('/lk');
-        } else if (!savedToken){
-            navigate('/')
-        }
-    }, [token, navigate]);
 
     return { lastActivity };
 }

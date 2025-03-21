@@ -11,6 +11,7 @@ import { RootState } from 'app/providers/store/config/store';
 import { useSelector } from 'react-redux';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
 import { closeAllModals } from 'entities/ui/Modal/slice/modalSlice';
+import { setError } from 'entities/Error/slice/errorSlice';
 
 interface HeaderProps {
     currentNotificationsCount: number;
@@ -67,13 +68,14 @@ export const Header = ({ currentNotificationsCount }: HeaderProps) => {
                 // </div>
                 :
                 <div className={styles.header__account} onClick={() => {
-                    dispatch(closeAllModals())
+                    navigate('/lk')
+
                     //костыль потом исправить FIXME
                     document.body.style.overflow = "";
                     document.body.style.position = "";
                     document.body.style.width = "";
                     document.documentElement.style.overflow = "";
-                    navigate('/lk')
+                    dispatch(closeAllModals())
 
                 }}>
                     <div className={styles.header__notifications}>{currentNotificationsCount}</div>

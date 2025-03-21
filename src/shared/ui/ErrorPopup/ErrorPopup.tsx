@@ -41,7 +41,7 @@ export const ErrorPopup = () => {
     return (
         <motion.div
             initial={{ y: -50, opacity: 0 }}
-            animate={visible ? { y: 24, opacity: 1 } : { y: -50, opacity: 0 }}
+            animate={visible ? { y: 24, opacity: 1 } : { y: -124, opacity: 0 }}
             transition={{ duration: 0.5, ease: "easeInOut" }}
             className={styles.errorModal}
         >

@@ -165,7 +165,7 @@ const DocumentsPage: React.FC = () => {
                     );
                 } else {
                     dispatch(setCurrentConfirmableDoc('type_doc_passport'));
-                    dispatch(setStepAdditionalMenuUI(4));
+                    dispatch(setStepAdditionalMenuUI(2));
                     dispatch(
                         openModal({
                             type: ModalType.IDENTIFICATION,

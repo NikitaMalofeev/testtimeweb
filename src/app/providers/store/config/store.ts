@@ -1,6 +1,7 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { persistReducer, persistStore } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
+import { getPersistConfig } from 'redux-deep-persist';
 
 import uiReducer from 'entities/ui/Ui/slice/uiSlice';
 import modalReducer from 'entities/ui/Modal/slice/modalSlice';
@@ -22,11 +23,14 @@ const rootReducer = combineReducers({
     supportChat: supportChatReducer,
 });
 
-const persistConfig = {
+// Получаем конфигурацию с помощью redux-deep-persist
+const persistConfig = getPersistConfig({
     key: 'root',
-    storage, // используется localStorage
-    whitelist: ['ui', 'modal', 'documents', 'riskProfile'], // сохраняем только эти редьюсеры
-};
+    storage, // используем localStorage
+    whitelist: ['ui.additionalMenu.currentStep', 'modal', 'user.user', 'documents', 'riskProfile'],
+    rootReducer, // обязательно передаём корневой редьюсер
+});
+
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 export const store = configureStore({

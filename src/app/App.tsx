@@ -18,6 +18,7 @@ import { Footer } from 'shared/ui/Footer/Footer';
 import { setUserToken } from 'entities/User/slice/userSlice';
 import { getAllMessagesThunk, setUnreadAnswersCount } from 'entities/SupportChat/slice/supportChatSlice';
 import { useAuthTokenManagement } from 'shared/hooks/useAuthTokenManager';
+import { setError } from 'entities/Error/slice/errorSlice';
 
 function App() {
   const modalState = useSelector((state: RootState) => state.modal);
@@ -27,7 +28,7 @@ function App() {
   const { messages } = useSelector((state: RootState) => state.supportChat);
   const { unreadAnswersCount } = useSelector((state: RootState) => state.supportChat);
 
-  useAuthTokenManagement()
+  const { lastActivity } = useAuthTokenManagement()
 
   useEffect(() => {
     const userVh = window.innerHeight / 100;
@@ -36,11 +37,14 @@ function App() {
 
   // Обновляем сообщения в личном кабинете каждые 30 секунд
   useEffect(() => {
-    const interval = setInterval(() => {
-      // Здесь вызывается getAllMessages для получения полного списка сообщений
-      dispatch(getAllMessagesThunk()); // если требуется запрос к getAllMessages, замените на соответствующий thunk
-    }, 30000);
-    return () => clearInterval(interval);
+    if (location.pathname !== '/') {
+      const interval = setInterval(() => {
+        // Здесь вызывается getAllMessages для получения полного списка сообщений
+        dispatch(getAllMessagesThunk()); // если требуется запрос к getAllMessages, замените на соответствующий thunk
+      }, 30000);
+      return () => clearInterval(interval);
+    }
+
   }, []);
 
   // Логика для вычисления количества новых сообщений по сравнению с localStorage

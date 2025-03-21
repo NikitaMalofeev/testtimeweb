@@ -29,14 +29,16 @@ export const PasportDataForm: React.FC = () => {
     const { loading, userPersonalAccountInfo, success } = useSelector((state: RootState) => state.user);
     const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
     const modalState = useSelector((state: RootState) => state.modal);
-
+    const token = useSelector((state: RootState) => state.user.token);
     const NAME_REGEX = /^[А-Яа-яЁё\s-]+$/;
 
     useEffect(() => {
-        dispatch(getUserPersonalAccountInfoThunk())
-        dispatch(getUserDocumentsStateThunk())
-        dispatch(getUserDocumentsInfoThunk())
-    }, [])
+        if (token) {
+            dispatch(getUserPersonalAccountInfoThunk())
+            dispatch(getUserDocumentsStateThunk())
+            dispatch(getUserDocumentsInfoThunk())
+        }
+    }, [token])
 
     // Yup-схема валидации
     const passportValidationSchema = Yup.object().shape({
@@ -220,12 +222,11 @@ export const PasportDataForm: React.FC = () => {
     };
 
     useEffect(() => {
-        dispatch(getAllUserInfoThunk());
-    }, []);
+        if (token) {
+            dispatch(getAllUserInfoThunk());
+        }
+    }, [token]);
 
-    useEffect(() => {
-        console.log("Formik errors:", formik.errors);
-    }, [formik.errors]);
 
     const handleCaptchaChange = (value: string | null) => {
         formik.setFieldValue("g_recaptcha", value || "");

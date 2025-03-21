@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
 import { setUserToken } from 'entities/User/slice/userSlice';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { RootState } from 'app/providers/store/config/store';
 
 export function useAuthTokenManagement() {
@@ -11,13 +11,14 @@ export function useAuthTokenManagement() {
     const navigate = useNavigate();
     const SECRET_KEY = import.meta.env.VITE_RANKS_AUTHTOKEN_LS_KEY;
     const token = useSelector((state: RootState) => state.user.token);
-
+    const location = useLocation()
+    const savedToken = localStorage.getItem('savedToken');
     // Состояние для отслеживания последней активности пользователя
     const [lastActivity, setLastActivity] = useState<number>(Date.now());
 
     // 1. При инициализации проверяем сохранённые данные в localStorage и валидируем их
     useEffect(() => {
-        const savedToken = localStorage.getItem('savedToken');
+
         const lastExit = localStorage.getItem('lastExit');
         const lastExitSignature = localStorage.getItem('lastExitSignature');
 
@@ -26,7 +27,7 @@ export function useAuthTokenManagement() {
             const lastExitTime = parseInt(lastExit, 10);
             const now = Date.now();
 
-            if (lastExitSignature === expectedSignature && now - lastExitTime <= 3 * 60 * 1000) {
+            if (lastExitSignature === expectedSignature && now - lastExitTime <= 80 * 60 * 1000) {
                 dispatch(setUserToken(savedToken));
             } else {
                 localStorage.removeItem('savedToken');
@@ -57,27 +58,39 @@ export function useAuthTokenManagement() {
         };
     }, []);
 
-    // 3. Сохраняем или очищаем данные в localStorage при изменении токена или активности
+    //  Периодически проверяем, не прошло ли более 0.5 минуты бездействия,
+    // и обновляем localStorage, либо очищаем данные и сбрасываем Redux‑токен.
     useEffect(() => {
-        const now = Date.now();
-        // Если прошло больше 3 минут бездействия — очищаем данные
-        if (now - lastActivity > 3 * 60 * 1000) {
-            localStorage.removeItem('savedToken');
-            localStorage.removeItem('lastExit');
-            localStorage.removeItem('lastExitSignature');
-        } else {
-            if (token) {
-                localStorage.setItem('savedToken', token);
-                localStorage.setItem('lastExit', lastActivity.toString());
-                const signature = btoa(lastActivity.toString() + SECRET_KEY);
-                localStorage.setItem('lastExitSignature', signature);
-            } else {
+        const checkToken = () => {
+            const now = Date.now();
+            if (now - lastActivity > 80 * 60 * 1000) {
                 localStorage.removeItem('savedToken');
                 localStorage.removeItem('lastExit');
                 localStorage.removeItem('lastExitSignature');
+                dispatch(setUserToken(''));
+            } else {
+                if (token) {
+                    localStorage.setItem('savedToken', token);
+                    localStorage.setItem('lastExit', lastActivity.toString());
+                    const signature = btoa(lastActivity.toString() + SECRET_KEY);
+                    localStorage.setItem('lastExitSignature', signature);
+                } else {
+                    localStorage.removeItem('savedToken');
+                    localStorage.removeItem('lastExit');
+                    localStorage.removeItem('lastExitSignature');
+                }
             }
-        }
-    }, [token, lastActivity, SECRET_KEY]);
+        };
+
+        // Вызываем функцию сразу при изменении токена или других зависимостей
+        checkToken();
+
+        // И запускаем интервал для последующих проверок
+        const interval = setInterval(checkToken, 60000);
+
+        return () => clearInterval(interval);
+    }, [lastActivity, token, SECRET_KEY, dispatch]);
+
 
     // 4. Дополнительная гарантия для iOS — сохраняем данные при событии pagehide
     useEffect(() => {
@@ -94,14 +107,15 @@ export function useAuthTokenManagement() {
         return () => window.removeEventListener('pagehide', handlePageHide);
     }, [token, SECRET_KEY]);
 
-    // 5. Если токена нет ни в Redux, ни в localStorage — перенаправляем на главную страницу
+    // 5. Редирект: если токена нет, переходим на страницу '/', иначе - на 'lk'
     useEffect(() => {
-        const savedToken = localStorage.getItem('savedToken');
-        if (!token && !savedToken) {
-            navigate('/');
+
+        if (token && location.pathname === '/') {
+            navigate('/lk');
+        } else if (!savedToken){
+            navigate('/')
         }
     }, [token, navigate]);
 
-    // По необходимости можно вернуть lastActivity или иную информацию
     return { lastActivity };
 }

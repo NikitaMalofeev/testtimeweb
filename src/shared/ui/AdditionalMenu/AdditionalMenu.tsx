@@ -6,7 +6,7 @@ import styles from "./styles.module.scss";
 import { setIsBottom } from "entities/ui/Ui/slice/uiSlice";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 
-const steps = ["Шаг 1 из 8", "Шаг 2 из 8", "Шаг 3 из 8", "Шаг 4 из 8", "Шаг 5 из 8", "Шаг 6 из 8", "Шаг 7 из 8", "Шаг 8 из 8"];
+const steps = ["Шаг 1 из 6", "Шаг 2 из 6", "Шаг 3 из 6", "Шаг 4 из 6", "Шаг 5 из 6", "Шаг 6 из 6"];
 
 interface AdditionalMenuProps {
     onClose: () => void;

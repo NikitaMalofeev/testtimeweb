@@ -22,9 +22,10 @@ import { useNavigate } from "react-router-dom";
 import { Loader } from "shared/ui/Loader/Loader";
 import { PushNotification } from "features/PushNotifications/PushNotification/PushNotification";
 import { RiskProfileModal } from "features/RiskProfile/RiskProfileModal/RiskProfileModal";
-import { closeModal } from "entities/ui/Modal/slice/modalSlice";
-import { ModalType } from "entities/ui/Modal/model/modalTypes";
+import { closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
+import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import WarningIcon from 'shared/assets/svg/Warning.svg'
+import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
 
 const PersonalAccountMenu: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -83,6 +84,17 @@ const PersonalAccountMenu: React.FC = () => {
             action: () => dispatch(setCurrentTab("notifications")),
             notificationsCount: 0,
             iconWidth: 25,
+            iconHeight: 28,
+        },
+        {
+            icon: AccountChatIcon,
+            title: "Брокер",
+            action: () => {
+                dispatch(setStepAdditionalMenuUI(5))
+                dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
+                // Здесь можно сбрасывать уведомления, если это требуется при переходе в чат
+            },
+            iconWidth: 28,
             iconHeight: 28,
         },
         {
@@ -167,7 +179,8 @@ const PersonalAccountMenu: React.FC = () => {
                                 style={{
                                     ...(item.title !== "Документы" &&
                                         item.title !== "Чат поддержки" &&
-                                        item.title !== "Выйти из учетной записи" && {
+                                        item.title !== "Выйти из учетной записи" &&
+                                    {
                                         opacity: "0.5",
                                     }),
                                     ...(item.warningMessage && { padding: "18px 0 34px" }),

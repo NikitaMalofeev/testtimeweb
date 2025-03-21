@@ -30,7 +30,13 @@ const initialState: ExtendedModalState = {
     [ModalType.PROBLEM_WITH_CODE]: {
         isOpen: false,
         size: ModalSize.MINI,
-        animation: ModalAnimation.LEFT,
+        animation: ModalAnimation.BOTTOM,
+        isScrolled: false
+    },
+    [ModalType.PROBLEM]: {
+        isOpen: false,
+        size: ModalSize.MINI,
+        animation: ModalAnimation.BOTTOM,
         isScrolled: false
     },
     [ModalType.SELECT]: { // Добавлена модалка для селекта

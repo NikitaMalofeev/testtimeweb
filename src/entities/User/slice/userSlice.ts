@@ -41,12 +41,13 @@ const initialState: UserState = {
 export const sendProblems = createAsyncThunk<
     void,
     ProblemsRequestData,
-    { rejectValue: string }
+    { rejectValue: string, state: RootState }
 >(
     "user/sendProblems",
-    async (data, { rejectWithValue }) => {
+    async (data, { rejectWithValue, getState }) => {
+        const token = getState().user.token
         try {
-            await sendProblemsRequest(data);
+            await sendProblemsRequest(data, token);
         } catch (error: any) {
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке данных"

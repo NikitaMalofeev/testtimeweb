@@ -1,5 +1,5 @@
 import axios from "axios";
-import { IdentificationProfileData, ConfirmationCodeData, NeedHelpData, TrustedPersonInfo, SecondRiskProfilePayload, PasportFormData, ConfirmationDocsData } from "entities/RiskProfile/model/types";
+import { IdentificationProfileData, ConfirmationCodeData, NeedHelpData, TrustedPersonInfo, SecondRiskProfilePayload, PasportFormData, ConfirmationDocsData, BrokerSetTokenPayload } from "entities/RiskProfile/model/types";
 import { PasportScanData } from "features/RiskProfile/PassportScanForm/PassportScanForm";
 
 const apiUrl = import.meta.env.VITE_RANKS_TEST_API_URL;
@@ -80,11 +80,12 @@ export const postResendConfirmationCode = async (data: any) => {
     return response.data;
 };
 
-export const postNeedHelpRequest = async (data: NeedHelpData) => {
+export const postNeedHelpRequest = async (data: NeedHelpData, token: string) => {
     const response = await axios.post(`${apiUrl}create_doc_user/need_help/`, data, {
         headers: {
             "Accept-Language": "ru",
             "Content-Type": "application/json",
+            "Authorization": `Token ${token}`
         },
     });
     return response.data;
@@ -160,3 +161,18 @@ export const getAllSelects = async () => {
     });
     return response.data;
 };
+
+export const postBrokerApiToken = async (data: BrokerSetTokenPayload, token: string) => {
+    const response = await axios.post(
+        `${apiUrl}create_doc_user/seventh_set_broker_token/`,
+        data,
+        {
+            headers: {
+                "Accept-Language": "ru",
+                "Content-Type": "application/json",
+                "Authorization": `Token ${token}`,
+            },
+        }
+    );
+    return response.data;
+}

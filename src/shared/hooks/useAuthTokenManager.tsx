@@ -5,6 +5,7 @@ import { useAppDispatch } from 'shared/hooks/useAppDispatch';
 import { setUserToken } from 'entities/User/slice/userSlice';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { RootState } from 'app/providers/store/config/store';
+import { closeAllModals } from 'entities/ui/Modal/slice/modalSlice';
 
 export function useAuthTokenManagement() {
     const dispatch = useAppDispatch();
@@ -34,6 +35,7 @@ export function useAuthTokenManagement() {
                 localStorage.removeItem('lastExit');
                 localStorage.removeItem('lastExitSignature');
                 dispatch(setUserToken(''));
+                dispatch(closeAllModals())
                 navigate('/')
             }
         }
@@ -69,6 +71,7 @@ export function useAuthTokenManagement() {
                 localStorage.removeItem('lastExit');
                 localStorage.removeItem('lastExitSignature');
                 dispatch(setUserToken(''));
+                dispatch(closeAllModals())
                 navigate('/')
             } else {
                 if (token) {

@@ -18,6 +18,7 @@ export enum ModalType {
     CONFIRM_CODE = 'confirmCodeModal',
     CONFIRM_DOCS = 'confirmDocsModal',
     PROBLEM_WITH_CODE = 'problemWithCodeModal',
+    PROBLEM = 'problem',
     PREVIEW = 'preview',
     DOCUMENTS_PREVIEW = 'documentsPreview',
     RESET_PASSWORD = 'resetPassword'

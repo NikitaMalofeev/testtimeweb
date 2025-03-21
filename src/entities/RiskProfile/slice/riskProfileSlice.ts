@@ -12,10 +12,12 @@ import {
     ThirdRiskProfileResponse,
     PasportFormData,
     SendCodeDocsConfirmPayload,
-    SecondRiskProfileFinalPayload
+    SecondRiskProfileFinalPayload,
+    BrokerSetTokenPayload
 } from "../model/types";
 import {
     getAllSelects,
+    postBrokerApiToken,
     postConfirmationCode,
     postConfirmationDocsCode,
     postFirstRiskProfile,
@@ -128,6 +130,22 @@ export const postSecondRiskProfileForm = createAsyncThunk<
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке данных"
             );
+        }
+    }
+);
+
+export const postBrokerApiTokenThunk = createAsyncThunk<
+    void,
+    BrokerSetTokenPayload,
+    { state: RootState; rejectValue: string }
+>(
+    "riskProfile/postBrokerApiTokenThunk",
+    async (data, { dispatch, rejectWithValue, getState }) => {
+        try {
+            const token = getState().user.token;
+            const response = await postBrokerApiToken(data, token);
+        } catch (error: any) {
+            setError(error.response.data.token)
         }
     }
 );
@@ -396,12 +414,13 @@ export const resendConfirmationCode = createAsyncThunk<
 export const requestNeedHelp = createAsyncThunk<
     void,
     NeedHelpData,
-    { rejectValue: string }
+    { rejectValue: string, state: RootState }
 >(
     "riskProfile/requestNeedHelp",
-    async (data, { rejectWithValue }) => {
+    async (data, { rejectWithValue, getState }) => {
+        const token = getState().user.token
         try {
-            await postNeedHelpRequest(data);
+            await postNeedHelpRequest(data, token);
         } catch (error: any) {
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при запросе помощи"

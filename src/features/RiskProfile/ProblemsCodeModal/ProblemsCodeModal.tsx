@@ -15,9 +15,10 @@ import { setTooltipActive } from "entities/ui/Ui/slice/uiSlice";
 interface ConfirmInfoModalProps {
     isOpen: boolean;
     onClose: () => void;
+    title?: string;
 }
 
-export const ProblemsCodeModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps) => {
+export const ProblemsCodeModal = memo(({ isOpen, onClose, title = 'Проблемы с получением кода' }: ConfirmInfoModalProps) => {
     const dispatch = useAppDispatch();
     const modalState = useSelector((state: RootState) => state.modal);
     const { phone, email } = useSelector((state: RootState) => state.user.user);
@@ -72,7 +73,7 @@ export const ProblemsCodeModal = memo(({ isOpen, onClose }: ConfirmInfoModalProp
             withCloseIcon
             titleWidth={"250px"}
             type={ModalType.PROBLEM_WITH_CODE}
-            withTitle="Проблемы с получением кода"
+            withTitle={title}
         >
             <div className={styles.modalContent}>
                 <Checkbox

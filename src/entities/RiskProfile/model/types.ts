@@ -129,3 +129,10 @@ export interface PasportFormData {
     address_residential_house: string;
     address_residential_apartment: string;
 }
+
+
+export interface BrokerSetTokenPayload {
+    market: string;
+    broker: string;
+    token: string;
+}

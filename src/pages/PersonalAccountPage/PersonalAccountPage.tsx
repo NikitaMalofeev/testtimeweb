@@ -26,6 +26,7 @@ import { closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import WarningIcon from 'shared/assets/svg/Warning.svg'
 import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
+import { ProblemsCodeModal } from "features/RiskProfile/ProblemsCodeModal/ProblemsCodeModal";
 
 const PersonalAccountMenu: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -180,6 +181,7 @@ const PersonalAccountMenu: React.FC = () => {
                                     ...(item.title !== "Документы" &&
                                         item.title !== "Чат поддержки" &&
                                         item.title !== "Выйти из учетной записи" &&
+                                        item.title !== "Брокер" &&
                                     {
                                         opacity: "0.5",
                                     }),
@@ -217,6 +219,7 @@ const PersonalAccountMenu: React.FC = () => {
                     dispatch(closeModal(ModalType.IDENTIFICATION));
                 }}
             />
+
         </>
     );
 };

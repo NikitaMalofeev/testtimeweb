@@ -26,19 +26,19 @@ export const PasportDataForm: React.FC = () => {
     const recaptchaRef = useRef<ReCAPTCHA | null>(null);
     const gcaptchaSiteKey = import.meta.env.VITE_RANKS_GRCAPTCHA_SITE_KEY;
     const [captchaVerified, setCaptchaVerified] = useState(false);
-    const { loading, userPersonalAccountInfo, success } = useSelector((state: RootState) => state.user);
+    const { loading, userPersonalAccountInfo } = useSelector((state: RootState) => state.user);
     const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
     const modalState = useSelector((state: RootState) => state.modal);
     const token = useSelector((state: RootState) => state.user.token);
     const NAME_REGEX = /^[А-Яа-яЁё\s-]+$/;
 
     useEffect(() => {
-        if (token) {
-            dispatch(getUserPersonalAccountInfoThunk())
-            dispatch(getUserDocumentsStateThunk())
-            dispatch(getUserDocumentsInfoThunk())
-        }
-    }, [token])
+        dispatch(getUserPersonalAccountInfoThunk());
+        dispatch(getUserDocumentsStateThunk());
+        dispatch(getUserDocumentsInfoThunk());
+        dispatch(getAllUserInfoThunk());
+    }, []);
+
 
     // Yup-схема валидации
     const passportValidationSchema = Yup.object().shape({
@@ -221,11 +221,7 @@ export const PasportDataForm: React.FC = () => {
         dispatch(updateFieldValue({ name, value }));
     };
 
-    useEffect(() => {
-        if (token) {
-            dispatch(getAllUserInfoThunk());
-        }
-    }, [token]);
+
 
 
     const handleCaptchaChange = (value: string | null) => {

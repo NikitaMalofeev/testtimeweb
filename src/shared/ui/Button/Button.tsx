@@ -1,4 +1,4 @@
-import React, { ButtonHTMLAttributes, CSSProperties, memo, ReactNode } from 'react';
+import React, { ButtonHTMLAttributes, memo, ReactNode, useState, useEffect } from 'react';
 import styles from './styles.module.scss';
 import { classNames, Mods } from 'shared/lib/helpers/classNames/classNames';
 
@@ -10,7 +10,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     theme?: ButtonTheme;
     buttonForm?: ButtonForm;
     onClick?: () => void;
-    padding?: string
+    padding?: string;
 }
 
 export enum ButtonForm {
@@ -25,7 +25,6 @@ export enum ButtonTheme {
     GREENuNDERLINE = 'green__underline'
 }
 
-
 export const Button = memo((props: ButtonProps) => {
     const {
         className,
@@ -39,9 +38,29 @@ export const Button = memo((props: ButtonProps) => {
         ...otherProps
     } = props;
 
+    const [isPressed, setIsPressed] = useState(false);
+
+    useEffect(() => {
+        let timer: NodeJS.Timeout;
+        if (isPressed) {
+            timer = setTimeout(() => setIsPressed(false), 75);
+        }
+        return () => {
+            if (timer) clearTimeout(timer);
+        };
+    }, [isPressed]);
+
+    const handleClick = () => {
+        setIsPressed(true);
+        if (onClick) {
+            onClick();
+        }
+    };
+
     const mods: Mods = {
         [styles[theme]]: true,
         [styles[buttonForm]]: true,
+        [styles.pressed]: isPressed,
     };
 
     const buttonClasses = [
@@ -63,7 +82,7 @@ export const Button = memo((props: ButtonProps) => {
             disabled={disabled}
             style={{ padding: `${padding}` }}
             {...otherProps}
-            onClick={onClick}
+            onClick={handleClick}
         >
             {children}
         </button>

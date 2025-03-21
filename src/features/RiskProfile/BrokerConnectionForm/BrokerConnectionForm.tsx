@@ -11,16 +11,26 @@ import { Button, ButtonTheme } from 'shared/ui/Button/Button';
 import { useSelector } from 'react-redux';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
 import { RootState } from 'app/providers/store/config/store';
+import PdfIcon from 'shared/assets/svg/pdfIcon.svg'
 
 
 // Стили (пример, вы можете адаптировать под себя)
 import styles from './styles.module.scss';
 import { CheckboxGroup } from 'shared/ui/CheckboxGroup/CheckboxGroup';
 import { Select } from 'shared/ui/Select/Select';
+import { Icon } from 'shared/ui/Icon/Icon';
 
 export const BrokerConnectionForm: React.FC = () => {
     const dispatch = useAppDispatch();
 
+    const brokersItems = [
+        {
+            value: 'tinkoff_broker',
+            label: 'Тинькофф инвестиции'
+        }
+    ]
+
+    const tinkoffExternalLink = 'https://www.tbank.ru/invest/'
 
     // Схема валидации для формы
     const validationSchema = Yup.object().shape({
@@ -48,7 +58,7 @@ export const BrokerConnectionForm: React.FC = () => {
     return (
         <form className={styles.form} onSubmit={formik.handleSubmit}>
             {/* Выбор рынка */}
-            <h2 className={styles.title}>Выбор рынка</h2>
+            <h2 className={styles.subtitle}>Выбор рынка</h2>
             <CheckboxGroup
                 name="market"
                 direction='row'
@@ -60,78 +70,62 @@ export const BrokerConnectionForm: React.FC = () => {
                 value={formik.values.market}
                 onChange={(name, value) => formik.setFieldValue(name, value)}
             />
-            {formik.touched.market && formik.errors.market && (
-                <div className={styles.error}>{formik.errors.market}</div>
-            )}
 
-            {/* Выбор брокера */}
-            <h2 className={styles.title}>Выбор брокера*</h2>
-            {/* <Select
-                placeholder="Название российского брокера"
-                name="brokerName"
+            <Select
+                items={brokersItems}
                 value={formik.values.brokerName}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
+                onChange={(val) => {
+                    formik.setFieldValue('brokerName', val)
+                }}
+                needValue
+                title='Выберите бокера'
+                label='Выбор брокера'
                 error={formik.touched.brokerName && formik.errors.brokerName}
-            /> */}
+            />
 
-            {/* Инструкция подключения (PDF) + кнопка перехода */}
-            <div className={styles.instructionWrapper}>
-                <div className={styles.pdfIcon}>
-                    {/* Замените на свой реальный путь к иконке PDF */}
-                    <img src="/assets/pdf-icon.svg" alt="PDF" />
-                </div>
-                <span className={styles.instructionText}>Инструкция подключения к брокеру</span>
+            <p className={styles.broker__description}>Создайте брокерский счет и получите в личном кабинете ключи, которые позволят подключить ваш торговый счет. Подробнее в PDF.</p>
+            <div className={styles.broker__instruction}>
+                <Icon Svg={PdfIcon} width={37} height={37} /> <span className={styles.broker__instruction__text}>Инструкция подключения к брокеру</span>
             </div>
-            <a
-                className={styles.link}
-                href="https://example.com/broker-instruction.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-                Перейти на сайт брокера
-            </a>
+
+            <div className={styles.broker__site}>
+                <span className={styles.broker__site__title}> Личный кабинет на сайте брокера</span>
+                <Button onClick={() => window.open(tinkoffExternalLink, '_blank')} className={styles.broker__site__button} children='Перейти на сайт брокера' theme={ButtonTheme.UNDERLINE} padding='19px 42px' />
+            </div>
 
             {/* Реквизиты для подключения */}
-            <h2 className={styles.subtitle}>Реквизиты для подключения</h2>
+            <div className={styles.broker__container}>
+                <h2 className={styles.broker__title}>Реквизиты для подключения</h2>
 
-            <Input
-                placeholder="Токен"
-                name="token"
-                value={formik.values.token}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                error={formik.touched.token && formik.errors.token}
-            />
-            <Input
-                placeholder="Название токена"
-                name="tokenName"
-                value={formik.values.tokenName}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                error={formik.touched.tokenName && formik.errors.tokenName}
-            />
+                <Input
+                    placeholder="Токен"
+                    name="token"
+                    value={formik.values.token}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    error={formik.touched.token && formik.errors.token}
+                    needValue
+                />
 
-            {/* Кнопка подтверждения */}
-            <Button
-                type="submit"
-                theme={ButtonTheme.BLUE}
-                className={styles.submitButton}
-            >
-                Подтвердить код
-            </Button>
+                {/* Кнопка подтверждения */}
+                <Button
+                    type="submit"
+                    theme={ButtonTheme.BLUE}
+                    className={styles.submitButton}
+                    padding='19px 70px'
 
-            {/* Ссылка "Проблемы с подключением?" (можно сделать кнопкой, чтобы открыть модалку) */}
-            <button
-                type="button"
-                className={styles.linkButton}
-                onClick={() => {
-                    // Открываем модалку или что-то ещё
-                    alert('Открыть модалку "Проблемы с подключением"');
-                }}
-            >
-                Проблемы с подключением?
-            </button>
+                >
+                    Подтвердить код
+                </Button>
+
+                <Button
+                    type="button"
+                    theme={ButtonTheme.EMPTYBLUE}
+                    className={styles.submitButton}
+                >
+                    Проблемы с подключением?
+                </Button>
+            </div>
         </form>
     );
 };

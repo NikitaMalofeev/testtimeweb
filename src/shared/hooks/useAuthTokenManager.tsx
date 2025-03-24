@@ -42,6 +42,12 @@ export function useAuthTokenManagement() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [SECRET_KEY, savedToken]);
 
+    useEffect(() => {
+        if (!token) {
+            dispatch(closeAllModals())
+        }
+    }, [token])
+
     // 2. Отслеживаем активность пользователя и обновляем lastActivity
     useEffect(() => {
         const handleActivity = () => {

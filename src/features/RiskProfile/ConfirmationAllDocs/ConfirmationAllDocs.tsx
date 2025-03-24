@@ -70,7 +70,7 @@ export const ConfirmAllDocs: React.FC = () => {
         }),
         onSubmit: () => {
             if (currentTypeDoc === 'type_doc_passport' && !isPasportFilled) {
-                dispatch(setStepAdditionalMenuUI(2))
+                dispatch(setStepAdditionalMenuUI(0))
             } else {
                 dispatch(
                     confirmDocsRequestThunk({
@@ -113,10 +113,16 @@ export const ConfirmAllDocs: React.FC = () => {
 
     useEffect(() => {
         if (currentTypeDoc) {
-            formik.setFieldValue("type_document", currentTypeDoc)
+            formik.resetForm({
+                values: {
+                    type_message: 'EMAIL',
+                    type_document: currentTypeDoc,
+                    is_agree: false,
+                },
+            });
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-    }, [currentTypeDoc])
+    }, [currentTypeDoc]);
 
     // Простой рендер названия документа
     const renderDocLabel = () => {
@@ -229,7 +235,6 @@ export const ConfirmAllDocs: React.FC = () => {
                         value={formik.values.type_message}
                         onChange={(name, selectedValue) => {
                             formik.setFieldValue(name, selectedValue);
-
                         }}
                     />
                 </div>

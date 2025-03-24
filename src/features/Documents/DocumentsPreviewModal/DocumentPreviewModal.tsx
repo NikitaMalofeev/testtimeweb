@@ -15,6 +15,8 @@ import { RiskProfileAllData } from "features/RiskProfile/RiskProfileAllData/Risk
 import { PdfViewerrr } from "shared/ui/PDFViewer/Viewer";
 import { Loader } from "shared/ui/Loader/Loader";
 import { PdfViewer } from "shared/ui/PDFViewer/PDFViewer";
+import { getUserDocumentsSignedThunk } from "entities/Documents/slice/documentsSlice";
+import { useAppDispatch } from "shared/hooks/useAppDispatch";
 
 interface PreviewModalProps {
     isOpen: boolean;       // Открыта ли модалка
@@ -31,7 +33,7 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
     docId,
     justPreview,
 }) => {
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
 
     // Все HTML-документы лежат в Redux-стейте (ключ -> html-строка)
     const allDocumentsHtml = useSelector(
@@ -40,6 +42,11 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
     const hasCurrentSighedDocument = useSelector(
         (state: RootState) => state.documents.currentSugnedDocument
     );
+
+    const currentTypeDoc = useSelector(
+        (state: RootState) => state.documents.currentConfirmableDoc
+    );
+
 
     const { loading } = useSelector(
         (state: RootState) => state.documents
@@ -109,20 +116,24 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                 </div>
 
                 <div className={styles.modalContent}>
-                    {justPreview ? (
-                        <PdfViewer assetUrl={justPreview} />
-                    ) : loading ? (
-                        <Loader />
-                    ) : (
+                    {loading && !docHtml ? <Loader /> : (
                         <>
-                            {docId === 'type_doc_passport' ? (
-                                <RiskProfileAllData />
-                            ) : hasCurrentSighedDocument.document ? (
-                                <PdfViewer documentData={hasCurrentSighedDocument.document} />
-                            ) : docHtml ? (
-                                <div className={styles.htmlContainer} dangerouslySetInnerHTML={{ __html: docHtml }} />
+                            {justPreview ? (
+                                <PdfViewer assetUrl={justPreview} />
+                            ) : loading ? (
+                                <Loader />
                             ) : (
-                                <div>Документ не найден (пустой HTML)</div>
+                                <>
+                                    {docId === 'type_doc_passport' ? (
+                                        <RiskProfileAllData />
+                                    ) : docHtml ? (
+                                        <div className={styles.htmlContainer} dangerouslySetInnerHTML={{ __html: docHtml }} />
+                                    ) : hasCurrentSighedDocument.document && Object.keys(hasCurrentSighedDocument.document).length > 0 ? (
+                                        <PdfViewer documentData={hasCurrentSighedDocument.document} />
+                                    ) : (
+                                        <div>Документ не найден (пустой HTML)</div>
+                                    )}
+                                </>
                             )}
                         </>
                     )}

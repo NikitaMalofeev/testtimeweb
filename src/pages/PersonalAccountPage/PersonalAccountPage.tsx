@@ -16,6 +16,8 @@ import AccountTarifsIcon from "shared/assets/svg/AccountTarifsIcon.svg";
 import AccountPhoneIcon from "shared/assets/svg/AccountPhoneIcon.svg";
 import AccountMailIcon from "shared/assets/svg/AccountMailIcon.svg";
 import AccountChatIcon from "shared/assets/svg/AccountChatIcon.svg";
+import AccountBrokerIcon from "shared/assets/svg/AccountBrokerIcon.svg";
+
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { getUserPersonalAccountInfoThunk, setUserToken } from "entities/User/slice/userSlice";
 import { useNavigate } from "react-router-dom";
@@ -64,7 +66,7 @@ const PersonalAccountMenu: React.FC = () => {
             warningMessage: (
                 <div className={styles.warning}>
                     <Icon Svg={WarningIcon} width={16} height={16} />
-                    Есть неподписанные документы ({6 - userDocuments.length} шт.)
+                    Есть неподписанные документы ({9 - userDocuments.length} шт.)
                 </div>
             ),
         },
@@ -88,7 +90,7 @@ const PersonalAccountMenu: React.FC = () => {
             iconHeight: 28,
         },
         {
-            icon: AccountChatIcon,
+            icon: AccountBrokerIcon,
             title: "Брокер",
             action: () => {
                 dispatch(setStepAdditionalMenuUI(5))

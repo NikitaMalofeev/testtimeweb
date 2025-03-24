@@ -91,7 +91,7 @@ export function useAuthTokenManagement() {
         checkToken();
 
         // И запускаем интервал для последующих проверок
-        const interval = setInterval(checkToken, 60000);
+        const interval = setInterval(checkToken, 30000);
 
         return () => clearInterval(interval);
     }, [lastActivity, token, SECRET_KEY]);

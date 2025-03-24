@@ -125,7 +125,7 @@ export const RiskProfileSecondForm: React.FC = () => {
     const handlePostRiskProfileDetailedInfo = async () => {
         try {
             await dispatch(postSecondRiskProfileFormFinal(formik.values)).unwrap();
-            dispatch(setStepAdditionalMenuUI(2));
+            dispatch(setStepAdditionalMenuUI(4));
         } catch (error) {
             console.error("Ошибка при отправке данных:", error);
         }

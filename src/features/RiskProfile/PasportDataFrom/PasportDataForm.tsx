@@ -36,13 +36,12 @@ export const PasportDataForm: React.FC = () => {
 
     useEffect(() => {
         if (rehydrated) {
-            // Запросы выполняются только после завершения реидратации
             dispatch(getUserPersonalAccountInfoThunk());
             dispatch(getUserDocumentsStateThunk());
             dispatch(getUserDocumentsInfoThunk());
             dispatch(getAllUserInfoThunk());
         }
-    }, [rehydrated, dispatch]);
+    }, [rehydrated]);
 
 
     // Yup-схема валидации

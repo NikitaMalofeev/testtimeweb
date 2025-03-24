@@ -77,7 +77,7 @@ export const PasportScanForm: React.FC = () => {
         dispatch(
             postPasportScanThunk({
                 data: formData,
-                onSuccess: () => dispatch(setStepAdditionalMenuUI(4))
+                onSuccess: () => dispatch(setStepAdditionalMenuUI(2))
             })
         );
     };
@@ -329,7 +329,7 @@ export const PasportScanForm: React.FC = () => {
                         onClick={handleSubmit}
                         theme={ButtonTheme.BLUE}
                         className={styles.button}
-                        disabled={isButtonDisabled}
+                        disabled={isButtonDisabled || loading}
                     >
                         {loading ? <Loader theme={LoaderTheme.WHITE} size={LoaderSize.SMALL} /> : "Продолжить"}
                     </Button>

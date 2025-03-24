@@ -10,6 +10,18 @@ import footerEagle from 'shared/assets/svg/FooterEagle.svg'
 import footerDocument from 'shared/assets/svg/footerDocument.svg'
 
 export const Footer = () => {
+
+    const socialLinks = {
+        rnks: "https://ranks.pro/",
+        telegram: "https://t.me/RanksInvest",
+        vk: "https://vk.com/rankspro",
+        youtube: "https://www.youtube.com/@ranksanalytics",
+    };
+
+    const handleSocialClick = (url: string) => {
+        window.open(url, "_blank");
+    };
+
     return (
         <div className={styles.footer}>
             <div className={styles.footer__contacts}>
@@ -37,11 +49,34 @@ export const Footer = () => {
 
                 <p className={styles.footer__email}>Соцсети</p>
                 <div className={styles.footer__socials}>
-                    <Icon width={32} height={32} Svg={footerSocialDzen} className={styles.footer__social} />
-                    <Icon width={32} height={32} Svg={footerSocialRnks} className={styles.footer__social} />
-                    <Icon width={32} height={32} Svg={footerSocialTelegram} className={styles.footer__social} />
-                    <Icon width={32} height={32} Svg={footerSocialVK} className={styles.footer__social} />
-                    <Icon width={32} height={32} Svg={footerSocialYT} className={styles.footer__social} />
+                    <Icon
+                        onClick={() => handleSocialClick(socialLinks.rnks)}
+                        width={32}
+                        height={32}
+                        Svg={footerSocialRnks}
+                        className={styles.footer__social}
+                    />
+                    <Icon
+                        onClick={() => handleSocialClick(socialLinks.telegram)}
+                        width={32}
+                        height={32}
+                        Svg={footerSocialTelegram}
+                        className={styles.footer__social}
+                    />
+                    <Icon
+                        onClick={() => handleSocialClick(socialLinks.vk)}
+                        width={32}
+                        height={32}
+                        Svg={footerSocialVK}
+                        className={styles.footer__social}
+                    />
+                    <Icon
+                        onClick={() => handleSocialClick(socialLinks.youtube)}
+                        width={32}
+                        height={32}
+                        Svg={footerSocialYT}
+                        className={styles.footer__social}
+                    />
                 </div>
                 <div className={styles.footer__docs}>
                     <Icon width={24} height={24} Svg={footerDocument} className={styles.footer__docIcon} />

@@ -15,26 +15,28 @@ interface WithStepContentProps {
 }
 
 const stepTitles = [
-    "Риск-профилирование",
-    "Уточнение риск профиля",
     "Паспортные данные",
     "Отправка документов",
+    "Риск-профилирование",
+    "Уточнение риск профиля",
     "Подписание документов",
     "Настройка подключения к брокеру",
     "Отправка документов"
 ];
 
 const stepContents = [
-    <RiskProfileFirstForm />,
-    <RiskProfileSecondForm />,
     <PasportDataForm />,
     <PasportScanForm />,
+    <RiskProfileFirstForm />,
+    <RiskProfileSecondForm />,
     <ConfirmAllDocs />,
     <BrokerConnectionForm />
 ];
 
 
 const stepTooltipDescriptions = [
+    'Данные вводимые в форму должны совпадать с паспортными данными и свидетельством ИНН',
+    'Данные вводимые в форму должны совпадать с паспортными данными и свидетельством ИНН',
     'Пройдите анкетирование для определения вашего инвестиционного профиля',
     <div className={styles.description}>
         <div className={styles.description__container}>
@@ -42,8 +44,7 @@ const stepTooltipDescriptions = [
             <span className={styles.description__value}>Супер-агрессивный</span>
         </div>
     </ div>,
-    'Данные вводимые в форму должны совпадать с паспортными данными и свидетельством ИНН',
-    ''
+    'Подписание документов по "ЭДО"'
 ]
 
 

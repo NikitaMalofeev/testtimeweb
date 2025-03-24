@@ -33,7 +33,7 @@ import {
     setConfirmationDocsSuccess,
     setStepAdditionalMenuUI
 } from "entities/ui/Ui/slice/uiSlice";
-import { confirmDocsRequestThunk, docTypes, nextDocType, sendDocsConfirmationCode } from "entities/Documents/slice/documentsSlice";
+import { confirmDocsRequestThunk, docTypes, getUserDocumentsStateThunk, nextDocType, sendDocsConfirmationCode } from "entities/Documents/slice/documentsSlice";
 import { ConfirmDocsPayload } from "entities/Documents/types/documentsTypes";
 
 interface ConfirmInfoModalProps {
@@ -202,25 +202,21 @@ export const ConfirmDocsModal = memo(
                         codeFirst: code,
                         docs: docsType || "",
                         onSuccess: (data: any) => {
-                            // Обновляем статус
-                            // dispatch(
-                            //     setConfirmationDocsSuccess(
-                            //         data.is_confirmed_phone ? "пройдено" : "не пройдено"
-                            //     )
-                            // );
+
                             dispatch(
                                 setTooltipActive({
                                     active: true,
                                     message: "Данные успешно подтверждены"
                                 })
                             );
+                            dispatch(getUserDocumentsStateThunk());
                             if (docsType === 'type_doc_passport') {
-                                dispatch(setStepAdditionalMenuUI(3))
+                                dispatch(setStepAdditionalMenuUI(1))
                             }
 
-                            if (docsType === 'type_doc_investment_profile_certificate') {
-                                dispatch(setStepAdditionalMenuUI(5))
-                            }
+                            // if (docsType === 'type_doc_investment_profile_certificate') {
+                            //     dispatch(setStepAdditionalMenuUI(5))
+                            // }
                             // dispatch(nextDocType());
                             setSmsCodeFirst(Array(codeLength).fill(""));
                             onClose();

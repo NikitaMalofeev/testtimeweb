@@ -1,10 +1,6 @@
 // DocumentsPage.tsx
 
 import React, { useState, useEffect } from "react";
-import ReactDOM from "react-dom";
-import { motion } from "framer-motion";
-import { useFormik } from "formik";
-import * as Yup from "yup";
 
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
@@ -36,37 +32,31 @@ import DownloadIcon from "shared/assets/svg/DownloadDocument.svg";
 import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
 
 import { useNavigate } from "react-router-dom";
-import mockpdf from 'shared/ui/PDFViewer/mockpdf.txt?raw'
 import styles from "./styles.module.scss";
 import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/DocumentPreviewModal";
 import { selectIsAnyModalOpen } from "entities/ui/Modal/selectors/selectorsModals";
 import { getAllUserInfoThunk } from "entities/User/slice/userSlice";
-import { getDocumentsSigned } from "entities/Documents/api/documentsApi";
-import { setCurrentConfirmingDoc } from "entities/RiskProfile/slice/riskProfileSlice";
-import { RiskProfileModal } from "features/RiskProfile/RiskProfileModal/RiskProfileModal";
 
 const DocumentsPage: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
-    const modalPreviewState = useSelector((state: RootState) => state.modal.documentsPreview)
+    const modalState = useSelector((state: RootState) => state.modal)
 
     const { userDocuments, loading, filledRiskProfileChapters } = useSelector((state: RootState) => state.documents);
-    const isPasportFilled = useSelector((state: RootState) => state.user.allUserDataForDocuments?.address_residential_apartment);
-    const isRpFilled = useSelector((state: RootState) => state.user.allUserDataForDocuments?.invest_target);
     const currentDocument = useSelector((state: RootState) => state.documents.currentSugnedDocument.document);
 
     useEffect(() => {
         dispatch(getUserDocumentsStateThunk());
         dispatch(getUserDocumentsNotSignedThunk());
         dispatch(getAllUserInfoThunk());
-    }, []);
+    }, [currentDocument]);
 
     const isAnyModalOpen = useSelector(selectIsAnyModalOpen);
 
     useEffect(() => {
         // console.log("Modal state changed:", { modalPreviewState, isAnyModalOpen });
 
-        if (modalPreviewState.isOpen) {
+        if (modalState.documentsPreview.isOpen) {
             document.body.style.overflow = 'hidden';
             document.body.style.position = 'fixed';
             document.body.style.width = '100%';
@@ -82,15 +72,15 @@ const DocumentsPage: React.FC = () => {
                 }
             }, 50);
         }
-    }, [modalPreviewState.isOpen, isAnyModalOpen]);
+    }, [modalState.documentsPreview.isOpen, isAnyModalOpen]);
 
 
 
     // Лейблы для отображения
     const docTypeLabels: Record<string, string> = {
-        type_doc_RP_questionnairy: "1. Анкета РП",
-        type_doc_passport: "2. Паспортные данные",
-        type_doc_EDS_agreement: "3. Соглашение об ЭДО",
+        type_doc_passport: "1. Паспортные данные",
+        type_doc_EDS_agreement: "2. Соглашение об ЭДО",
+        type_doc_RP_questionnairy: "3. Анкета РП",
         type_doc_agreement_investment_advisor: "4. Договор ИС",
         type_doc_risk_declarations: "5. Декларация о рисках",
         type_doc_agreement_personal_data_policy: "6. Политика перс. данных",
@@ -99,9 +89,9 @@ const DocumentsPage: React.FC = () => {
 
     // Порядок документов
     const docOrder = [
-        "type_doc_RP_questionnairy",
         "type_doc_passport",
         "type_doc_EDS_agreement",
+        "type_doc_RP_questionnairy",
         "type_doc_agreement_investment_advisor",
         "type_doc_risk_declarations",
         "type_doc_agreement_personal_data_policy",
@@ -113,7 +103,7 @@ const DocumentsPage: React.FC = () => {
         switch (docId) {
             case "type_doc_RP_questionnairy":
                 if (filledRiskProfileChapters.is_risk_profile_complete && !filledRiskProfileChapters.is_risk_profile_complete_final) {
-                    dispatch(setStepAdditionalMenuUI(1));
+                    dispatch(setStepAdditionalMenuUI(3));
                     dispatch(
                         openModal({
                             type: ModalType.IDENTIFICATION,
@@ -132,7 +122,7 @@ const DocumentsPage: React.FC = () => {
                         })
                     );
                 } else {
-                    dispatch(setStepAdditionalMenuUI(0));
+                    dispatch(setStepAdditionalMenuUI(2));
                     dispatch(
                         openModal({
                             type: ModalType.IDENTIFICATION,
@@ -145,7 +135,7 @@ const DocumentsPage: React.FC = () => {
             case "type_doc_passport":
                 if (!filledRiskProfileChapters.is_complete_passport) {
                     dispatch(setCurrentConfirmableDoc('type_doc_passport'));
-                    dispatch(setStepAdditionalMenuUI(2));
+                    dispatch(setStepAdditionalMenuUI(0));
                     dispatch(
                         openModal({
                             type: ModalType.IDENTIFICATION,
@@ -155,7 +145,7 @@ const DocumentsPage: React.FC = () => {
                     );
                 } else if (!filledRiskProfileChapters.is_exist_scan_passport) {
                     dispatch(setCurrentConfirmableDoc('type_doc_passport'));
-                    dispatch(setStepAdditionalMenuUI(3));
+                    dispatch(setStepAdditionalMenuUI(1));
                     dispatch(
                         openModal({
                             type: ModalType.IDENTIFICATION,
@@ -165,7 +155,7 @@ const DocumentsPage: React.FC = () => {
                     );
                 } else {
                     dispatch(setCurrentConfirmableDoc('type_doc_passport'));
-                    dispatch(setStepAdditionalMenuUI(2));
+                    dispatch(setStepAdditionalMenuUI(4));
                     dispatch(
                         openModal({
                             type: ModalType.IDENTIFICATION,
@@ -242,7 +232,10 @@ const DocumentsPage: React.FC = () => {
 
     const handleOpenPreview = (docId: string) => {
         if (docId !== 'type_doc_passport') {
-            dispatch(getUserDocumentsSignedThunk({ type_document: docId, purpose: 'preview', onSuccess: () => { } }))
+            dispatch(getUserDocumentsSignedThunk({
+                type_document: docId, purpose: 'preview', onSuccess: () => {
+                }
+            }))
             setSelectedDocId(docId);
             dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
         } else {
@@ -346,7 +339,7 @@ const DocumentsPage: React.FC = () => {
                                         className={doc.colorClass}
                                         theme={ButtonTheme.BLUE}
                                     >
-                                        Подписать
+                                        {(doc.id === 'type_doc_passport' && !filledRiskProfileChapters.is_exist_scan_passport) || (doc.id === 'type_doc_RP_questionnairy' && !filledRiskProfileChapters.is_risk_profile_complete_final) ? 'Заполнить' : 'Подписать'}
                                     </Button>
                                 )}
                             </div>
@@ -357,7 +350,7 @@ const DocumentsPage: React.FC = () => {
 
             {/* Модалка предпросмотра документа */}
             <DocumentPreviewModal
-                isOpen={modalPreviewState.isOpen}
+                isOpen={modalState.documentsPreview.isOpen}
                 onClose={handleClosePreview}
                 title={
                     selectedDocId

@@ -34,7 +34,7 @@ const initialState: UiState = {
     },
     isPushNotificationActive: {
         active: false,
-        purpose: 'filledRP'
+        purpose: 'filledPasport'
     },
     confirmationDocs: 'не определено',
 };

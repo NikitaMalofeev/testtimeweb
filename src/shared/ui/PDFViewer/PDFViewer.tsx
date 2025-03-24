@@ -26,6 +26,9 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({ assetUrl, documentData }) 
         return <div>Нет данных для PDF</div>;
     }
 
+    if (!assetUrl && !documentData) {
+        return <div>Нет данных для PDF</div>;
+    }
     return (
         <Worker workerUrl={workerUrl}>
             <div style={{ width: "100%", height: "100vh", overflowY: "auto", backgroundColor: "#f5f5f5" }}>

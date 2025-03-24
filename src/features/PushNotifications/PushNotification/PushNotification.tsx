@@ -9,6 +9,7 @@ import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { getUserDocumentsNotSignedThunk, getUserDocumentsStateThunk } from "entities/Documents/slice/documentsSlice";
 import { openModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
+import { useNavigate } from "react-router-dom";
 
 
 
@@ -18,37 +19,33 @@ export const PushNotification = () => {
         hidden: { scale: 0, opacity: 0 },
         visible: { scale: 1, opacity: 1 },
     };
+    const navigate = useNavigate()
     const dispatch = useAppDispatch()
     const { filledRiskProfileChapters, loading } = useSelector((state: RootState) => state.documents)
 
     const pushPurpose: { [key: string]: { title: string; description: string, action: () => void } } = {
-        filledRP: {
-            title: "Необходимо заполнить “анкету РП”",
-            description: "Найти “анкету РП” для подписания можно в разделе “Документы”",
+        filledPasport: {
+            title: "Необходимо заполнить паспортные данные",
+            description: "Найти заполнение паспортных данных для подписания можно в разделе “Документы”",
             action: () => {
-                dispatch(setStepAdditionalMenuUI(0));
+                navigate('/documents')
                 dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }));
+                dispatch(setStepAdditionalMenuUI(0));
             }
         },
-        // anotherPurpose: {
-        //     title: "Другое уведомление",
-        //     description: "Это описание для другого уведомления.",
+        // filledRP: {
+        //     title: "Необходимо заполнить “анкету РП”",
+        //     description: "Найти “анкету РП” для подписания можно в разделе “Документы”",
         //     action: () => {
-
-        //     }
-        // },
-        // default: {
-        //     title: "Уведомление",
-        //     description: "Описание уведомления по умолчанию.",
-        //     action: () => {
-
+        //         dispatch(setStepAdditionalMenuUI(0));
+        //         dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }));
         //     }
         // },
     };
 
     useEffect(() => {
-        if (!filledRiskProfileChapters.is_risk_profile_complete_final) {
-            dispatch(setPushNotificationActive({ active: true, purpose: 'filledRP' }));
+        if (!filledRiskProfileChapters.is_complete_passport) {
+            dispatch(setPushNotificationActive({ active: true, purpose: 'filledPasport' }));
         } else {
             dispatch(setPushNotificationActive({ active: false, purpose: '' }));
         }

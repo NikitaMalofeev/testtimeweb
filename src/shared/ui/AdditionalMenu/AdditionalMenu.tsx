@@ -21,7 +21,9 @@ export const AdditionalMenu: React.FC<AdditionalMenuProps> = ({ onClose, title, 
     const containerRef = useRef<HTMLDivElement>(null);
     const [hasScrolled, setHasScrolled] = useState(false);
     const dispatch = useAppDispatch()
-
+    const currentTypeDoc = useSelector(
+        (state: RootState) => state.documents.currentConfirmableDoc
+    );
 
     useEffect(() => {
         const handleScroll = () => {
@@ -52,6 +54,7 @@ export const AdditionalMenu: React.FC<AdditionalMenuProps> = ({ onClose, title, 
     }, [currentStepFirstForm])
 
 
+
     useEffect(() => {
         // При монтировании проверяем, есть ли скролл чтобы накинуть на кнопки скролл эффект
         if (containerRef.current) {
@@ -63,6 +66,12 @@ export const AdditionalMenu: React.FC<AdditionalMenuProps> = ({ onClose, title, 
             }
         }
     }, [currentStepFirstForm]);
+
+    useEffect(() => {
+        if (currentTypeDoc) {
+            containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }, [currentTypeDoc, containerRef.current])
 
     return (
         <div className={styles.additionalMenu}>

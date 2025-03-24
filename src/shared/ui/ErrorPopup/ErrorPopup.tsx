@@ -9,6 +9,7 @@ import { Button, ButtonTheme } from "../Button/Button";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Icon } from "../Icon/Icon";
 import CloseIcon from "shared/assets/svg/close.svg";
+import { closeAllModals } from "entities/ui/Modal/slice/modalSlice";
 
 
 
@@ -53,7 +54,10 @@ export const ErrorPopup = () => {
                     <>
                         <span className={styles.errorModal__sub}>Возникли проблемы? Обратитесь в чат поддержки</span>
 
-                        <Button theme={ButtonTheme.UNDERLINE} children='Перейти в чат' padding='7px 14px' onClick={() => navigate('/support')} className={styles.button} />
+                        <Button theme={ButtonTheme.UNDERLINE} children='Перейти в чат' padding='7px 14px' onClick={() => {
+                            navigate('/support')
+                            dispatch(closeAllModals())
+                        }} className={styles.button} />
                     </>
                 )}
 

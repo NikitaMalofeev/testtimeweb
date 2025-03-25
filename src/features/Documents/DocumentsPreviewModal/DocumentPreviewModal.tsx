@@ -116,7 +116,7 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                 </div>
 
                 <div className={styles.modalContent}>
-                    {loading && !docHtml ? <Loader /> : (
+                    {loading && !docId ? <Loader /> : (
                         <>
                             {justPreview ? (
                                 <PdfViewer pdfUrl={justPreview} />

@@ -84,9 +84,6 @@ export const createRiskProfile = createAsyncThunk<
             dispatch(setUserIsActive(is_active));
             dispatch(setUserId(id));
             dispatch(setUserToken(token));
-
-
-            //Очищаю прохождение риск профиля если создан новый пользователь 
             localStorage.removeItem("riskProfileFormData");
         } catch (error: any) {
             onError()

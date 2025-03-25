@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
@@ -51,6 +51,20 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
     const { loading } = useSelector(
         (state: RootState) => state.documents
     );
+
+    const [isPdfReady, setIsPdfReady] = useState(false);
+
+    useEffect(() => {
+        // Предположим, что у вас есть условия для определения готовности
+        const ready =
+            !loading &&
+            (
+                justPreview ||
+                (docId && allDocumentsHtml && allDocumentsHtml[docId]) ||
+                (hasCurrentSighedDocument.document && Object.keys(hasCurrentSighedDocument.document).length > 10)
+            );
+        setIsPdfReady(!!ready);
+    }, [loading, justPreview, docId, allDocumentsHtml, hasCurrentSighedDocument]);
 
     // Глобальная проверка "есть ли в системе другие открытые модалки"
     const isAnyModalOpen = useSelector(selectIsAnyModalOpen);
@@ -116,37 +130,20 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                 </div>
 
                 <div className={styles.modalContent}>
-                    {loading && !docId ? <Loader /> : (
-                        <>
-                            {justPreview ? (
-                                <PdfViewer pdfUrl={justPreview} />
-                            ) : loading ? (
-                                <Loader />
-                            ) : (
-                                <>
-                                    {docId === 'type_doc_passport' ? (
-                                        <RiskProfileAllData />
-                                    ) : docHtml ? (
-                                        <div className={styles.htmlContainer} dangerouslySetInnerHTML={{ __html: docHtml }} />
-                                    ) : hasCurrentSighedDocument.document && Object.keys(hasCurrentSighedDocument.document).length > 10 ? (
-                                        <PdfViewer pdfBinary={hasCurrentSighedDocument.document} />
-                                    ) : (
-                                        <div>Документ не найден (пустой HTML)</div>
-                                    )}
-                                    {/* {docId === 'type_doc_passport' ? (
-                                        <RiskProfileAllData />
-                                    ) : docHtml ? (
-                                        <div className={styles.htmlContainer} dangerouslySetInnerHTML={{ __html: docHtml }} />
-                                    ) : (
-                                        <div>Документ не найден (пустой HTML)</div>
-                                    )} */}
-                                </>
-                            )}
-                        </>
+                    {!isPdfReady ? (
+                        <Loader />
+                    ) : justPreview ? (
+                        <PdfViewer pdfUrl={justPreview} />
+                    ) : docId === "type_doc_passport" ? (
+                        <RiskProfileAllData />
+                    ) : docHtml ? (
+                        <div className={styles.htmlContainer} dangerouslySetInnerHTML={{ __html: docHtml }} />
+                    ) : hasCurrentSighedDocument.document && Object.keys(hasCurrentSighedDocument.document).length > 10 ? (
+                        <PdfViewer pdfBinary={hasCurrentSighedDocument.document} />
+                    ) : (
+                        <div>Документ не найден (пустой HTML)</div>
                     )}
-
                 </div>
-            </motion.div>
         </div>,
         modalRoot
     );

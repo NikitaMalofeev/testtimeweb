@@ -151,7 +151,6 @@ export const ConfirmAllDocs: React.FC = () => {
             default:
                 navigate('/documents')
                 dispatch(closeAllModals())
-                return undefined
         }
     };
 

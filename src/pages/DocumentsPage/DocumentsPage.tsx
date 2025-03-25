@@ -51,6 +51,7 @@ const DocumentsPage: React.FC = () => {
         dispatch(getAllUserInfoThunk());
     }, [currentDocument]);
 
+
     const isAnyModalOpen = useSelector(selectIsAnyModalOpen);
 
     useEffect(() => {

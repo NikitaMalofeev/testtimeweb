@@ -46,6 +46,7 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
     const currentTypeDoc = useSelector(
         (state: RootState) => state.documents.currentConfirmableDoc
     );
+    const currentDocument = allDocumentsHtml && docId && allDocumentsHtml[docId]
 
 
     const { loading } = useSelector(
@@ -56,15 +57,23 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
 
     useEffect(() => {
         // Предположим, что у вас есть условия для определения готовности
-        const ready =
-            !loading &&
-            (
-                justPreview ||
-                (docId && allDocumentsHtml && allDocumentsHtml[docId]) ||
-                (hasCurrentSighedDocument.document && Object.keys(hasCurrentSighedDocument.document).length > 10)
-            );
-        setIsPdfReady(!!ready);
-    }, [loading, justPreview, docId, allDocumentsHtml, hasCurrentSighedDocument]);
+        if (currentDocument) {
+            const ready =
+                !loading ||
+                (
+                    justPreview || currentDocument
+                );
+            setIsPdfReady(!!ready);
+        } else {
+            const ready =
+                !loading &&
+                (
+                    justPreview ||
+                    (hasCurrentSighedDocument.document && Object.keys(hasCurrentSighedDocument.document).length > 10)
+                );
+            setIsPdfReady(!!ready);
+        }
+    }, [loading, justPreview, docId, allDocumentsHtml, hasCurrentSighedDocument, currentDocument]);
 
     // Глобальная проверка "есть ли в системе другие открытые модалки"
     const isAnyModalOpen = useSelector(selectIsAnyModalOpen);

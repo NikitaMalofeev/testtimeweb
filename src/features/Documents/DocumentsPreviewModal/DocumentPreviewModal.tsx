@@ -144,6 +144,7 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                         <div>Документ не найден (пустой HTML)</div>
                     )}
                 </div>
+            </motion.div>
         </div>,
         modalRoot
     );

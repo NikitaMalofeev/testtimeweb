@@ -45,7 +45,7 @@ export function useAuthTokenManagement() {
             // Проверяем, что подпись совпадает и прошло менее 3 минут
             if (
                 lastExitSignature === expectedSignature &&
-                now - lastExitTime <= 3 * 60_000
+                now - lastExitTime <= 10 * 60_000
             ) {
                 // Всё ок — восстанавливаем токен
                 dispatch(setUserToken(savedToken));
@@ -112,7 +112,7 @@ export function useAuthTokenManagement() {
             const now = Date.now();
 
             // Проверяем 3 минуты простоя
-            if (now - lastActivity > 3 * 60_000) {
+            if (now - lastActivity > 10 * 60_000) {
                 // Логаутим
                 localStorage.removeItem('savedToken');
                 localStorage.removeItem('lastExit');

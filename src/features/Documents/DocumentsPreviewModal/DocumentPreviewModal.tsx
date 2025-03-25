@@ -24,6 +24,7 @@ interface PreviewModalProps {
     title?: string;        // Заголовок (необязательно)
     docId?: string | null; // Ключ документа
     justPreview?: string;
+    noSignedDocument: boolean;
 }
 
 export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
@@ -32,6 +33,7 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
     title,
     docId,
     justPreview,
+    noSignedDocument
 }) => {
     const dispatch = useAppDispatch();
 
@@ -145,9 +147,9 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                         <PdfViewer pdfUrl={justPreview} />
                     ) : docId === "type_doc_passport" ? (
                         <RiskProfileAllData />
-                    ) : docHtml ? (
+                    ) : docHtml && noSignedDocument ? (
                         <div className={styles.htmlContainer} dangerouslySetInnerHTML={{ __html: docHtml }} />
-                    ) : hasCurrentSighedDocument.document && Object.keys(hasCurrentSighedDocument.document).length > 10 ? (
+                    ) : hasCurrentSighedDocument.document && Object.keys(hasCurrentSighedDocument.document) && !noSignedDocument ? (
                         <PdfViewer pdfBinary={hasCurrentSighedDocument.document} />
                     ) : (
                         <div>Документ не найден (пустой HTML)</div>

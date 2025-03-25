@@ -359,6 +359,7 @@ const DocumentsPage: React.FC = () => {
                         : "Документ"
                 }
                 docId={selectedDocId}
+                noSignedDocument={false}
             />
 
         </div>

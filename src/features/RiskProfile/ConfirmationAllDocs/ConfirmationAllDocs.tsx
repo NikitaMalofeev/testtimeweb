@@ -273,7 +273,7 @@ export const ConfirmAllDocs: React.FC = () => {
 
             <DocumentPreviewModal isOpen={modalState.isOpen} onClose={() => {
                 dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW))
-            }} title={renderDocLabel()} docId={currentTypeDoc} />
+            }} title={renderDocLabel()} docId={currentTypeDoc} noSignedDocument={true} />
 
             {/* Модалка подтверждения (подписания) документа */}
             <ConfirmDocsModal

@@ -24,7 +24,7 @@ interface PreviewModalProps {
     title?: string;        // Заголовок (необязательно)
     docId?: string | null; // Ключ документа
     justPreview?: string;
-    noSignedDocument: boolean;
+    noSignedDocument?: boolean;
 }
 
 export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({

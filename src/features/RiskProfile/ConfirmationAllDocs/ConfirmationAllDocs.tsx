@@ -39,7 +39,9 @@ export const ConfirmAllDocs: React.FC = () => {
     );
     const [currentTimeout, setCurrentTimeout] = useState(0)
     const modalState = useSelector((state: RootState) => state.modal.documentsPreview)
-    const isPasportFilled = useSelector((state: RootState) => state.user.allUserDataForDocuments?.address_residential_apartment);
+    const isPasportFilled = useSelector((state: RootState) => state.documents.filledRiskProfileChapters.is_complete_passport);
+    const isRPFilled = useSelector((state: RootState) => state.documents.filledRiskProfileChapters.is_risk_profile_complete);
+    const isRPFinalFilled = useSelector((state: RootState) => state.documents.filledRiskProfileChapters.is_risk_profile_complete);
 
     const timeoutBetweenConfirmation = useSelector(
         (state: RootState) => state.documents.timeoutBetweenConfirmation
@@ -71,6 +73,14 @@ export const ConfirmAllDocs: React.FC = () => {
         onSubmit: () => {
             if (currentTypeDoc === 'type_doc_passport' && !isPasportFilled) {
                 dispatch(setStepAdditionalMenuUI(0))
+            } else if (currentTypeDoc === 'type_doc_RP_questionary') {
+                if (!isRPFilled) {
+                    dispatch(setStepAdditionalMenuUI(2))
+                } else if (isRPFinalFilled) {
+                    dispatch(setStepAdditionalMenuUI(3))
+                } else {
+                    dispatch(setStepAdditionalMenuUI(4))
+                }
             } else {
                 dispatch(
                     confirmDocsRequestThunk({
@@ -87,6 +97,7 @@ export const ConfirmAllDocs: React.FC = () => {
                     })
                 );
             }
+
 
         },
     });
@@ -147,17 +158,17 @@ export const ConfirmAllDocs: React.FC = () => {
             case "type_doc_passport":
                 return <RiskProfileAllData />;
             case "type_doc_RP_questionnairy":
-                return <PdfViewer assetUrl={RiskProfile} />;
+                return <PdfViewer pdfUrl={RiskProfile} />;
             case "type_doc_EDS_agreement":
-                return <PdfViewer assetUrl={EDSPdf} />;
+                return <PdfViewer pdfUrl={EDSPdf} />;
             case "type_doc_agreement_investment_advisor":
-                return <PdfViewer assetUrl={IS} />;
+                return <PdfViewer pdfUrl={IS} />;
             case "type_doc_risk_declarations":
-                return <PdfViewer assetUrl={RiskDeclaration} />;
+                return <PdfViewer pdfUrl={RiskDeclaration} />;
             case "type_doc_agreement_personal_data_policy":
-                return <PdfViewer assetUrl={PersonalPolicy} />;
+                return <PdfViewer pdfUrl={PersonalPolicy} />;
             case "type_doc_investment_profile_certificate":
-                return <PdfViewer assetUrl={Profile} />;
+                return <PdfViewer pdfUrl={Profile} />;
             default:
                 return <div>Неизвестный документ. Нет превью.</div>;
         }

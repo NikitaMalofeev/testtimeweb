@@ -35,6 +35,7 @@ import { setConfirmationEmailSuccess, setConfirmationPhoneSuccess, setConfirmati
 import { setError } from "entities/Error/slice/errorSlice";
 import { RootState } from "app/providers/store/config/store";
 import { PasportScanData } from "features/RiskProfile/PassportScanForm/PassportScanForm";
+import { omit } from "lodash";
 
 interface RiskProfileFormState {
     loading: boolean;
@@ -72,11 +73,11 @@ const initialState: RiskProfileFormState = {
 
 export const createRiskProfile = createAsyncThunk<
     void,
-    IdentificationProfileData,
+    { data: IdentificationProfileData, onError: () => void },
     { rejectValue: string }
 >(
     "riskProfile/createRiskProfile",
-    async (data, { dispatch, rejectWithValue }) => {
+    async ({ data, onError }, { dispatch, rejectWithValue }) => {
         try {
             const response = await postIdentificationData(data);
             const { id, token, is_active } = response;
@@ -84,9 +85,11 @@ export const createRiskProfile = createAsyncThunk<
             dispatch(setUserId(id));
             dispatch(setUserToken(token));
 
+
             //Очищаю прохождение риск профиля если создан новый пользователь 
             localStorage.removeItem("riskProfileFormData");
         } catch (error: any) {
+            onError()
 
             if (error.response.status === 502) {
                 const msg = "Ошибка сервера. Пожалуйста, повторите попытку";
@@ -182,11 +185,30 @@ export const postFirstRiskProfileForm = createAsyncThunk<
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");
             }
-            const { trusted_person_fio, trusted_person_phone, trusted_person_other_contact, ...filteredData } = data;
+            const filteredData = omit(data, [
+                "trusted_person_fio",
+                "trusted_person_phone",
+                "trusted_person_other_contact",
+                "address_residential_apartment",
+                "address_residential_city",
+                "address_residential_house",
+                "address_residential_street",
+                'issue_whom', 'passport_series',
+                'region',
+                'city',
+                'apartment',
+                'street',
+                'passport_number',
+                'house',
+                'inn',
+                'birth_place'
+            ]);
             const transformedData = {
                 ...filteredData,
                 is_qualified_investor_status: filteredData.is_qualified_investor_status === "true"
             };
+
+            console.log(filteredData)
             const response = await postFirstRiskProfile(transformedData, token);
             dispatch(setFirstRiskProfileData(response));
         } catch (error: any) {

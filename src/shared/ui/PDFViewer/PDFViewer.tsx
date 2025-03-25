@@ -1,37 +1,55 @@
 import React from "react";
-import { Viewer, Worker, SpecialZoomLevel } from "@react-pdf-viewer/core";
-import type { RenderPageProps } from "@react-pdf-viewer/core";
+import { Viewer, Worker, SpecialZoomLevel, RenderPageProps } from "@react-pdf-viewer/core";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import workerUrl from "pdfjs-dist/build/pdf.worker.min.js?url";
-import styles from "./styles.module.scss";
+import styles from './styles.module.scss'
 
-interface PdfViewerProps {
-    // Если передан assetUrl — показываем PDF по ссылке из /assets/...
-    // Если передан documentData (Uint8Array) — показываем PDF из бинарных данных
-    assetUrl?: string;
-    documentData?: Uint8Array | null;
+interface MyPdfViewerProps {
+    /** Если есть ссылка на PDF */
+    pdfUrl?: string;
+    /** Если есть base64 без data:application/pdf;base64, */
+    pdfBase64?: string;
+    /** Если есть бинарные данные PDF */
+    pdfBinary?: Uint8Array;
 }
 
-export const PdfViewer: React.FC<PdfViewerProps> = ({ assetUrl, documentData }) => {
-    let viewerSource: string | Uint8Array;
+/**
+ * Преобразуем base64 (без префикса) в Uint8Array
+ */
+function base64ToUint8Array(base64: string): Uint8Array {
+    const raw = atob(base64);
+    const uint8Array = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) {
+        uint8Array[i] = raw.charCodeAt(i);
+    }
+    return uint8Array;
+}
 
-    // 1) Если есть assetUrl, используем ссылку
-    // 2) Иначе, если есть бинарные данные, используем их
-    // 3) Если ничего нет — показываем "Нет данных"
-    if (assetUrl) {
-        viewerSource = assetUrl;
-    } else if (documentData) {
-        viewerSource = documentData;
-    } else {
+export const PdfViewer: React.FC<MyPdfViewerProps> = ({
+    pdfUrl,
+    pdfBase64,
+    pdfBinary,
+}) => {
+    // Определяем итоговый source для Viewer
+    // Приоритет можно выставлять любой, в зависимости от логики
+    let viewerSource: string | Uint8Array | null = null;
+
+    if (pdfBinary) {
+        viewerSource = pdfBinary;
+    } else if (pdfBase64) {
+        viewerSource = base64ToUint8Array(pdfBase64);
+    } else if (pdfUrl) {
+        viewerSource = pdfUrl;
+    }
+
+    // Если вообще ничего нет
+    if (!viewerSource) {
         return <div>Нет данных для PDF</div>;
     }
 
-    if (!assetUrl && !documentData) {
-        return <div>Нет данных для PDF</div>;
-    }
     return (
         <Worker workerUrl={workerUrl}>
-            <div style={{ width: "100%", height: "100vh", overflowY: "auto", backgroundColor: "#f5f5f5" }}>
+            <div style={{ width: "100%", height: "100vh", overflowY: "auto" }}>
                 <Viewer
                     fileUrl={viewerSource}
                     defaultScale={SpecialZoomLevel.PageWidth}
@@ -53,3 +71,4 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({ assetUrl, documentData }) 
         </Worker>
     );
 };
+

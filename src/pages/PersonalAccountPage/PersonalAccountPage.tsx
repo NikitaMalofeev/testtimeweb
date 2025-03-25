@@ -60,7 +60,7 @@ const PersonalAccountMenu: React.FC = () => {
             icon: AccountDocumentIcon,
             title: "Документы",
             route: "/documents",
-            notificationsCount: 6,
+            notificationsCount: 9 - userDocuments.length,
             iconWidth: 23,
             iconHeight: 28,
             warningMessage: (

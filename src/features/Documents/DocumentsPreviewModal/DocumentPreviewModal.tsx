@@ -119,7 +119,7 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                     {loading && !docHtml ? <Loader /> : (
                         <>
                             {justPreview ? (
-                                <PdfViewer assetUrl={justPreview} />
+                                <PdfViewer pdfUrl={justPreview} />
                             ) : loading ? (
                                 <Loader />
                             ) : (
@@ -128,11 +128,18 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                                         <RiskProfileAllData />
                                     ) : docHtml ? (
                                         <div className={styles.htmlContainer} dangerouslySetInnerHTML={{ __html: docHtml }} />
-                                    ) : hasCurrentSighedDocument.document && Object.keys(hasCurrentSighedDocument.document).length > 0 ? (
-                                        <PdfViewer documentData={hasCurrentSighedDocument.document} />
+                                    ) : hasCurrentSighedDocument.document && Object.keys(hasCurrentSighedDocument.document).length > 10 ? (
+                                        <PdfViewer pdfBinary={hasCurrentSighedDocument.document} />
                                     ) : (
                                         <div>Документ не найден (пустой HTML)</div>
                                     )}
+                                    {/* {docId === 'type_doc_passport' ? (
+                                        <RiskProfileAllData />
+                                    ) : docHtml ? (
+                                        <div className={styles.htmlContainer} dangerouslySetInnerHTML={{ __html: docHtml }} />
+                                    ) : (
+                                        <div>Документ не найден (пустой HTML)</div>
+                                    )} */}
                                 </>
                             )}
                         </>

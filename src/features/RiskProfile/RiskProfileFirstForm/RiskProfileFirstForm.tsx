@@ -79,7 +79,7 @@ export const RiskProfileFirstForm: React.FC = () => {
 
     // ========================= 3. Синхронизация Redux → localStorage (только после загрузки LS) =========================
     useEffect(() => {
-        if (!isLSLoaded) return; // до загрузки не синхронизируем
+        if (!isLSLoaded) return; 
         const dataToSave = {
             step: currentStep,
             data: formValues,
@@ -164,9 +164,14 @@ export const RiskProfileFirstForm: React.FC = () => {
         enableReinitialize: true,
         initialValues: formValues,
         onSubmit: async (values) => {
-            alert("Данные отправлены");
+
         },
     });
+
+
+    useEffect(() => {
+        console.log(formik.values)
+    }, [])
 
     const handleChangeAndDispatch =
         (fieldName: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -208,7 +213,7 @@ export const RiskProfileFirstForm: React.FC = () => {
     // ========================= 9. Навигация =========================
     const goNext = () => {
         if (isLastStep) {
-            dispatch(postFirstRiskProfileForm(formik.values) as any);
+            dispatch(postFirstRiskProfileForm(formik.values));
             dispatch(updateUserAllData({ gender: String(formik.values.gender) }));
             dispatch(setStepAdditionalMenuUI(3));
         } else {

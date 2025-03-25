@@ -145,6 +145,7 @@ const IdentificationProfileForm: React.FC = () => {
         }
         if (!modalConfirmOpen) {
             formik.setFieldValue("g_recaptcha", "");
+            recaptchaRef.current?.reset();
         }
     }, [systemError, modalConfirmOpen])
 
@@ -178,7 +179,14 @@ const IdentificationProfileForm: React.FC = () => {
 
         try {
             // Если все данные верны, сервер вернёт результат без ошибок
-            await dispatch(createRiskProfile(payload)).unwrap();
+            await dispatch(createRiskProfile({
+                data: payload, onError: () => {
+                    console.log('сбрасываю каптчу')
+                    setCaptchaVerified(false)
+                    formik.setFieldValue("g_recaptcha", "");
+                    recaptchaRef.current?.reset();
+                }
+            })).unwrap();
 
             // Открываем модалку с подтверждением кода
             openNextModal();

@@ -64,7 +64,17 @@
     position: fixed;
     height: 100%;
     width: calc(100% - 32px);
-    max-height: 45dvh;
+    max-height: 60dvh;
+    border-radius: 10px 10px 40px 40px;
+    bottom: 16px;
+    transform: translate(-50%, -50%);
+  }
+
+  .xxs {
+    position: fixed;
+    height: 100%;
+    width: calc(100% - 32px);
+    max-height: 30dvh;
     border-radius: 10px 10px 40px 40px;
     bottom: 16px;
     transform: translate(-50%, -50%);

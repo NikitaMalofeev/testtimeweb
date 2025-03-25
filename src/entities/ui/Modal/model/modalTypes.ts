@@ -4,6 +4,7 @@ export enum ModalSize {
     FULL = 'full',
     MIDDLE = 'middle',
     MINI = 'mini',
+    XXS = 'xxs'
 }
 
 export enum ModalAnimation {

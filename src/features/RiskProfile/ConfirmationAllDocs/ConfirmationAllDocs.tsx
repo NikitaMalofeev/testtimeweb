@@ -7,7 +7,7 @@ import { Checkbox } from "shared/ui/Checkbox/Checkbox";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
-import { closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
+import { closeAllModals, closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { ConfirmDocsModal } from "../ConfirmDocsModal/ConfirmDocsModal";
 import styles from "./styles.module.scss";
@@ -28,11 +28,12 @@ import Profile from "shared/assets/documents/Profile.pdf?url";
 import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/DocumentPreviewModal";
 import { getAllUserInfoThunk } from "entities/User/slice/userSlice";
 import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
+import { useNavigate } from "react-router-dom";
 
 export const ConfirmAllDocs: React.FC = () => {
     const dispatch = useAppDispatch();
     const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
-
+    const navigate = useNavigate()
     // Текущий документ, который нужно подписать
     const currentTypeDoc = useSelector(
         (state: RootState) => state.documents.currentConfirmableDoc
@@ -148,7 +149,9 @@ export const ConfirmAllDocs: React.FC = () => {
             case "type_doc_IP":
                 return docTypeLabels[currentTypeDoc];
             default:
-                return "Неизвестный документ";
+                navigate('/documents')
+                dispatch(closeAllModals())
+                return undefined
         }
     };
 
@@ -266,7 +269,7 @@ export const ConfirmAllDocs: React.FC = () => {
 
             <DocumentPreviewModal isOpen={modalState.isOpen} onClose={() => {
                 dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW))
-            }} title={renderDocLabel()} docId={currentTypeDoc}/>
+            }} title={renderDocLabel()} docId={currentTypeDoc} />
 
             {/* Модалка подтверждения (подписания) документа */}
             <ConfirmDocsModal

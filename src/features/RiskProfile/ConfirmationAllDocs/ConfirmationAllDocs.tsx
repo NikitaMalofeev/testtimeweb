@@ -11,7 +11,7 @@ import { closeAllModals, closeModal, openModal } from "entities/ui/Modal/slice/m
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { ConfirmDocsModal } from "../ConfirmDocsModal/ConfirmDocsModal";
 import styles from "./styles.module.scss";
-import { confirmDocsRequestThunk, docTypeLabels, docTypes, setCurrentConfirmationMethod } from "entities/Documents/slice/documentsSlice";
+import { confirmDocsRequestThunk, docTypeLabels, docTypes, getUserDocumentsNotSignedThunk, setCurrentConfirmationMethod } from "entities/Documents/slice/documentsSlice";
 import DocsImage from "shared/assets/svg/docsImage.svg";
 import { Icon } from "shared/ui/Icon/Icon";
 import { RiskProfileAllData } from "../RiskProfileAllData/RiskProfileAllData";
@@ -52,6 +52,11 @@ export const ConfirmAllDocs: React.FC = () => {
         "EMAIL": 'Email',
         "WHATSAPP": 'Whatsapp'
     }
+
+    useEffect(() => {
+        dispatch(getUserDocumentsNotSignedThunk());
+    }, []);
+
 
     // Индекс и общее кол-во документов
     const currentIndex = docTypes.findIndex((d) => d === currentTypeDoc);

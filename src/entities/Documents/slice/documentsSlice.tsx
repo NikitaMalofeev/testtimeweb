@@ -227,7 +227,6 @@ export const getUserDocumentsNotSignedThunk = createAsyncThunk<
             const response = await getDocumentsNotSigned(token);
 
             const documents = response.not_signed_documents_htmls;
-            console.log(response)
             dispatch(setNotSignedDocumentsHtmls(documents));
         } catch (error: any) {
             console.log(error);

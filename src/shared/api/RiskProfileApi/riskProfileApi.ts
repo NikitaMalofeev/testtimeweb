@@ -176,3 +176,17 @@ export const postBrokerApiToken = async (data: BrokerSetTokenPayload, token: str
     );
     return response.data;
 }
+
+// export const getGroupWsForScan = async (token: string) => {
+//     const response = await axios.post(
+//         `${apiUrl}create_doc_user/get_group_ws/`,
+//         { group_ws: "wsg_upload_scans_progress" },
+//         {
+//             headers: {
+//                 Authorization: `Token ${token}`,
+//                 "Content-Type": "application/json",
+//             },
+//         }
+//     );
+//     return response.data;
+// };

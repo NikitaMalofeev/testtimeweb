@@ -29,13 +29,14 @@ import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/mo
 import WarningIcon from 'shared/assets/svg/Warning.svg'
 import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
 import { ProblemsCodeModal } from "features/RiskProfile/ProblemsCodeModal/ProblemsCodeModal";
+import { postPasportScanThunk } from "entities/RiskProfile/slice/riskProfileSlice";
 
 const PersonalAccountMenu: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const token = useSelector((state: RootState) => state.user.token);
     const modalRPState = useSelector((state: RootState) => state.modal.identificationModal);
-    const { userDocuments } = useSelector((state: RootState) => state.documents);
+    const { userDocuments, filledRiskProfileChapters } = useSelector((state: RootState) => state.documents);
     // Используем новое значение unreadAnswersCount вместо personalNewAnswersCount
     const { userPersonalAccountInfo, loading } = useSelector((state: RootState) => state.user);
     const { unreadAnswersCount } = useSelector((state: RootState) => state.supportChat);
@@ -55,6 +56,8 @@ const PersonalAccountMenu: React.FC = () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
+    const isPassportFilled = filledRiskProfileChapters.is_complete_passport && filledRiskProfileChapters.is_exist_scan_passport;
+
     const items: PersonalAccountItem[] = [
         {
             icon: AccountDocumentIcon,
@@ -65,8 +68,12 @@ const PersonalAccountMenu: React.FC = () => {
             iconHeight: 28,
             warningMessage: (
                 <div className={styles.warning}>
-                    <Icon Svg={WarningIcon} width={16} height={16} />
-                    Есть неподписанные документы ({9 - userDocuments.length} шт.)
+                    {userDocuments.length < 1 && (
+                        <>
+                            <Icon Svg={WarningIcon} width={16} height={16} />
+                            <div>Есть неподписанные документы ({9 - userDocuments.length} шт.)</div>
+                        </>
+                    )}
                 </div>
             ),
         },
@@ -93,12 +100,29 @@ const PersonalAccountMenu: React.FC = () => {
             icon: AccountBrokerIcon,
             title: "Брокер",
             action: () => {
-                dispatch(setStepAdditionalMenuUI(5))
-                dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
-                // Здесь можно сбрасывать уведомления, если это требуется при переходе в чат
+                if (isPassportFilled) {
+                    console.log(isPassportFilled)
+                    dispatch(setStepAdditionalMenuUI(5))
+                    dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
+                    // Здесь можно сбрасывать уведомления, если это требуется при переходе в чат
+                }
             },
             iconWidth: 28,
             iconHeight: 28,
+            warningMessage: (
+
+                <div className={styles.warning}>
+                    {(!filledRiskProfileChapters.is_complete_passport || !filledRiskProfileChapters.is_exist_scan_passport) && (
+                        <>
+                            <Icon Svg={WarningIcon} width={16} height={16} />
+                            <div>
+                                Для подключения брокера заполните паспорт
+                            </div>
+                        </>
+                    )}
+                </div>
+
+            ),
         },
         {
             icon: AccountSettingsIcon,
@@ -136,6 +160,11 @@ const PersonalAccountMenu: React.FC = () => {
             iconHeight: 21,
         },
     ];
+
+    // useEffect(() => {
+    //     dispatch(setStepAdditionalMenuUI(1))
+    //     dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }));
+    // }, [])
 
     if (loading || !userPersonalAccountInfo?.first_name) {
         return <Loader />;
@@ -180,15 +209,19 @@ const PersonalAccountMenu: React.FC = () => {
                             <div
                                 key={index}
                                 style={{
-                                    ...(item.title !== "Документы" &&
-                                        item.title !== "Чат поддержки" &&
-                                        item.title !== "Выйти из учетной записи" &&
-                                        item.title !== "Брокер" &&
-                                    {
-                                        opacity: "0.5",
-                                    }),
+                                    ...(
+                                        (item.title !== "Документы" &&
+                                            item.title !== "Чат поддержки" &&
+                                            item.title !== "Выйти из учетной записи") &&
+                                            (item.title === "Брокер"
+                                                ? (!isPassportFilled)
+                                                : true)
+                                            ? { opacity: "0.5" }
+                                            : {}
+                                    ),
                                     ...(item.warningMessage && { padding: "18px 0 34px" }),
                                 }}
+
                                 onClick={() => {
                                     if (item.route) {
                                         navigate(item.route);

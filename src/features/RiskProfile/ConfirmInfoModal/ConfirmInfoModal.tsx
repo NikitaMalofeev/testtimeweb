@@ -417,9 +417,9 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                     <div className={styles.codeInput__container}>
                         {smsCodeFirst.map((digit, index) => {
                             const inputBorderColor =
-                                phoneSuccess === "не пройдено" ? "#FF3C53" : // ошибка имеет первоочередное значение
-                                    digit ? "#2977E2" : // если поле заполнено, используем синий цвет
-                                        hasNoTryPhoneConfirm ? "#D4D4E8" : "#1CC15A"; // иначе - логика по состоянию
+                                phoneSuccess === "не пройдено" ? "#FF3C53" : // ошибка имеет приоритет
+                                    phoneSuccess === 'пройдено' ? "#1CC15A" : digit ? "#2977E2" : // если значение введено, устанавливаем синий цвет
+                                        hasNoTryPhoneConfirm ? "#D4D4E8" : ""; // иначе логика по состоянию
                             return (
                                 <input
                                     key={`first-form-${index}`}
@@ -482,8 +482,8 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                             {smsCodeSecond.map((digit, index) => {
                                 const inputBorderColor =
                                     emailSuccess === "не пройдено" ? "#FF3C53" : // ошибка имеет приоритет
-                                        digit ? "#2977E2" : // если значение введено, устанавливаем синий цвет
-                                            hasNoTryEmailConfirm ? "#D4D4E8" : "#1CC15A"; // иначе логика по состоянию
+                                        emailSuccess === 'пройдено' ? "#1CC15A" : digit ? "#2977E2" : // если значение введено, устанавливаем синий цвет
+                                            hasNoTryEmailConfirm ? "#D4D4E8" : ""; // иначе логика по состоянию
                                 return (
                                     <input
                                         key={`second-form-${index}`}

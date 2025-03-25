@@ -9,7 +9,7 @@ import UploadIcon from "shared/assets/svg/UploadIcon.svg";
 import UploadPDFIcon from "shared/assets/svg/UploadPDFIcon.svg";
 import SuccessLabel from "shared/assets/svg/SuccessLabel.svg";
 import styles from "./styles.module.scss";
-import { postPasportScanThunk } from "entities/RiskProfile/slice/riskProfileSlice";
+import { openPasportScanWebsocketThunk, postPasportScanThunk } from "entities/RiskProfile/slice/riskProfileSlice";
 import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
 import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
 
@@ -81,6 +81,10 @@ export const PasportScanForm: React.FC = () => {
             })
         );
     };
+
+    useEffect(() => {
+        dispatch(openPasportScanWebsocketThunk({ onSuccess: () => { return } }))
+    }, [])
 
     const handleDragEnter = (
         e: React.DragEvent<HTMLDivElement>,

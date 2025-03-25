@@ -278,47 +278,72 @@ export const postPasportScanThunk = createAsyncThunk<
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");
             }
-            const response = await postPasportScanData(data, token)
-            const socketId = getState().riskProfile.pasportScanSocketId;
-            onSuccess()
-            return await new Promise((resolve, reject) => {
-                const socket = new WebSocket(`wss://test.webbroker.ranks.pro/ws/upload_scans_progress/${socketId}/`);
-                socket.onopen = () => {
-                    const entries = Array.from(data.entries());
-                    const files: any = {};
-                    for (const [key, value] of entries) {
-                        if (value instanceof File) {
-                            files[key] = {
-                                name: value.name,
-                                type: value.type
-                            };
-                        }
-                    }
-                    socket.send(JSON.stringify({ token, files }));
-                };
-                socket.onmessage = (event) => {
-                    const responseData = JSON.parse(event.data);
-                    if (responseData.data.progress === 100) {
-                        onSuccess();
-                        resolve(responseData);
-                        socket.close();
-                    }
-                };
-                socket.onerror = () => {
-                    // dispatch(setError('Ошибка отправки скана документов'));
-                    reject("Ошибка при отправке данных");
-                    socket.close();
-                };
-                socket.onclose = () => { };
-            });
+            // Отправляем данные сканов через API
+            await postPasportScanData(data, token);
+            // Вызываем onSuccess после успешной отправки
+            onSuccess();
         } catch (error: any) {
-            dispatch(setError(error.response.data.errorText));
+            dispatch(setError(error.response?.data?.errorText));
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке данных"
             );
         }
     }
 );
+
+export const openPasportScanWebsocketThunk = createAsyncThunk<
+    void,
+    { onSuccess: () => void },
+    { state: RootState; rejectValue: string }
+>(
+    "riskProfile/openPasportScanWebsocket",
+    async ({ onSuccess }, { getState, rejectWithValue }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+            const socketId = getState().riskProfile.pasportScanSocketId;
+            return await new Promise((resolve, reject) => {
+                const socket = new WebSocket(`wss://test.webbroker.ranks.pro/ws/upload_scans_progress/${socketId}/`);
+
+                socket.onopen = () => {
+                    console.log("WebSocket открыт в:", new Date());
+                    // При необходимости можно отправить первоначальное сообщение
+                };
+
+                socket.onmessage = (event) => {
+                    console.log("Получено сообщение через WebSocket в:", new Date());
+                    const responseData = JSON.parse(event.data);
+                    // Логируем дату из события (например, можно вывести в консоль вместе с данными)
+                    console.log("Дата из websockets:", new Date());
+
+                    if (responseData.data && responseData.data.progress === 100) {
+                        onSuccess();
+                        resolve(responseData);
+                        socket.close();
+                    }
+                };
+
+                socket.onerror = (err) => {
+                    console.error("Ошибка WebSocket:", err);
+                    reject("Ошибка при открытии WebSocket");
+                    socket.close();
+                };
+
+                socket.onclose = () => {
+                    console.log("WebSocket закрыт");
+                };
+            });
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message || "Ошибка при открытии WebSocket"
+            );
+        }
+    }
+);
+
+
 
 export const fetchAllSelects = createAsyncThunk<
     any,

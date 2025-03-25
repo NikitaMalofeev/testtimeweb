@@ -27,7 +27,7 @@ function App() {
   const isMainPages = location.pathname === '/lk' || location.pathname === '/';
   const { messages } = useSelector((state: RootState) => state.supportChat);
   const { unreadAnswersCount } = useSelector((state: RootState) => state.supportChat);
-
+  const token = useSelector((state: RootState) => state.user.token);
   const { lastActivity } = useAuthTokenManagement()
 
   useEffect(() => {
@@ -37,7 +37,7 @@ function App() {
 
   // Обновляем сообщения в личном кабинете каждые 30 секунд
   useEffect(() => {
-    if (location.pathname !== '/') {
+    if (location.pathname !== '/' && token) {
       const interval = setInterval(() => {
         // Здесь вызывается getAllMessages для получения полного списка сообщений
         dispatch(getAllMessagesThunk()); // если требуется запрос к getAllMessages, замените на соответствующий thunk

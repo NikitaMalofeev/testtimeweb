@@ -177,13 +177,34 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
 
     // ---- Обработчики ввода для ПЕРВОЙ формы (телефон/WhatsApp) ----
     const handleInputChangeFirst = (value: string, index: number) => {
-        const newCode = [...smsCodeFirst];
-        newCode[index] = value.slice(0, 1);
-        setSmsCodeFirst(newCode);
-        if (value && index < inputRefsFirst.current.length - 1) {
-            inputRefsFirst.current[index + 1]?.focus();
+        // Если значение длиннее одного символа, значит автозаполнение вставило сразу несколько цифр
+        if (value.length > 1) {
+            // Берём только столько цифр, сколько необходимо для кода
+            const digits = value.slice(0, codeLength).split('');
+            const newCode = Array(codeLength).fill("");
+            // Заполняем массив с кодом полученными цифрами
+            for (let i = 0; i < codeLength; i++) {
+                newCode[i] = digits[i] || "";
+            }
+            setSmsCodeFirst(newCode);
+            // Если не все ячейки заполнены, фокусируем следующую незаполненную,
+            // иначе убираем фокус с последнего поля
+            if (digits.length < codeLength) {
+                inputRefsFirst.current[digits.length]?.focus();
+            } else {
+                inputRefsFirst.current[codeLength - 1]?.blur();
+            }
+        } else {
+            // Стандартная логика для одиночного символа
+            const newCode = [...smsCodeFirst];
+            newCode[index] = value.slice(0, 1);
+            setSmsCodeFirst(newCode);
+            if (value && index < inputRefsFirst.current.length - 1) {
+                inputRefsFirst.current[index + 1]?.focus();
+            }
         }
     };
+
 
     const handleKeyDownFirst = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
         if (e.key === "Backspace" && !smsCodeFirst[index] && index > 0) {
@@ -210,13 +231,30 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
 
     // ---- Обработчики ввода для ВТОРОЙ формы (email) ----
     const handleInputChangeSecond = (value: string, index: number) => {
-        const newCode = [...smsCodeSecond];
-        newCode[index] = value.slice(0, 1);
-        setSmsCodeSecond(newCode);
-        if (value && index < inputRefsSecond.current.length - 1) {
-            inputRefsSecond.current[index + 1]?.focus();
+        if (value.length > 1) {
+            // Если пришло больше одного символа (например, автозаполнение)
+            const digits = value.slice(0, codeLength).split('');
+            const newCode = Array(codeLength).fill("");
+            for (let i = 0; i < codeLength; i++) {
+                newCode[i] = digits[i] || "";
+            }
+            setSmsCodeSecond(newCode);
+            if (digits.length < codeLength) {
+                inputRefsSecond.current[digits.length]?.focus();
+            } else {
+                inputRefsSecond.current[codeLength - 1]?.blur();
+            }
+        } else {
+            // Стандартная логика для одиночного символа
+            const newCode = [...smsCodeSecond];
+            newCode[index] = value.slice(0, 1);
+            setSmsCodeSecond(newCode);
+            if (value && index < inputRefsSecond.current.length - 1) {
+                inputRefsSecond.current[index + 1]?.focus();
+            }
         }
     };
+
 
     const handleKeyDownSecond = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
         if (e.key === "Backspace" && !smsCodeSecond[index] && index > 0) {
@@ -377,26 +415,31 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                     />
 
                     <div className={styles.codeInput__container}>
-                        {smsCodeFirst.map((digit, index) => (
-                            <input
-                                key={`first-form-${index}`}
-                                type="text"
-                                maxLength={1}
-                                inputMode="numeric"
-                                pattern="[0-9]*"
-                                value={digit}
-                                autoComplete="one-time-code"
-                                name={`otp-${index}`}
-                                onChange={(e) => handleInputChangeFirst(e.target.value, index)}
-                                onKeyDown={(e) => handleKeyDownFirst(e, index)}
-                                onPaste={handlePasteFirst}
-                                ref={(el) => (inputRefsFirst.current[index] = el)}
-                                className={styles.codeInput__box}
-                                style={{
-                                    borderColor: hasNoTryPhoneConfirm ? "#D4D4E8" : phoneSuccess === 'не пройдено' ? "#FF3C53" : "#1CC15A"
-                                }}
-                            />
-                        ))}
+                        {smsCodeFirst.map((digit, index) => {
+                            const inputBorderColor =
+                                phoneSuccess === "не пройдено" ? "#FF3C53" : // ошибка имеет первоочередное значение
+                                    digit ? "#2977E2" : // если поле заполнено, используем синий цвет
+                                        hasNoTryPhoneConfirm ? "#D4D4E8" : "#1CC15A"; // иначе - логика по состоянию
+                            return (
+                                <input
+                                    key={`first-form-${index}`}
+                                    type="text"
+                                    maxLength={1}
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    value={digit}
+                                    autoComplete="one-time-code"
+                                    name={`otp-${index}`}
+                                    onChange={(e) => handleInputChangeFirst(e.target.value, index)}
+                                    onKeyDown={(e) => handleKeyDownFirst(e, index)}
+                                    onPaste={handlePasteFirst}
+                                    ref={(el) => (inputRefsFirst.current[index] = el)}
+                                    className={styles.codeInput__box}
+                                    style={{ borderColor: inputBorderColor }}
+                                />
+                            );
+                        })}
+
                     </div>
 
                     <div
@@ -436,26 +479,31 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                         />
 
                         <div className={styles.codeInput__container}>
-                            {smsCodeSecond.map((digit, index) => (
-                                <input
-                                    key={`second-form-${index}`}
-                                    type="text"
-                                    maxLength={1}
-                                    inputMode="numeric"
-                                    pattern="[0-9]*"
-                                    value={digit}
-                                    autoComplete="one-time-code"
-                                    name={`otp-second-${index}`}
-                                    onChange={(e) => handleInputChangeSecond(e.target.value, index)}
-                                    onKeyDown={(e) => handleKeyDownSecond(e, index)}
-                                    onPaste={handlePasteSecond}
-                                    ref={(el) => (inputRefsSecond.current[index] = el)}
-                                    className={styles.codeInput__box}
-                                    style={{
-                                        borderColor: hasNoTryEmailConfirm ? "#D4D4E8" : emailSuccess === 'не пройдено' ? "#FF3C53" : "#1CC15A"
-                                    }}
-                                />
-                            ))}
+                            {smsCodeSecond.map((digit, index) => {
+                                const inputBorderColor =
+                                    emailSuccess === "не пройдено" ? "#FF3C53" : // ошибка имеет приоритет
+                                        digit ? "#2977E2" : // если значение введено, устанавливаем синий цвет
+                                            hasNoTryEmailConfirm ? "#D4D4E8" : "#1CC15A"; // иначе логика по состоянию
+                                return (
+                                    <input
+                                        key={`second-form-${index}`}
+                                        type="text"
+                                        maxLength={1}
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
+                                        value={digit}
+                                        autoComplete="one-time-code"
+                                        name={`otp-second-${index}`}
+                                        onChange={(e) => handleInputChangeSecond(e.target.value, index)}
+                                        onKeyDown={(e) => handleKeyDownSecond(e, index)}
+                                        onPaste={handlePasteSecond}
+                                        ref={(el) => (inputRefsSecond.current[index] = el)}
+                                        className={styles.codeInput__box}
+                                        style={{ borderColor: inputBorderColor }}
+                                    />
+                                );
+                            })}
+
                         </div>
 
                         <div

@@ -130,13 +130,30 @@ export const ConfirmDocsModal = memo(
         }, [confirmationMethod, codeLength]);
 
         const handleInputChangeFirst = (value: string, index: number) => {
-            const newCode = [...smsCodeFirst];
-            newCode[index] = value.slice(0, 1);
-            setSmsCodeFirst(newCode);
-            if (value && index < inputRefsFirst.current.length - 1) {
-                inputRefsFirst.current[index + 1]?.focus();
+            if (value.length > 1) {
+                // Если значение содержит больше одного символа (автозаполнение)
+                const digits = value.slice(0, codeLength).split('');
+                const newCode = Array(codeLength).fill("");
+                for (let i = 0; i < codeLength; i++) {
+                    newCode[i] = digits[i] || "";
+                }
+                setSmsCodeFirst(newCode);
+                if (digits.length < codeLength) {
+                    inputRefsFirst.current[digits.length]?.focus();
+                } else {
+                    inputRefsFirst.current[codeLength - 1]?.blur();
+                }
+            } else {
+                // Стандартная логика для одиночного символа
+                const newCode = [...smsCodeFirst];
+                newCode[index] = value.slice(0, 1);
+                setSmsCodeFirst(newCode);
+                if (value && index < inputRefsFirst.current.length - 1) {
+                    inputRefsFirst.current[index + 1]?.focus();
+                }
             }
         };
+
 
         useEffect(() => {
             dispatch(setConfirmationDocsSuccess("не определено"));
@@ -259,30 +276,34 @@ export const ConfirmDocsModal = memo(
                         />
 
                         <div className={styles.codeInput__container}>
-                            {smsCodeFirst.map((digit, index) => (
-                                <input
-                                    key={`first-form-${index}`}
-                                    type="text"
-                                    maxLength={1}
-                                    inputMode="numeric"
-                                    pattern="[0-9]*"
-                                    value={digit}
-                                    autoComplete="one-time-code"
-                                    name={`otp-${index}`}
-                                    onChange={(e) => handleInputChangeFirst(e.target.value, index)}
-                                    onKeyDown={(e) => handleKeyDownFirst(e, index)}
-                                    onPaste={handlePasteFirst}
-                                    ref={(el) => (inputRefsFirst.current[index] = el)}
-                                    className={styles.codeInput__box}
-                                    style={{
-                                        borderColor: hasNoTryPhoneConfirm
-                                            ? "#D4D4E8"
-                                            : docsSuccess === "не пройдено"
-                                                ? "#FF3C53"
-                                                : "#1CC15A"
-                                    }}
-                                />
-                            ))}
+                            {smsCodeFirst.map((digit, index) => {
+                                const inputBorderColor =
+                                    docsSuccess === "не пройдено"
+                                        ? "#FF3C53" // ошибка имеет приоритет
+                                        : digit
+                                            ? "#2977E2" // если значение есть, устанавливаем цвет для заполненного поля
+                                            : (hasNoTryPhoneConfirm ? "#D4D4E8" : "#1CC15A"); // если пустое, то логика по состоянию
+                                return (
+                                    <input
+                                        key={`first-form-${index}`}
+                                        type="text"
+                                        maxLength={1}
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
+                                        value={digit}
+                                        autoComplete="one-time-code"
+                                        name={`otp-${index}`}
+                                        onChange={(e) => handleInputChangeFirst(e.target.value, index)}
+                                        onKeyDown={(e) => handleKeyDownFirst(e, index)}
+                                        onPaste={handlePasteFirst}
+                                        ref={(el) => (inputRefsFirst.current[index] = el)}
+                                        className={styles.codeInput__box}
+                                        style={{ borderColor: inputBorderColor }}
+                                    />
+                                );
+                            })}
+
+
                         </div>
 
                         <div

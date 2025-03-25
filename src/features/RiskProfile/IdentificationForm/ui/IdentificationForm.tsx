@@ -74,9 +74,12 @@ const IdentificationProfileForm: React.FC = () => {
                 .min(2, "Минимум 2 символа")
                 .nullable(), // или .notRequired()
             // Остальные поля по вашему усмотрению...
-            email: Yup.string().required("E-mail обязательно"),
+            email: Yup.string()
+                .email("Некорректный email")
+                .required("E-mail обязательно"),
             phone: Yup.string()
-                .required("Номер в формате +"),
+                .matches(/^\+\d{11}$/, "Неверный формат номера телефона")
+                .required("Номер телефона обязателен"),
             password: Yup.string()
                 .min(8, "Пароль минимум 8 символов")
                 .required("Пароль обязателен"),

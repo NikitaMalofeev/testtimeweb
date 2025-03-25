@@ -1,30 +1,25 @@
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { motion } from "framer-motion";
-import { useDispatch, useSelector } from "react-redux";
-
+import { useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
 import { closeModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalType } from "entities/ui/Modal/model/modalTypes";
 import { selectIsAnyModalOpen } from "entities/ui/Modal/selectors/selectorsModals";
-
 import styles from "./styles.module.scss";
 import { Icon } from "shared/ui/Icon/Icon";
 import CloseIcon from "shared/assets/svg/close.svg";
 import { RiskProfileAllData } from "features/RiskProfile/RiskProfileAllData/RiskProfileAllData";
-import { PdfViewerrr } from "shared/ui/PDFViewer/Viewer";
 import { Loader } from "shared/ui/Loader/Loader";
-import { PdfViewer } from "shared/ui/PDFViewer/PDFViewer";
-import { getUserDocumentsSignedThunk } from "entities/Documents/slice/documentsSlice";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
+import { PdfViewer } from "shared/ui/PDFViewer/PDFViewer";
 
 interface PreviewModalProps {
     isOpen: boolean;       // Открыта ли модалка
-    onClose: () => void;   // Закрытие модалки
-    title?: string;        // Заголовок (необязательно)
-    docId?: string | null; // Ключ документа
-    justPreview?: string;
-    noSignedDocument?: boolean;
+    onClose: () => void;   // Функция закрытия модалки
+    title?: string;        // Заголовок модалки
+    docId?: string | null; // Идентификатор документа
+    justPreview?: string;  // Если передаём URL для превью
 }
 
 export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
@@ -33,64 +28,70 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
     title,
     docId,
     justPreview,
-    noSignedDocument
 }) => {
     const dispatch = useAppDispatch();
 
-    // Все HTML-документы лежат в Redux-стейте (ключ -> html-строка)
+    // Все HTML-документы для неподписанных лежат в Redux-стейте
     const allDocumentsHtml = useSelector(
         (state: RootState) => state.documents.allNotSignedDocumentsHtml
     );
+    // Данные для подписанного документа (бинарный PDF)
     const hasCurrentSighedDocument = useSelector(
         (state: RootState) => state.documents.currentSugnedDocument
     );
+    const { loading } = useSelector((state: RootState) => state.documents);
 
-    const currentTypeDoc = useSelector(
-        (state: RootState) => state.documents.currentConfirmableDoc
-    );
-    const currentDocument = allDocumentsHtml && docId && allDocumentsHtml[docId]
-
-
-    const { loading } = useSelector(
-        (state: RootState) => state.documents
-    );
-
-    const [isPdfReady, setIsPdfReady] = useState(false);
+    // Локальное состояние готовности содержимого
+    const [isContentReady, setIsContentReady] = useState(false);
 
     useEffect(() => {
-        // Предположим, что у вас есть условия для определения готовности
-        if (currentDocument) {
-            const ready =
-                !loading ||
-                (
-                    justPreview || currentDocument
-                );
-            setIsPdfReady(!!ready);
-        } else {
-            const ready =
-                !loading &&
-                (
-                    justPreview ||
-                    (hasCurrentSighedDocument.document && Object.keys(hasCurrentSighedDocument.document).length > 10)
-                );
-            setIsPdfReady(!!ready);
+        if (loading) {
+            setIsContentReady(false);
+            return;
         }
-    }, [loading, justPreview, docId, allDocumentsHtml, hasCurrentSighedDocument, currentDocument]);
+        if (justPreview) {
+            setIsContentReady(true);
+            return;
+        }
+        if (docId) {
+            // Для паспорта отображаем данные из компонента RiskProfileAllData
+            if (docId === "type_doc_passport") {
+                setIsContentReady(true);
+                return;
+            }
+            // Если документ не подписан – ожидаем наличие HTML (даже если пустая строка)
+            if (allDocumentsHtml && allDocumentsHtml.hasOwnProperty(docId)) {
+                setIsContentReady(true);
+                return;
+            }
+            // Если документ подписан – проверяем наличие бинарных данных
+            if (
+                hasCurrentSighedDocument &&
+                hasCurrentSighedDocument.document &&
+                Object.keys(hasCurrentSighedDocument.document).length > 0
+            ) {
+                setIsContentReady(true);
+                return;
+            }
+        }
+        setIsContentReady(false);
+    }, [
+        loading,
+        justPreview,
+        docId,
+        allDocumentsHtml,
+        hasCurrentSighedDocument.document
+    ]);
 
-    // Глобальная проверка "есть ли в системе другие открытые модалки"
+    // Блокировка скролла, если модалка открыта
     const isAnyModalOpen = useSelector(selectIsAnyModalOpen);
-
-    // Эффект для блокировки скролла при открытии.
-    // Он всегда вызывается (пусть даже модалка закрыта).
     useEffect(() => {
         if (isOpen) {
-            // Заблокировать скролл
             document.body.style.overflow = "hidden";
             document.body.style.position = "fixed";
             document.body.style.width = "100%";
             document.documentElement.style.overflow = "hidden";
         } else {
-            // С небольшой задержкой восстанавливаем скролл
             setTimeout(() => {
                 if (!isAnyModalOpen) {
                     document.body.style.overflow = "";
@@ -102,21 +103,19 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
         }
     }, [isOpen, isAnyModalOpen]);
 
-    // Обработчик закрытия
     const handleClose = () => {
         dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW));
         onClose();
     };
 
-    // Если модалка не открыта — не рендерим содержимое вовсе
     if (!isOpen) {
         return null;
     }
 
-    // Достаём HTML (если docId не задан, будет "")
+    // Получаем HTML для неподписанного документа
     const docHtml = docId && allDocumentsHtml ? allDocumentsHtml[docId] : "";
 
-    // Находим/создаём контейнер для портала
+    // Находим или создаём контейнер для портала
     let modalRoot = document.getElementById("modal-root");
     if (!modalRoot) {
         modalRoot = document.createElement("div");
@@ -128,7 +127,6 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
         <div className={styles.overlay} onClick={handleClose}>
             <motion.div
                 className={styles.modal}
-                // Простейшая анимация (если нужна)
                 initial={{ x: "100%" }}
                 animate={{ x: 0 }}
                 exit={{ x: "100%" }}
@@ -139,20 +137,24 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                     <span className={styles.modalTitle}>{title || "Документ"}</span>
                     <Icon Svg={CloseIcon} width={20} height={20} onClick={handleClose} />
                 </div>
-
                 <div className={styles.modalContent}>
-                    {!isPdfReady ? (
+                    {!isContentReady ? (
                         <Loader />
                     ) : justPreview ? (
                         <PdfViewer pdfUrl={justPreview} />
                     ) : docId === "type_doc_passport" ? (
                         <RiskProfileAllData />
-                    ) : docHtml && noSignedDocument ? (
-                        <div className={styles.htmlContainer} dangerouslySetInnerHTML={{ __html: docHtml }} />
-                    ) : hasCurrentSighedDocument.document && Object.keys(hasCurrentSighedDocument.document) && !noSignedDocument ? (
+                    ) : docId && (allDocumentsHtml && allDocumentsHtml.hasOwnProperty(docId)) ? (
+                        <div
+                            className={styles.htmlContainer}
+                            dangerouslySetInnerHTML={{ __html: allDocumentsHtml[docId] }}
+                        />
+                    ) : (hasCurrentSighedDocument &&
+                        hasCurrentSighedDocument.document &&
+                        Object.keys(hasCurrentSighedDocument.document).length > 0) ? (
                         <PdfViewer pdfBinary={hasCurrentSighedDocument.document} />
                     ) : (
-                        <div>Документ не найден (пустой HTML)</div>
+                        <div>Документ не найден</div>
                     )}
                 </div>
             </motion.div>

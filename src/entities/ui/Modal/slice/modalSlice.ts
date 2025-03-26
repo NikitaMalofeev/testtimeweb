@@ -1,11 +1,12 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ModalType, ModalSize, ModalAnimation, ModalState, ModalStateItem } from '../model/modalTypes';
 
-interface ExtendedModalState extends ModalState {
+export interface ExtendedModalState extends ModalState {
     confirmationMethod: 'SMS' | 'email' | 'WHATSAPP' | 'whatsapp' | 'phone' | 'EMAIL';
     confirmationMethod2: 'SMS' | 'EMAIL' | 'WHATSAPP';
     selectedCountry: string;
     currentProblemScreen: string | undefined;
+    modalStack: ModalType[];
 }
 
 const initialState: ExtendedModalState = {
@@ -58,6 +59,7 @@ const initialState: ExtendedModalState = {
         isScrolled: false
     },
     [ModalType.PREVIEW]: { isOpen: false, size: ModalSize.FULL, animation: ModalAnimation.LEFT, isScrolled: false },
+    modalStack: [],
     confirmationMethod: 'SMS',
     confirmationMethod2: 'EMAIL',
     selectedCountry: "",
@@ -73,11 +75,10 @@ const modalSlice = createSlice({
             action: PayloadAction<{ type: ModalType; size: ModalSize; animation: ModalAnimation }>
         ) => {
             const { type, size, animation } = action.payload;
-            if (state[type].isOpen) {
-                // Если модалка данного типа уже открыта, не делать ничего
-                return;
-            }
+            if (state[type].isOpen) return;
             state[type] = { ...state[type], isOpen: true, size, animation };
+            // Добавляем тип модалки в стек
+            state.modalStack.push(type);
         },
 
 
@@ -91,6 +92,15 @@ const modalSlice = createSlice({
         closeModal: (state, action: PayloadAction<ModalType>) => {
             const type = action.payload;
             state[type].isOpen = false;
+            // Удаляем модалку из стека (если она там есть)
+            state.modalStack = state.modalStack.filter(modal => modal !== type);
+        },
+        // Новый редьюсер для закрытия последней открытой модалки
+        closeLastModal: (state) => {
+            const lastModal = state.modalStack.pop();
+            if (lastModal) {
+                state[lastModal].isOpen = false;
+            }
         },
 
         setModalScrolled: (state, action: PayloadAction<{ type: ModalType; isScrolled: boolean }>) => {
@@ -111,6 +121,8 @@ const modalSlice = createSlice({
                     state[type].isOpen = false;
                 }
             });
+            // Очищаем стек
+            state.modalStack = [];
         },
     },
 });
@@ -124,6 +136,7 @@ export const {
     setSelectedCountry,
     closeAllModals,
     setCurrentProblemScreen,
+    closeLastModal,
     // Экспортируем экшен для открытия селекта
 } = modalSlice.actions;
 

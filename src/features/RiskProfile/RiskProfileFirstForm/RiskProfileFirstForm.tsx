@@ -12,6 +12,7 @@ import {
     updateRiskProfileForm,
     setStep,
 } from "entities/RiskProfile/slice/riskProfileSlice";
+import * as Yup from "yup";
 import styles from "./styles.module.scss";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
 import { closeModal } from "entities/ui/Modal/slice/modalSlice";
@@ -157,11 +158,22 @@ export const RiskProfileFirstForm: React.FC = () => {
         return [citizenshipQuestion, ...extraTextQuestions, ...serverQuestions];
     }, [riskProfileSelectors]);
 
-    // ========================= 6. Настройка Formik =========================
     // enableReinitialize: true позволит обновлять форму, когда Redux-стейт меняется (например, после загрузки LS)
     const formik = useFormik({
         enableReinitialize: true,
         initialValues: formValues,
+        validationSchema: Yup.object({
+            // Условная валидация для phone: правило применяется только если trusted_person_fio заполнено
+            phone: Yup.string()
+                .matches(/^\+\d{11}$/, "Неверный формат номера телефона")
+                .when(
+                    ["trusted_person_fio"],
+                    ([trustedPersonFio], schema) =>
+                        trustedPersonFio && trustedPersonFio.trim().length > 0
+                            ? schema.required("Номер телефона обязателен")
+                            : schema
+                ),
+        }),
         onSubmit: async (values) => {
 
         },
@@ -266,6 +278,7 @@ export const RiskProfileFirstForm: React.FC = () => {
                         type="text"
                         value={formik.values.trusted_person_fio || ""}
                         onChange={handleChangeAndDispatch("trusted_person_fio")}
+                        needValue={formik.values.trusted_person_phone.length > 0}
                     />
                     <Input
                         placeholder="Введите номер телефона"
@@ -273,6 +286,7 @@ export const RiskProfileFirstForm: React.FC = () => {
                         type="text"
                         value={formik.values.trusted_person_phone || ""}
                         onChange={handleChangeAndDispatch("trusted_person_phone")}
+                        needValue={formik.values.trusted_person_fio.length > 0}
                     />
                     <Input
                         placeholder="Доп. контактная информация"

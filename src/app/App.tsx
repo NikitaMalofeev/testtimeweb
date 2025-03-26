@@ -19,6 +19,7 @@ import { setUserToken } from 'entities/User/slice/userSlice';
 import { getAllMessagesThunk, setUnreadAnswersCount } from 'entities/SupportChat/slice/supportChatSlice';
 import { useAuthTokenManagement } from 'shared/hooks/useAuthTokenManager';
 import { setError } from 'entities/Error/slice/errorSlice';
+import { useModalsController } from 'shared/hooks/useModalsController';
 
 function App() {
   const modalState = useSelector((state: RootState) => state.modal);
@@ -29,6 +30,7 @@ function App() {
   const { unreadAnswersCount } = useSelector((state: RootState) => state.supportChat);
   const token = useSelector((state: RootState) => state.user.token);
   const { lastActivity } = useAuthTokenManagement()
+  useModalsController()
 
   useEffect(() => {
     const userVh = window.innerHeight / 100;

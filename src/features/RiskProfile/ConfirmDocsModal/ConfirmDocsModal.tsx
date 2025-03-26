@@ -35,6 +35,7 @@ import {
 } from "entities/ui/Ui/slice/uiSlice";
 import { confirmDocsRequestThunk, docTypes, getUserDocumentsStateThunk, nextDocType, sendDocsConfirmationCode } from "entities/Documents/slice/documentsSlice";
 import { ConfirmDocsPayload } from "entities/Documents/types/documentsTypes";
+import { getUserPersonalAccountInfoThunk } from "entities/User/slice/userSlice";
 
 interface ConfirmInfoModalProps {
     isOpen: boolean;
@@ -52,12 +53,17 @@ export const ConfirmDocsModal = memo(
         const docsSuccess = useSelector(
             (state: RootState) => state.ui.confirmationDocs
         );
+        const isRPFilled = useSelector(
+            (state: RootState) => state.documents.filledRiskProfileChapters.is_risk_profile_complete
+        );
+        const isRPFinalFilled = useSelector(
+            (state: RootState) => state.documents.filledRiskProfileChapters.is_risk_profile_complete
+        );
 
         const hasNoTryPhoneConfirm = docsSuccess === "не определено";
         const confirmationMethod = modalState.confirmationMethod;
 
-        const { phone } = useSelector((state: RootState) => state.user.user);
-        const userId = useSelector((state: RootState) => state.user.userId);
+        const userInfo = useSelector((state: RootState) => state.user.userPersonalAccountInfo);
 
         const [phoneTimeLeft, setPhoneTimeLeft] = useState(60);
         const [phoneTimerActive, setPhoneTimerActive] = useState(false);
@@ -70,6 +76,10 @@ export const ConfirmDocsModal = memo(
                 setPhoneTimerActive(false);
             }
         }, [isOpen]);
+
+        useEffect(() => {
+            dispatch(getUserPersonalAccountInfoThunk())
+        }, [])
 
         useEffect(() => {
             let timer: ReturnType<typeof setInterval>;
@@ -198,13 +208,19 @@ export const ConfirmDocsModal = memo(
             if (confirmationMethod === "whatsapp") {
                 return (
                     <span className={styles.modalContent__description}>
-                        Код направлен в WhatsApp <b>{phone}</b>, указанный при идентификации
+                        Код направлен в WhatsApp <b>{userInfo?.phone}</b>, указанный при идентификации
+                    </span>
+                );
+            } else if (confirmationMethod === 'email') {
+                return (
+                    <span className={styles.modalContent__description}>
+                        Код направлен на почту <b>{userInfo?.email}</b>, указанную при идентификации
                     </span>
                 );
             }
             return (
                 <span className={styles.modalContent__description}>
-                    Код направлен на телефон <b>{phone}</b>, указанный при идентификации
+                    Код направлен на телефон <b>{userInfo?.phone}</b>, указанный при идентификации
                 </span>
             );
         };
@@ -229,6 +245,10 @@ export const ConfirmDocsModal = memo(
                             dispatch(getUserDocumentsStateThunk());
                             if (docsType === 'type_doc_passport') {
                                 dispatch(setStepAdditionalMenuUI(1))
+                            }
+
+                            if (docsType === 'type_doc_EDS_agreement' || !isRPFilled || !isRPFinalFilled) {
+                                dispatch(setStepAdditionalMenuUI(2))
                             }
 
                             // if (docsType === 'type_doc_investment_profile_certificate') {

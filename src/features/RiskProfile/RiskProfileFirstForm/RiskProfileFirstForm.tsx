@@ -278,16 +278,26 @@ export const RiskProfileFirstForm: React.FC = () => {
                         type="text"
                         value={formik.values.trusted_person_fio || ""}
                         onChange={handleChangeAndDispatch("trusted_person_fio")}
-                        needValue={formik.values.trusted_person_phone.length > 0}
+                        needValue={formik.values?.trusted_person_phone?.length > 0}
                     />
                     <Input
                         placeholder="Введите номер телефона"
                         name="trusted_person_phone"
                         type="text"
                         value={formik.values.trusted_person_phone || ""}
-                        onChange={handleChangeAndDispatch("trusted_person_phone")}
-                        needValue={formik.values.trusted_person_fio.length > 0}
+                        onChange={(e) => {
+                            let inputVal = e.target.value;
+                            // Убираем все символы, кроме цифр
+                            const onlyDigits = inputVal.replace(/\D/g, "");
+
+                            // Если остались цифры — формируем "+{цифры}", иначе пустая строка
+                            const formatted = onlyDigits.length > 0 ? "+" + onlyDigits : "";
+
+                            formik.setFieldValue("trusted_person_phone", formatted);
+                        }}
+                        needValue={formik.values?.trusted_person_fio?.length > 0}
                     />
+
                     <Input
                         placeholder="Доп. контактная информация"
                         name="trusted_person_other_contact"

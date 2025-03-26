@@ -248,7 +248,7 @@ export const ConfirmDocsModal = memo(
                                 dispatch(setStepAdditionalMenuUI(1))
                             }
 
-                            if (docsType === 'type_doc_EDS_agreement' || !isRPFilled || !isRPFinalFilled) {
+                            if (docsType === 'type_doc_EDS_agreement' && (!isRPFilled || !isRPFinalFilled)) {
                                 dispatch(setStepAdditionalMenuUI(2))
                             }
 

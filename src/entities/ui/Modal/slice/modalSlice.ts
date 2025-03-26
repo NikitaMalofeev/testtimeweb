@@ -73,8 +73,29 @@ const modalSlice = createSlice({
             action: PayloadAction<{ type: ModalType; size: ModalSize; animation: ModalAnimation }>
         ) => {
             const { type, size, animation } = action.payload;
+            // Массив типов модалок (исключая дополнительные поля в состоянии)
+            const modalTypes: ModalType[] = [
+                ModalType.IDENTIFICATION,
+                ModalType.CONFIRM_CODE,
+                ModalType.CONFIRM_DOCS,
+                ModalType.PROBLEM_WITH_CODE,
+                ModalType.PROBLEM,
+                ModalType.SELECT,
+                ModalType.DOCUMENTS_PREVIEW,
+                ModalType.RESET_PASSWORD,
+                ModalType.PREVIEW,
+            ];
+
+            // Закрываем все модалки
+            modalTypes.forEach((modalType) => {
+                if (state[modalType]) {
+                    state[modalType].isOpen = false;
+                }
+            });
+            // Открываем выбранную модалку
             state[type] = { ...state[type], isOpen: true, size, animation };
         },
+
 
         setCurrentConfirmModalType: (state, action: PayloadAction<'SMS' | 'email' | 'WHATSAPP'>) => {
             state.confirmationMethod = action.payload;

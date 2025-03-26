@@ -77,9 +77,10 @@ export const ConfirmDocsModal = memo(
             }
         }, [isOpen]);
 
-        useEffect(() => {
-            dispatch(getUserPersonalAccountInfoThunk())
-        }, [])
+        //FIXME Вызывает бесконечный рендер
+        // useEffect(() => {
+        //     dispatch(getUserPersonalAccountInfoThunk())
+        // }, [isOpen])
 
         useEffect(() => {
             let timer: ReturnType<typeof setInterval>;

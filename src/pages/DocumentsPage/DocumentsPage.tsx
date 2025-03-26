@@ -35,7 +35,7 @@ import { useNavigate } from "react-router-dom";
 import styles from "./styles.module.scss";
 import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/DocumentPreviewModal";
 import { selectIsAnyModalOpen } from "entities/ui/Modal/selectors/selectorsModals";
-import { getAllUserInfoThunk } from "entities/User/slice/userSlice";
+import { getAllUserInfoThunk, getUserPersonalAccountInfoThunk } from "entities/User/slice/userSlice";
 
 const DocumentsPage: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -49,6 +49,7 @@ const DocumentsPage: React.FC = () => {
         dispatch(getUserDocumentsStateThunk());
         dispatch(getUserDocumentsNotSignedThunk());
         dispatch(getAllUserInfoThunk());
+        dispatch(getUserPersonalAccountInfoThunk())
     }, [currentDocument]);
 
 

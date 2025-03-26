@@ -32,16 +32,23 @@ export const PasportDataForm: React.FC = () => {
     const token = useSelector((state: RootState) => state.user.token);
     const NAME_REGEX = /^[А-Яа-яЁё\s-]+$/;
 
-    const rehydrated = useSelector((state: RootState) => state._persist?.rehydrated);
+    // const rehydrated = useSelector((state: RootState) => state._persist?.rehydrated);
+
+    // useEffect(() => {
+    //     if (rehydrated) {
+    //         dispatch(getUserPersonalAccountInfoThunk());
+    //         dispatch(getUserDocumentsStateThunk());
+    //         dispatch(getUserDocumentsInfoThunk());
+    //         dispatch(getAllUserInfoThunk());
+    //     }
+    // }, [rehydrated]);
 
     useEffect(() => {
-        if (rehydrated) {
-            dispatch(getUserPersonalAccountInfoThunk());
-            dispatch(getUserDocumentsStateThunk());
-            dispatch(getUserDocumentsInfoThunk());
-            dispatch(getAllUserInfoThunk());
-        }
-    }, [rehydrated]);
+        dispatch(getUserPersonalAccountInfoThunk());
+        dispatch(getUserDocumentsStateThunk());
+        dispatch(getUserDocumentsInfoThunk());
+        dispatch(getAllUserInfoThunk());
+    }, []);
 
 
     // Yup-схема валидации

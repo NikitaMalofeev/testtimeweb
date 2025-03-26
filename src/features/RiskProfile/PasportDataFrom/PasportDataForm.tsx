@@ -88,23 +88,57 @@ export const PasportDataForm: React.FC = () => {
             .min(3, "Минимум 3 символа")
             .required("Улица обязательна"),
         house: Yup.string()
+            .min(3, "Минимум 3 символа")
             .required("Дом обязателен"),
         address_residential_region: Yup.string()
             .min(3, "Минимум 3 символа")
-            .required("Регион/район обязателен"),
+            .when(
+                ["is_live_this_address", "is_receive_mail_this_address"],
+                ([isLive, isReceive], schema) =>
+                    !(isLive && isReceive)
+                        ? schema.required("Регион/район обязателен")
+                        : schema
+            ),
         address_residential_city: Yup.string()
             .min(3, "Минимум 3 символа")
-            .required("Город/населенный пункт обязателен"),
+            .when(
+                ["is_live_this_address", "is_receive_mail_this_address"],
+                ([isLive, isReceive], schema) =>
+                    !(isLive && isReceive)
+                        ? schema.required("Город/населенный пункт обязателен")
+                        : schema
+            ),
         address_residential_street: Yup.string()
             .min(3, "Минимум 3 символа")
-            .required("Улица обязательна"),
+            .when(
+                ["is_live_this_address", "is_receive_mail_this_address"],
+                ([isLive, isReceive], schema) =>
+                    !(isLive && isReceive)
+                        ? schema.required("Улица обязательна")
+                        : schema
+            ),
         address_residential_house: Yup.string()
-            .required("Дом обязателен"),
+            .min(3, "Минимум 3 символа")
+            .when(
+                ["is_live_this_address", "is_receive_mail_this_address"],
+                ([isLive, isReceive], schema) =>
+                    !(isLive && isReceive)
+                        ? schema.required("Дом обязателен")
+                        : schema
+            ),
         type_message: Yup.string()
             .oneOf(["SMS", "EMAIL", "WHATSAPP"], "Выберите способ отправки кода")
             .required("Способ отправки кода обязателен"),
-        is_receive_mail_this_address: Yup.boolean()
-            .oneOf([true], "Этот пункт обязателен к соглашению"),
+        is_live_this_address: Yup.boolean(),
+        is_receive_mail_this_address: Yup.boolean().when(
+            ["is_live_this_address"],
+            ([is_live], schema: Yup.BooleanSchema<boolean | undefined>) =>
+                !is_live
+                    ? schema.oneOf([true], "Этот пункт обязателен к соглашению")
+                    : schema
+        ),
+        // is_receive_mail_this_address: Yup.boolean()
+        //     .oneOf([true], "Этот пункт обязателен к соглашению"),
         g_recaptcha: Yup.string()
             .required("Пройдите проверку reCAPTCHA"),
     });
@@ -141,6 +175,7 @@ export const PasportDataForm: React.FC = () => {
         enableReinitialize: true,
         validationSchema: passportValidationSchema,
         onSubmit: (values) => {
+            console.log(formik.errors)
             dispatch(postPasportInfo({
                 data: values,
                 onSuccess: () => {

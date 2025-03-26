@@ -53,13 +53,15 @@ export function useAuthTokenManagement() {
                 setLastActivity(lastExitTime);
             } else {
                 // Что-то не так или 3 мин уже прошли — удаляем всё и выходим
-                localStorage.removeItem('savedToken');
-                localStorage.removeItem('lastExit');
-                localStorage.removeItem('lastExitSignature');
 
-                dispatch(setUserToken(''));
-                dispatch(closeAllModals());
-                navigate('/');
+                //FIXME Убрал сброс логина пока не закончим mvp
+                // localStorage.removeItem('savedToken');
+                // localStorage.removeItem('lastExit');
+                // localStorage.removeItem('lastExitSignature');
+
+                // dispatch(setUserToken(''));
+                // dispatch(closeAllModals());
+                // navigate('/');
             }
         }
         // Если savedToken отсутствует, то ничего не делаем —
@@ -114,13 +116,14 @@ export function useAuthTokenManagement() {
             // Проверяем 3 минуты простоя
             if (now - lastActivity > 10 * 60_000) {
                 // Логаутим
-                localStorage.removeItem('savedToken');
-                localStorage.removeItem('lastExit');
-                localStorage.removeItem('lastExitSignature');
+                //FIXME Убрал сброс логина пока не закончим mvp
+                // localStorage.removeItem('savedToken');
+                // localStorage.removeItem('lastExit');
+                // localStorage.removeItem('lastExitSignature');
 
-                dispatch(setUserToken(''));
-                dispatch(closeAllModals());
-                navigate('/');
+                // dispatch(setUserToken(''));
+                // dispatch(closeAllModals());
+                // navigate('/');
             } else {
                 // Иначе пользователь ещё активен => перезапишем время
                 if (token && SECRET_KEY) {

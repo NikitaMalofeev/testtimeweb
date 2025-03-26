@@ -82,9 +82,9 @@ export const ConfirmAllDocs: React.FC = () => {
             if (currentTypeDoc === "type_doc_passport" && !isPasportFilled) {
                 dispatch(setStepAdditionalMenuUI(0));
             } else if (currentTypeDoc === "type_doc_RP_questionary") {
-                if (!isRPFilled) {
+                if (isRPFilled) {
                     dispatch(setStepAdditionalMenuUI(2));
-                } else if (!isRPFinalFilled) {
+                } else if (isRPFinalFilled) {
                     dispatch(setStepAdditionalMenuUI(3));
                 } else {
                     dispatch(setStepAdditionalMenuUI(4));

@@ -74,12 +74,19 @@ export const PasportScanForm: React.FC = () => {
         if (fileReg) {
             formData.append("file_scan_page_registration", fileReg);
         }
+        // dispatch(
+        //     postPasportScanThunk({
+        //         data: formData,
+        //         onSuccess: () => dispatch(setStepAdditionalMenuUI(2))
+        //     })
+        // );
         dispatch(
             postPasportScanThunk({
                 data: formData,
-                onSuccess: () => dispatch(setStepAdditionalMenuUI(2))
+                onSuccess: () => { }
             })
         );
+        dispatch(setStepAdditionalMenuUI(2))
     };
 
     useEffect(() => {

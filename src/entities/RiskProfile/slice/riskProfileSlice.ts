@@ -204,8 +204,6 @@ export const postFirstRiskProfileForm = createAsyncThunk<
                 ...filteredData,
                 is_qualified_investor_status: filteredData.is_qualified_investor_status === "true"
             };
-
-            console.log(filteredData)
             const response = await postFirstRiskProfile(transformedData, token);
             dispatch(setFirstRiskProfileData(response));
         } catch (error: any) {

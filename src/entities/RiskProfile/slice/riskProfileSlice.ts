@@ -84,6 +84,7 @@ export const createRiskProfile = createAsyncThunk<
             dispatch(setUserIsActive(is_active));
             dispatch(setUserId(id));
             dispatch(setUserToken(token));
+            
             localStorage.removeItem("riskProfileFormData");
         } catch (error: any) {
             onError()
@@ -565,12 +566,10 @@ const riskProfileSlice = createSlice({
                 state.error = null;
             })
             .addCase(postFirstRiskProfileForm.fulfilled, (state) => {
-                state.loading = false;
-                state.error = null
+
             })
             .addCase(postFirstRiskProfileForm.rejected, (state, action) => {
                 state.error = action.payload as string;
-                state.loading = false;
             })
             .addCase(postSecondRiskProfileForm.pending, (state) => {
                 state.loading = true;

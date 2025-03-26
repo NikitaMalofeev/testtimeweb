@@ -177,9 +177,8 @@ const IdentificationProfileForm: React.FC = () => {
             is_agreement: formik.values.is_agreement,
         }
 
-        // dispatch(updateUserAllData({ first_name: `${formik.values.firstName}`, middle_name: `${formik.values.middleName}`, last_name: `${formik.values.lastName}`, gender: `` }))
         dispatch(setUserData(userForRedux))
-
+        localStorage.removeItem("riskProfileFormData");
         try {
             // Если все данные верны, сервер вернёт результат без ошибок
             await dispatch(createRiskProfile({

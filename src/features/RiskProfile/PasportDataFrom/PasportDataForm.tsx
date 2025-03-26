@@ -338,7 +338,7 @@ export const PasportDataForm: React.FC = () => {
                         value={formik.values.gender}
                         onChange={(name, selectedValue) => {
                             formik.setFieldValue(name, selectedValue);
-                            dispatch(updateFieldValue({ name, value: selectedValue }));
+
                         }}
                     />
 

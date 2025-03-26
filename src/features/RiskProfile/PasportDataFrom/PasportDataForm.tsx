@@ -54,10 +54,6 @@ export const PasportDataForm: React.FC = () => {
             .matches(NAME_REGEX, "Только буквы, пробел и дефис")
             .min(2, "Минимум 2 символа")
             .required("Имя обязательно"),
-        patronymic: Yup.string()
-            .matches(NAME_REGEX, "Только буквы, пробел и дефис")
-            .min(2, "Минимум 2 символа")
-            .required("Отчество обязательно"),
         birth_date: Yup.date()
             .typeError("Некорректная дата")
             .required("Дата рождения обязательна"),
@@ -77,24 +73,33 @@ export const PasportDataForm: React.FC = () => {
             .typeError("Некорректная дата")
             .required("Дата выдачи паспорта обязательна"),
         issue_whom: Yup.string()
-            .min(2, "Минимум 2 символа")
+            .min(3, "Минимум 3 символа")
             .required("Кем выдан паспорт обязательно"),
         inn: Yup.string()
             .matches(/^\d{12}$/, "ИНН должен содержать 12 цифр")
             .required("ИНН обязателен"),
         region: Yup.string()
-            .min(2, "Минимум 2 символа")
+            .min(3, "Минимум 3 символа")
             .required("Регион/район обязателен"),
         city: Yup.string()
-            .min(2, "Минимум 2 символа")
+            .min(3, "Минимум 3 символа")
             .required("Город/населенный пункт обязателен"),
         street: Yup.string()
-            .min(2, "Минимум 2 символа")
+            .min(3, "Минимум 3 символа")
             .required("Улица обязательна"),
         house: Yup.string()
             .required("Дом обязателен"),
-        apartment: Yup.string()
-            .required("Квартира обязательна"),
+        address_residential_region: Yup.string()
+            .min(3, "Минимум 3 символа")
+            .required("Регион/район обязателен"),
+        address_residential_city: Yup.string()
+            .min(3, "Минимум 3 символа")
+            .required("Город/населенный пункт обязателен"),
+        address_residential_street: Yup.string()
+            .min(3, "Минимум 3 символа")
+            .required("Улица обязательна"),
+        address_residential_house: Yup.string()
+            .required("Дом обязателен"),
         type_message: Yup.string()
             .oneOf(["SMS", "EMAIL", "WHATSAPP"], "Выберите способ отправки кода")
             .required("Способ отправки кода обязателен"),
@@ -271,13 +276,12 @@ export const PasportDataForm: React.FC = () => {
                     />
 
                     <Input
-                        placeholder="Отчество"
+                        placeholder="Отчество (при наличии)"
                         name="patronymic"
                         type="text"
                         value={formik.values.patronymic || ''}
                         onChange={handleNameChange("patronymic")}
                         onBlur={formik.handleBlur}
-                        needValue
                         error={formik.touched.patronymic && formik.errors.patronymic}
                     />
 
@@ -440,7 +444,6 @@ export const PasportDataForm: React.FC = () => {
                                 value={formik.values.apartment}
                                 onChange={handleTextInputChange}
                                 onBlur={formik.handleBlur}
-                                needValue
                                 error={formik.touched.apartment && formik.errors.apartment}
                             />
                         </div>
@@ -473,6 +476,7 @@ export const PasportDataForm: React.FC = () => {
                                 value={formik.values.address_residential_region}
                                 onChange={handleTextInputChange}
                                 onBlur={formik.handleBlur}
+                                needValue
                                 error={formik.touched.address_residential_region && formik.errors.address_residential_region}
                             />
                             <Input
@@ -482,6 +486,7 @@ export const PasportDataForm: React.FC = () => {
                                 value={formik.values.address_residential_city}
                                 onChange={handleTextInputChange}
                                 onBlur={formik.handleBlur}
+                                needValue
                                 error={formik.touched.address_residential_city && formik.errors.address_residential_city}
                             />
                             <Input
@@ -491,6 +496,7 @@ export const PasportDataForm: React.FC = () => {
                                 value={formik.values.address_residential_street}
                                 onChange={handleTextInputChange}
                                 onBlur={formik.handleBlur}
+                                needValue
                                 error={formik.touched.address_residential_street && formik.errors.address_residential_street}
                             />
                             <div className={styles.form__duoInputs}>
@@ -501,6 +507,7 @@ export const PasportDataForm: React.FC = () => {
                                     value={formik.values.address_residential_house}
                                     onChange={handleTextInputChange}
                                     onBlur={formik.handleBlur}
+                                    needValue
                                     error={formik.touched.address_residential_house && formik.errors.address_residential_house}
                                 />
                                 <Input
@@ -526,6 +533,7 @@ export const PasportDataForm: React.FC = () => {
                                 value={formik.values.address_residential_region}
                                 onChange={handleTextInputChange}
                                 onBlur={formik.handleBlur}
+                                needValue
                                 error={formik.touched.address_residential_region && formik.errors.address_residential_region}
                             />
                             <Input
@@ -535,6 +543,7 @@ export const PasportDataForm: React.FC = () => {
                                 value={formik.values.address_residential_city}
                                 onChange={handleTextInputChange}
                                 onBlur={formik.handleBlur}
+                                needValue
                                 error={formik.touched.address_residential_city && formik.errors.address_residential_city}
                             />
                             <Input
@@ -544,6 +553,7 @@ export const PasportDataForm: React.FC = () => {
                                 value={formik.values.address_residential_street}
                                 onChange={handleTextInputChange}
                                 onBlur={formik.handleBlur}
+                                needValue
                                 error={formik.touched.address_residential_street && formik.errors.address_residential_street}
                             />
                             <div className={styles.form__duoInputs}>
@@ -554,6 +564,7 @@ export const PasportDataForm: React.FC = () => {
                                     value={formik.values.address_residential_house}
                                     onChange={handleTextInputChange}
                                     onBlur={formik.handleBlur}
+                                    needValue
                                     error={formik.touched.address_residential_house && formik.errors.address_residential_house}
                                 />
                                 <Input

@@ -224,24 +224,6 @@ export const RiskProfileSecondForm: React.FC = () => {
                     <div className={styles.form__container} style={{ minHeight: '74px' }}>
                         <div className={styles.form__item_potintial}>
                             <div className={styles.form__item_potintial__container} >
-                                <span className={styles.form__item__potintial__title}>Возможный убыток</span>
-                                <Tooltip
-                                    className={styles.form__item__tooltip}
-                                    description="Возможное снижение цены портфеля в моменте, с учетом действующих на рынке факторов"
-                                    topForCenteringIcons="24px"
-                                    direction='top'
-                                    squerePosition={{ bottom: '-4px' }}
-                                />
-                            </div>
-                            <span className={styles.form__item__potintial__title_red}>{thirdRiskProfileResponse ? thirdRiskProfileResponse.risk_profiling_possible_loss_percent : secondRiskProfileData?.risk_profiling_possible_loss_percent}%</span>
-                        </div>
-                        <div className={styles.potential__capital__change}>
-                            {thirdRiskProfileResponse ? thirdRiskProfileResponse.possible_loss : secondRiskProfileData?.possible_loss} ₽
-                        </div>
-                    </div>
-                    <div className={styles.form__container} style={{ minHeight: '74px' }}>
-                        <div className={styles.form__item_potintial}>
-                            <div className={styles.form__item_potintial__container} >
                                 <span className={styles.form__item__potintial__title}>Потенциальный доход</span>
                                 <Tooltip
                                     className={styles.form__item__tooltip}
@@ -255,6 +237,24 @@ export const RiskProfileSecondForm: React.FC = () => {
                         </div>
                         <div className={styles.potential__capital__change}>
                             {thirdRiskProfileResponse ? thirdRiskProfileResponse.potential_income : secondRiskProfileData?.potential_income} ₽
+                        </div>
+                    </div>
+                    <div className={styles.form__container} style={{ minHeight: '74px' }}>
+                        <div className={styles.form__item_potintial}>
+                            <div className={styles.form__item_potintial__container} >
+                                <span className={styles.form__item__potintial__title}>Возможный убыток</span>
+                                <Tooltip
+                                    className={styles.form__item__tooltip}
+                                    description="Возможное снижение цены портфеля в моменте, с учетом действующих на рынке факторов"
+                                    topForCenteringIcons="24px"
+                                    direction='top'
+                                    squerePosition={{ bottom: '-4px' }}
+                                />
+                            </div>
+                            <span className={styles.form__item__potintial__title_red}>{thirdRiskProfileResponse ? thirdRiskProfileResponse.risk_profiling_possible_loss_percent : secondRiskProfileData?.risk_profiling_possible_loss_percent}%</span>
+                        </div>
+                        <div className={styles.potential__capital__change}>
+                            {thirdRiskProfileResponse ? thirdRiskProfileResponse.possible_loss : secondRiskProfileData?.possible_loss} ₽
                         </div>
                     </div>
                     {/* <h4 className={styles.title}>Завершение настроек риск профиля</h4> */}

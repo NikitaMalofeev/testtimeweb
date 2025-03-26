@@ -210,6 +210,7 @@ const IdentificationProfileForm: React.FC = () => {
                         placeholder="Фамилия"
                         needValue
                         type="text"
+                        error={formik.touched.lastName && formik.errors.lastName}
                     />
                     <Input
                         name="firstName"
@@ -219,6 +220,7 @@ const IdentificationProfileForm: React.FC = () => {
                         placeholder="Имя"
                         needValue
                         type="text"
+                        error={formik.touched.lastName && formik.errors.lastName}
                     />
                     <Input
                         name="patronymic"
@@ -227,6 +229,7 @@ const IdentificationProfileForm: React.FC = () => {
                         onBlur={formik.handleBlur}
                         placeholder="Отчество (при наличии)"
                         type="text"
+
                     />
                     <Input
                         name="phone"

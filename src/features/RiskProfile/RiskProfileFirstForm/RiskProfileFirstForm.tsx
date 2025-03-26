@@ -79,7 +79,7 @@ export const RiskProfileFirstForm: React.FC = () => {
 
     // ========================= 3. Синхронизация Redux → localStorage (только после загрузки LS) =========================
     useEffect(() => {
-        if (!isLSLoaded) return; 
+        if (!isLSLoaded) return;
         const dataToSave = {
             step: currentStep,
             data: formValues,
@@ -94,7 +94,6 @@ export const RiskProfileFirstForm: React.FC = () => {
             currency_investment: "Валюта инвестиций",
             current_loans: "Ваши текущие кредиты",
             education: "Ваше образование",
-            gender: "Ваш пол",
             income_investments_intended: "Доход от Ваших инвестиций предназначен для",
             invest_target: "Цель инвестирования",
             investment_experience: "Как Вы оцениваете свой опыт (знания) в области инвестирования?",
@@ -127,7 +126,7 @@ export const RiskProfileFirstForm: React.FC = () => {
 
         // (2) Вопросы с сервера
         const serverQuestions: Question[] = Object.entries(riskProfileSelectors)
-            .filter(([key]) => key !== "countries")
+            .filter(([key]) => key !== "countries" && key !== "gender")
             .map(([key, value]) => ({
                 name: key,
                 label: getLabelByKey(key),
@@ -189,7 +188,7 @@ export const RiskProfileFirstForm: React.FC = () => {
     if (error) return <p style={{ color: "red" }}>{error}</p>;
     if (!riskProfileSelectors || questions.length === 0) return null;
 
-    const totalSteps = questions.length;
+    const totalSteps = questions.length - 1;
     const isLastStep = currentStep === totalSteps - 1;
     const currentQuestion = questions[currentStep];
 

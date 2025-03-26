@@ -118,7 +118,7 @@ const AuthorizationPage = () => {
                                     <div>
                                         <Input
                                             autoComplete="new-password"
-                                            placeholder="Email/телефон"
+                                            placeholder="Email/телефон +7"
                                             name="identifier"
                                             type="text"
                                             value={formik.values.identifier}

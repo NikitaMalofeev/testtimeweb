@@ -66,16 +66,12 @@ const PersonalAccountMenu: React.FC = () => {
             notificationsCount: 9 - userDocuments.length,
             iconWidth: 23,
             iconHeight: 28,
-            warningMessage: (
+            warningMessage: 9 - userDocuments.length !== 0 ? (
                 <div className={styles.warning}>
-                    {userDocuments.length < 1 && (
-                        <>
-                            <Icon Svg={WarningIcon} width={16} height={16} />
-                            <div>Есть неподписанные документы ({9 - userDocuments.length} шт.)</div>
-                        </>
-                    )}
+                    <Icon Svg={WarningIcon} width={16} height={16} />
+                    <div>Есть неподписанные документы ({9 - userDocuments.length} шт.)</div>
                 </div>
-            ),
+            ) : null,
         },
         {
             icon: AccountChatIcon,
@@ -109,20 +105,14 @@ const PersonalAccountMenu: React.FC = () => {
             },
             iconWidth: 28,
             iconHeight: 28,
-            warningMessage: (
-
+            warningMessage: (!filledRiskProfileChapters.is_complete_passport || !filledRiskProfileChapters.is_exist_scan_passport) ? (
                 <div className={styles.warning}>
-                    {(!filledRiskProfileChapters.is_complete_passport || !filledRiskProfileChapters.is_exist_scan_passport) && (
-                        <>
-                            <Icon Svg={WarningIcon} width={16} height={16} />
-                            <div>
-                                Для подключения брокера заполните паспорт
-                            </div>
-                        </>
-                    )}
+                    <Icon Svg={WarningIcon} width={16} height={16} />
+                    <div>
+                        Для подключения брокера заполните паспорт
+                    </div>
                 </div>
-
-            ),
+            ) : null,
         },
         {
             icon: AccountSettingsIcon,

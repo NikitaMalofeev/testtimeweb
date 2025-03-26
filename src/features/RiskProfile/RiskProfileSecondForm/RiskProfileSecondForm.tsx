@@ -131,8 +131,13 @@ export const RiskProfileSecondForm: React.FC = () => {
         }
     };
 
-    if (loading && !secondRiskProfileData && !thirdRiskProfileResponse) {
-        return <Loader />
+    if (
+        loading ||
+        !secondRiskProfileData ||
+        !secondRiskProfileData.recommended_risk_profiles ||
+        !thirdRiskProfileResponse
+    ) {
+        return <Loader />;
     } else {
         return (
             <div className={styles.form}>

@@ -219,7 +219,7 @@ export const postTrustedPersonInfo = createAsyncThunk<
     { data: TrustedPersonInfo; onSuccess: () => void; },
     { state: RootState; rejectValue: string }
 >(
-    "riskProfile/postFirstRiskProfileForm",
+    "riskProfile/postTrustedPersonInfo",
     async ({ data, onSuccess }, { getState, rejectWithValue, dispatch }) => {
         try {
             const token = getState().user.token;
@@ -565,10 +565,8 @@ const riskProfileSlice = createSlice({
                 state.error = null;
             })
             .addCase(postFirstRiskProfileForm.fulfilled, (state) => {
-                state.loading = false;
             })
             .addCase(postFirstRiskProfileForm.rejected, (state, action) => {
-                state.loading = false;
                 state.error = action.payload as string;
             })
             .addCase(postSecondRiskProfileForm.pending, (state) => {

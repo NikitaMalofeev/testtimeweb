@@ -126,7 +126,7 @@ export const RiskProfileFirstForm: React.FC = () => {
 
         // (2) Вопросы с сервера
         const serverQuestions: Question[] = Object.entries(riskProfileSelectors)
-            .filter(([key]) => key !== "countries" && key !== "gender")
+            .filter(([key]) => key !== "countries")
             .map(([key, value]) => ({
                 name: key,
                 label: getLabelByKey(key),

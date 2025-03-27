@@ -369,7 +369,6 @@ const DocumentsPage: React.FC = () => {
                                             </Button>
                                         )}</>
                                 )}
-
                             </div>
                         </div>
                     ))}

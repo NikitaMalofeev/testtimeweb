@@ -52,6 +52,7 @@ interface RiskProfileFormState {
     };
     currentConfirmingDoc: string;
     pasportScanSocketId: string;
+    pasportScanProgress: number
 }
 
 const initialState: RiskProfileFormState = {
@@ -68,7 +69,8 @@ const initialState: RiskProfileFormState = {
         currentStep: 0
     },
     currentConfirmingDoc: 'type_doc_passport',
-    pasportScanSocketId: ''
+    pasportScanSocketId: '',
+    pasportScanProgress: 0
 };
 
 export const createRiskProfile = createAsyncThunk<
@@ -298,7 +300,7 @@ export const openPasportScanWebsocketThunk = createAsyncThunk<
     { state: RootState; rejectValue: string }
 >(
     "riskProfile/openPasportScanWebsocket",
-    async ({ onSuccess }, { getState, rejectWithValue }) => {
+    async ({ onSuccess }, { getState, rejectWithValue, dispatch }) => {
         try {
             const token = getState().user.token;
             if (!token) {
@@ -315,15 +317,21 @@ export const openPasportScanWebsocketThunk = createAsyncThunk<
                 };
 
                 socket.onmessage = (event) => {
-                    console.log("Получено сообщение через WebSocket в:", new Date());
                     const responseData = JSON.parse(event.data);
-                    // Логируем дату из события (например, можно вывести в консоль вместе с данными)
-                    console.log("Дата из websockets:", new Date());
 
-                    if (responseData.data && responseData.data.progress === 100) {
-                        onSuccess();
-                        resolve(responseData);
-                        socket.close();
+                    // Проверяем, что тип сообщения именно "progress_update"
+                    if (responseData?.type === "progress_update") {
+                        // Диспатчим экшен, чтобы сохранить прогресс в стейте
+                        dispatch(
+                            setPassportScanProgress(responseData.data.progress)
+                        );
+
+                        // Если прогресс 100% - можем закрыть сокет или выполнить что-то ещё
+                        if (responseData.data.progress === 100) {
+                            onSuccess();
+                            resolve(responseData);
+                            socket.close();
+                        }
                     }
                 };
 
@@ -511,6 +519,9 @@ const riskProfileSlice = createSlice({
         },
         setPasportScanSocketId(state, action: PayloadAction<string>) {
             state.pasportScanSocketId = action.payload;
+        },
+        setPassportScanProgress(state, action: PayloadAction<number>) {
+            state.pasportScanProgress = action.payload
         }
     },
     extraReducers: (builder) => {
@@ -608,6 +619,7 @@ export const {
     nextRiskProfileStep,
     prevRiskProfileStep,
     setThirdRiskProfileResponse,
-    setFirstRiskProfileData
+    setFirstRiskProfileData,
+    setPassportScanProgress
 } = riskProfileSlice.actions;
 export default riskProfileSlice.reducer;

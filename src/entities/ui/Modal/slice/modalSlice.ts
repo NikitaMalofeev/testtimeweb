@@ -58,6 +58,12 @@ const initialState: ExtendedModalState = {
         isScrolled: false
     },
     [ModalType.PREVIEW]: { isOpen: false, size: ModalSize.FULL, animation: ModalAnimation.LEFT, isScrolled: false },
+    [ModalType.PROGRESS]: {
+        isOpen: false,
+        size: ModalSize.XXS,
+        animation: ModalAnimation.BOTTOM,
+        isScrolled: false
+    },
     modalStack: [],
     confirmationMethod: 'SMS',
     selectedCountry: "",

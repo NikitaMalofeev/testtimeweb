@@ -80,6 +80,16 @@
     transform: translate(-50%, -50%);
   }
 
+  .mc {
+    position: fixed;
+    height: 100%;
+    width: calc(100% - 32px);
+    max-height: max-content;
+    border-radius: 10px;
+    bottom: 16px;
+    transform: translate(-50%, -50%);
+  }
+
   .closeIcon {
     position: fixed;
     max-width: 20px;

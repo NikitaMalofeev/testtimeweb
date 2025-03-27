@@ -14,6 +14,9 @@ import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
 import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
 import PasportExFirst from 'shared/assets/images/pasportExFirst.jpg'
 import PasportExSecond from 'shared/assets/images/pasportExSecond.jpg'
+import { closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
+import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
+import { UploadProgressModal } from "features/Ui/UploadProgressModal.tsx/UploadProgressModal";
 
 export interface PasportScanData {
     file_scan_page_first: null | string;
@@ -36,7 +39,7 @@ export const PasportScanForm: React.FC = () => {
     // Новые состояния для предпросмотра примеров
     const [isExamplePreviewOpenFirst, setIsExamplePreviewOpenFirst] = useState(false);
     const [isExamplePreviewOpenSecond, setIsExamplePreviewOpenSecond] = useState(false);
-
+    const modalState = useSelector((state: RootState) => state.modal.progress)
     const dragCounterFirst = useRef(0);
     const dragCounterReg = useRef(0);
     const fileInputFirstRef = useRef<HTMLInputElement>(null);
@@ -71,6 +74,7 @@ export const PasportScanForm: React.FC = () => {
     };
 
     const handleSubmit = async () => {
+        dispatch(openModal({ type: ModalType.PROGRESS, animation: ModalAnimation.BOTTOM, size: ModalSize.MC }))
         const formData = new FormData();
         const fileFirst = formik.values.file_scan_page_first;
         const fileReg = formik.values.file_scan_page_registration;
@@ -89,10 +93,14 @@ export const PasportScanForm: React.FC = () => {
         dispatch(
             postPasportScanThunk({
                 data: formData,
-                onSuccess: () => { }
+                onSuccess: () => {
+                    setTimeout(() => {
+                        closeModal(ModalType.PROGRESS)
+                        dispatch(setStepAdditionalMenuUI(2))
+                    }, 2000)
+                }
             })
         );
-        dispatch(setStepAdditionalMenuUI(2))
     };
 
     useEffect(() => {
@@ -392,6 +400,7 @@ export const PasportScanForm: React.FC = () => {
                     </Button>
                 </div>
             </form>
+            <UploadProgressModal isOpen={modalState.isOpen} onClose={() => { dispatch(closeModal(ModalType.PROGRESS)) }} processName='Сканы паспорта' processTitle="Загрузка документов" />
         </>
     );
 };

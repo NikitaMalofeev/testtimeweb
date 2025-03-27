@@ -468,74 +468,71 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                     )}
                 </div>
 
-                {/* --- Форма для e-mail (только при двойном подтверждении) --- */}
-                {isDoubleConfirmationMethod && (
-                    <div className={styles.modalContent__head}>
-                        <span className={styles.modalContent__description}>
-                            Код направлен на <b>{email}</b>, указанный при идентификации
-                        </span>
+                <div className={styles.modalContent__head}>
+                    <span className={styles.modalContent__description}>
+                        Код направлен на <b>{email}</b>, указанный при идентификации
+                    </span>
 
-                        <Tooltip
-                            positionBox={{ top: "26px", left: "-264px" }}
-                            squerePosition={{ top: "15px", left: "241px" }}
-                            topForCenteringIcons="24px"
-                            className={styles.modalContent__tooltip}
-                            description="Настройка параметров защиты цифрового профиля от несанкционированного доступа"
-                        />
+                    <Tooltip
+                        positionBox={{ top: "26px", left: "-264px" }}
+                        squerePosition={{ top: "15px", left: "241px" }}
+                        topForCenteringIcons="24px"
+                        className={styles.modalContent__tooltip}
+                        description="Настройка параметров защиты цифрового профиля от несанкционированного доступа"
+                    />
 
-                        <div className={styles.codeInput__container}>
-                            {smsCodeSecond.map((digit, index) => {
-                                const inputBorderColor =
-                                    emailSuccess === "не пройдено" ? "#FF3C53" : // ошибка имеет приоритет
-                                        emailSuccess === 'пройдено' ? "#1CC15A" : digit ? "#2977E2" : // если значение введено, устанавливаем синий цвет
-                                            hasNoTryEmailConfirm ? "#D4D4E8" : ""; // иначе логика по состоянию
-                                return (
-                                    <input
-                                        key={`second-form-${index}`}
-                                        type="text"
-                                        maxLength={1}
-                                        inputMode="numeric"
-                                        pattern="[0-9]*"
-                                        value={digit}
-                                        autoComplete="one-time-code"
-                                        name={`otp-second-${index}`}
-                                        onChange={(e) => {
-                                            emailSuccess !== 'пройдено' && handleInputChangeSecond(e.target.value, index)
-                                        }}
-                                        onKeyDown={(e) => handleKeyDownSecond(e, index)}
-                                        onPaste={handlePasteSecond}
-                                        ref={(el) => (inputRefsSecond.current[index] = el)}
-                                        className={styles.codeInput__box}
-                                        style={{ borderColor: inputBorderColor }}
-                                    />
-                                );
-                            })}
+                    <div className={styles.codeInput__container}>
+                        {smsCodeSecond.map((digit, index) => {
+                            const inputBorderColor =
+                                emailSuccess === "не пройдено" ? "#FF3C53" : // ошибка имеет приоритет
+                                    emailSuccess === 'пройдено' ? "#1CC15A" : digit ? "#2977E2" : // если значение введено, устанавливаем синий цвет
+                                        hasNoTryEmailConfirm ? "#D4D4E8" : ""; // иначе логика по состоянию
+                            return (
+                                <input
+                                    key={`second-form-${index}`}
+                                    type="text"
+                                    maxLength={1}
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    value={digit}
+                                    autoComplete="one-time-code"
+                                    name={`otp-second-${index}`}
+                                    onChange={(e) => {
+                                        emailSuccess !== 'пройдено' && handleInputChangeSecond(e.target.value, index)
+                                    }}
+                                    onKeyDown={(e) => handleKeyDownSecond(e, index)}
+                                    onPaste={handlePasteSecond}
+                                    ref={(el) => (inputRefsSecond.current[index] = el)}
+                                    className={styles.codeInput__box}
+                                    style={{ borderColor: inputBorderColor }}
+                                />
+                            );
+                        })}
 
-                        </div>
-
-                        {emailSuccess !== 'пройдено' && (
-                            <div
-                                className={styles.modalContent__problems}
-                                onClick={() => {
-                                    if (!emailTimerActive) {
-                                        handleResetEmailTimer();
-                                    }
-                                }}
-                            >
-                                <div
-                                    className={styles.timer}
-                                    style={!emailTimerActive ? { color: "#045FDD" } : {}}
-                                >
-                                    {emailTimerActive
-                                        ? `Отправить код снова через: 0${Math.floor(emailTimeLeft / 60)}:${String(
-                                            emailTimeLeft % 60
-                                        ).padStart(2, "0")}`
-                                        : "Отправить код снова"}
-                                </div>
-                            </div>
-                        )}
                     </div>
-                )}
+
+                    {emailSuccess !== 'пройдено' && (
+                        <div
+                            className={styles.modalContent__problems}
+                            onClick={() => {
+                                if (!emailTimerActive) {
+                                    handleResetEmailTimer();
+                                }
+                            }}
+                        >
+                            <div
+                                className={styles.timer}
+                                style={!emailTimerActive ? { color: "#045FDD" } : {}}
+                            >
+                                {emailTimerActive
+                                    ? `Отправить код снова через: 0${Math.floor(emailTimeLeft / 60)}:${String(
+                                        emailTimeLeft % 60
+                                    ).padStart(2, "0")}`
+                                    : "Отправить код снова"}
+                            </div>
+                        </div>
+                    )}
+                </div>
 
                 {/* Кнопка "Проблемы с получением кода" */}
                 <div className={styles.buttonGroup}>

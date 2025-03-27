@@ -87,6 +87,7 @@ export const createRiskProfile = createAsyncThunk<
 
             localStorage.removeItem("riskProfileFormData");
             dispatch(updateRiskProfileForm({}))
+            dispatch(setStep(0))
         } catch (error: any) {
             onError()
 
@@ -310,6 +311,7 @@ export const openPasportScanWebsocketThunk = createAsyncThunk<
                 socket.onopen = () => {
                     console.log("WebSocket открыт в:", new Date());
                     // При необходимости можно отправить первоначальное сообщение
+                    socket.send('Сообщение при подключении от клиента')
                 };
 
                 socket.onmessage = (event) => {

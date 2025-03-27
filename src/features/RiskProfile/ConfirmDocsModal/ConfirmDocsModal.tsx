@@ -62,7 +62,6 @@ export const ConfirmDocsModal = memo(
 
         const hasNoTryPhoneConfirm = docsSuccess === "не определено";
         const confirmationMethod = modalState.confirmationMethod;
-        const confirmationMethod2 = modalState.confirmationMethod2
 
         const userInfo = useSelector((state: RootState) => state.user.userPersonalAccountInfo);
 
@@ -139,7 +138,7 @@ export const ConfirmDocsModal = memo(
 
         useEffect(() => {
             setSmsCodeFirst(Array(codeLength).fill(""));
-        }, [confirmationMethod, codeLength, confirmationMethod2]);
+        }, [confirmationMethod, codeLength]);
 
         const handleInputChangeFirst = (value: string, index: number) => {
             if (value.length > 1) {
@@ -207,13 +206,13 @@ export const ConfirmDocsModal = memo(
         };
 
         const renderFirstFormText = () => {
-            if (confirmationMethod === "whatsapp" || confirmationMethod2 === 'WHATSAPP') {
+            if (confirmationMethod === "WHATSAPP") {
                 return (
                     <span className={styles.modalContent__description}>
                         Код направлен в WhatsApp <b>{userInfo?.phone}</b>, указанный при идентификации
                     </span>
                 );
-            } else if (confirmationMethod === 'email' || confirmationMethod2 === 'EMAIL') {
+            } else if (confirmationMethod === 'EMAIL') {
                 return (
                     <span className={styles.modalContent__description}>
                         Код направлен на почту <b>{userInfo?.email}</b>, указанную при идентификации

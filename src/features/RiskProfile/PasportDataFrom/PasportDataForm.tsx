@@ -10,7 +10,7 @@ import { RootState } from "app/providers/store/config/store";
 import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { Checkbox } from "shared/ui/Checkbox/Checkbox";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
-import { closeModal, openModal, setCurrentConfirmModalType, setCurrentConfirmModalType2 } from "entities/ui/Modal/slice/modalSlice";
+import { closeModal, openModal, setCurrentConfirmModalType } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { ConfirmDocsModal } from "../ConfirmDocsModal/ConfirmDocsModal";
 import * as Yup from "yup";
@@ -240,7 +240,6 @@ export const PasportDataForm: React.FC = () => {
     const handleTextInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         formik.setFieldValue(name, value);
-        dispatch(updateFieldValue({ name, value }));
     };
 
     /**
@@ -269,7 +268,6 @@ export const PasportDataForm: React.FC = () => {
         if (value.length >= 4) value = value.slice(0, 4) + "-" + value.slice(4);
         if (value.length >= 6) value = value.slice(0, 7) + "-" + value.slice(7);
         formik.setFieldValue(name, value);
-        dispatch(updateFieldValue({ name, value }));
     };
 
 
@@ -283,7 +281,7 @@ export const PasportDataForm: React.FC = () => {
     const handleMethodChange = (method: 'SMS' | 'EMAIL' | 'WHATSAPP') => {
         formik.setFieldValue("type_message", method);
         //убрать этот страх когда оставлю один метод
-        dispatch(setCurrentConfirmModalType2(method));
+        dispatch(setCurrentConfirmModalType(method));
 
         const methodMapping: Record<typeof method, string> = {
             SMS: 'sms',

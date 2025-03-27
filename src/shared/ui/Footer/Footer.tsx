@@ -32,7 +32,7 @@ export const Footer = () => {
                 <div className={styles.footer__details}>
                     <p className={styles.footer__details__text}>ИНН: 1659217663</p>
                     <p className={styles.footer__details__text}>ОГРН: 1211600064829</p>
-                    <p className={styles.footer__details__text}>г. Казань ул. Ротаторная 27Б – 153</p>
+                    <p className={styles.footer__details__text}>г. Казань ул. Роторная 27Б – 153</p>
                 </div>
                 <div className={styles.footer__contact}>
                     <p className={styles.footer__email}>Почта</p>

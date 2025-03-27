@@ -30,6 +30,7 @@ import WarningIcon from 'shared/assets/svg/Warning.svg'
 import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
 import { ProblemsCodeModal } from "features/RiskProfile/ProblemsCodeModal/ProblemsCodeModal";
 import { postPasportScanThunk } from "entities/RiskProfile/slice/riskProfileSlice";
+import { Tooltip } from "shared/ui/Tooltip/Tooltip";
 
 const PersonalAccountMenu: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -167,9 +168,31 @@ const PersonalAccountMenu: React.FC = () => {
                 <div className={styles.page__container}>
                     <div>
                         {userPersonalAccountInfo?.tariff_is_active ? (
-                            <div className={styles.page__status_active}>активна</div>
+                            <div className={styles.page__status}>
+                                <div className={styles.page__status_inactive}>активна</div>
+                                <div className={styles.page__status__tooltip}>
+                                    <Tooltip
+                                        positionBox={{ top: "8px", left: '30px' }}
+                                        squerePosition={{ top: "15px", left: "-4px" }}
+                                        topForCenteringIcons="24px"
+                                        className={styles.modalContent__tooltip}
+                                        description="статус работы с вашим счётом"
+                                    />
+                                </div>
+                            </div>
                         ) : (
-                            <div className={styles.page__status_inactive}>остановлена</div>
+                            <div className={styles.page__status}>
+                                <div className={styles.page__status_inactive}>остановлена</div>
+                                <div className={styles.page__status__tooltip}>
+                                    <Tooltip
+                                        positionBox={{ top: "8px", left: '30px' }}
+                                        squerePosition={{ top: "15px", left: "-4px" }}
+                                        topForCenteringIcons="24px"
+                                        className={styles.modalContent__tooltip}
+                                        description="статус работы с вашим счётом"
+                                    />
+                                </div>
+                            </div>
                         )}
                     </div>
                     <h2 className={styles.page__title}>Учетная запись</h2>

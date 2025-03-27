@@ -135,7 +135,7 @@ const DocumentsPage: React.FC = () => {
                 const passportDocInfo = userDocuments.find((doc) => doc.key === "type_doc_passport");
                 const isPassportSigned = !!passportDocInfo?.date_last_confirmed;
 
-                if (!filledRiskProfileChapters.is_complete_passport && !isPassportSigned) {
+                if (!filledRiskProfileChapters.is_complete_passport || !isPassportSigned) {
                     dispatch(setCurrentConfirmableDoc("type_doc_passport"));
                     dispatch(setStepAdditionalMenuUI(0));
                     dispatch(

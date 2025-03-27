@@ -47,6 +47,9 @@ export const RiskProfileSecondForm: React.FC = () => {
     const thirdRiskProfileResponse = useSelector((state: RootState) => state.riskProfile.thirdRiskProfileResponse);
 
     const goBack = () => dispatch(prevStep());
+    const isFirstRender = useRef(true);
+
+
 
     const formik = useFormik({
         enableReinitialize: true,
@@ -68,6 +71,10 @@ export const RiskProfileSecondForm: React.FC = () => {
         }, 500),
         []
     );
+
+    useEffect(() => {
+        isFirstRender.current = false;
+    }, []);
 
     useEffect(() => {
         const riskProfileDataLS = localStorage.getItem('riskProfileFormData');
@@ -131,10 +138,8 @@ export const RiskProfileSecondForm: React.FC = () => {
         }
     };
 
-    if (
-        loading ||
-        !thirdRiskProfileResponse
-    ) {
+
+    if (loading || (isFirstRender.current && !thirdRiskProfileResponse)) {
         return <Loader />;
     } else {
         return (

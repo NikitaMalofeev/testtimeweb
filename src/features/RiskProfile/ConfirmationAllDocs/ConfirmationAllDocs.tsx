@@ -6,7 +6,7 @@ import { Checkbox } from "shared/ui/Checkbox/Checkbox";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
-import { closeAllModals, closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
+import { closeAllModals, closeModal, openModal, setCurrentConfirmModalType } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { ConfirmDocsModal } from "../ConfirmDocsModal/ConfirmDocsModal";
 import styles from "./styles.module.scss";
@@ -53,15 +53,14 @@ export const ConfirmAllDocs: React.FC = () => {
         WHATSAPP: "Whatsapp",
     };
 
-    const handleMethodChange = (method: string) => {
+    const handleMethodChange = (method: 'SMS' | 'EMAIL' | 'WHATSAPP') => {
         formik.setFieldValue("type_message", method);
-        const methodMapping: Record<typeof method, string> = {
-            SMS: 'sms',
-            EMAIL: 'email',
-            WHATSAPP: 'whatsapp',
+        const methodMapping: Record<typeof method, 'SMS' | 'EMAIL' | 'WHATSAPP'> = {
+            SMS: 'SMS',
+            EMAIL: 'EMAIL',
+            WHATSAPP: 'WHATSAPP',
         };
-        dispatch(setCurrentConfirmationMethod(methodMapping[method]));
-        dispatch(setCurrentConfirmationMethod(method));
+        dispatch(setCurrentConfirmModalType(methodMapping[method]));
     };
 
     useEffect(() => {
@@ -235,7 +234,7 @@ export const ConfirmAllDocs: React.FC = () => {
                         }))}
                         value={formik.values.type_message}
                         onChange={(name, selectedValue) => {
-                            handleMethodChange(selectedValue)
+                            handleMethodChange(selectedValue as keyof typeof messageTypeOptions)
                         }}
                     />
                 </div>

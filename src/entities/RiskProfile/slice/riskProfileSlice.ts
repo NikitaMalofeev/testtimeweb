@@ -86,7 +86,7 @@ export const createRiskProfile = createAsyncThunk<
             dispatch(setUserToken(token));
 
             localStorage.removeItem("riskProfileFormData");
-            localStorage.removeItem("persist:root");
+            dispatch(updateRiskProfileForm({}))
         } catch (error: any) {
             onError()
 

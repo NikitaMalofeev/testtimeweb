@@ -178,8 +178,6 @@ const IdentificationProfileForm: React.FC = () => {
         }
 
         dispatch(setUserData(userForRedux))
-        localStorage.removeItem("riskProfileFormData");
-        localStorage.removeItem("persist:root");
         try {
             // Если все данные верны, сервер вернёт результат без ошибок
             await dispatch(createRiskProfile({

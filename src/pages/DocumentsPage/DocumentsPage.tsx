@@ -1,5 +1,3 @@
-// DocumentsPage.tsx
-
 import React, { useState, useEffect } from "react";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -56,8 +54,6 @@ const DocumentsPage: React.FC = () => {
     const isAnyModalOpen = useSelector(selectIsAnyModalOpen);
 
     useEffect(() => {
-        // console.log("Modal state changed:", { modalPreviewState, isAnyModalOpen });
-
         if (modalState.documentsPreview.isOpen) {
             document.body.style.overflow = 'hidden';
             document.body.style.position = 'fixed';
@@ -177,6 +173,11 @@ const DocumentsPage: React.FC = () => {
             case "type_doc_risk_declarations":
             case "type_doc_agreement_personal_data_policy":
             case "type_doc_investment_profile_certificate":
+                // Для type_doc_EDS_agreement проверяем наличие заполненного паспорта
+                if (docId === "type_doc_EDS_agreement" && !filledRiskProfileChapters.is_exist_scan_passport) {
+                    // Если паспорт не существует, не даём подписывать документ
+                    return;
+                }
                 dispatch(setCurrentConfirmableDoc(docId));
                 dispatch(setStepAdditionalMenuUI(4));
                 dispatch(
@@ -201,8 +202,13 @@ const DocumentsPage: React.FC = () => {
         const docInfo = userDocuments.find((doc) => doc.key === type);
 
         const date = docInfo?.date_last_confirmed || null;
-        const status = date ? "signed" : "signable"; // если нет даты => значит не подписан
+        let status = date ? "signed" : "signable"; // если нет даты => значит не подписан
 
+        // Для type_doc_EDS_agreement проверяем filledRiskProfileChapters.exist_passport.
+        // Если паспорта нет, документ нельзя подписывать – ставим статус "disabled".
+        if (type === "type_doc_EDS_agreement" && !filledRiskProfileChapters.is_exist_scan_passport) {
+            status = "disabled";
+        }
         return {
             id: type,
             title: docTypeLabels[type],
@@ -220,14 +226,15 @@ const DocumentsPage: React.FC = () => {
     // - Если не подписан, но это именно "первый" не подписанный => серый
     // - Если не подписан, но не первый => красный
     const renderedDocuments = documents.map((doc) => {
-        let colorClass = styles.button__green; // по умолчанию зелёный
+        let colorClass = styles.button__gray;
         if (doc.status === "signable") {
-            // не подписан
             if (doc.id === firstNotConfirmed) {
                 colorClass = styles.button__gray; // первый неподписанный
             } else {
                 colorClass = styles.button__red; // остальные неподписанные
             }
+        } else if (doc.status === "disabled") {
+            colorClass = styles.button__gray; // используем тот же стиль для disabled
         }
         return {
             ...doc,
@@ -304,7 +311,6 @@ const DocumentsPage: React.FC = () => {
                                 <span className={styles.document__info__title}>{doc.title}</span>
                                 <div className={styles.document__info__flex}>
                                     {/* Кнопка "Просмотр" => открывает превью */}
-
                                     {doc.status === "signed" ? <>
                                         <Button
                                             className={styles.document__preview}
@@ -317,7 +323,6 @@ const DocumentsPage: React.FC = () => {
                                             <Icon Svg={DownloadIcon} onClick={() => handleDownloadPdf(doc.id)} width={33} height={33} />
                                         )}
                                     </> : ''}
-
                                 </div>
                             </div>
 
@@ -329,26 +334,42 @@ const DocumentsPage: React.FC = () => {
                                         : "Дата подписания"}
                                 </span>
 
-                                {doc.status === "signed" ? (
-                                    <div className={styles.document__button_success}>
-                                        <Icon Svg={SuccessBlueIcon} width={24} height={24} />
-                                        <span>Подписано</span>
-                                    </div>
+                                {doc.id === 'type_doc_passport' ? (
+                                    <>
+                                        {(doc.status === "signed" && filledRiskProfileChapters.is_exist_scan_passport) ? (
+                                            <div className={styles.document__button_success}>
+                                                <Icon Svg={SuccessBlueIcon} width={24} height={24} />
+                                                <span>Подписано</span>
+                                            </div>
+                                        ) : (
+                                            <Button
+                                                onClick={() => handleSignDocument(doc.id)}
+                                                className={doc.colorClass}
+                                                theme={ButtonTheme.BLUE}
+                                            >
+                                                {(doc.id === 'type_doc_passport' && !filledRiskProfileChapters.is_exist_scan_passport) ? 'Заполнить' : 'Подписать'}
+                                            </Button>
+                                        )}
+                                    </>
                                 ) : (
-                                    <Button
-                                        onClick={() => handleSignDocument(doc.id)}
-                                        disabled={
-                                            // Можно отключать кнопку,
-                                            // если это не первый неподписанный документ:
-                                            doc.id !== firstNotConfirmed
-                                            // false
-                                        }
-                                        className={doc.colorClass}
-                                        theme={ButtonTheme.BLUE}
-                                    >
-                                        {(doc.id === 'type_doc_passport' && !filledRiskProfileChapters.is_exist_scan_passport) || (doc.id === 'type_doc_RP_questionnairy' && !filledRiskProfileChapters.is_risk_profile_complete_final) ? 'Заполнить' : 'Подписать'}
-                                    </Button>
+                                    <>
+                                        {doc.status === "signed" ? (
+                                            <div className={styles.document__button_success}>
+                                                <Icon Svg={SuccessBlueIcon} width={24} height={24} />
+                                                <span>Подписано</span>
+                                            </div>
+                                        ) : (
+                                            <Button
+                                                onClick={() => handleSignDocument(doc.id)}
+                                                disabled={doc.id !== firstNotConfirmed || !filledRiskProfileChapters.is_exist_scan_passport}
+                                                className={doc.colorClass}
+                                                theme={ButtonTheme.BLUE}
+                                            >
+                                                {(doc.id === 'type_doc_passport' && !filledRiskProfileChapters.is_exist_scan_passport) || (doc.id === 'type_doc_RP_questionnairy' && !filledRiskProfileChapters.is_risk_profile_complete_final) ? 'Заполнить' : 'Подписать'}
+                                            </Button>
+                                        )}</>
                                 )}
+
                             </div>
                         </div>
                     ))}

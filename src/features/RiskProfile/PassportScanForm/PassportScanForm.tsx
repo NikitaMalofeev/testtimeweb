@@ -12,6 +12,8 @@ import styles from "./styles.module.scss";
 import { openPasportScanWebsocketThunk, postPasportScanThunk } from "entities/RiskProfile/slice/riskProfileSlice";
 import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
 import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
+import PasportExFirst from 'shared/assets/images/pasportExFirst.jpg'
+import PasportExSecond from 'shared/assets/images/pasportExSecond.jpg'
 
 export interface PasportScanData {
     file_scan_page_first: null | string;
@@ -31,6 +33,10 @@ export const PasportScanForm: React.FC = () => {
     const [dragActiveReg, setDragActiveReg] = useState(false);
     const [isPreviewOpenFirst, setIsPreviewOpenFirst] = useState(false);
     const [isPreviewOpenReg, setIsPreviewOpenReg] = useState(false);
+    // Новые состояния для предпросмотра примеров
+    const [isExamplePreviewOpenFirst, setIsExamplePreviewOpenFirst] = useState(false);
+    const [isExamplePreviewOpenSecond, setIsExamplePreviewOpenSecond] = useState(false);
+
     const dragCounterFirst = useRef(0);
     const dragCounterReg = useRef(0);
     const fileInputFirstRef = useRef<HTMLInputElement>(null);
@@ -167,6 +173,17 @@ export const PasportScanForm: React.FC = () => {
         setIsPreviewOpenReg((prev) => !prev);
     };
 
+    // Функции для предпросмотра примеров
+    const toggleExamplePreviewFirst = (e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        setIsExamplePreviewOpenFirst((prev) => !prev);
+    };
+
+    const toggleExamplePreviewSecond = (e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        setIsExamplePreviewOpenSecond((prev) => !prev);
+    };
+
     useEffect(() => {
         return () => {
             if (previewFirst) {
@@ -220,6 +237,35 @@ export const PasportScanForm: React.FC = () => {
                     />
                 </div>
             )}
+            {/* Отрисовка предпросмотра примеров */}
+            {isExamplePreviewOpenFirst && (
+                <div
+                    className={styles.fullPreviewOverlay}
+                    onClick={toggleExamplePreviewFirst}
+                    style={{ zIndex: 9997 }}
+                >
+                    <img
+                        className={styles.fullPreviewImage}
+                        src={PasportExFirst}
+                        alt="Пример первой страницы"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                </div>
+            )}
+            {isExamplePreviewOpenSecond && (
+                <div
+                    className={styles.fullPreviewOverlay}
+                    onClick={toggleExamplePreviewSecond}
+                    style={{ zIndex: 9997 }}
+                >
+                    <img
+                        className={styles.fullPreviewImage}
+                        src={PasportExSecond}
+                        alt="Пример страницы регистрации"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                </div>
+            )}
             <form onSubmit={formik.handleSubmit} className={styles.form}>
                 <p className={styles.form__title}>
                     Скан/фото паспорта для идентификации клиента необходимо предоставлять в следующем виде:
@@ -243,7 +289,7 @@ export const PasportScanForm: React.FC = () => {
                 </ol>
                 <div className={styles.uploadBlock__header}>
                     <span className={styles.uploadBlock__headerTitle}>ПЕРВАЯ СТРАНИЦА: &nbsp;</span>
-                    <span className={styles.uploadBlock__headerExample} onClick={(e) => e.preventDefault()}>
+                    <span className={styles.uploadBlock__headerExample} onClick={toggleExamplePreviewFirst}>
                         СМ. ОБРАЗЕЦ
                     </span>
                 </div>
@@ -290,7 +336,7 @@ export const PasportScanForm: React.FC = () => {
                 </div>
                 <div className={styles.uploadBlock__header}>
                     <span className={styles.uploadBlock__headerTitle}>СТРАНИЦА РЕГИСТРАЦИИ: &nbsp;</span>
-                    <span className={styles.uploadBlock__headerExample} onClick={(e) => e.preventDefault()}>
+                    <span className={styles.uploadBlock__headerExample} onClick={toggleExamplePreviewSecond}>
                         СМ. ОБРАЗЕЦ
                     </span>
                 </div>

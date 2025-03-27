@@ -134,9 +134,13 @@ const DocumentsPage: React.FC = () => {
                     );
                 }
                 break;
-            case "type_doc_passport":
-                if (!filledRiskProfileChapters.is_complete_passport) {
-                    dispatch(setCurrentConfirmableDoc('type_doc_passport'));
+            case "type_doc_passport": {
+                // Проверяем, подписан ли паспорт (есть ли дата подтверждения)
+                const passportDocInfo = userDocuments.find((doc) => doc.key === "type_doc_passport");
+                const isPassportSigned = !!passportDocInfo?.date_last_confirmed;
+
+                if (!filledRiskProfileChapters.is_complete_passport && !isPassportSigned) {
+                    dispatch(setCurrentConfirmableDoc("type_doc_passport"));
                     dispatch(setStepAdditionalMenuUI(0));
                     dispatch(
                         openModal({
@@ -146,7 +150,7 @@ const DocumentsPage: React.FC = () => {
                         })
                     );
                 } else if (!filledRiskProfileChapters.is_exist_scan_passport) {
-                    dispatch(setCurrentConfirmableDoc('type_doc_passport'));
+                    dispatch(setCurrentConfirmableDoc("type_doc_passport"));
                     dispatch(setStepAdditionalMenuUI(1));
                     dispatch(
                         openModal({
@@ -156,7 +160,7 @@ const DocumentsPage: React.FC = () => {
                         })
                     );
                 } else {
-                    dispatch(setCurrentConfirmableDoc('type_doc_passport'));
+                    dispatch(setCurrentConfirmableDoc("type_doc_passport"));
                     dispatch(setStepAdditionalMenuUI(4));
                     dispatch(
                         openModal({
@@ -167,6 +171,7 @@ const DocumentsPage: React.FC = () => {
                     );
                 }
                 break;
+            }
             case "type_doc_EDS_agreement":
             case "type_doc_agreement_investment_advisor":
             case "type_doc_risk_declarations":

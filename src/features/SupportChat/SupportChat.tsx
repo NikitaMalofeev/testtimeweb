@@ -189,12 +189,12 @@ export const SupportChat = () => {
                 </div>
             </div>
             <div className={`${styles.chat__input} ${!isBottom ? styles.shadow : ""}`}>
-                <Icon
+                {/* <Icon
                     Svg={ChatImportIcon}
                     width={24}
                     height={24}
                     className={styles.chat__input__icon}
-                />
+                /> */}
                 <Input
                     placeholder="Написать сообщение..."
                     name="message"

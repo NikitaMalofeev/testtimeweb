@@ -235,7 +235,7 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
             size={modalState[ModalType.RESET_PASSWORD].size}
             animation={modalState[ModalType.RESET_PASSWORD].animation}
             withCloseIcon
-            withTitle="Восстановление пароля"
+            withTitle={<span>Восстановление пароля</span>}
             titleWidth="250px"
         >
             {/* 

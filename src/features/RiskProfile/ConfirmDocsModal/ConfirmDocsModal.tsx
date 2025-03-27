@@ -62,6 +62,7 @@ export const ConfirmDocsModal = memo(
 
         const hasNoTryPhoneConfirm = docsSuccess === "не определено";
         const confirmationMethod = modalState.confirmationMethod;
+        const confirmationMethod2 = modalState.confirmationMethod2
 
         const userInfo = useSelector((state: RootState) => state.user.userPersonalAccountInfo);
 
@@ -138,7 +139,7 @@ export const ConfirmDocsModal = memo(
 
         useEffect(() => {
             setSmsCodeFirst(Array(codeLength).fill(""));
-        }, [confirmationMethod, codeLength]);
+        }, [confirmationMethod, codeLength, confirmationMethod2]);
 
         const handleInputChangeFirst = (value: string, index: number) => {
             if (value.length > 1) {
@@ -206,13 +207,13 @@ export const ConfirmDocsModal = memo(
         };
 
         const renderFirstFormText = () => {
-            if (confirmationMethod === "whatsapp") {
+            if (confirmationMethod === "whatsapp" || confirmationMethod2 === 'WHATSAPP') {
                 return (
                     <span className={styles.modalContent__description}>
                         Код направлен в WhatsApp <b>{userInfo?.phone}</b>, указанный при идентификации
                     </span>
                 );
-            } else if (confirmationMethod === 'email') {
+            } else if (confirmationMethod === 'email' || confirmationMethod2 === 'EMAIL') {
                 return (
                     <span className={styles.modalContent__description}>
                         Код направлен на почту <b>{userInfo?.email}</b>, указанную при идентификации
@@ -274,7 +275,7 @@ export const ConfirmDocsModal = memo(
                 animation={modalState[ModalType.CONFIRM_CODE].animation}
                 size={modalState[ModalType.CONFIRM_CODE].size}
                 withCloseIcon
-                withTitle="Подтверждение документов"
+                withTitle={<span>Подтверждение документов</span>}
                 type={ModalType.CONFIRM_CODE}
             >
                 <div

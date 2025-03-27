@@ -391,7 +391,8 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
             animation={modalState[ModalType.CONFIRM_CODE].animation}
             size={modalState[ModalType.CONFIRM_CODE].size}
             withCloseIcon
-            withTitle="Подтверждение данных"
+            withTitle={<>Подтвердите <strong>телефон и почту</strong> для успешной регистрации</>}
+            titleWidth="280px"
             type={ModalType.CONFIRM_CODE}
         >
             <div
@@ -430,7 +431,9 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                     value={digit}
                                     autoComplete="one-time-code"
                                     name={`otp-${index}`}
-                                    onChange={(e) => handleInputChangeFirst(e.target.value, index)}
+                                    onChange={(e) => {
+                                        phoneSuccess !== 'пройдено' && handleInputChangeFirst(e.target.value, index)
+                                    }}
                                     onKeyDown={(e) => handleKeyDownFirst(e, index)}
                                     onPaste={handlePasteFirst}
                                     ref={(el) => (inputRefsFirst.current[index] = el)}
@@ -442,25 +445,27 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
 
                     </div>
 
-                    <div
-                        className={styles.modalContent__problems}
-                        onClick={() => {
-                            if (!phoneTimerActive) {
-                                handleResetPhoneTimer();
-                            }
-                        }}
-                    >
+                    {phoneSuccess !== 'пройдено' && (
                         <div
-                            className={styles.timer}
-                            style={!phoneTimerActive ? { color: "#045FDD" } : {}}
+                            className={styles.modalContent__problems}
+                            onClick={() => {
+                                if (!phoneTimerActive) {
+                                    handleResetPhoneTimer();
+                                }
+                            }}
                         >
-                            {phoneTimerActive
-                                ? `Отправить код снова через: 0${Math.floor(phoneTimeLeft / 60)}:${String(
-                                    phoneTimeLeft % 60
-                                ).padStart(2, "0")}`
-                                : "Отправить код снова"}
+                            <div
+                                className={styles.timer}
+                                style={!phoneTimerActive ? { color: "#045FDD" } : {}}
+                            >
+                                {phoneTimerActive
+                                    ? `Отправить код снова через: 0${Math.floor(phoneTimeLeft / 60)}:${String(
+                                        phoneTimeLeft % 60
+                                    ).padStart(2, "0")}`
+                                    : "Отправить код снова"}
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
 
                 {/* --- Форма для e-mail (только при двойном подтверждении) --- */}
@@ -494,7 +499,9 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                                         value={digit}
                                         autoComplete="one-time-code"
                                         name={`otp-second-${index}`}
-                                        onChange={(e) => handleInputChangeSecond(e.target.value, index)}
+                                        onChange={(e) => {
+                                            emailSuccess !== 'пройдено' && handleInputChangeSecond(e.target.value, index)
+                                        }}
                                         onKeyDown={(e) => handleKeyDownSecond(e, index)}
                                         onPaste={handlePasteSecond}
                                         ref={(el) => (inputRefsSecond.current[index] = el)}
@@ -506,25 +513,27 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
 
                         </div>
 
-                        <div
-                            className={styles.modalContent__problems}
-                            onClick={() => {
-                                if (!emailTimerActive) {
-                                    handleResetEmailTimer();
-                                }
-                            }}
-                        >
+                        {emailSuccess !== 'пройдено' && (
                             <div
-                                className={styles.timer}
-                                style={!emailTimerActive ? { color: "#045FDD" } : {}}
+                                className={styles.modalContent__problems}
+                                onClick={() => {
+                                    if (!emailTimerActive) {
+                                        handleResetEmailTimer();
+                                    }
+                                }}
                             >
-                                {emailTimerActive
-                                    ? `Отправить код снова через: 0${Math.floor(emailTimeLeft / 60)}:${String(
-                                        emailTimeLeft % 60
-                                    ).padStart(2, "0")}`
-                                    : "Отправить код снова"}
+                                <div
+                                    className={styles.timer}
+                                    style={!emailTimerActive ? { color: "#045FDD" } : {}}
+                                >
+                                    {emailTimerActive
+                                        ? `Отправить код снова через: 0${Math.floor(emailTimeLeft / 60)}:${String(
+                                            emailTimeLeft % 60
+                                        ).padStart(2, "0")}`
+                                        : "Отправить код снова"}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 )}
 
@@ -547,6 +556,6 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                     </Button>
                 </div>
             </div>
-        </Modal>
+        </Modal >
     );
 });

@@ -1,4 +1,4 @@
-import React, { ReactNode, memo, useEffect, useRef } from 'react';
+import React, { ReactElement, ReactNode, memo, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { motion } from 'framer-motion';
 import { classNames, Mods } from 'shared/lib/helpers/classNames/classNames';
@@ -16,7 +16,7 @@ interface ModalProps {
     isOpen: boolean;
     onClose: () => void;
     withCloseIcon?: boolean;
-    withTitle?: string;
+    withTitle?: ReactElement;
     titleWidth?: string;
     animation?: ModalAnimation;
     size?: ModalSize;

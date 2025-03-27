@@ -93,7 +93,7 @@ const IdentificationProfileForm: React.FC = () => {
     });
 
     useEffect(() => {
-        setIsButtonDisabled(!(formik.isValid && formik.dirty && captchaVerified));
+        setIsButtonDisabled(!(formik.isValid && formik.dirty && captchaVerified && formik.values.is_agreement));
     }, [formik.isValid, formik.dirty, formik.values, captchaVerified]);
 
     const handleCaptchaChange = (value: string | null) => {

@@ -19,7 +19,7 @@ import { format } from "date-fns";
 import { getAllUserInfoThunk, getUserPersonalAccountInfoThunk } from "entities/User/slice/userSlice";
 import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
 import { setError } from "entities/Error/slice/errorSlice";
-import { getUserDocumentsInfoThunk, getUserDocumentsStateThunk } from "entities/Documents/slice/documentsSlice";
+import { getUserDocumentsInfoThunk, getUserDocumentsStateThunk, setCurrentConfirmationMethod } from "entities/Documents/slice/documentsSlice";
 
 export const PasportDataForm: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -86,19 +86,19 @@ export const PasportDataForm: React.FC = () => {
             .matches(/^\d{12}$/, "ИНН должен содержать 12 цифр")
             .required("ИНН обязателен"),
         region: Yup.string()
-            .min(3, "Минимум 3 символа")
+            .min(2, "Минимум 2 символа")
             .required("Регион/район обязателен"),
         city: Yup.string()
-            .min(3, "Минимум 3 символа")
+            .min(2, "Минимум 2 символа")
             .required("Город/населенный пункт обязателен"),
         street: Yup.string()
-            .min(3, "Минимум 3 символа")
+            .min(2, "Минимум 2 символа")
             .required("Улица обязательна"),
         house: Yup.string()
-            .min(3, "Минимум 3 символа")
+            .min(1, "Минимум 1 символ")
             .required("Дом обязателен"),
         address_residential_region: Yup.string()
-            .min(3, "Минимум 3 символа")
+            .min(2, "Минимум 2 символа")
             .when(
                 ["is_live_this_address", "is_receive_mail_this_address"],
                 ([isLive, isReceive], schema) =>
@@ -107,7 +107,7 @@ export const PasportDataForm: React.FC = () => {
                         : schema
             ),
         address_residential_city: Yup.string()
-            .min(3, "Минимум 3 символа")
+            .min(2, "Минимум 2 символа")
             .when(
                 ["is_live_this_address", "is_receive_mail_this_address"],
                 ([isLive, isReceive], schema) =>
@@ -116,7 +116,7 @@ export const PasportDataForm: React.FC = () => {
                         : schema
             ),
         address_residential_street: Yup.string()
-            .min(3, "Минимум 3 символа")
+            .min(2, "Минимум 2 символа")
             .when(
                 ["is_live_this_address", "is_receive_mail_this_address"],
                 ([isLive, isReceive], schema) =>
@@ -125,7 +125,7 @@ export const PasportDataForm: React.FC = () => {
                         : schema
             ),
         address_residential_house: Yup.string()
-            .min(3, "Минимум 3 символа")
+            .min(1, "Минимум 1 символа")
             .when(
                 ["is_live_this_address", "is_receive_mail_this_address"],
                 ([isLive, isReceive], schema) =>
@@ -282,11 +282,40 @@ export const PasportDataForm: React.FC = () => {
 
     const handleMethodChange = (method: 'SMS' | 'EMAIL' | 'WHATSAPP') => {
         formik.setFieldValue("type_message", method);
+        //убрать этот страх когда оставлю один метод
         dispatch(setCurrentConfirmModalType2(method));
+
+        const methodMapping: Record<typeof method, string> = {
+            SMS: 'sms',
+            EMAIL: 'email',
+            WHATSAPP: 'whatsapp',
+        };
+
+        dispatch(setCurrentConfirmationMethod(methodMapping[method]));
+
         setCaptchaVerified(false);
         formik.setFieldValue("g_recaptcha", "");
         recaptchaRef.current?.reset();
     };
+
+
+    useEffect(() => {
+        if (formik.values.is_live_this_address && formik.values.is_receive_mail_this_address) {
+            formik.setFieldValue('address_residential_region', '')
+            formik.setFieldValue('address_residential_city', '')
+            formik.setFieldValue('address_residential_street', '')
+            formik.setFieldValue('address_residential_house', '')
+            formik.setFieldValue('address_residential_apartment', '')
+        }
+    }, [formik.values])
+
+    useEffect(() => {
+        if (!modalState.confirmDocsModal.isOpen) {
+            setCaptchaVerified(false);
+            formik.setFieldValue("g_recaptcha", "");
+            recaptchaRef.current?.reset();
+        }
+    }, [modalState.confirmDocsModal])
 
     if (loading) {
         return <Loader />;

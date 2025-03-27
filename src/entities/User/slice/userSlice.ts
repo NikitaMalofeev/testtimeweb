@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { AllUserInfo, userAllData, UserLogin, UserPersonalAccount, userType } from "../types/userTypes";
-import { ProblemsRequestData, sendProblemsRequest } from "shared/api/userApi/userApi";
+import { ProblemsRequestData, sendProblemsRequest, sendProblemsRequestNotAuth } from "shared/api/userApi/userApi";
 import { getAllUserInfo, getUserPersonalAccountInfo, userLogin } from "../api/userApi";
 import { setError } from "entities/Error/slice/errorSlice";
 import { RootState } from "app/providers/store/config/store";
@@ -38,7 +38,7 @@ const initialState: UserState = {
     userForPersonalAccount: null,
 };
 
-export const sendProblems = createAsyncThunk<
+export const sendProblemsThunk = createAsyncThunk<
     void,
     ProblemsRequestData,
     { rejectValue: string, state: RootState }
@@ -48,6 +48,25 @@ export const sendProblems = createAsyncThunk<
         const token = getState().user.token
         try {
             await sendProblemsRequest(data, token);
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message || "Ошибка при отправке данных"
+            );
+        }
+    }
+);
+
+export const sendProblemsNotAuthThunk = createAsyncThunk<
+    void,
+    { data: ProblemsRequestData, onSuccess: () => void },
+    { rejectValue: string, state: RootState }
+>(
+    "user/sendProblemsNotAuthThunk",
+    async ({ data, onSuccess }, { rejectWithValue, getState }) => {
+        try {
+            const response = await sendProblemsRequestNotAuth(data);
+
+            response && onSuccess()
         } catch (error: any) {
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке данных"

@@ -6,7 +6,6 @@ import { Input } from "shared/ui/Input/Input";
 import { ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
-import { sendProblems } from "entities/User/slice/userSlice";
 import { ProblemsRequestData } from "shared/api/userApi/userApi";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { setTooltipActive } from "entities/ui/Ui/slice/uiSlice";
@@ -54,7 +53,7 @@ export const ProblemsModal = memo(({ isOpen, onClose, title, problemScreen }: Pr
             withCloseIcon
             titleWidth="250px"
             type={ModalType.PROBLEM}
-            withTitle={title}
+            withTitle={<span>{title}</span>}
         >
             <div className={styles.modalContent}>
                 {/* <div className={styles.content}>

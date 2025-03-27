@@ -15,6 +15,7 @@ import {
     docTypeLabels,
     docTypes,
     getUserDocumentsNotSignedThunk,
+    setCurrentConfirmationMethod,
 } from "entities/Documents/slice/documentsSlice";
 import DocsImage from "shared/assets/svg/docsImage.svg";
 import { Icon } from "shared/ui/Icon/Icon";
@@ -50,6 +51,17 @@ export const ConfirmAllDocs: React.FC = () => {
         SMS: "SMS",
         EMAIL: "Email",
         WHATSAPP: "Whatsapp",
+    };
+
+    const handleMethodChange = (method: string) => {
+        formik.setFieldValue("type_message", method);
+        const methodMapping: Record<typeof method, string> = {
+            SMS: 'sms',
+            EMAIL: 'email',
+            WHATSAPP: 'whatsapp',
+        };
+        dispatch(setCurrentConfirmationMethod(methodMapping[method]));
+        dispatch(setCurrentConfirmationMethod(method));
     };
 
     useEffect(() => {
@@ -223,7 +235,7 @@ export const ConfirmAllDocs: React.FC = () => {
                         }))}
                         value={formik.values.type_message}
                         onChange={(name, selectedValue) => {
-                            formik.setFieldValue(name, selectedValue);
+                            handleMethodChange(selectedValue)
                         }}
                     />
                 </div>

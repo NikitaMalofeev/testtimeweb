@@ -33,6 +33,16 @@ export const sendProblemsRequest = async (data: ProblemsRequestData, token: stri
     return response.data;
 };
 
+export const sendProblemsRequestNotAuth = async (data: ProblemsRequestData) => {
+    const response = await axios.post(`${apiUrl}create_doc_user/need_help_not_auth/`, data, {
+        headers: {
+            "Accept-Language": "ru",
+            "Content-Type": "application/json",
+        },
+    });
+    return response.data;
+};
+
 export const resetPassword = async (data: ResetPasswordConfirm) => {
     const response = await axios.post(
         `${apiUrl}create_doc_user/confirm_reset_password/`,

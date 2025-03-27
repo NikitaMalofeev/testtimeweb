@@ -97,7 +97,7 @@ export const SelectModal: React.FC<SelectModalProps> = ({
             type={ModalType.SELECT}
             animation={ModalAnimation.LEFT}
             isOpen={isOpen}
-            withTitle={title}
+            withTitle={<span>{title}</span>}
             onClose={onClose}
             withCloseIcon
         >

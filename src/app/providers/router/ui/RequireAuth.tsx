@@ -11,9 +11,10 @@ interface RequireAuthRouteProps {
 
 const RequireAuthRoute: React.FC<RequireAuthRouteProps> = ({ children }) => {
     const token = useSelector((state: RootState) => state.user.token);
+    const tokenLS = localStorage.getItem('savedToken');
     const dispatch = useAppDispatch()
 
-    if (!token) {
+    if (!token && !tokenLS) {
         dispatch(closeAllModals())
         return <Navigate to="/" replace />;
     }

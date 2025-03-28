@@ -1,4 +1,5 @@
 .progressBarContainer {
+    position: relative; 
     width: 100%;
     height: 4px;
     background-color: #B4CFF5;
@@ -6,33 +7,32 @@
 }
 
 .progressBarFill {
-    position: relative;
     height: 100%;
-    transition: width 0.3s ease;
     background-color: #045FDD;
-    overflow: hidden;
+    transition: width 0.3s ease;
 }
 
-.progressBarFill::after {
+/* Анимация shimmer на контейнере */
+.progressBarContainer::after {
     content: "";
     position: absolute;
     top: 0;
-    left: -50%;
+    left: -100%;  // начнёт анимацию с левой стороны за пределами контейнера
     width: 50%;
     height: 100%;
     background: linear-gradient(
         90deg,
         rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0.5) 50%,
+        rgba(255, 255, 255, 0.678) 50%,
         rgba(255, 255, 255, 0) 100%
     );
     transform: skewX(-25deg);
-    animation: shimmer 1.5s infinite;
+    animation: shimmer 2s infinite;
 }
 
 @keyframes shimmer {
     0% {
-        left: -50%;
+        left: -100%;
     }
     100% {
         left: 100%;

@@ -134,7 +134,7 @@ export const RiskProfileSecondForm: React.FC = () => {
             await dispatch(postSecondRiskProfileFormFinal(formik.values)).unwrap();
             dispatch(setStepAdditionalMenuUI(4));
         } catch (error) {
-            console.error("Ошибка при отправке данных:", error);
+
         }
     };
 

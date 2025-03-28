@@ -43,8 +43,24 @@ letter-spacing: 0%;
 text-align: center;
   }
 
+  .button__purpose {
+    max-width: max-content;
+    font-family: Inter;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 100%;
+    letter-spacing: 0%;
+    text-align: center;
+  }
+
   .closeIcon {
     position: absolute;
     top: 8px;
     right: 8px;
+  }
+
+  .purpose {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }

@@ -113,9 +113,6 @@ export const createRiskProfile = createAsyncThunk<
             if (error.response.data.errorText) {
                 dispatch(setError(error.response.data.errorText));
             }
-            return rejectWithValue(
-                error.response?.data?.message || "Ошибка при отправке данных"
-            );
         }
     }
 );
@@ -132,9 +129,7 @@ export const postSecondRiskProfileForm = createAsyncThunk<
             const response = await postSecondRiskProfile(data, token);
             dispatch(setThirdRiskProfileResponse(response));
         } catch (error: any) {
-            return rejectWithValue(
-                error.response?.data?.message || "Ошибка при отправке данных"
-            );
+
         }
     }
 );
@@ -168,9 +163,7 @@ export const postSecondRiskProfileFormFinal = createAsyncThunk<
             dispatch(updateUserAllData({ first_name: response.first_name, last_name: response.last_name, patronymic: response.patronymic, gender: response.gender }));
             return response;
         } catch (error: any) {
-            return rejectWithValue(
-                error.response?.data?.message || "Ошибка при отправке данных"
-            );
+
         }
     }
 );
@@ -212,9 +205,7 @@ export const postFirstRiskProfileForm = createAsyncThunk<
             const response = await postFirstRiskProfile(transformedData, token);
             dispatch(setFirstRiskProfileData(response));
         } catch (error: any) {
-            return rejectWithValue(
-                error.response?.data?.message || "Ошибка при отправке данных"
-            );
+
         }
     }
 );
@@ -237,9 +228,7 @@ export const postTrustedPersonInfo = createAsyncThunk<
             }
         } catch (error: any) {
             dispatch(setError(error.response.data.trusted_person_phone));
-            return rejectWithValue(
-                error.response?.data?.message || "Ошибка при отправке данных"
-            );
+
         }
     }
 );
@@ -268,9 +257,7 @@ export const postPasportInfo = createAsyncThunk<
                 dispatch(setError(error.response.data.errorText));
             }
 
-            return rejectWithValue(
-                error.response?.data?.message || "Ошибка при отправке данных"
-            );
+
         }
     }
 );
@@ -292,11 +279,17 @@ export const postPasportScanThunk = createAsyncThunk<
             // Вызываем onSuccess после успешной отправки
             onSuccess();
         } catch (error: any) {
-            dispatch(setError(error.response?.data?.errorText));
-            return rejectWithValue(
-                error.response?.data?.message || "Ошибка при отправке данных"
-            );
+            const errorText = error.response?.data?.errorText;
+            console.log('Статус ошибки:', error.response?.status);
+            console.log('Текст ошибки:', errorText);
+
+            if (errorText && errorText.trim() === 'Сканы уже загружены. Для изменения сканов обратитесь в поддержку') {
+                dispatch(setError(errorText));
+            } else {
+                dispatch(setError(errorText, 'pasportScan'));
+            }
         }
+
     }
 );
 

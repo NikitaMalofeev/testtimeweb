@@ -73,6 +73,12 @@ export const PasportScanForm: React.FC = () => {
         }
     };
 
+    useEffect(() => {
+        if (modalState.isOpen && !loading) {
+            dispatch(closeModal(ModalType.PROGRESS))
+        }
+    }, [modalState.isOpen])
+
     const handleSubmit = async () => {
         dispatch(openModal({ type: ModalType.PROGRESS, animation: ModalAnimation.BOTTOM, size: ModalSize.MC }))
         const formData = new FormData();
@@ -400,7 +406,15 @@ export const PasportScanForm: React.FC = () => {
                     </Button>
                 </div>
             </form>
-            <UploadProgressModal isOpen={modalState.isOpen} onClose={() => { dispatch(closeModal(ModalType.PROGRESS)) }} processName='Сканы паспорта' processTitle="Загрузка документов" />
+            <UploadProgressModal
+                isOpen={modalState.isOpen}
+                onClose={() => { dispatch(closeModal(ModalType.PROGRESS)) }}
+                processName='Сканы паспорта' processTitle="Загрузка документов"
+                description="Вы можете дождаться загрузки или перейти к следующему шагу"
+                buttonTitle="Далее" action={() => {
+                    closeModal(ModalType.PROGRESS)
+                    dispatch(setStepAdditionalMenuUI(2))
+                }} />
         </>
     );
 };

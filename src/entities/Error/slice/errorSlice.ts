@@ -1,19 +1,27 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface ErrorState {
-    error: string
+    error: string;
+    purpose?: string;
 }
 
 const initialState: ErrorState = {
-    error: ''
+    error: '',
+    purpose: ''
 };
 
 const errorSlice = createSlice({
     name: "error",
     initialState,
     reducers: {
-        setError: (state, action: PayloadAction<string>) => {
-            state.error = action.payload
+        setError: {
+            reducer: (state, action: PayloadAction<ErrorState>) => {
+                state.error = action.payload.error;
+                state.purpose = action.payload.purpose;
+            },
+            prepare: (error: string, purpose?: string) => ({
+                payload: { error, purpose }
+            }),
         },
     },
 });

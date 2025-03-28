@@ -6,19 +6,26 @@ import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { ProgressBar } from "shared/ui/ProgressBar/ProgressBar"; // путь будет свой
 import { RootState } from "app/providers/store/config/store";
 import { useSelector } from "react-redux";
+import { Button, ButtonTheme } from "shared/ui/Button/Button";
 
 interface UploadProgressModalProps {
     isOpen: boolean;
     onClose: () => void;
     processName: string;
     processTitle: string;
+    description: string;
+    buttonTitle: string;
+    action: () => void;
 }
 
 export const UploadProgressModal: React.FC<UploadProgressModalProps> = ({
     isOpen,
     onClose,
     processName,
-    processTitle
+    processTitle,
+    description,
+    buttonTitle,
+    action
 }) => {
     const dispatch = useAppDispatch();
 
@@ -47,6 +54,10 @@ export const UploadProgressModal: React.FC<UploadProgressModalProps> = ({
                 </div>
                 <div>
                     <ProgressBar progress={progress} />
+                </div>
+                <div className={styles.description}>
+                    <span className={styles.title}>{description}</span>
+                    <Button theme={ButtonTheme.UNDERLINE} className={styles.button} onClick={action} children={buttonTitle} padding="7px 16px" />
                 </div>
             </div>
         </Modal>

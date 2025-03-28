@@ -49,7 +49,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
     const modalState = useSelector((state: RootState) => state.modal);
     const navigate = useNavigate()
     // Состояния успеха/неуспеха подтверждения
-    const phoneSuccess = useSelector((state: RootState) => state.ui.confirmationPhoneSuccess)
+    const phoneSuccess = useSelector((state: RootState) => state.ui.confirmationPhoneSuccess);
     const emailSuccess = useSelector((state: RootState) => state.ui.confirmationEmailSuccess);
     const whatsappSuccess = useSelector((state: RootState) => state.ui.confirmationWhatsappSuccess);
 
@@ -74,6 +74,25 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
 
     const [emailTimeLeft, setEmailTimeLeft] = useState(60);
     const [emailTimerActive, setEmailTimerActive] = useState(false);
+
+    const codeLength = 4;
+
+    // Инпуты для формы (телефон/WhatsApp)
+    const [smsCodeFirst, setSmsCodeFirst] = useState<string[]>(Array(codeLength).fill(""));
+    const inputRefsFirst = useRef<(HTMLInputElement | null)[]>([]);
+
+    // Инпуты для формы (email)
+    const [smsCodeSecond, setSmsCodeSecond] = useState<string[]>(Array(codeLength).fill(""));
+    const inputRefsSecond = useRef<(HTMLInputElement | null)[]>([]);
+
+    useEffect(() => {
+        if (!modalState.confirmCodeModal.isOpen) {
+            setSmsCodeFirst(['', '', '', ''])
+            setSmsCodeSecond(['', '', '', ''])
+            dispatch(setConfirmationPhoneSuccess('не определено'))
+            dispatch(setConfirmationEmailSuccess('не определено'))
+        }
+    }, [modalState.confirmCodeModal.isOpen])
 
     useEffect(() => {
         if (isOpen) {
@@ -154,15 +173,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
         };
     }, []);
 
-    const codeLength = 4;
 
-    // Инпуты для формы (телефон/WhatsApp)
-    const [smsCodeFirst, setSmsCodeFirst] = useState<string[]>(Array(codeLength).fill(""));
-    const inputRefsFirst = useRef<(HTMLInputElement | null)[]>([]);
-
-    // Инпуты для формы (email)
-    const [smsCodeSecond, setSmsCodeSecond] = useState<string[]>(Array(codeLength).fill(""));
-    const inputRefsSecond = useRef<(HTMLInputElement | null)[]>([]);
 
     useEffect(() => {
         setSmsCodeFirst(Array(codeLength).fill(""));

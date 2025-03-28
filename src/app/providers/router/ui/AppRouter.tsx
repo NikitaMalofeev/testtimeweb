@@ -5,6 +5,8 @@ import { StartPage } from 'pages/StartPage';
 import SupportChatPage from 'pages/SupportChatPage/SupportChatPage';
 import { memo, Suspense, lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
+import PublicRoute from './PublicRoute';
+import RequireAuthRoute from './RequireAuth';
 
 // const PageLoader = () => <div>Loading...</div>;
 const PageLoader = () => <div></div>;
@@ -24,33 +26,44 @@ function AppRouter() {
             <Route
                 path="/"
                 element={
-                    <Suspense fallback={<PageLoader />}>
-                        <AuthorizationPage />
-                    </Suspense>
+                    <PublicRoute>
+                        <Suspense fallback={<PageLoader />}>
+                            <AuthorizationPage />
+                        </Suspense>
+                    </PublicRoute>
                 }
             />
             <Route
                 path="/lk"
                 element={
-                    <Suspense fallback={<PageLoader />}>
-                        <PersonalAccountPage />
-                    </Suspense>
+                    <RequireAuthRoute>
+                        <Suspense fallback={<PageLoader />}>
+                            <PersonalAccountPage />
+                        </Suspense>
+                    </RequireAuthRoute>
+
                 }
             />
             <Route
                 path="/documents"
                 element={
-                    <Suspense fallback={<PageLoader />}>
-                        <DocumentsPage />
-                    </Suspense>
+                    <RequireAuthRoute>
+                        <Suspense fallback={<PageLoader />}>
+                            <DocumentsPage />
+                        </Suspense>
+                    </RequireAuthRoute>
+
                 }
             />
             <Route
                 path="/support"
                 element={
-                    <Suspense fallback={<PageLoader />}>
-                        <SupportChatPage />
-                    </Suspense>
+                    <RequireAuthRoute>
+                        <Suspense fallback={<PageLoader />}>
+                            <SupportChatPage />
+                        </Suspense>
+                    </RequireAuthRoute>
+
                 }
             />
         </Routes>

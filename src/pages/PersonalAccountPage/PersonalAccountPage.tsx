@@ -198,8 +198,8 @@ const PersonalAccountMenu: React.FC = () => {
                     <h2 className={styles.page__title}>Учетная запись</h2>
                     <div className={styles.page__info}>
                         <div className={styles.page__avatar}>
-                            {userPersonalAccountInfo?.first_name[0]}
                             {userPersonalAccountInfo?.last_name[0]}
+                            {userPersonalAccountInfo?.first_name[0]}
                         </div>
                         <div className={styles.page__personalInfo}>
                             <div className={styles.page__fio}>

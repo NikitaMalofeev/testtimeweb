@@ -138,12 +138,6 @@ export function useAuthTokenManagement() {
         return () => clearInterval(interval);
     }, [lastActivity, token, SECRET_KEY, dispatch, navigate]);
 
-    useEffect(() => {
-        if (location.pathname === '/' && token) {
-            navigate('/lk')
-        }
-    }, [token])
-
     /**
      * 4) Дополнительная проверка для iOS / Safari: при сворачивании / закрытии вкладки
      *    событие pagehide. На нём тоже сохраним текущее время.

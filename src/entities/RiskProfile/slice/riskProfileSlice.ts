@@ -261,7 +261,13 @@ export const postPasportInfo = createAsyncThunk<
             onSuccess();
             return response;
         } catch (error: any) {
-            dispatch(setError(error.response.data.errorText));
+            if (error.response.data.birth_date) {
+                dispatch(setError(error.response.data.birth_date));
+            }
+            else {
+                dispatch(setError(error.response.data.errorText));
+            }
+
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при отправке данных"
             );

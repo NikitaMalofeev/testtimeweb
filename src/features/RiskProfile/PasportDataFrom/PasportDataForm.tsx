@@ -439,6 +439,16 @@ export const PasportDataForm: React.FC = () => {
                         error={formik.touched.issue_whom && formik.errors.issue_whom}
                     />
 
+
+                    <Datepicker
+                        value={formik.values.issue_date}
+                        onChange={(date) => date && formik.setFieldValue("issue_date", format(date, 'yyyy-MM-dd'))}
+                        needValue={true}
+                        placeholder="Дата выдачи"
+                        maxDate={new Date()}
+                        error={formik.touched.issue_date && formik.errors.issue_date}
+                    />
+
                     <Input
                         placeholder="ИНН"
                         name="inn"
@@ -453,14 +463,6 @@ export const PasportDataForm: React.FC = () => {
                         error={formik.touched.inn && formik.errors.inn}
                     />
 
-                    <Datepicker
-                        value={formik.values.issue_date}
-                        onChange={(date) => date && formik.setFieldValue("issue_date", format(date, 'yyyy-MM-dd'))}
-                        needValue={true}
-                        placeholder="Дата выдачи"
-                        maxDate={new Date()}
-                        error={formik.touched.issue_date && formik.errors.issue_date}
-                    />
 
                     <div>
                         <h2 className={styles.form__subtitle}>Адрес регистрации</h2>

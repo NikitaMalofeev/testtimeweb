@@ -84,6 +84,7 @@ const DocumentsPage: React.FC = () => {
         type_doc_agreement_personal_data_policy: "6. Политика перс. данных",
         type_doc_investment_profile_certificate: "7. Справка ИП",
         type_doc_agreement_account_maintenance: '8. Договор об обслуживании аккаунта',
+        type_doc_broker_api_token: '9. Согласие на передачу API ключа к брокерскому счету'
     };
 
     // Порядок документов
@@ -96,6 +97,7 @@ const DocumentsPage: React.FC = () => {
         "type_doc_agreement_personal_data_policy",
         "type_doc_investment_profile_certificate",
         "type_doc_agreement_account_maintenance",
+        'type_doc_broker_api_token',
     ];
 
     // Метод для подписания конкретного документа

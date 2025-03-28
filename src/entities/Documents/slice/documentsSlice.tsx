@@ -35,7 +35,8 @@ export const docTypes = [
     "type_doc_agreement_investment_advisor",
     "type_doc_risk_declarations",
     "type_doc_agreement_personal_data_policy",
-    "type_doc_investment_profile_certificate"
+    "type_doc_investment_profile_certificate",
+    "type_doc_agreement_account_maintenance",
 ];
 
 // Лейблы для UI.
@@ -47,6 +48,7 @@ export const docTypeLabels: Record<string, string> = {
     type_doc_risk_declarations: "Декларация о рисках",
     type_doc_agreement_personal_data_policy: "Политика перс. данных",
     type_doc_investment_profile_certificate: "Справка ИП",
+    type_doc_agreement_account_maintenance: 'Договор об обслуживании аккаунта'
 };
 
 interface DocumentsState {

@@ -83,6 +83,7 @@ const DocumentsPage: React.FC = () => {
         type_doc_risk_declarations: "5. Декларация о рисках",
         type_doc_agreement_personal_data_policy: "6. Политика перс. данных",
         type_doc_investment_profile_certificate: "7. Справка ИП",
+        type_doc_agreement_account_maintenance: '8. Договор об обслуживании аккаунта',
     };
 
     // Порядок документов
@@ -94,6 +95,7 @@ const DocumentsPage: React.FC = () => {
         "type_doc_risk_declarations",
         "type_doc_agreement_personal_data_policy",
         "type_doc_investment_profile_certificate",
+        "type_doc_agreement_account_maintenance",
     ];
 
     // Метод для подписания конкретного документа
@@ -173,6 +175,7 @@ const DocumentsPage: React.FC = () => {
             case "type_doc_risk_declarations":
             case "type_doc_agreement_personal_data_policy":
             case "type_doc_investment_profile_certificate":
+            case "type_doc_agreement_account_maintenance":
                 // Для type_doc_EDS_agreement проверяем наличие заполненного паспорта
                 if (docId === "type_doc_EDS_agreement" && !filledRiskProfileChapters.is_exist_scan_passport) {
                     // Если паспорт не существует, не даём подписывать документ

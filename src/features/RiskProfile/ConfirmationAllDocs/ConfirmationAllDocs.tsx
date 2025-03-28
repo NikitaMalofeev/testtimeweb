@@ -160,6 +160,7 @@ export const ConfirmAllDocs: React.FC = () => {
             case "type_doc_risk_declarations":
             case "type_doc_agreement_personal_data_policy":
             case "type_doc_investment_profile_certificate":
+            case "type_doc_agreement_account_maintenance":
                 return docTypeLabels[currentTypeDoc];
             default:
                 navigate("/documents");

@@ -31,11 +31,12 @@ import {
     postTrustedPersonInfoApi
 } from "shared/api/RiskProfileApi/riskProfileApi";
 import { setUserId, setUserIsActive, setUserToken, updateUserAllData } from "entities/User/slice/userSlice";
-import { setConfirmationEmailSuccess, setConfirmationPhoneSuccess, setConfirmationStatusSuccess, setConfirmationWhatsappSuccess } from "entities/ui/Ui/slice/uiSlice";
+import { setConfirmationEmailSuccess, setConfirmationPhoneSuccess, setConfirmationStatusSuccess, setConfirmationWhatsappSuccess, setTooltipActive } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
 import { RootState } from "app/providers/store/config/store";
 import { PasportScanData } from "features/RiskProfile/PassportScanForm/PassportScanForm";
 import { omit } from "lodash";
+import { setBrokerSuccessResponseInfo } from "entities/Documents/slice/documentsSlice";
 
 interface RiskProfileFormState {
     loading: boolean;
@@ -136,14 +137,23 @@ export const postSecondRiskProfileForm = createAsyncThunk<
 
 export const postBrokerApiTokenThunk = createAsyncThunk<
     void,
-    BrokerSetTokenPayload,
+    { data: BrokerSetTokenPayload, onSuccess: () => void },
     { state: RootState; rejectValue: string }
 >(
     "riskProfile/postBrokerApiTokenThunk",
-    async (data, { dispatch, rejectWithValue, getState }) => {
+    async ({ data, onSuccess }, { dispatch, rejectWithValue, getState }) => {
         try {
             const token = getState().user.token;
             const response = await postBrokerApiToken(data, token);
+            if (response) {
+                dispatch(
+                    setBrokerSuccessResponseInfo({
+                        brokerId: response.broker_id,
+                        notSignedDocBroker: response.not_signed_doc_broker,
+                    })
+                );
+                onSuccess();
+            }
         } catch (error: any) {
             setError(error.response.data.token)
         }
@@ -278,6 +288,7 @@ export const postPasportScanThunk = createAsyncThunk<
             await postPasportScanData(data, token);
             // Вызываем onSuccess после успешной отправки
             onSuccess();
+            dispatch(setTooltipActive({ active: true, message: 'Сканы паспортов успешно загружены' }))
         } catch (error: any) {
             const errorText = error.response?.data?.errorText;
             console.log('Статус ошибки:', error.response?.status);

@@ -26,6 +26,8 @@ import BrokerInstruction from 'shared/assets/documents/brokerInstruction.pdf'
 import { postBrokerApiTokenThunk } from 'entities/RiskProfile/slice/riskProfileSlice';
 import { ProblemsCodeModal } from '../ProblemsCodeModal/ProblemsCodeModal';
 import { ProblemsModal } from '../ProblemsModal/ProblemsModal';
+import { InfoModal } from '../InfoModal/InfoModal';
+import { setCurrentSignedDocuments } from 'entities/Documents/slice/documentsSlice';
 
 export const BrokerConnectionForm: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -61,9 +63,13 @@ export const BrokerConnectionForm: React.FC = () => {
         enableReinitialize: true, // чтобы при обновлении brokerState форма обновлялась
     });
 
-    const handleSubmit = () => [
-        dispatch(postBrokerApiTokenThunk(formik.values))
-    ]
+    const handleSubmit = () => {
+        dispatch(postBrokerApiTokenThunk({
+            data: formik.values, onSuccess: () => {
+                dispatch(openModal({ type: ModalType.INFO, animation: ModalAnimation.BOTTOM, size: ModalSize.MC }))
+            }
+        }))
+    }
 
     return (
         <form className={styles.form}>
@@ -138,12 +144,29 @@ export const BrokerConnectionForm: React.FC = () => {
                     Проблемы с подключением?
                 </Button>
             </div>
-            <DocumentPreviewModal justPreview={BrokerInstruction} isOpen={modalState.documentsPreview.isOpen} onClose={() => {
+            <DocumentPreviewModal title='Согласие на передачу API ключа к брокерскому счету' isOpen={modalState.documentsPreview.isOpen} onClose={() => {
                 dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW))
-            }} />
+            }} docId='type_doc_broker_api_token' />
             <ProblemsModal isOpen={modalState.problem.isOpen} title='Проблемы с подключением брокера' problemScreen='Подключение брокера'
                 onClose={() => {
                     dispatch(closeModal(ModalType.PROBLEM));
+                }} />
+            <InfoModal
+                isOpen={modalState.info.isOpen}
+                title='Завершающий шаг'
+                description='Для предоставления услуги необходимо подписать документ «Согласие на передачу API ключак брокерскому счету»'
+                buttonText='Перейти к подписи'
+                action={() => {
+                    dispatch(
+                        openModal({
+                            type: ModalType.DOCUMENTS_PREVIEW,
+                            size: ModalSize.FULL,
+                            animation: ModalAnimation.LEFT,
+                        })
+                    );
+                }}
+                onClose={() => {
+                    dispatch(closeModal(ModalType.INFO));
                 }} />
         </form>
     );

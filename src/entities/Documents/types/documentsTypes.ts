@@ -10,3 +10,8 @@ export interface FilledRiskProfileChapters {
     is_complete_passport: boolean;
     is_exist_scan_passport: boolean;
 }
+
+export interface PostBrokerApiTokenResponse {
+    broker_id: string;
+    not_signed_doc_broker: string;
+}

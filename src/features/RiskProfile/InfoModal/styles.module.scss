@@ -1,0 +1,40 @@
+.modalContent {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: white;
+    border-radius: 8px 8px 40px 40px;
+    padding: 0 16px 16px 16px;
+    min-width: 300px;
+    text-align: center;
+    overflow: auto;
+    position: relative;
+}
+
+.submitButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 19px 60.5px;
+    width: 100%;
+    font-family: var(--font-inter);
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 21.78px;
+}
+
+.description {
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 140%;
+    letter-spacing: 0%;
+    color: #121B2F;
+    text-align: left;
+    margin-bottom: 10px;
+}
+
+@media (max-width: 450px) {
+    .submitButton {
+      padding: 19px 40.5px;
+    }
+  }

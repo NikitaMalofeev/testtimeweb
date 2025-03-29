@@ -5,7 +5,8 @@ export enum ModalSize {
     MIDDLE = 'middle',
     MINI = 'mini',
     XXS = 'xxs',
-    MC = 'mc'
+    MC = 'mc',
+    MCSQ = 'mcsq'
 }
 
 export enum ModalAnimation {
@@ -24,7 +25,8 @@ export enum ModalType {
     PREVIEW = 'preview',
     DOCUMENTS_PREVIEW = 'documentsPreview',
     RESET_PASSWORD = 'resetPassword',
-    PROGRESS = 'progress'
+    PROGRESS = 'progress',
+    INFO = 'info'
 }
 
 /** Состояние одной конкретной модалки */

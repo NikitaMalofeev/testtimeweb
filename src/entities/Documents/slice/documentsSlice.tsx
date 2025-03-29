@@ -67,6 +67,7 @@ interface DocumentsState {
         document: Uint8Array | null;
         type: string;
     };
+    brokerIds: string[];
     filledRiskProfileChapters: FilledRiskProfileChapters;
     userPassportData: UserPassportData | null;
 
@@ -91,6 +92,7 @@ const initialState: DocumentsState = {
         is_complete_passport: false,
         is_exist_scan_passport: false,
     },
+    brokerIds: [],
     userPassportData: null
 };
 
@@ -293,6 +295,18 @@ export const documentsSlice = createSlice({
         setUserPasportData(state, action: PayloadAction<UserPassportData>) {
             state.userPassportData = action.payload;
         },
+        setBrokerSuccessResponseInfo(
+            state,
+            action: PayloadAction<{ brokerId: string; notSignedDocBroker: string }>
+        ) {
+            state.brokerIds.push(action.payload.brokerId);
+
+            if (!state.allNotSignedDocumentsHtml) {
+                state.allNotSignedDocumentsHtml = {};
+            }
+            state.allNotSignedDocumentsHtml["type_doc_broker_api_token"] =
+                action.payload.notSignedDocBroker;
+        },
         setTimeoutBetweenConfirmation(state, action: PayloadAction<number>) {
             state.timeoutBetweenConfirmation = action.payload;
         },
@@ -378,7 +392,8 @@ export const {
     setNotSignedDocumentsHtmls,
     setCurrentSignedDocuments,
     setIsRiksProfileComplete,
-    setUserPasportData
+    setUserPasportData,
+    setBrokerSuccessResponseInfo
 } = documentsSlice.actions;
 
 export default documentsSlice.reducer;

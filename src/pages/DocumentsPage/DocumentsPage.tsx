@@ -184,7 +184,7 @@ const DocumentsPage: React.FC = () => {
                     return;
                 }
                 dispatch(setCurrentConfirmableDoc(docId));
-                dispatch(setStepAdditionalMenuUI(1));
+                dispatch(setStepAdditionalMenuUI(4));
                 dispatch(
                     openModal({
                         type: ModalType.IDENTIFICATION,

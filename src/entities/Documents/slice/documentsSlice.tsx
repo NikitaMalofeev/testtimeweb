@@ -124,8 +124,7 @@ export const confirmDocsRequestThunk = createAsyncThunk<
             dispatch(setConfirmationDocsSuccess("не пройдено"));
             console.log(error);
             const msg =
-                error.response?.data?.errorText ||
-                "Ошибка при отправке кода (непредвиденная)";
+                error.response?.data?.errorText
             dispatch(setError(msg));
         }
     }
@@ -156,8 +155,7 @@ export const sendDocsConfirmationCode = createAsyncThunk<
             dispatch(setConfirmationDocsSuccess("не пройдено"));
             console.log(error);
             const msg =
-                error.response?.data?.errorText ||
-                "Ошибка при отправке кода (непредвиденная)";
+                error.response?.data?.errorText
             dispatch(setError(msg));
         }
     }
@@ -187,8 +185,7 @@ export const getUserDocumentsStateThunk = createAsyncThunk<
         } catch (error: any) {
             console.log(error);
             const msg =
-                error.response?.data?.errorText ||
-                "Ошибка при отправке кода (непредвиденная)";
+                error.response?.data?.errorText
             dispatch(setError(msg));
         }
     }
@@ -211,8 +208,7 @@ export const getUserDocumentsInfoThunk = createAsyncThunk<
         } catch (error: any) {
             console.log(error);
             const msg =
-                error.response?.data?.errorText ||
-                "Ошибка при отправке кода (непредвиденная)";
+                error.response?.data?.errorText
             dispatch(setError(msg));
         }
     }
@@ -237,8 +233,7 @@ export const getUserDocumentsNotSignedThunk = createAsyncThunk<
         } catch (error: any) {
             console.log(error);
             const msg =
-                error.response?.data?.errorText ||
-                "Ошибка при отправке кода (непредвиденная)";
+                error.response?.data?.errorText
             dispatch(setError(msg));
         }
     }

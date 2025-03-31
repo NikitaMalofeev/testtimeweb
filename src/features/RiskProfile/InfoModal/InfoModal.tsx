@@ -40,7 +40,7 @@ export const InfoModal = memo(({ isOpen, onClose, title, buttonText, description
                 <span className={styles.description}>{description}</span>
                 <Button
                     theme={ButtonTheme.BLUE}
-                    onClick={action}
+                    onClick={() => action()}
                     className={styles.submitButton}
                 >
                     {buttonText}

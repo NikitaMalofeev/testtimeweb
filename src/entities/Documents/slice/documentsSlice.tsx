@@ -3,7 +3,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "app/providers/store/config/store";
 import { ConfirmDocsPayload, FilledRiskProfileChapters } from "../types/documentsTypes";
-import { confirmDocsRequest, getDocumentsInfo, getDocumentsNotSigned, getDocumentsSigned, getDocumentsState } from "../api/documentsApi";
+import { confirmDocsRequest, getAllBrokers, getDocumentsInfo, getDocumentsNotSigned, getDocumentsSigned, getDocumentsState } from "../api/documentsApi";
 import { setCurrentConfirmingDoc } from "entities/RiskProfile/slice/riskProfileSlice";
 import { setConfirmationDocsSuccess } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
@@ -264,6 +264,29 @@ export const getUserDocumentsSignedThunk = createAsyncThunk<
             if (purpose === 'download') {
                 onSuccess()
             }
+        } catch (error: any) {
+            const msg =
+                error.response?.data?.errorText ||
+                "Ошибка при получении подписанного документа";
+            return rejectWithValue(msg);
+        }
+    }
+);
+
+export const getAllBrokersThunk = createAsyncThunk<
+    void,
+    { is_confirmed_type_doc_agreement_transfer_broker: boolean, onSuccess: () => void },
+    { rejectValue: string; state: RootState }
+>(
+    "documents/getUserDocumentsSignedThunk",
+    async ({ is_confirmed_type_doc_agreement_transfer_broker, onSuccess }, { getState, dispatch, rejectWithValue }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+            const response = await getAllBrokers(token, is_confirmed_type_doc_agreement_transfer_broker);
+            console.log(response)
         } catch (error: any) {
             const msg =
                 error.response?.data?.errorText ||

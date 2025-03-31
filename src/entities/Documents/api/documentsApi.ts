@@ -44,6 +44,16 @@ export const getDocumentsInfo = async (token: string) => {
     return response.data;
 };
 
+export const getAllBrokers = async (token: string, is_confirmed_type_doc_agreement_transfer_broker: boolean) => {
+    const response = await axios.post(`${apiUrl}user_lk/get_all_brokers/`, { is_confirmed_type_doc_agreement_transfer_broker: is_confirmed_type_doc_agreement_transfer_broker, broker: ["tinkoff_brokers"] }, {
+        headers: {
+            "Accept-Language": "ru",
+            "Authorization": `Token ${token}`
+        },
+    });
+    return response.data;
+};
+
 export const getDocumentsSigned = async (type_document: string, token: string) => {
     const response = await axios.post(`${apiUrl}create_doc_user/get_signed_document/`, { type_document }, {
         headers: {

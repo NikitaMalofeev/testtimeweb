@@ -27,11 +27,14 @@ import { postBrokerApiTokenThunk } from 'entities/RiskProfile/slice/riskProfileS
 import { ProblemsCodeModal } from '../ProblemsCodeModal/ProblemsCodeModal';
 import { ProblemsModal } from '../ProblemsModal/ProblemsModal';
 import { InfoModal } from '../InfoModal/InfoModal';
-import { setCurrentSignedDocuments } from 'entities/Documents/slice/documentsSlice';
+import { setCurrentConfirmableDoc, setCurrentSignedDocuments } from 'entities/Documents/slice/documentsSlice';
+import { setStepAdditionalMenuUI } from 'entities/ui/Ui/slice/uiSlice';
+import { useNavigate } from 'react-router-dom';
 
 export const BrokerConnectionForm: React.FC = () => {
     const dispatch = useAppDispatch();
     const modalState = useSelector((state: RootState) => state.modal)
+    const navigate = useNavigate()
 
     const brokersItems = [
         {
@@ -74,7 +77,7 @@ export const BrokerConnectionForm: React.FC = () => {
     return (
         <form className={styles.form}>
             {/* Выбор рынка */}
-            <h2 className={styles.subtitle}>Выбор рынка</h2>
+            <h2 className={styles.subtitle}>Выбор рынка <span style={{ color: 'red' }}>*</span></h2>
             <CheckboxGroup
                 name="market"
                 direction='row'
@@ -157,13 +160,9 @@ export const BrokerConnectionForm: React.FC = () => {
                 description='Для предоставления услуги необходимо подписать документ «Согласие на передачу API ключак брокерскому счету»'
                 buttonText='Перейти к подписи'
                 action={() => {
-                    dispatch(
-                        openModal({
-                            type: ModalType.DOCUMENTS_PREVIEW,
-                            size: ModalSize.FULL,
-                            animation: ModalAnimation.LEFT,
-                        })
-                    );
+                    navigate('/documents')
+                    dispatch(setStepAdditionalMenuUI(4))
+                    dispatch(setCurrentConfirmableDoc('type_doc_broker_api_token'))
                 }}
                 onClose={() => {
                     dispatch(closeModal(ModalType.INFO));

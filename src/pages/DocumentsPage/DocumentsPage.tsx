@@ -178,6 +178,7 @@ const DocumentsPage: React.FC = () => {
             case "type_doc_agreement_personal_data_policy":
             case "type_doc_investment_profile_certificate":
             case "type_doc_agreement_account_maintenance":
+            case "type_doc_broker_api_token":
                 // Для type_doc_EDS_agreement проверяем наличие заполненного паспорта
                 if (docId === "type_doc_EDS_agreement" && !filledRiskProfileChapters.is_exist_scan_passport) {
                     // Если паспорт не существует, не даём подписывать документ
@@ -338,6 +339,8 @@ const DocumentsPage: React.FC = () => {
                                         ? new Date(doc.date).toLocaleDateString()
                                         : "Дата подписания"}
                                 </span>
+
+                                {doc.id === 'type_doc_'}
 
                                 {doc.id === 'type_doc_passport' ? (
                                     <>

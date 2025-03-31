@@ -14,6 +14,7 @@ import {
     confirmDocsRequestThunk,
     docTypeLabels,
     docTypes,
+    getAllBrokersThunk,
     getUserDocumentsNotSignedThunk,
     setCurrentConfirmationMethod,
 } from "entities/Documents/slice/documentsSlice";
@@ -53,6 +54,10 @@ export const ConfirmAllDocs: React.FC = () => {
         EMAIL: "Email",
         WHATSAPP: "Whatsapp",
     };
+
+    useEffect(() => {
+        dispatch(getAllBrokersThunk({ is_confirmed_type_doc_agreement_transfer_broker: true, onSuccess: () => { } }))
+    }, [])
 
     const handleMethodChange = (method: 'SMS' | 'EMAIL' | 'WHATSAPP') => {
         formik.setFieldValue("type_message", method);
@@ -162,6 +167,7 @@ export const ConfirmAllDocs: React.FC = () => {
             case "type_doc_agreement_personal_data_policy":
             case "type_doc_investment_profile_certificate":
             case "type_doc_agreement_account_maintenance":
+            case "type_doc_broker_api_token":
                 return docTypeLabels[currentTypeDoc];
             default:
                 navigate("/documents");

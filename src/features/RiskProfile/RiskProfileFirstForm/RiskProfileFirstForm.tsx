@@ -278,35 +278,37 @@ export const RiskProfileFirstForm: React.FC = () => {
                         type="text"
                         minLength={2}
                         value={formik.values.trusted_person_fio || ""}
-                        onChange={handleChangeAndDispatch("trusted_person_fio")}
-                        needValue={formik.values?.trusted_person_phone?.length > 0}
-                        pattern="[A-Za-zА-Яа-яЁё\\s-]+"
-                        onInput={(
-                            e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>
-                        ) => {
-                            const target = e.currentTarget as HTMLInputElement | HTMLTextAreaElement;
-                            target.value = target.value.replace(/[^A-Za-zА-Яа-яЁё\s-]/g, "");
+                        onChange={(e) => {
+                            let value = e.target.value;
+                            value = value.replace(/[^A-Za-zА-Яа-яЁё\s-]/g, ""); // Оставляем только буквы, пробелы и дефисы
+                            const newEvent = {
+                                ...e,
+                                target: {
+                                    ...e.target,
+                                    value,
+                                },
+                            } as React.ChangeEvent<HTMLInputElement>;
+                            handleChangeAndDispatch("trusted_person_fio")(newEvent);
                         }}
-                        error={formik.touched.trusted_person_fio && formik.values.trusted_person_fio.length < 1}
+                        needValue={formik.values?.trusted_person_phone?.length > 0}
+                        error={formik.touched.trusted_person_fio && formik.values.trusted_person_fio.length < 2}
                     />
+
                     <Input
                         placeholder="Введите номер телефона"
                         name="trusted_person_phone"
                         type="text"
-                        maxLength={15}
                         value={formik.values.trusted_person_phone || ""}
                         onChange={(e) => {
                             let inputVal = e.target.value;
-                            // Убираем все символы, кроме цифр
                             const onlyDigits = inputVal.replace(/\D/g, "");
-
-                            // Если остались цифры — формируем "+{цифры}", иначе пустая строка
-                            const formatted = onlyDigits.length > 0 ? "+" + onlyDigits : "";
-
+                            const limitedDigits = onlyDigits.slice(0, 14);
+                            const formatted = limitedDigits.length > 0 ? "+" + limitedDigits : "";
                             formik.setFieldValue("trusted_person_phone", formatted);
                         }}
                         needValue={formik.values?.trusted_person_fio?.length > 0}
                     />
+
 
                     <Input
                         placeholder="Доп. контактная информация"

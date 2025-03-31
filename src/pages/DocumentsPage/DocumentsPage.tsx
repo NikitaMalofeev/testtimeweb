@@ -172,13 +172,37 @@ const DocumentsPage: React.FC = () => {
                 }
                 break;
             }
+            case "type_doc_broker_api_token": {
+                const isBrokerFilled = brokerIds.length
+
+                if (isBrokerFilled) {
+                    dispatch(setCurrentConfirmableDoc("type_doc_broker_api_token"));
+                    dispatch(setStepAdditionalMenuUI(4));
+                    dispatch(
+                        openModal({
+                            type: ModalType.IDENTIFICATION,
+                            size: ModalSize.FULL,
+                            animation: ModalAnimation.LEFT,
+                        })
+                    );
+                } else {
+                    dispatch(setStepAdditionalMenuUI(5));
+                    dispatch(
+                        openModal({
+                            type: ModalType.IDENTIFICATION,
+                            size: ModalSize.FULL,
+                            animation: ModalAnimation.LEFT,
+                        })
+                    );
+                }
+                break;
+            }
             case "type_doc_EDS_agreement":
             case "type_doc_agreement_investment_advisor":
             case "type_doc_risk_declarations":
             case "type_doc_agreement_personal_data_policy":
             case "type_doc_investment_profile_certificate":
             case "type_doc_agreement_account_maintenance":
-            case "type_doc_broker_api_token":
                 // Для type_doc_EDS_agreement проверяем наличие заполненного паспорта
                 if (docId === "type_doc_EDS_agreement" && !filledRiskProfileChapters.is_exist_scan_passport) {
                     // Если паспорт не существует, не даём подписывать документ

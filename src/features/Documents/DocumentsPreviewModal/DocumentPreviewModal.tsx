@@ -61,8 +61,10 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
             }
             // Если документ не подписан – ожидаем наличие HTML (даже если пустая строка)
             if (allDocumentsHtml && allDocumentsHtml.hasOwnProperty(docId)) {
-                setIsContentReady(true);
-                return;
+                setTimeout(() => {
+                    setIsContentReady(true);
+                    return;
+                }, 1000)
             }
             // Если документ подписан – проверяем наличие бинарных данных
             if (
@@ -111,9 +113,6 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
     if (!isOpen) {
         return null;
     }
-
-    // Получаем HTML для неподписанного документа
-    const docHtml = docId && allDocumentsHtml ? allDocumentsHtml[docId] : "";
 
     // Находим или создаём контейнер для портала
     let modalRoot = document.getElementById("modal-root");

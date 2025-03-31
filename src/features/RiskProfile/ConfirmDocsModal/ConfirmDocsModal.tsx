@@ -251,6 +251,13 @@ export const ConfirmDocsModal = memo(
                             if (docsType === 'type_doc_EDS_agreement' && (!isRPFilled || !isRPFinalFilled)) {
                                 dispatch(setStepAdditionalMenuUI(2))
                             }
+                            if (docsType === 'type_doc_EDS_agreement' && (isRPFilled && !isRPFinalFilled)) {
+                                dispatch(setStepAdditionalMenuUI(3))
+                            }
+                            if (docsType === 'type_doc_EDS_agreement' && (isRPFilled && isRPFinalFilled)) {
+                                dispatch(setStepAdditionalMenuUI(4))
+                            }
+
 
                             // if (docsType === 'type_doc_investment_profile_certificate') {
                             //     dispatch(setStepAdditionalMenuUI(5))

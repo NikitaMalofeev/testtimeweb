@@ -136,3 +136,16 @@ position: relative;
         margin-bottom: 10px;
     }
 }
+
+.back {
+    display: flex;
+    align-items: center;
+    max-width: 24px;
+}
+
+.header {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+}

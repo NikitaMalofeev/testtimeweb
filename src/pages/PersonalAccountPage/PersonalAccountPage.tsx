@@ -203,8 +203,8 @@ const PersonalAccountMenu: React.FC = () => {
                         </div>
                         <div className={styles.page__personalInfo}>
                             <div className={styles.page__fio}>
-                                <span>{userPersonalAccountInfo?.first_name}</span>
                                 <span>{userPersonalAccountInfo?.last_name}</span>
+                                <span>{userPersonalAccountInfo?.first_name}</span>
                                 <span>{userPersonalAccountInfo?.patronymic}</span>
                             </div>
                             <div className={styles.page__contacts}>

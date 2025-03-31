@@ -25,6 +25,7 @@ import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/D
 import { getAllUserInfoThunk } from "entities/User/slice/userSlice";
 import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
 import { useNavigate } from "react-router-dom";
+import ArrowBack from 'shared/assets/svg/ArrowBack.svg'
 
 export const ConfirmAllDocs: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -180,11 +181,18 @@ export const ConfirmAllDocs: React.FC = () => {
     return (
         <>
             <div className={styles.page}>
-                <div className={styles.page__counter}>
-                    Документ {currentIndex + 1} из {totalDocs}
+                <div className={styles.header}>
+                    <div className={styles.back} onClick={() => dispatch(closeModal(ModalType.IDENTIFICATION))}>
+                        <Icon Svg={ArrowBack} width={24} height={24} /> Назад
+                    </div>
+                    <div className={styles.page__counter}>
+                        Документ {currentIndex + 1} из {totalDocs}
+                    </div>
                 </div>
+
                 <div className={styles.page__container}>
                     <div className={styles.page__image}>
+
                         <div className={styles.page__image__circle}>
                             <Icon Svg={DocsImage} width={194} height={194} />
                         </div>
@@ -245,7 +253,7 @@ export const ConfirmAllDocs: React.FC = () => {
                         className={styles.button}
                         disabled={!formik.values.is_agree || currentTimeout > 0}
                     >
-                        {!currentTimeout ? "Подписать" : `(${currentTimeout})`}
+                        {!currentTimeout ? "Подтвердить" : `(${currentTimeout})`}
                     </Button>
                 </div>
             </div>

@@ -276,14 +276,24 @@ export const RiskProfileFirstForm: React.FC = () => {
                         placeholder="Введите ФИО"
                         name="trusted_person_fio"
                         type="text"
+                        minLength={2}
                         value={formik.values.trusted_person_fio || ""}
                         onChange={handleChangeAndDispatch("trusted_person_fio")}
                         needValue={formik.values?.trusted_person_phone?.length > 0}
+                        pattern="[A-Za-zА-Яа-яЁё\\s-]+"
+                        onInput={(
+                            e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>
+                        ) => {
+                            const target = e.currentTarget as HTMLInputElement | HTMLTextAreaElement;
+                            target.value = target.value.replace(/[^A-Za-zА-Яа-яЁё\s-]/g, "");
+                        }}
+                        error={formik.touched.trusted_person_fio && formik.values.trusted_person_fio.length < 1}
                     />
                     <Input
                         placeholder="Введите номер телефона"
                         name="trusted_person_phone"
                         type="text"
+                        maxLength={15}
                         value={formik.values.trusted_person_phone || ""}
                         onChange={(e) => {
                             let inputVal = e.target.value;

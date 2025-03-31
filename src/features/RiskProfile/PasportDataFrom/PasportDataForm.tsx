@@ -182,7 +182,7 @@ export const PasportDataForm: React.FC = () => {
         enableReinitialize: true,
         validationSchema: passportValidationSchema,
         onSubmit: (values) => {
-            console.log(formik.errors)
+
             dispatch(postPasportInfo({
                 data: values,
                 onSuccess: () => {

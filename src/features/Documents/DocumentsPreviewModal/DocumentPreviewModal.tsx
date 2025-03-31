@@ -140,6 +140,10 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                 <div className={styles.modalContent}>
                     {!isContentReady ? (
                         <Loader />
+                    ) : (hasCurrentSighedDocument &&
+                        hasCurrentSighedDocument.document &&
+                        Object.keys(hasCurrentSighedDocument.document).length > 0) ? (
+                        <PdfViewer pdfBinary={hasCurrentSighedDocument.document} />
                     ) : justPreview ? (
                         <PdfViewer pdfUrl={justPreview} />
                     ) : docId === "type_doc_passport" ? (
@@ -149,10 +153,6 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                             className={styles.htmlContainer}
                             dangerouslySetInnerHTML={{ __html: allDocumentsHtml[docId] }}
                         />
-                    ) : (hasCurrentSighedDocument &&
-                        hasCurrentSighedDocument.document &&
-                        Object.keys(hasCurrentSighedDocument.document).length > 0) ? (
-                        <PdfViewer pdfBinary={hasCurrentSighedDocument.document} />
                     ) : (
                         <div>Документ не найден</div>
                     )}

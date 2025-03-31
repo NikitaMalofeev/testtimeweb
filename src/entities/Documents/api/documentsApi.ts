@@ -14,6 +14,17 @@ export const confirmDocsRequest = async (data: ConfirmDocsPayload, token: string
     return response.data;
 };
 
+export const confirmBrokerDocsRequest = async (data: ConfirmDocsPayload, token: string) => {
+    const response = await axios.post(`${apiUrl}create_doc_user/eighth_signing_broker/`, { ...data }, {
+        headers: {
+            "Accept-Language": "ru",
+            "Content-Type": "application/json",
+            "Authorization": `Token ${token}`,
+        },
+    });
+    return response.data;
+};
+
 export const getDocumentsState = async (token: string) => {
     const response = await axios.get(`${apiUrl}create_doc_user/get_user_documents_confirmed/`, {
         headers: {
@@ -44,8 +55,18 @@ export const getDocumentsInfo = async (token: string) => {
     return response.data;
 };
 
+// export const getAllBrokers = async (token: string, is_confirmed_type_doc_agreement_transfer_broker: boolean) => {
+//     const response = await axios.post(`${apiUrl}user_lk/get_all_brokers/`, { is_confirmed_type_doc_agreement_transfer_broker: is_confirmed_type_doc_agreement_transfer_broker, broker: ["tinkoff_brokers"] }, {
+//         headers: {
+//             "Accept-Language": "ru",
+//             "Authorization": `Token ${token}`
+//         },
+//     });
+//     return response.data;
+// };
+
 export const getAllBrokers = async (token: string, is_confirmed_type_doc_agreement_transfer_broker: boolean) => {
-    const response = await axios.post(`${apiUrl}user_lk/get_all_brokers/`, { is_confirmed_type_doc_agreement_transfer_broker: is_confirmed_type_doc_agreement_transfer_broker, broker: ["tinkoff_brokers"] }, {
+    const response = await axios.post(`${apiUrl}user_lk/get_all_brokers/`, { is_confirmed_type_doc_agreement_transfer_broker: false, broker: "tinkoff_brokers" }, {
         headers: {
             "Accept-Language": "ru",
             "Authorization": `Token ${token}`

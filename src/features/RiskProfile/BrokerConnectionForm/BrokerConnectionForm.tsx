@@ -27,7 +27,7 @@ import { postBrokerApiTokenThunk } from 'entities/RiskProfile/slice/riskProfileS
 import { ProblemsCodeModal } from '../ProblemsCodeModal/ProblemsCodeModal';
 import { ProblemsModal } from '../ProblemsModal/ProblemsModal';
 import { InfoModal } from '../InfoModal/InfoModal';
-import { setCurrentConfirmableDoc, setCurrentSignedDocuments } from 'entities/Documents/slice/documentsSlice';
+import { setCurrentConfirmableDoc } from 'entities/Documents/slice/documentsSlice';
 import { setStepAdditionalMenuUI } from 'entities/ui/Ui/slice/uiSlice';
 import { useNavigate } from 'react-router-dom';
 

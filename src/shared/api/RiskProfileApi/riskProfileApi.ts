@@ -45,6 +45,17 @@ export const postConfirmationDocsCode = async (data: ConfirmationDocsData, token
     return response.data;
 };
 
+export const postBrokerConfirmationDocsCode = async (data: ConfirmationDocsData, token: string) => {
+    const response = await axios.post(`${apiUrl}create_doc_user/check_broker_confirmation_code/`, data, {
+        headers: {
+            "Accept-Language": "ru",
+            "Content-Type": "application/json",
+            "Authorization": `Token ${token}`,
+        },
+    });
+    return response.data;
+};
+
 export const postPasportData = async (data: PasportFormData, token: string) => {
     const response = await axios.post(`${apiUrl}create_doc_user/fourth_passport/`, data, {
         headers: {

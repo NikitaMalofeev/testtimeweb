@@ -1,7 +1,8 @@
 export interface ConfirmDocsPayload {
     type_message: string;
     is_agree: boolean;
-    type_document: string;
+    type_document?: string;
+    broker_id?: string;
 }
 
 export interface FilledRiskProfileChapters {

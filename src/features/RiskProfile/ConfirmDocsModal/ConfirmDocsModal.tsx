@@ -17,6 +17,7 @@ import {
 } from "entities/RiskProfile/slice/riskProfileSlice";
 import { RootState } from "app/providers/store/config/store";
 import {
+    closeAllModals,
     closeModal,
     openModal,
     setCurrentProblemScreen,
@@ -256,6 +257,9 @@ export const ConfirmDocsModal = memo(
                             }
                             if (docsType === 'type_doc_EDS_agreement' && (isRPFilled && isRPFinalFilled)) {
                                 dispatch(setStepAdditionalMenuUI(4))
+                            }
+                            if (docsType === 'type_doc_broker_api_token') {
+                                dispatch(closeAllModals())
                             }
 
 

@@ -11,7 +11,7 @@ const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
     const token = useSelector((state: RootState) => state.user.token);
     const tokenLS = localStorage.getItem('savedToken');
 
-    if (tokenLS) {
+    if (token) {
         return <Navigate to="/lk" replace />;
     }
 

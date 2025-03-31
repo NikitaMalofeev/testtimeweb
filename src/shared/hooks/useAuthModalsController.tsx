@@ -10,7 +10,7 @@ export const useAuthModalsController = () => {
     const tokenLS = localStorage.getItem('savedToken');
 
     useEffect(() => {
-        if (!tokenLS) {
+        if (!token) {
             dispatch(closeAllModals());
         }
     }, [token, tokenLS, dispatch]);

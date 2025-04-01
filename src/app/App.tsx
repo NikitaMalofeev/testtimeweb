@@ -30,7 +30,8 @@ function App() {
   const { messages } = useSelector((state: RootState) => state.supportChat);
   const { unreadAnswersCount } = useSelector((state: RootState) => state.supportChat);
   const token = useSelector((state: RootState) => state.user.token);
-  const { lastActivity } = useAuthTokenManagement()
+
+  useAuthTokenManagement()
   useModalsController()
   useAuthModalsController()
 

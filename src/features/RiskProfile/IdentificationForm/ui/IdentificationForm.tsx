@@ -186,11 +186,11 @@ const IdentificationProfileForm: React.FC = () => {
                     setCaptchaVerified(false)
                     formik.setFieldValue("g_recaptcha", "");
                     recaptchaRef.current?.reset();
-                }
+                }, onSuccess: () => { openNextModal(); }
             })).unwrap();
 
             // Открываем модалку с подтверждением кода
-            openNextModal();
+
         } catch (error) {
             // Обработка ошибки
         }

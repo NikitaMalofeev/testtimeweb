@@ -76,11 +76,11 @@ const initialState: RiskProfileFormState = {
 
 export const createRiskProfile = createAsyncThunk<
     void,
-    { data: IdentificationProfileData, onError: () => void },
+    { data: IdentificationProfileData, onError: () => void, onSuccess: () => void },
     { rejectValue: string }
 >(
     "riskProfile/createRiskProfile",
-    async ({ data, onError }, { dispatch, rejectWithValue }) => {
+    async ({ data, onError, onSuccess }, { dispatch, rejectWithValue }) => {
         try {
             const response = await postIdentificationData(data);
             const { id, token, is_active } = response;
@@ -91,6 +91,7 @@ export const createRiskProfile = createAsyncThunk<
             localStorage.removeItem("riskProfileFormData");
             dispatch(updateRiskProfileForm({}))
             dispatch(setStep(0))
+            onSuccess()
         } catch (error: any) {
             onError()
 

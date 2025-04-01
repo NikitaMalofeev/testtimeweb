@@ -5,6 +5,7 @@ import { setUserToken } from 'entities/User/slice/userSlice';
 import { useNavigate } from 'react-router-dom';
 import { RootState } from 'app/providers/store/config/store';
 import { closeAllModals } from 'entities/ui/Modal/slice/modalSlice';
+import { useCheckRehydrated } from './useCheckRehydrate';
 
 /**
  * Хук, который:
@@ -18,6 +19,7 @@ export function useAuthTokenManagement() {
 
     // Считываем из .env (через Vite). Убедитесь, что VITE_RANKS_AUTHTOKEN_LS_KEY реально определён
     const SECRET_KEY = import.meta.env.VITE_RANKS_AUTHTOKEN_LS_KEY as string | undefined;
+    const rehydrated = useCheckRehydrated();
 
     // Токен в Redux. Если пользователь авторизован, он должен быть != ''
     const token = useSelector((state: RootState) => state.user.token);
@@ -33,6 +35,7 @@ export function useAuthTokenManagement() {
      *    - Если нет — чистим всё и сразу отправляем на '/'
      */
     useEffect(() => {
+        if (!rehydrated) return;
         const savedToken = localStorage.getItem('savedToken');
         const lastExit = localStorage.getItem('lastExit');
         const lastExitSignature = localStorage.getItem('lastExitSignature');
@@ -67,7 +70,7 @@ export function useAuthTokenManagement() {
         // Если savedToken отсутствует, то ничего не делаем —
         // пользователь просто не авторизован и, возможно, зайдёт на страницу логина.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [token, rehydrated]);
 
     /**
      * 2) Отслеживаем активность пользователя (движения мыши, нажатия, клики, скролл).
@@ -76,6 +79,7 @@ export function useAuthTokenManagement() {
      *    чтобы в случае закрытия вкладки у нас было актуальное время выхода.
      */
     useEffect(() => {
+        if (!rehydrated) return;
         const handleActivity = () => {
             const now = Date.now();
             setLastActivity(now);
@@ -102,7 +106,7 @@ export function useAuthTokenManagement() {
             window.removeEventListener('click', handleActivity);
             window.removeEventListener('scroll', handleActivity);
         };
-    }, [token, SECRET_KEY]);
+    }, [token, SECRET_KEY, rehydrated]);
 
     /**
      * 3) Каждые 10 секунд проверяем: если (Date.now() - lastActivity) > 3 мин — разлогин,
@@ -110,6 +114,7 @@ export function useAuthTokenManagement() {
      *    в этот момент всё равно была запись).
      */
     useEffect(() => {
+        if (!rehydrated) return;
         const interval = setInterval(() => {
             const now = Date.now();
 
@@ -136,13 +141,14 @@ export function useAuthTokenManagement() {
         }, 10_000);
 
         return () => clearInterval(interval);
-    }, [lastActivity, token, SECRET_KEY, dispatch, navigate]);
+    }, [lastActivity, token, SECRET_KEY, dispatch, navigate, rehydrated]);
 
     /**
      * 4) Дополнительная проверка для iOS / Safari: при сворачивании / закрытии вкладки
      *    событие pagehide. На нём тоже сохраним текущее время.
      */
     useEffect(() => {
+        if (!rehydrated) return;
         const handlePageHide = () => {
             if (token && SECRET_KEY) {
                 const now = Date.now();
@@ -157,7 +163,7 @@ export function useAuthTokenManagement() {
         return () => {
             window.removeEventListener('pagehide', handlePageHide);
         };
-    }, [token, SECRET_KEY]);
+    }, [token, SECRET_KEY, rehydrated]);
 
     // Если где-то надо в компоненте показывать, когда была последняя активность:
     return { lastActivity };

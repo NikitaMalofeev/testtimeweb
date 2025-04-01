@@ -7,7 +7,7 @@ import uiReducer from 'entities/ui/Ui/slice/uiSlice';
 import modalReducer from 'entities/ui/Modal/slice/modalSlice';
 import userReducer from 'entities/User/slice/userSlice';
 import errorReducer from 'entities/Error/slice/errorSlice';
-import documentsReducer from 'entities/Documents/slice/documentsSlice';
+import documentsReducer, { setCurrentSignedDocuments } from 'entities/Documents/slice/documentsSlice';
 import riskProfileReducer from 'entities/RiskProfile/slice/riskProfileSlice';
 import personalAccountReducer from 'entities/PersonalAccount/slice/personalAccountSlice';
 import supportChatReducer from 'entities/SupportChat/slice/supportChatSlice';
@@ -35,6 +35,14 @@ const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 export const store = configureStore({
     reducer: persistedReducer,
+    middleware: (getDefaultMiddleware) =>
+        getDefaultMiddleware({
+            //отключил сериализацию для бинарных pdf файлов
+            serializableCheck: {
+                ignoredActions: ['modal/openModal', 'documents/setCurrentSignedDocuments'],
+                ignoredPaths: ['documents.currentSugnedDocument.document'],
+            },
+        }),
 });
 
 export const persistor = persistStore(store);

@@ -15,6 +15,7 @@ interface CheckboxProps {
     label: ReactElement;
     error?: string | boolean;
     disabled?: boolean;
+    needValue?: boolean;
     /**
      * Если `true`, используем стили "radio",
      * иначе классические стили "чекбокс".
@@ -29,6 +30,7 @@ export const CheckboxRadio: React.FC<CheckboxProps> = ({
     onBlur,
     label,
     error,
+    needValue,
     disabled = false,
 }) => {
     return (

@@ -1,6 +1,6 @@
 import React, { memo, useState, useRef, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
-import { format, getYear, getMonth, parse, isValid } from 'date-fns';
+import { format, getYear, getMonth, parse, isValid, subYears, startOfToday } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import ArrowRight from 'shared/assets/svg/CalendarArrowRight.svg';
 import ArrowLeft from 'shared/assets/svg/CalendarArrowLeft.svg';
@@ -20,6 +20,7 @@ interface DatepickerProps {
     minDate?: Date;
     needValue?: boolean;
     error?: string | boolean;
+    majority?: boolean;
 }
 
 export const Datepicker = memo((props: DatepickerProps) => {
@@ -31,11 +32,15 @@ export const Datepicker = memo((props: DatepickerProps) => {
         minDate,
         needValue,
         error,
+        majority,
     } = props;
 
     // Локальный стейт для выбранной даты и видимости календаря
     const [selectedDate, setSelectedDate] = useState<Date | null>(value);
     const [isOpen, setIsOpen] = useState(false);
+
+    const eighteenYearsAgo = subYears(startOfToday(), 18);
+    const computedMaxDate = majority ? eighteenYearsAgo : maxDate;
 
     // Текст, который отображается в самом инпуте внутри календаря
     const [inputValue, setInputValue] = useState(
@@ -44,12 +49,12 @@ export const Datepicker = memo((props: DatepickerProps) => {
 
     const calendarRef = useRef<HTMLDivElement | null>(null);
 
-    // При выборе даты в календаре:
     const handleCalendarChange = (date: Date | null) => {
+        if (majority && date && date > eighteenYearsAgo) {
+            return;
+        }
         setSelectedDate(date);
-        // Устанавливаем отображаемое значение (например yyyy.MM.dd):
         setInputValue(date ? format(date, 'yyyy.MM.dd') : '');
-        // Вызываем внешний onChange сразу и закрываем календарь:
         onChange(date);
         setIsOpen(false);
     };
@@ -73,14 +78,12 @@ export const Datepicker = memo((props: DatepickerProps) => {
         };
     }, [isOpen]);
 
-    // Если пользователь вручную вводит дату и фокус уходит, проверяем валидность
     const handleBlur = () => {
         const parsedDate = parse(inputValue, 'yyyy.MM.dd', new Date());
-        if (isValid(parsedDate)) {
+        if (isValid(parsedDate) && (!majority || parsedDate <= eighteenYearsAgo)) {
             setSelectedDate(parsedDate);
             onChange(parsedDate);
         } else {
-            // Если ввели невалидную дату, возвращаемся к предыдущему корректному значению
             setInputValue(selectedDate ? format(selectedDate, 'yyyy.MM.dd') : '');
         }
     };
@@ -134,7 +137,8 @@ export const Datepicker = memo((props: DatepickerProps) => {
                             inline
                             showWeekNumbers
                             minDate={minDate}
-                            maxDate={maxDate}
+                            maxDate={computedMaxDate}
+                            filterDate={(date) => !majority || date <= eighteenYearsAgo}
                             // Кастомный хедер
                             renderCustomHeader={({
                                 date,

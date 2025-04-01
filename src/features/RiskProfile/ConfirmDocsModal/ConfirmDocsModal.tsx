@@ -248,14 +248,11 @@ export const ConfirmDocsModal = memo(
                             if (docsType === 'type_doc_passport') {
                                 dispatch(setStepAdditionalMenuUI(1))
                             }
-
                             if (docsType === 'type_doc_EDS_agreement' && (!isRPFilled || !isRPFinalFilled)) {
                                 dispatch(setStepAdditionalMenuUI(2))
-                            }
-                            if (docsType === 'type_doc_EDS_agreement' && (isRPFilled && !isRPFinalFilled)) {
+                            } else if (docsType === 'type_doc_EDS_agreement' && (isRPFilled && !isRPFinalFilled)) {
                                 dispatch(setStepAdditionalMenuUI(3))
-                            }
-                            if (docsType === 'type_doc_EDS_agreement' && (isRPFilled && isRPFinalFilled)) {
+                            } else if (docsType === 'type_doc_EDS_agreement' && (isRPFilled && isRPFinalFilled)) {
                                 dispatch(setStepAdditionalMenuUI(4))
                             }
                             if (docsType === 'type_doc_broker_api_token') {
@@ -274,7 +271,7 @@ export const ConfirmDocsModal = memo(
                     })
                 );
             }
-        }, [smsCodeFirst]);
+        }, [smsCodeFirst, isRPFilled, isRPFinalFilled]);
 
         // ===============================================
 

@@ -11,6 +11,7 @@ import {
     getUserDocumentsStateThunk,
     getUserDocumentsNotSignedThunk,
     getUserDocumentsSignedThunk,
+    getBrokerDocumentsSignedThunk,
     // Удалён старый setNotConfirmedDocuments
 } from "entities/Documents/slice/documentsSlice";
 
@@ -42,6 +43,7 @@ const DocumentsPage: React.FC = () => {
 
     const { userDocuments, loading, filledRiskProfileChapters, brokerIds } = useSelector((state: RootState) => state.documents);
     const currentDocument = useSelector((state: RootState) => state.documents.currentSugnedDocument.document);
+    const currentConfirmableDocument = useSelector((state: RootState) => state.documents.currentConfirmableDoc);
 
     useEffect(() => {
         dispatch(getUserDocumentsStateThunk());
@@ -49,6 +51,11 @@ const DocumentsPage: React.FC = () => {
         dispatch(getAllUserInfoThunk());
         dispatch(getUserPersonalAccountInfoThunk())
     }, []);
+
+    useEffect(() => {
+        dispatch(getUserDocumentsStateThunk());
+    }, [currentConfirmableDocument]);
+
 
 
     const isAnyModalOpen = useSelector(selectIsAnyModalOpen);
@@ -283,14 +290,19 @@ const DocumentsPage: React.FC = () => {
     const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
 
     const handleOpenPreview = (docId: string) => {
-        if (docId !== 'type_doc_passport') {
+        console.log(docId)
+        if (docId === 'type_doc_passport') {
+            setSelectedDocId(docId);
+            dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
+        } else if (docId === 'type_doc_broker_api_token') {
+            setSelectedDocId(docId);
+            dispatch(getBrokerDocumentsSignedThunk({ purpose: 'download', onSuccess: () => { } }))
+            dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
+        } else {
             dispatch(getUserDocumentsSignedThunk({
                 type_document: docId, purpose: 'preview', onSuccess: () => {
                 }
             }))
-            setSelectedDocId(docId);
-            dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
-        } else {
             setSelectedDocId(docId);
             dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
         }
@@ -349,6 +361,18 @@ const DocumentsPage: React.FC = () => {
                                 <span className={styles.document__info__title}>{doc.title}</span>
                                 <div className={styles.document__info__flex}>
                                     {/* Кнопка "Просмотр" => открывает превью */}
+                                    {doc.id === 'type_doc_broker_api_token' && brokerIds[0] && (
+                                        <>
+                                            <Button
+                                                className={styles.document__preview}
+                                                theme={ButtonTheme.UNDERLINE}
+                                                onClick={() => handleOpenPreview(doc.id)}
+                                            >
+                                                Просмотр
+                                            </Button>
+                                            <Icon Svg={DownloadIcon} onClick={() => handleDownloadPdf(doc.id)} width={33} height={33} />
+                                        </>
+                                    )}
                                     {doc.status === "signed" ? <>
                                         <Button
                                             className={styles.document__preview}

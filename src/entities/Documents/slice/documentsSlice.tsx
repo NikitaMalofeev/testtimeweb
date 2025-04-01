@@ -3,7 +3,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "app/providers/store/config/store";
 import { ConfirmDocsPayload, FilledRiskProfileChapters } from "../types/documentsTypes";
-import { confirmBrokerDocsRequest, confirmDocsRequest, getAllBrokers, getDocumentsInfo, getDocumentsNotSigned, getDocumentsSigned, getDocumentsState } from "../api/documentsApi";
+import { confirmBrokerDocsRequest, confirmDocsRequest, getAllBrokers, getBrokerDocumentsSigned, getDocumentsInfo, getDocumentsNotSigned, getDocumentsSigned, getDocumentsState } from "../api/documentsApi";
 import { setCurrentConfirmingDoc } from "entities/RiskProfile/slice/riskProfileSlice";
 import { setConfirmationDocsSuccess } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
@@ -151,12 +151,13 @@ export const sendDocsConfirmationCode = createAsyncThunk<
         try {
             const token = getState().user.token;
             const currentConfirmableDoc = getState().documents.currentConfirmableDoc
+            const broker_id = getState().documents.brokerIds[0]
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");
             }
             if (codeFirst && currentConfirmableDoc === 'type_doc_broker_api_token') {
                 const responseDocs = await postBrokerConfirmationDocsCode(
-                    { code: codeFirst, type_document: docs },
+                    { code: codeFirst, broker_id: broker_id },
                     token
                 );
                 onSuccess?.(responseDocs);
@@ -277,6 +278,43 @@ export const getUserDocumentsSignedThunk = createAsyncThunk<
 
             dispatch(setCurrentSignedDocuments({
                 type: type_document,
+                document: pdfBytes,
+            }));
+
+            if (purpose === 'download') {
+                onSuccess()
+            }
+        } catch (error: any) {
+            const msg =
+                error.response?.data?.errorText ||
+                "Ошибка при получении подписанного документа";
+            return rejectWithValue(msg);
+        }
+    }
+);
+
+export const getBrokerDocumentsSignedThunk = createAsyncThunk<
+    void,
+    { purpose: string; onSuccess: () => void },
+    { rejectValue: string; state: RootState }
+>(
+    "documents/getBrokerDocumentsSignedThunk",
+    async ({ purpose, onSuccess }, { getState, dispatch, rejectWithValue }) => {
+        try {
+            const token = getState().user.token;
+            const broker_id = getState().documents.brokerIds[0];
+            console.log('token in thunk:', token);
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+            console.log('thunk broker')
+            // Запрашиваем PDF как бинарь (ArrayBuffer)
+            const arrayBuffer = await getBrokerDocumentsSigned(broker_id, token);
+            // Превращаем ArrayBuffer в Uint8Array
+            const pdfBytes = new Uint8Array(arrayBuffer);
+
+            dispatch(setCurrentSignedDocuments({
+                type: 'type_doc_broker_api_token',
                 document: pdfBytes,
             }));
 
@@ -427,6 +465,20 @@ export const documentsSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload as string;
             })
+            .addCase(getBrokerDocumentsSignedThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+                state.success = false;
+            })
+            .addCase(getBrokerDocumentsSignedThunk.fulfilled, (state) => {
+                state.loading = false;
+                state.success = true;
+            })
+            .addCase(getBrokerDocumentsSignedThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
+
         // Аналогично можно дописать pending/fulfilled для confirmDocsRequestThunk, если нужно
     },
 });

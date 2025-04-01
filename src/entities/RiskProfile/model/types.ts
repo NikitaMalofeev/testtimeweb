@@ -19,7 +19,8 @@ export interface ConfirmationCodeData {
 
 export interface ConfirmationDocsData {
     code: string;
-    type_document: string;
+    type_document?: string;
+    broker_id?: string;
 }
 
 export interface NeedHelpData {

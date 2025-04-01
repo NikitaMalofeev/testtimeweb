@@ -86,3 +86,15 @@ export const getDocumentsSigned = async (type_document: string, token: string) =
     });
     return response.data;
 };
+
+export const getBrokerDocumentsSigned = async (broker_id: string, token: string) => {
+    const response = await axios.post(`${apiUrl}create_doc_user/get_signed_broker/`, { broker_id }, {
+        headers: {
+            "Accept-Language": "ru",
+            "Authorization": `Token ${token}`,
+            "Content-Type": "application/json",
+        },
+        responseType: "arraybuffer",
+    });
+    return response.data;
+};

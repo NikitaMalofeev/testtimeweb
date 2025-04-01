@@ -64,6 +64,8 @@ export const PasportDataForm: React.FC = () => {
         birth_date: Yup.date()
             .typeError("Некорректная дата")
             .required("Дата рождения обязательна"),
+        gender: Yup.string()
+            .required("Гендер обязательно"),
         birth_place: Yup.string()
             .min(2, "Минимум 2 символа")
             .required("Место рождения обязательно"),
@@ -367,6 +369,8 @@ export const PasportDataForm: React.FC = () => {
                             formik.setFieldValue(name, selectedValue);
 
                         }}
+                        needValue
+                        error={formik.touched.gender && formik.errors.gender}
                     />
 
                     <Datepicker
@@ -376,6 +380,7 @@ export const PasportDataForm: React.FC = () => {
                         maxDate={new Date()}
                         needValue={true}
                         error={formik.touched.birth_date && formik.errors.birth_date}
+                        majority
                     />
 
                     <Input

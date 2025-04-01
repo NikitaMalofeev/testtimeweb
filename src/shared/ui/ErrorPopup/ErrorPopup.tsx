@@ -18,6 +18,7 @@ import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/mo
 export const ErrorPopup = () => {
     const [visible, setVisible] = useState(false);
     const { error, purpose } = useSelector((state: RootState) => state.error)
+    const successPopupIsOpen = useSelector((state: RootState) => state.ui.isTooltipActive.active)
     const dispatch = useAppDispatch()
     const navigate = useNavigate();
     const location = useLocation()
@@ -35,6 +36,10 @@ export const ErrorPopup = () => {
                 clearTimeout(hideTimer);
                 clearTimeout(clearErrorTimer);
             };
+        }
+
+        if (successPopupIsOpen) {
+            setVisible(false);
         }
     }, [error]);
 

@@ -145,7 +145,6 @@ const IdentificationProfileForm: React.FC = () => {
     }, [systemError, modalConfirmOpen])
 
     const handleSubmitForm = () => {
-        if (isButtonDisabled) return;
 
         const payload: IdentificationProfileData = {
             phone: formik.values.phone,
@@ -172,7 +171,6 @@ const IdentificationProfileForm: React.FC = () => {
         dispatch(setUserData(userForRedux))
         dispatch(createRiskProfile({
             data: payload, onError: () => {
-                console.log('сбрасываю каптчу')
                 setCaptchaVerified(false)
                 formik.setFieldValue("g_recaptcha", "");
                 recaptchaRef.current?.reset();

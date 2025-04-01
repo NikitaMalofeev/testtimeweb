@@ -137,6 +137,7 @@ export const Datepicker = memo((props: DatepickerProps) => {
                             inline
                             showWeekNumbers
                             minDate={minDate}
+                            withPortal
                             maxDate={computedMaxDate}
                             filterDate={(date) => !majority || date <= eighteenYearsAgo}
                             // Кастомный хедер

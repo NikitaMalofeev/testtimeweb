@@ -17,6 +17,11 @@
 body {
     min-height: calc(var(--vh, 1vh) * 100);
     font-family: var(--font-inter);
+    overscroll-behavior: contain;
+}
+
+.html {
+  overscroll-behavior: contain;
 }
 
 /* Если хотите гарантированно применить везде, можно дублировать: */

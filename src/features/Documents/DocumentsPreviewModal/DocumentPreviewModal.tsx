@@ -145,7 +145,7 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                     <Icon Svg={CloseIcon} width={20} height={20} onClick={handleClose} />
                 </div>
                 <div className={styles.modalContent}>
-                    {!isContentReady ? (
+                    {!isContentReady && !loading ? (
                         <Loader />
                     ) : (hasCurrentSighedDocument &&
                         hasCurrentSighedDocument.document &&

@@ -122,14 +122,6 @@ const IdentificationProfileForm: React.FC = () => {
         recaptchaRef.current?.reset();
     };
 
-    const openNextModal = () => {
-        dispatch(openModal({
-            type: ModalType.CONFIRM_CODE,
-            size: ModalSize.MIDDLE,
-            animation: ModalAnimation.BOTTOM
-        }));
-    };
-
     const handleNameChange = (fieldName: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const rawValue = e.target.value;
         const sanitizedValue = rawValue.replace(/[^А-Яа-яЁё\s-]/g, "");
@@ -152,7 +144,7 @@ const IdentificationProfileForm: React.FC = () => {
         }
     }, [systemError, modalConfirmOpen])
 
-    const handleSubmitForm = async () => {
+    const handleSubmitForm = () => {
         if (isButtonDisabled) return;
 
         const payload: IdentificationProfileData = {
@@ -178,22 +170,20 @@ const IdentificationProfileForm: React.FC = () => {
         }
 
         dispatch(setUserData(userForRedux))
-        try {
-            // Если все данные верны, сервер вернёт результат без ошибок
-            await dispatch(createRiskProfile({
-                data: payload, onError: () => {
-                    console.log('сбрасываю каптчу')
-                    setCaptchaVerified(false)
-                    formik.setFieldValue("g_recaptcha", "");
-                    recaptchaRef.current?.reset();
-                }, onSuccess: () => { openNextModal(); }
-            })).unwrap();
-
-            // Открываем модалку с подтверждением кода
-
-        } catch (error) {
-            // Обработка ошибки
-        }
+        dispatch(createRiskProfile({
+            data: payload, onError: () => {
+                console.log('сбрасываю каптчу')
+                setCaptchaVerified(false)
+                formik.setFieldValue("g_recaptcha", "");
+                recaptchaRef.current?.reset();
+            }, onSuccess: () => {
+                dispatch(openModal({
+                    type: ModalType.CONFIRM_CODE,
+                    size: ModalSize.MIDDLE,
+                    animation: ModalAnimation.BOTTOM
+                }));
+            }
+        }))
     };
 
     return (

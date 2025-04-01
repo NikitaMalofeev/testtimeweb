@@ -44,28 +44,29 @@ export function useAuthTokenManagement() {
             const expectedSignature = btoa(lastExit + SECRET_KEY);
             const lastExitTime = parseInt(lastExit, 10);
             const now = Date.now();
+            dispatch(setUserToken(savedToken));
 
             // Проверяем, что подпись совпадает и прошло менее 3 минут
-            if (
-                lastExitSignature === expectedSignature &&
-                now - lastExitTime <= 10 * 60_000
-            ) {
-                // Всё ок — восстанавливаем токен
-                dispatch(setUserToken(savedToken));
-                // Можно одновременно выставить state, чтобы не считать "активность" с 0
-                setLastActivity(lastExitTime);
-            } else {
-                // Что-то не так или 3 мин уже прошли — удаляем всё и выходим
+            // if (
+            //     lastExitSignature === expectedSignature &&
+            //     now - lastExitTime <= 10 * 60_000
+            // ) {
+            //     // Всё ок — восстанавливаем токен
+            //     dispatch(setUserToken(savedToken));
+            //     // Можно одновременно выставить state, чтобы не считать "активность" с 0
+            //     setLastActivity(lastExitTime);
+            // } else {
+            //     // Что-то не так или 3 мин уже прошли — удаляем всё и выходим
 
-                //FIXME Убрал сброс логина пока не закончим mvp
-                // localStorage.removeItem('savedToken');
-                // localStorage.removeItem('lastExit');
-                // localStorage.removeItem('lastExitSignature');
+            //     //FIXME Убрал сброс логина пока не закончим mvp
+            //     // localStorage.removeItem('savedToken');
+            //     // localStorage.removeItem('lastExit');
+            //     // localStorage.removeItem('lastExitSignature');
 
-                // dispatch(setUserToken(''));
-                // dispatch(closeAllModals());
-                // navigate('/');
-            }
+            //     // dispatch(setUserToken(''));
+            //     // dispatch(closeAllModals());
+            //     // navigate('/');
+            // }
         }
         // Если savedToken отсутствует, то ничего не делаем —
         // пользователь просто не авторизован и, возможно, зайдёт на страницу логина.

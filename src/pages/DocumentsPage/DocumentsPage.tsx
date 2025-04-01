@@ -399,7 +399,7 @@ const DocumentsPage: React.FC = () => {
                                 {((doc.id === "type_doc_passport" && doc.status === "signed" && filledRiskProfileChapters.is_exist_scan_passport) || (doc.id !== "type_doc_passport" && doc.status === "signed")) ? (
                                     <div className={styles.document__button_success}>
                                         <Icon Svg={SuccessBlueIcon} width={24} height={24} />
-                                        <span>Подписано</span>
+                                        <span>{doc.id === "type_doc_passport" ? 'Подтверждено' : 'Подписано'}</span>
                                     </div>
                                 ) : (
                                     <Button
@@ -433,6 +433,7 @@ const DocumentsPage: React.FC = () => {
                         ? docTypeLabels[selectedDocId] || "Документ"
                         : "Документ"
                 }
+                isSignedDoc
                 docId={selectedDocId}
             />
 

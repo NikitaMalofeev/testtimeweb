@@ -3,7 +3,7 @@ import ReactDOM from "react-dom";
 import { motion } from "framer-motion";
 import { useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
-import { closeModal } from "entities/ui/Modal/slice/modalSlice";
+import { closeAllModals, closeModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalType } from "entities/ui/Modal/model/modalTypes";
 import { selectIsAnyModalOpen } from "entities/ui/Modal/selectors/selectorsModals";
 import styles from "./styles.module.scss";
@@ -13,6 +13,9 @@ import { RiskProfileAllData } from "features/RiskProfile/RiskProfileAllData/Risk
 import { Loader } from "shared/ui/Loader/Loader";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { PdfViewer } from "shared/ui/PDFViewer/PDFViewer";
+import { useNavigate } from "react-router-dom";
+import { Button, ButtonTheme } from "shared/ui/Button/Button";
+import ErrorIcon from 'shared/assets/svg/Error.svg'
 
 interface PreviewModalProps {
     isOpen: boolean;       // Открыта ли модалка
@@ -20,6 +23,8 @@ interface PreviewModalProps {
     title?: string;        // Заголовок модалки
     docId?: string | null; // Идентификатор документа
     justPreview?: string;  // Если передаём URL для превью
+    isSignedDoc?: boolean;
+
 }
 
 export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
@@ -27,10 +32,11 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
     onClose,
     title,
     docId,
+    isSignedDoc,
     justPreview,
 }) => {
     const dispatch = useAppDispatch();
-
+    const navigate = useNavigate()
     // Все HTML-документы для неподписанных лежат в Redux-стейте
     const allDocumentsHtml = useSelector(
         (state: RootState) => state.documents.allNotSignedDocumentsHtml
@@ -65,14 +71,16 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                     setIsContentReady(true);
                     return;
                 }, 1000)
+                console.log('неподписанные')
             }
             // Если документ подписан – проверяем наличие бинарных данных
             if (
-                hasCurrentSighedDocument &&
+                !isSignedDoc && hasCurrentSighedDocument &&
                 hasCurrentSighedDocument.document &&
                 Object.keys(hasCurrentSighedDocument.document).length > 0
             ) {
                 setIsContentReady(true);
+                console.log('подписанные')
                 return;
             }
         }
@@ -147,13 +155,26 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                         <PdfViewer pdfUrl={justPreview} />
                     ) : docId === "type_doc_passport" ? (
                         <RiskProfileAllData />
-                    ) : docId && (allDocumentsHtml && allDocumentsHtml.hasOwnProperty(docId)) ? (
+                    ) : !isSignedDoc && docId && (allDocumentsHtml && allDocumentsHtml.hasOwnProperty(docId)) ? (
                         <div
                             className={styles.htmlContainer}
                             dangerouslySetInnerHTML={{ __html: allDocumentsHtml[docId] }}
                         />
                     ) : (
-                        <div>Документ не найден</div>
+                        <div className={styles.error}>
+                            <Icon width={36} height={36} Svg={ErrorIcon} />
+                            <div>Документ не найден</div>
+                            <Button
+                                theme={ButtonTheme.UNDERLINE}
+                                onClick={() => {
+                                    dispatch(closeAllModals())
+                                    navigate('/support')
+                                }}
+                                className={styles.error__button}
+                            >
+                                Перейти в чат поддержки
+                            </Button>
+                        </div>
                     )}
                 </div>
             </motion.div>

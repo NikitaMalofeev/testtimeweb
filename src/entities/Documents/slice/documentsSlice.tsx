@@ -160,6 +160,7 @@ export const sendDocsConfirmationCode = createAsyncThunk<
                     { code: codeFirst, broker_id: broker_id },
                     token
                 );
+                dispatch(getUserDocumentsStateThunk());
                 onSuccess?.(responseDocs);
                 dispatch(setCurrentConfirmableDoc(responseDocs.next_document));
             } else if (codeFirst) {

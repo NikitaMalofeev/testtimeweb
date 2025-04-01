@@ -49,6 +49,9 @@ export const ConfirmDocsModal = memo(
     ({ isOpen, onClose, docsType, lastData }: ConfirmInfoModalProps) => {
         const dispatch = useAppDispatch();
         const modalState = useSelector((state: RootState) => state.modal);
+        const { confirmationMethod } = useSelector(
+            (state: RootState) => state.documents
+        );
 
         // Состояние успеха/неуспеха подтверждения
         const docsSuccess = useSelector(
@@ -62,7 +65,6 @@ export const ConfirmDocsModal = memo(
         );
 
         const hasNoTryPhoneConfirm = docsSuccess === "не определено";
-        const confirmationMethod = modalState.confirmationMethod;
 
         const userInfo = useSelector((state: RootState) => state.user.userPersonalAccountInfo);
 
@@ -249,10 +251,13 @@ export const ConfirmDocsModal = memo(
                                 dispatch(setStepAdditionalMenuUI(1))
                             }
                             if (docsType === 'type_doc_EDS_agreement' && (!isRPFilled || !isRPFinalFilled)) {
+
                                 dispatch(setStepAdditionalMenuUI(2))
                             } else if (docsType === 'type_doc_EDS_agreement' && (isRPFilled && !isRPFinalFilled)) {
+
                                 dispatch(setStepAdditionalMenuUI(3))
                             } else if (docsType === 'type_doc_EDS_agreement' && (isRPFilled && isRPFinalFilled)) {
+
                                 dispatch(setStepAdditionalMenuUI(4))
                             }
                             if (docsType === 'type_doc_broker_api_token') {

@@ -110,7 +110,7 @@ const PersonalAccountMenu: React.FC = () => {
                 <div className={styles.warning}>
                     <Icon Svg={WarningIcon} width={16} height={16} />
                     <div>
-                        Для подключения брокера заполните паспорт
+                        Для подключения  подпишите документы
                     </div>
                 </div>
             ) : null,

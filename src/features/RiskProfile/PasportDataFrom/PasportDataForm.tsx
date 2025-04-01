@@ -283,15 +283,7 @@ export const PasportDataForm: React.FC = () => {
     const handleMethodChange = (method: 'SMS' | 'EMAIL' | 'WHATSAPP') => {
         formik.setFieldValue("type_message", method);
         //убрать этот страх когда оставлю один метод
-        dispatch(setCurrentConfirmModalType(method));
-
-        const methodMapping: Record<typeof method, string> = {
-            SMS: 'sms',
-            EMAIL: 'email',
-            WHATSAPP: 'whatsapp',
-        };
-
-        dispatch(setCurrentConfirmationMethod(methodMapping[method]));
+        dispatch(setCurrentConfirmationMethod(method));
 
         setCaptchaVerified(false);
         formik.setFieldValue("g_recaptcha", "");

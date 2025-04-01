@@ -16,6 +16,7 @@ import {
     docTypes,
     getAllBrokersThunk,
     getUserDocumentsNotSignedThunk,
+    getUserDocumentsStateThunk,
     setCurrentConfirmationMethod,
 } from "entities/Documents/slice/documentsSlice";
 import DocsImage from "shared/assets/svg/docsImage.svg";
@@ -59,14 +60,13 @@ export const ConfirmAllDocs: React.FC = () => {
         dispatch(getAllBrokersThunk({ is_confirmed_type_doc_agreement_transfer_broker: true, onSuccess: () => { } }))
     }, [])
 
+    useEffect(() => {
+        dispatch(getUserDocumentsStateThunk())
+    }, [currentTypeDoc])
+
     const handleMethodChange = (method: 'SMS' | 'EMAIL' | 'WHATSAPP') => {
         formik.setFieldValue("type_message", method);
-        const methodMapping: Record<typeof method, 'SMS' | 'EMAIL' | 'WHATSAPP'> = {
-            SMS: 'SMS',
-            EMAIL: 'EMAIL',
-            WHATSAPP: 'WHATSAPP',
-        };
-        dispatch(setCurrentConfirmModalType(methodMapping[method]));
+        dispatch(setCurrentConfirmationMethod(method));
     };
 
     useEffect(() => {

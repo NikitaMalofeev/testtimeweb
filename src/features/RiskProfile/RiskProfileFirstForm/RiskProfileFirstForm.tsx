@@ -165,7 +165,17 @@ export const RiskProfileFirstForm: React.FC = () => {
         validationSchema: Yup.object({
             // Условная валидация для phone: правило применяется только если trusted_person_fio заполнено
             phone: Yup.string()
-                .matches(/^\+\d{11}$/, "Неверный формат номера телефона")
+                .matches(/^\+\d{11}$/, "Неверный формат")
+                .when(
+                    ["trusted_person_fio"],
+                    ([trustedPersonFio], schema) =>
+                        trustedPersonFio && trustedPersonFio.trim().length > 0
+                            ? schema.required("Номер телефона обязателен")
+                            : schema
+                ),
+            trusted_person_fio: Yup.string().min(3, "Минимум 3 символа"),
+            trusted_person_phone: Yup.string()
+                .matches(/^\+\d{11}$/, "Неверный формат")
                 .when(
                     ["trusted_person_fio"],
                     ([trustedPersonFio], schema) =>
@@ -183,6 +193,10 @@ export const RiskProfileFirstForm: React.FC = () => {
     useEffect(() => {
         console.log(formik.values)
     }, [])
+
+    useEffect(() => {
+        console.log(formik.errors)
+    }, [formik.values.trusted_person_fio])
 
     const handleChangeAndDispatch =
         (fieldName: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -267,6 +281,8 @@ export const RiskProfileFirstForm: React.FC = () => {
         return !!formik.values[question.name];
     };
 
+
+
     // ========================= 11. Рендеринг полей вопросов =========================
     const renderQuestionField = (question: Question) => {
         if (question.name === "trusted_person") {
@@ -290,8 +306,9 @@ export const RiskProfileFirstForm: React.FC = () => {
                             } as React.ChangeEvent<HTMLInputElement>;
                             handleChangeAndDispatch("trusted_person_fio")(newEvent);
                         }}
+                        onBlur={formik.handleBlur}
                         needValue={formik.values?.trusted_person_phone?.length > 0}
-                        error={formik.touched.trusted_person_fio && formik.values.trusted_person_fio.length < 2}
+                        error={formik.touched.trusted_person_fio && formik.errors.trusted_person_fio}
                     />
 
                     <Input
@@ -306,7 +323,9 @@ export const RiskProfileFirstForm: React.FC = () => {
                             const formatted = limitedDigits.length > 0 ? "+" + limitedDigits : "";
                             formik.setFieldValue("trusted_person_phone", formatted);
                         }}
+                        onBlur={formik.handleBlur}
                         needValue={formik.values?.trusted_person_fio?.length > 0}
+                        error={formik.touched.trusted_person_phone && formik.errors.trusted_person_phone}
                     />
 
 

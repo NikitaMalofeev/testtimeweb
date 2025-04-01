@@ -535,7 +535,7 @@ export const PasportDataForm: React.FC = () => {
                     />
 
                     {!formik.values.is_live_this_address && (
-                        <div>
+                        <div style={!formik.values.is_live_this_address && { display: 'none' }}>
                             <h2 className={styles.form__subtitle}>Адрес проживания</h2>
                             <Input
                                 placeholder="Регион/район"
@@ -592,7 +592,7 @@ export const PasportDataForm: React.FC = () => {
                     )}
 
                     {formik.values.is_live_this_address && !formik.values.is_receive_mail_this_address && (
-                        <div>
+                        <div style={formik.values.is_live_this_address && !formik.values.is_receive_mail_this_address && { display: 'none' }}>
                             <h2 className={styles.form__subtitle}>Почтовый адрес</h2>
                             <Input
                                 placeholder="Регион/район"

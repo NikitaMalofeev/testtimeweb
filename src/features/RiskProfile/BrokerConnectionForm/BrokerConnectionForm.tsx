@@ -35,6 +35,7 @@ export const BrokerConnectionForm: React.FC = () => {
     const dispatch = useAppDispatch();
     const modalState = useSelector((state: RootState) => state.modal)
     const navigate = useNavigate()
+    const { brokerIds } = useSelector((state: RootState) => state.documents)
 
     const brokersItems = [
         {
@@ -147,7 +148,7 @@ export const BrokerConnectionForm: React.FC = () => {
                     Проблемы с подключением?
                 </Button>
             </div>
-            <DocumentPreviewModal title='Согласие на передачу API ключа к брокерскому счету' isOpen={modalState.documentsPreview.isOpen} onClose={() => {
+            <DocumentPreviewModal title={!brokerIds[0] ? 'Инструкция подключения к брокеру' : 'Согласие на передачу API ключа к брокерскому счету'} isOpen={modalState.documentsPreview.isOpen} onClose={() => {
                 dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW))
             }} docId='type_doc_broker_api_token' />
             <ProblemsModal isOpen={modalState.problem.isOpen} title='Проблемы с подключением брокера' problemScreen='Подключение брокера'

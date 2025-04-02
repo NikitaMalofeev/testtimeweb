@@ -30,6 +30,7 @@ import { InfoModal } from '../InfoModal/InfoModal';
 import { setCurrentConfirmableDoc } from 'entities/Documents/slice/documentsSlice';
 import { setStepAdditionalMenuUI } from 'entities/ui/Ui/slice/uiSlice';
 import { useNavigate } from 'react-router-dom';
+import brokerInstructionPDF from 'shared/assets/documents/brokerinstruction.pdf'
 
 export const BrokerConnectionForm: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -150,7 +151,7 @@ export const BrokerConnectionForm: React.FC = () => {
             </div>
             <DocumentPreviewModal title={!brokerIds[0] ? 'Инструкция подключения к брокеру' : 'Согласие на передачу API ключа к брокерскому счету'} isOpen={modalState.documentsPreview.isOpen} onClose={() => {
                 dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW))
-            }} docId='type_doc_broker_api_token' />
+            }} docId='type_doc_broker_api_token' justPreview={!brokerIds[0] ? `${brokerInstructionPDF}` : ''} />
             <ProblemsModal isOpen={modalState.problem.isOpen} title='Проблемы с подключением брокера' problemScreen='Подключение брокера'
                 onClose={() => {
                     dispatch(closeModal(ModalType.PROBLEM));

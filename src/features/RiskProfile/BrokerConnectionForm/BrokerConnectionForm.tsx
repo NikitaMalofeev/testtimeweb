@@ -30,7 +30,7 @@ import { InfoModal } from '../InfoModal/InfoModal';
 import { setCurrentConfirmableDoc } from 'entities/Documents/slice/documentsSlice';
 import { setStepAdditionalMenuUI } from 'entities/ui/Ui/slice/uiSlice';
 import { useNavigate } from 'react-router-dom';
-import brokerInstructionPDF from 'shared/assets/documents/brokerinstruction.pdf'
+import brokerInstructionPDF from 'shared/assets/documents/brokerInstruction.pdf'
 
 export const BrokerConnectionForm: React.FC = () => {
     const dispatch = useAppDispatch();

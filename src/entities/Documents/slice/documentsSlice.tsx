@@ -261,8 +261,8 @@ export const getUserDocumentsNotSignedThunk = createAsyncThunk<
 );
 
 export const getUserDocumentsSignedThunk = createAsyncThunk<
-    void,
-    { type_document: string, purpose: string, onSuccess: () => void },
+    Uint8Array, // изменили с void на Uint8Array
+    { type_document: string; purpose: string; onSuccess: () => void },
     { rejectValue: string; state: RootState }
 >(
     "documents/getUserDocumentsSignedThunk",
@@ -272,7 +272,7 @@ export const getUserDocumentsSignedThunk = createAsyncThunk<
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");
             }
-            // Запрашиваем PDF как бинарь (ArrayBuffer)
+            // Запрашиваем PDF как бинарный ArrayBuffer
             const arrayBuffer = await getDocumentsSigned(type_document, token);
             // Превращаем ArrayBuffer в Uint8Array
             const pdfBytes = new Uint8Array(arrayBuffer);
@@ -283,8 +283,11 @@ export const getUserDocumentsSignedThunk = createAsyncThunk<
             }));
 
             if (purpose === 'download') {
-                onSuccess()
+                onSuccess();
             }
+
+            // Возвращаем pdfBytes для дальнейшего использования (например, создания Blob)
+            return pdfBytes;
         } catch (error: any) {
             const msg =
                 error.response?.data?.errorText ||

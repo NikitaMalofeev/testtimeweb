@@ -265,7 +265,7 @@ const DocumentsPage: React.FC = () => {
     const renderedDocuments = documents.map((doc) => {
         let colorClass = styles.button__gray;
         if (doc.id === "type_doc_broker_api_token") {
-            if (brokerIds) {
+            if (brokerIds[0] || filledRiskProfileChapters.is_exist_scan_passport) {
                 colorClass = styles.button__gray; // первый неподписанный
             } else {
                 colorClass = styles.button__red; // остальные неподписанные
@@ -329,31 +329,34 @@ const DocumentsPage: React.FC = () => {
         }
     };
 
-    const handleDownloadPdf = (docId: string) => {
+    const handleDownloadPdf = async (docId: string) => {
         if (docId !== "type_doc_passport") {
-            dispatch(
-                getUserDocumentsSignedThunk({
-                    type_document: docId,
-                    purpose: "download",
-                    onSuccess: () => {
-                        if (currentDocument) {
-                            const blob = new Blob([currentDocument], { type: "application/pdf" }); // Создаём Blob
-                            const url = window.URL.createObjectURL(blob);
+            try {
+                const pdfBytes = await dispatch(
+                    getUserDocumentsSignedThunk({
+                        type_document: docId,
+                        purpose: "download",
+                        onSuccess: () => { },
+                    })
+                ).unwrap();
 
-                            const a = document.createElement("a");
-                            a.href = url;
-                            a.download = `${docId}.pdf`;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
+                const blob = new Blob([pdfBytes], { type: "application/pdf" });
+                const url = window.URL.createObjectURL(blob);
 
-                            window.URL.revokeObjectURL(url);
-                        }
-                    }
-                })
-            );
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `${docId}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+                window.URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error("Ошибка при скачивании PDF", error);
+            }
         }
     };
+
 
     const handleClosePreview = () => {
         setSelectedDocId(null);
@@ -395,7 +398,7 @@ const DocumentsPage: React.FC = () => {
                         }
 
                         const isDisabled =
-                            isBroker || isPassport
+                            (isBroker && filledRiskProfileChapters.is_exist_scan_passport) || isPassport
                                 ? false
                                 : doc.id !== firstNotConfirmed || !filledRiskProfileChapters.is_exist_scan_passport;
 
@@ -437,7 +440,7 @@ const DocumentsPage: React.FC = () => {
                                             <span>
                                                 {isPassport
                                                     ? "Подтверждено"
-                                                    : isBroker && brokerIds[0]
+                                                    : isBroker && brokerIds[0] && filledRiskProfileChapters.is_exist_scan_passport
                                                         ? "Подтверждено"
                                                         : "Подписано"}
                                             </span>

@@ -64,13 +64,13 @@ const PersonalAccountMenu: React.FC = () => {
             icon: AccountDocumentIcon,
             title: "Документы",
             route: "/documents",
-            notificationsCount: 8 - userDocuments.length,
+            notificationsCount: 9 - userDocuments.length,
             iconWidth: 23,
             iconHeight: 28,
-            warningMessage: 8 - userDocuments.length !== 0 ? (
+            warningMessage: 9 - userDocuments.length !== 0 ? (
                 <div className={styles.warning}>
                     <Icon Svg={WarningIcon} width={16} height={16} />
-                    <div>Есть неподписанные документы ({8 - userDocuments.length} шт.)</div>
+                    <div>Есть неподписанные документы ({9 - userDocuments.length} шт.)</div>
                 </div>
             ) : null,
         },

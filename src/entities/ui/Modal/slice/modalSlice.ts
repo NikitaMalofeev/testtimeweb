@@ -124,12 +124,12 @@ const modalSlice = createSlice({
         },
         closeAllModals: (state) => {
             Object.values(ModalType).forEach((type) => {
-                if (state[type]) {
+                if (type !== ModalType.CONFIRM_CODE && state[type]) {
                     state[type].isOpen = false;
                 }
             });
-            // Очищаем стек
-            state.modalStack = [];
+            // Если в modalStack нужно оставить ConfirmCode, фильтруем его:
+            state.modalStack = state.modalStack.filter(modal => modal === ModalType.CONFIRM_CODE);
         },
     },
 });

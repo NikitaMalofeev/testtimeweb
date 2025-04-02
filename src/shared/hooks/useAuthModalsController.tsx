@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from 'app/providers/store/config/store';
 import { closeAllModals } from 'entities/ui/Modal/slice/modalSlice';
 import { useAppDispatch } from './useAppDispatch';
+import { useLocation } from 'react-router-dom';
 
 export const useAuthModalsController = () => {
     const dispatch = useAppDispatch();

@@ -27,7 +27,7 @@ const rootReducer = combineReducers({
 const persistConfig = getPersistConfig({
     key: 'root',
     storage, // используем localStorage
-    whitelist: ['ui.additionalMenu.currentStep', 'ui.isPushNotificationActive.purpose', 'modal', 'user.user', 'user.token', 'documents', 'riskProfile.currentConfirmingDoc'],
+    whitelist: ['ui.additionalMenu.currentStep', 'ui.isPushNotificationActive.purpose', 'modal', 'user.user', 'user.token', 'documents.userDocuments', 'documents.allNotSignedDocumentsHtml', 'documents.confirmationMethod', 'documents.currentConfirmableDoc', 'documents.currentSugnedDocument', 'documents.filledRiskProfileChapters', 'documents.userPassportData', 'riskProfile.currentConfirmingDoc'],
     rootReducer, // обязательно передаём корневой редьюсер
 });
 

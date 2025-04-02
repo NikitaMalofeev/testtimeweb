@@ -23,7 +23,6 @@ import { Button, ButtonTheme } from "shared/ui/Button/Button";
 import { Loader } from "shared/ui/Loader/Loader";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 
-
 import BackIcon from "shared/assets/svg/ArrowBack.svg";
 import SuccessBlueIcon from "shared/assets/svg/SuccessBlueIcon.svg";
 import DownloadIcon from "shared/assets/svg/DownloadDocument.svg";
@@ -39,7 +38,7 @@ import { getAllUserInfoThunk, getUserPersonalAccountInfoThunk } from "entities/U
 const DocumentsPage: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
-    const modalState = useSelector((state: RootState) => state.modal)
+    const modalState = useSelector((state: RootState) => state.modal);
 
     const { userDocuments, loading, filledRiskProfileChapters, brokerIds } = useSelector((state: RootState) => state.documents);
     const currentDocument = useSelector((state: RootState) => state.documents.currentSugnedDocument.document);
@@ -49,23 +48,21 @@ const DocumentsPage: React.FC = () => {
         dispatch(getUserDocumentsStateThunk());
         dispatch(getUserDocumentsNotSignedThunk());
         dispatch(getAllUserInfoThunk());
-        dispatch(getUserPersonalAccountInfoThunk())
+        dispatch(getUserPersonalAccountInfoThunk());
     }, []);
 
     useEffect(() => {
         dispatch(getUserDocumentsStateThunk());
     }, [currentConfirmableDocument]);
 
-
-
     const isAnyModalOpen = useSelector(selectIsAnyModalOpen);
 
     useEffect(() => {
         if (modalState.documentsPreview.isOpen) {
-            document.body.style.overflow = 'hidden';
-            document.body.style.position = 'fixed';
-            document.body.style.width = '100%';
-            document.documentElement.style.overflow = 'hidden';
+            document.body.style.overflow = "hidden";
+            document.body.style.position = "fixed";
+            document.body.style.width = "100%";
+            document.documentElement.style.overflow = "hidden";
         } else {
             setTimeout(() => {
                 if (!isAnyModalOpen) {
@@ -79,8 +76,6 @@ const DocumentsPage: React.FC = () => {
         }
     }, [modalState.documentsPreview.isOpen, isAnyModalOpen]);
 
-
-
     // Лейблы для отображения
     const docTypeLabels: Record<string, string> = {
         type_doc_passport: "1. Паспортные данные",
@@ -90,8 +85,8 @@ const DocumentsPage: React.FC = () => {
         type_doc_risk_declarations: "5. Декларация о рисках",
         type_doc_agreement_personal_data_policy: "6. Политика перс. данных",
         type_doc_investment_profile_certificate: "7. Справка ИП",
-        type_doc_agreement_account_maintenance: '8. Договор об обслуживании аккаунта',
-        type_doc_broker_api_token: '9. Согласие на передачу API ключа к брокерскому счету'
+        type_doc_agreement_account_maintenance: "8. Договор об обслуживании аккаунта",
+        type_doc_broker_api_token: "9. Согласие на передачу API ключа к брокерскому счету"
     };
 
     // Порядок документов
@@ -104,14 +99,17 @@ const DocumentsPage: React.FC = () => {
         "type_doc_agreement_personal_data_policy",
         "type_doc_investment_profile_certificate",
         "type_doc_agreement_account_maintenance",
-        'type_doc_broker_api_token',
+        "type_doc_broker_api_token",
     ];
 
     // Метод для подписания конкретного документа
     const handleSignDocument = (docId: string) => {
         switch (docId) {
             case "type_doc_RP_questionnairy":
-                if (filledRiskProfileChapters.is_risk_profile_complete && !filledRiskProfileChapters.is_risk_profile_complete_final) {
+                if (
+                    filledRiskProfileChapters.is_risk_profile_complete &&
+                    !filledRiskProfileChapters.is_risk_profile_complete_final
+                ) {
                     dispatch(setStepAdditionalMenuUI(3));
                     dispatch(
                         openModal({
@@ -121,7 +119,7 @@ const DocumentsPage: React.FC = () => {
                         })
                     );
                 } else if (filledRiskProfileChapters.is_risk_profile_complete_final) {
-                    dispatch(setCurrentConfirmableDoc('type_doc_RP_questionnairy'));
+                    dispatch(setCurrentConfirmableDoc("type_doc_RP_questionnairy"));
                     dispatch(setStepAdditionalMenuUI(4));
                     dispatch(
                         openModal({
@@ -180,7 +178,7 @@ const DocumentsPage: React.FC = () => {
                 break;
             }
             case "type_doc_broker_api_token": {
-                const isBrokerFilled = brokerIds.length
+                const isBrokerFilled = brokerIds.length;
 
                 if (isBrokerFilled) {
                     dispatch(setCurrentConfirmableDoc("type_doc_broker_api_token"));
@@ -230,7 +228,6 @@ const DocumentsPage: React.FC = () => {
         }
     };
 
-
     // Генерируем список документов с учётом даты из userDocuments.
     // Если date_last_confirmed === null => "not signed" (или "signable").
     // Иначе => "signed".
@@ -245,6 +242,9 @@ const DocumentsPage: React.FC = () => {
         // Если паспорта нет, документ нельзя подписывать – ставим статус "disabled".
         if (type === "type_doc_EDS_agreement" && !filledRiskProfileChapters.is_exist_scan_passport) {
             status = "disabled";
+        }
+        if (type === "type_doc_broker_api_token" && brokerIds.length > 0) {
+            status = "signed";
         }
         return {
             id: type,
@@ -264,7 +264,7 @@ const DocumentsPage: React.FC = () => {
     // - Если не подписан, но не первый => красный
     const renderedDocuments = documents.map((doc) => {
         let colorClass = styles.button__gray;
-        if (doc.id === 'type_doc_broker_api_token') {
+        if (doc.id === "type_doc_broker_api_token") {
             if (brokerIds) {
                 colorClass = styles.button__gray; // первый неподписанный
             } else {
@@ -290,48 +290,70 @@ const DocumentsPage: React.FC = () => {
     const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
 
     const handleOpenPreview = (docId: string) => {
-        console.log(docId)
-        if (docId === 'type_doc_passport') {
+        console.log(docId);
+        if (docId === "type_doc_passport") {
             setSelectedDocId(docId);
-            dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
-        } else if (docId === 'type_doc_broker_api_token') {
+            dispatch(
+                openModal({
+                    type: ModalType.DOCUMENTS_PREVIEW,
+                    animation: ModalAnimation.LEFT,
+                    size: ModalSize.FULL,
+                })
+            );
+        } else if (docId === "type_doc_broker_api_token") {
             setSelectedDocId(docId);
-            dispatch(getBrokerDocumentsSignedThunk({ purpose: 'download', onSuccess: () => { } }))
-            dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
+            dispatch(getBrokerDocumentsSignedThunk({ purpose: "download", onSuccess: () => { } }));
+            dispatch(
+                openModal({
+                    type: ModalType.DOCUMENTS_PREVIEW,
+                    animation: ModalAnimation.LEFT,
+                    size: ModalSize.FULL,
+                })
+            );
         } else {
-            dispatch(getUserDocumentsSignedThunk({
-                type_document: docId, purpose: 'preview', onSuccess: () => {
-                }
-            }))
+            dispatch(
+                getUserDocumentsSignedThunk({
+                    type_document: docId,
+                    purpose: "preview",
+                    onSuccess: () => { }
+                })
+            );
             setSelectedDocId(docId);
-            dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
+            dispatch(
+                openModal({
+                    type: ModalType.DOCUMENTS_PREVIEW,
+                    animation: ModalAnimation.LEFT,
+                    size: ModalSize.FULL,
+                })
+            );
         }
     };
 
     const handleDownloadPdf = (docId: string) => {
-        if (docId !== 'type_doc_passport') {
-            dispatch(getUserDocumentsSignedThunk({
-                type_document: docId,
-                purpose: 'download',
-                onSuccess: () => {
-                    if (currentDocument) {
-                        const blob = new Blob([currentDocument], { type: "application/pdf" }); // Создаём Blob
-                        const url = window.URL.createObjectURL(blob);
+        if (docId !== "type_doc_passport") {
+            dispatch(
+                getUserDocumentsSignedThunk({
+                    type_document: docId,
+                    purpose: "download",
+                    onSuccess: () => {
+                        if (currentDocument) {
+                            const blob = new Blob([currentDocument], { type: "application/pdf" }); // Создаём Blob
+                            const url = window.URL.createObjectURL(blob);
 
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `${docId}.pdf`;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
+                            const a = document.createElement("a");
+                            a.href = url;
+                            a.download = `${docId}.pdf`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
 
-                        window.URL.revokeObjectURL(url);
+                            window.URL.revokeObjectURL(url);
+                        }
                     }
-                }
-            }));
+                })
+            );
         }
     };
-
 
     const handleClosePreview = () => {
         setSelectedDocId(null);
@@ -340,12 +362,10 @@ const DocumentsPage: React.FC = () => {
         }, 0); // Убедимся, что стейт обновился перед Redux-диспатчем
     };
 
-
     return loading ? (
         <Loader />
     ) : (
         <div className={styles.page}>
-
             {/* Шапка страницы */}
             <div className={styles.page__container}>
                 <div className={styles.page__title}>
@@ -355,72 +375,88 @@ const DocumentsPage: React.FC = () => {
 
                 {/* Список документов */}
                 <div className={styles.documents__list}>
-                    {renderedDocuments.map((doc) => (
-                        <div key={doc.id} className={styles.document__item}>
-                            <div className={styles.document__info}>
-                                <span className={styles.document__info__title}>{doc.title}</span>
-                                <div className={styles.document__info__flex}>
-                                    {/* Кнопка "Просмотр" => открывает превью */}
-                                    {doc.id === 'type_doc_broker_api_token' && brokerIds[0] && (
-                                        <>
-                                            <Button
-                                                className={styles.document__preview}
-                                                theme={ButtonTheme.UNDERLINE}
-                                                onClick={() => handleOpenPreview(doc.id)}
-                                            >
-                                                Просмотр
-                                            </Button>
-                                            <Icon Svg={DownloadIcon} onClick={() => handleDownloadPdf(doc.id)} width={33} height={33} />
-                                        </>
-                                    )}
-                                    {doc.status === "signed" ? <>
-                                        <Button
-                                            className={styles.document__preview}
-                                            theme={ButtonTheme.UNDERLINE}
-                                            onClick={() => handleOpenPreview(doc.id)}
-                                        >
-                                            Просмотр
-                                        </Button>
-                                        {doc.id !== 'type_doc_passport' && (
-                                            <Icon Svg={DownloadIcon} onClick={() => handleDownloadPdf(doc.id)} width={33} height={33} />
+                    {renderedDocuments.map((doc) => {
+                        // Вынесем логику определения отображения кнопки/статуса
+                        const isSigned = doc.status === "signed";
+                        const isPassport = doc.id === "type_doc_passport";
+                        const isBroker = doc.id === "type_doc_broker_api_token";
+
+                        const showSuccess =
+                            (isPassport && isSigned && filledRiskProfileChapters.is_exist_scan_passport) ||
+                            (!isPassport && isSigned);
+
+                        let buttonText = "Подписать";
+                        if (isBroker) {
+                            buttonText = brokerIds && brokerIds.length ? "Подписать" : "Заполнить";
+                        } else if (isPassport) {
+                            buttonText = filledRiskProfileChapters.is_exist_scan_passport ? "Подписать" : "Заполнить";
+                        } else if (doc.id === "type_doc_RP_questionnairy") {
+                            buttonText = filledRiskProfileChapters.is_risk_profile_complete_final ? "Подписать" : "Заполнить";
+                        }
+
+                        const isDisabled =
+                            isBroker || isPassport
+                                ? false
+                                : doc.id !== firstNotConfirmed || !filledRiskProfileChapters.is_exist_scan_passport;
+
+                        return (
+                            <div key={doc.id} className={styles.document__item}>
+                                <div className={styles.document__info}>
+                                    <span className={styles.document__info__title}>{doc.title}</span>
+                                    <div className={styles.document__info__flex}>
+                                        {doc.status === "signed" && (
+                                            <>
+                                                <Button
+                                                    className={styles.document__preview}
+                                                    theme={ButtonTheme.UNDERLINE}
+                                                    onClick={() => handleOpenPreview(doc.id)}
+                                                >
+                                                    Просмотр
+                                                </Button>
+                                                {doc.id !== "type_doc_passport" && (
+                                                    <Icon
+                                                        Svg={DownloadIcon}
+                                                        onClick={() => handleDownloadPdf(doc.id)}
+                                                        width={33}
+                                                        height={33}
+                                                    />
+                                                )}
+                                            </>
                                         )}
-                                    </> : ''}
+                                    </div>
+                                </div>
+
+                                <div className={styles.document__status}>
+                                    {/* Показываем дату, если документ подписан */}
+                                    <span className={styles.document__date}>
+                                        {doc.date ? new Date(doc.date).toLocaleDateString() : "Дата подписания"}
+                                    </span>
+                                    {showSuccess ? (
+                                        <div className={styles.document__button_success}>
+                                            <Icon Svg={SuccessBlueIcon} width={24} height={24} />
+                                            <span>
+                                                {isPassport
+                                                    ? "Подтверждено"
+                                                    : isBroker && brokerIds[0]
+                                                        ? "Подтверждено"
+                                                        : "Подписано"}
+                                            </span>
+
+                                        </div>
+                                    ) : (
+                                        <Button
+                                            onClick={() => handleSignDocument(doc.id)}
+                                            disabled={isDisabled}
+                                            className={doc.colorClass}
+                                            theme={ButtonTheme.BLUE}
+                                        >
+                                            {buttonText}
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
-
-                            <div className={styles.document__status}>
-                                {/* Показываем дату, если документ подписан */}
-                                <span className={styles.document__date}>
-                                    {doc.date
-                                        ? new Date(doc.date).toLocaleDateString()
-                                        : "Дата подписания"}
-                                </span>
-
-                                {((doc.id === "type_doc_passport" && doc.status === "signed" && filledRiskProfileChapters.is_exist_scan_passport) || (doc.id !== "type_doc_passport" && doc.status === "signed")) ? (
-                                    <div className={styles.document__button_success}>
-                                        <Icon Svg={SuccessBlueIcon} width={24} height={24} />
-                                        <span>{doc.id === "type_doc_passport" ? 'Подтверждено' : 'Подписано'}</span>
-                                    </div>
-                                ) : (
-                                    <Button
-                                        onClick={() => handleSignDocument(doc.id)}
-                                        disabled={(doc.id === "type_doc_broker_api_token" || doc.id === "type_doc_passport") ? false : (doc.id !== firstNotConfirmed || !filledRiskProfileChapters.is_exist_scan_passport)}
-                                        className={doc.colorClass}
-                                        theme={ButtonTheme.BLUE}
-                                    >
-                                        {doc.id === "type_doc_broker_api_token"
-                                            ? (!brokerIds ? "Заполнить" : "Подписать")
-                                            : doc.id === "type_doc_passport"
-                                                ? (!filledRiskProfileChapters.is_exist_scan_passport ? "Заполнить" : "Подписать")
-                                                : doc.id === "type_doc_RP_questionnairy"
-                                                    ? (!filledRiskProfileChapters.is_risk_profile_complete_final ? "Заполнить" : "Подписать")
-                                                    : "Подписать"}
-                                    </Button>
-                                )}
-
-                            </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
 
@@ -428,15 +464,10 @@ const DocumentsPage: React.FC = () => {
             <DocumentPreviewModal
                 isOpen={modalState.documentsPreview.isOpen}
                 onClose={handleClosePreview}
-                title={
-                    selectedDocId
-                        ? docTypeLabels[selectedDocId] || "Документ"
-                        : "Документ"
-                }
+                title={selectedDocId ? docTypeLabels[selectedDocId] || "Документ" : "Документ"}
                 isSignedDoc
                 docId={selectedDocId}
             />
-
         </div>
     );
 };

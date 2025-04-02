@@ -17,6 +17,7 @@ import PasportExSecond from 'shared/assets/images/pasportExSecond.jpg'
 import { closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { UploadProgressModal } from "features/Ui/UploadProgressModal.tsx/UploadProgressModal";
+import { getUserDocumentsStateThunk } from "entities/Documents/slice/documentsSlice";
 
 export interface PasportScanData {
     file_scan_page_first: null | string;
@@ -100,6 +101,7 @@ export const PasportScanForm: React.FC = () => {
             postPasportScanThunk({
                 data: formData,
                 onSuccess: () => {
+                    dispatch(getUserDocumentsStateThunk())
                     setTimeout(() => {
                         closeModal(ModalType.PROGRESS)
                         dispatch(setStepAdditionalMenuUI(2))

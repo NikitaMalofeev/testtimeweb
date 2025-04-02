@@ -326,7 +326,7 @@ export const PasportScanForm: React.FC = () => {
                             onChange={(e) => handleFileChange(e, "file_scan_page_first")}
                         />
                         <div className={styles.uploadBlock__content}>
-                            {previewFirst && (
+                            {previewFirst || formik.values.file_scan_page_first && (
                                 <div className={styles.uploadBlock__preview_success}>
                                     <Icon Svg={SuccessLabel} />
                                 </div>
@@ -373,7 +373,7 @@ export const PasportScanForm: React.FC = () => {
                             onChange={(e) => handleFileChange(e, "file_scan_page_registration")}
                         />
                         <div className={styles.uploadBlock__content}>
-                            {previewReg && (
+                            {previewReg || formik.values.file_scan_page_registration && (
                                 <div className={styles.uploadBlock__preview_success}>
                                     <Icon Svg={SuccessLabel} />
                                 </div>

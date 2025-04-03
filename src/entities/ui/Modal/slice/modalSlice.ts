@@ -53,7 +53,7 @@ const initialState: ExtendedModalState = {
     },
     [ModalType.RESET_PASSWORD]: {
         isOpen: false,
-        size: ModalSize.MINI,
+        size: ModalSize.MC,
         animation: ModalAnimation.BOTTOM,
         isScrolled: false
     },

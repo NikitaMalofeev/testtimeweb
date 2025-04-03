@@ -118,7 +118,7 @@ const AuthorizationPage = () => {
                                     <div>
                                         <Input
                                             autoComplete="new-password"
-                                            placeholder="Email/телефон через +* * *"
+                                            placeholder="Email/телефон +7"
                                             name="identifier"
                                             type="text"
                                             value={formik.values.identifier}
@@ -140,7 +140,7 @@ const AuthorizationPage = () => {
                                         />
 
                                         <div className={styles.resetPassword} onClick={() => {
-                                            dispatch(openModal({ type: ModalType.RESET_PASSWORD, animation: ModalAnimation.BOTTOM, size: ModalSize.MINI }))
+                                            dispatch(openModal({ type: ModalType.RESET_PASSWORD, animation: ModalAnimation.BOTTOM, size: ModalSize.MC }))
                                         }}>Не помню пароль</div>
 
                                         <Button

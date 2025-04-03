@@ -13,10 +13,10 @@ import {
     getUserIdThunk,
     resetPasswordThunk,
     setPasswordResetData,
-    setResetCode
+    setResetCode,
 } from "entities/PersonalAccount/slice/personalAccountSlice";
 import { resendConfirmationCode } from "entities/RiskProfile/slice/riskProfileSlice";
-import { setModalScrolled, openModal } from "entities/ui/Modal/slice/modalSlice";
+import { setModalScrolled } from "entities/ui/Modal/slice/modalSlice";
 import { selectModalState } from "entities/ui/Modal/selectors/selectorsModals";
 import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { setTooltipActive } from "entities/ui/Ui/slice/uiSlice";
@@ -29,34 +29,26 @@ interface ConfirmInfoModalProps {
 
 export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps) => {
     const dispatch = useAppDispatch();
-    // Используем наш новый ключ под ResetPassword – в store он должен быть.
     const modalState = useSelector((state: RootState) => state.modal);
     const loading = useSelector((state: RootState) => state.personalAccount.loading);
     const userIdForReset = useSelector((state: RootState) => state.personalAccount.user_id);
     const [isBottom, setIsBottom] = useState(true);
-    /**
-     * =============== ЛОГИКА ОТСЛЕЖИВАНИЯ ПРОКРУТКИ ===============
-     */
-    const contentRef = useRef<HTMLDivElement>(null);
 
-    // Забираем из store текущее значение isScrolled для нужного типа модалки
+    const contentRef = useRef<HTMLDivElement>(null);
     const isScrolled = useSelector((state: RootState) =>
         selectModalState(state, ModalType.RESET_PASSWORD)?.isScrolled
     );
-    const scrollTop = contentRef.current?.scrollTop;
 
     useLayoutEffect(() => {
         const handleScroll = () => {
             if (contentRef.current) {
                 const { scrollTop, scrollHeight, clientHeight } = contentRef.current;
-
                 const atBottom = Math.abs(scrollTop + clientHeight - scrollHeight) < 10;
                 setIsBottom(atBottom);
-
                 dispatch(
                     setModalScrolled({
                         type: ModalType.RESET_PASSWORD,
-                        isScrolled: scrollTop > 0
+                        isScrolled: scrollTop > 0,
                     })
                 );
             }
@@ -71,43 +63,44 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
                 content.removeEventListener("scroll", handleScroll);
             }
         };
-    }, [isOpen]);
+    }, [isOpen, dispatch]);
 
-
-    // Выбор способа отправки кода
+    // Храним выбранный метод как строку, но для CheckboxGroup передаём массив
     const [selectedMethod, setSelectedMethod] = useState<"email" | "phone">("email");
-    // Локальная вкладка: форма или ввод кода
     const [activeTab, setActiveTab] = useState<"form" | "code">("form");
 
-    // Формик для вкладки "form"
     const formik = useFormik({
         initialValues: {
             contact: "",
             password: "",
             password2: "",
-            type_confirm: "email"
+            type_confirm: "email",
         },
         validationSchema: Yup.object({
             contact: Yup.string()
                 .required("Контакт обязателен")
-                .email("Некорректный E-mail"),
+                .when("type_confirm", (type_confirm, schema) => {
+                    const method = Array.isArray(type_confirm) ? type_confirm[0] : type_confirm;
+                    return method === "email"
+                        ? schema.email("Некорректный E-mail")
+                        : schema.matches(/^[+\d]+$/, "Некорректный номер телефона");
+                }),
             password: Yup.string()
                 .min(8, "Пароль минимум 8 символов")
                 .required("Пароль обязателен"),
             password2: Yup.string()
                 .oneOf([Yup.ref("password")], "Пароли не совпадают")
                 .required("Подтверждение пароля обязательно"),
+            type_confirm: Yup.string().oneOf(["email", "phone"]).required(),
         }),
         onSubmit: () => {
-            // Вся логика отправки у нас ниже, внутри handleSubmit
+            // Логика отправки реализована в handleSubmit
         },
     });
 
     const handleContactChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const value = e.target.value.trim();
         formik.setFieldValue("contact", value);
-
-        // Определяем метод (email/phone) по наличию "@" или цифр
         if (value.includes("@")) {
             handleMethodChange("email");
         } else if (/^[+\d]+$/.test(value)) {
@@ -117,35 +110,28 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
 
     const handleMethodChange = (method: "email" | "phone") => {
         setSelectedMethod(method);
-        formik.setFieldValue("type", method);
+        formik.setFieldValue("type_confirm", method);
     };
 
     const handleSubmit = () => {
         if (activeTab === "form") {
             if (!formik.isValid) return;
-
             const userData =
                 selectedMethod === "phone"
                     ? { phone: formik.values.contact }
                     : { email: formik.values.contact };
-
-            // Запрашиваем user_id
             dispatch(
                 getUserIdThunk({
                     ...userData,
                     onSuccess: () => {
-                        // Если нашло, переходим на ввод кода
                         setActiveTab("code");
                     },
                 })
             );
-
-            // Сохраняем данные для сброса (пароли, контакт и т.п.)
             dispatch(setPasswordResetData(formik.values));
         }
     };
 
-    // Если появился userId, автоматически отправляем код подтверждения
     useEffect(() => {
         if (userIdForReset) {
             dispatch(
@@ -157,9 +143,6 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
         }
     }, [userIdForReset, dispatch, selectedMethod]);
 
-    /**
-     *  Вкладка "code"
-     */
     const codeLength = 4;
     const [codeDigits, setCodeDigits] = useState<string[]>(Array(codeLength).fill(""));
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -192,13 +175,10 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
         const pasteData = e.clipboardData.getData("text");
         const pasteValue = pasteData.slice(0, codeLength).split("");
         const newCode = [...codeDigits];
-
         for (let i = 0; i < codeLength; i++) {
             newCode[i] = pasteValue[i] || "";
         }
         setCodeDigits(newCode);
-
-        // Фокус на первое пустое поле
         const firstEmpty = pasteValue.length;
         if (firstEmpty < codeLength) {
             inputRefs.current[firstEmpty]?.focus();
@@ -209,7 +189,6 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
         const code = codeDigits.join("");
         if (code.length === codeLength) {
             dispatch(setResetCode(code));
-            // Отправляем финальный запрос на сброс пароля
             dispatch(
                 resetPasswordThunk({
                     onSuccess: () => {
@@ -230,7 +209,6 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            // важный момент: используем ModalType.RESET_PASSWORD
             type={ModalType.RESET_PASSWORD}
             size={modalState[ModalType.RESET_PASSWORD].size}
             animation={modalState[ModalType.RESET_PASSWORD].animation}
@@ -238,23 +216,15 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
             withTitle={<span>Восстановление пароля</span>}
             titleWidth="250px"
         >
-            {/* 
-              Оборачиваем ВСЁ содержимое в единый скролл-контейнер 
-              + вешаем динамический класс для тени 
-            */}
             <div
-                className={`
-                    ${styles.modalContent}
-                    ${isScrolled ? styles.modalContent__shadow_top : ""}
-                `}
-                style={activeTab === 'code' ? {} : { paddingBottom: '88px' }}
+                className={`${styles.modalContent} ${isScrolled ? styles.modalContent__shadow_top : ""}`}
+                style={activeTab === "code" ? {} : { paddingBottom: "88px" }}
                 ref={contentRef}
-
             >
                 {activeTab === "form" && (
                     <>
                         <span className={styles.subtitle}>
-                            Укажите e-mail или телефон, с которого была регистрация, и новый пароль
+                            Укажите E-mail или телефон, использованные при регистрации и новый пароль
                         </span>
 
                         <Input
@@ -290,10 +260,10 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
                         />
 
                         <span className={styles.methodTitle}>
-                            Куда будет отправлен код подтверждения
+                            Код подтверждения будет отправлен
                         </span>
                         <CheckboxGroup
-                            name="type"
+                            name="type_confirm"
                             label=""
                             direction="row"
                             options={[
@@ -301,11 +271,11 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
                                 { label: "SMS", value: "phone" },
                             ]}
                             value={selectedMethod}
-                            onChange={() => {
-                                // Если хотите ручную смену - можно реализовать
-                                // Пока автодетект через handleContactChange
+                            onChange={(name: string, clickedValue: string) => {
+                                handleMethodChange(clickedValue as "email" | "phone");
                             }}
                         />
+
 
                         <div className={`${styles.button} ${!isBottom ? styles.shadow : ""}`}>
                             <Button

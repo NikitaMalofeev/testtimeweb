@@ -212,19 +212,19 @@ export const ConfirmDocsModal = memo(
             if (confirmationMethod === "WHATSAPP") {
                 return (
                     <span className={styles.modalContent__description}>
-                        Код направлен в WhatsApp <b>{userInfo?.phone}</b>, указанный при идентификации
+                        Код направлен в WhatsApp <b>{userInfo?.phone}</b>, указанный при регистрации
                     </span>
                 );
             } else if (confirmationMethod === 'EMAIL') {
                 return (
                     <span className={styles.modalContent__description}>
-                        Код направлен на почту <b>{userInfo?.email}</b>, указанную при идентификации
+                        Код направлен на почту <b>{userInfo?.email}</b>, указанную при регистрации
                     </span>
                 );
             }
             return (
                 <span className={styles.modalContent__description}>
-                    Код направлен на телефон <b>{userInfo?.phone}</b>, указанный при идентификации
+                    Код направлен на телефон <b>{userInfo?.phone}</b>, указанный при регистрации
                 </span>
             );
         };

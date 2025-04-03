@@ -1,0 +1,46 @@
+.page {
+    height: calc(100dvh - 56px);
+    
+    &__container {
+        display: flex;
+        flex-direction: column;
+        padding: 16px 28px;
+        height: 100%;
+    }
+
+    &__icon {
+        margin-bottom: 16px;
+    }
+
+    &__message {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 16px;
+        flex-grow: 1;
+        height: 100%;
+    }
+
+    &__description {
+        display: inline-block;
+        font-family: Inter;
+        font-weight: 400;
+        font-size: 16px;
+        line-height: 135%;
+        letter-spacing: 0px;
+        text-align: center;
+        color: #121B2F;
+        word-break: break-word;
+    }
+
+    &__title {
+        font-family: Inter;
+        font-weight: 500;
+        font-size: 24px;
+        line-height: 110.00000000000001%;
+        letter-spacing: 0%;
+        text-align: center;
+        color: #0F0E0E;
+    }
+}

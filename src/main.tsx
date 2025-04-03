@@ -9,17 +9,29 @@ import { PersistGate } from 'redux-persist/integration/react';
 import React from 'react';
 import { persistor } from 'app/providers/store/config/store';
 import { Cover } from 'shared/ui/Cover/Cover';
+import { ErrorBoundary } from 'app/providers/ErrorBoundary/ErrorBoundary';
+import { ErrorPage } from 'pages/ErrorPage/ErrorPage';
 
 const root = createRoot(document.getElementById('root')!);
 
 root.render(
   <React.StrictMode>
-    <BrowserRouter basename="/">
-      <PersistGate loading={<Cover />} persistor={persistor}>
-        <StoreProvider>
-          <App />
-        </StoreProvider>
-      </PersistGate>
-    </BrowserRouter>
+    <ErrorBoundary
+      fallbackRender={(error, errorInfo, resetErrorBoundary) => (
+        <ErrorPage
+          error={error}
+          errorInfo={errorInfo}
+          resetErrorBoundary={resetErrorBoundary}
+        />
+      )}
+    >
+      <BrowserRouter basename="/">
+        <PersistGate loading={<Cover />} persistor={persistor}>
+          <StoreProvider>
+            <App />
+          </StoreProvider>
+        </PersistGate>
+      </BrowserRouter>
+    </ErrorBoundary>
   </React.StrictMode>
 );

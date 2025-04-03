@@ -34,6 +34,9 @@
 }
 
 .blue {
+  display: flex;
+  align-items: center;
+  justify-content: center;
     background-color: #045FDD;
 }
 
@@ -68,7 +71,11 @@
   }
   
 .underline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background: none;
+    text-align: center;
     color: #045FDD;
     border: 1.4px solid #045FDD;
 

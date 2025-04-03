@@ -19,6 +19,7 @@ import {
     setUnreadAnswersCount,
 } from "entities/SupportChat/slice/supportChatSlice";
 import { Loader } from "shared/ui/Loader/Loader";
+import { closeAllModals } from "entities/ui/Modal/slice/modalSlice";
 
 interface SupportMessageProps {
     message: ChatMessage;
@@ -88,6 +89,10 @@ export const SupportChat = () => {
         dispatch(fetchWebsocketId());
         dispatch(getAllMessagesThunk());
     }, [token]);
+
+    useEffect(() => {
+        dispatch(closeAllModals())
+    }, [])
 
     useEffect(() => {
         const originalOverflow = document.body.style.overflow;

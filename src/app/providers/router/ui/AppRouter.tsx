@@ -7,6 +7,7 @@ import { memo, Suspense, lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import PublicRoute from './PublicRoute';
 import RequireAuthRoute from './RequireAuth';
+import { NotFoundPage } from 'pages/NotFoundPage/NotFoundPage';
 
 // const PageLoader = () => <div>Loading...</div>;
 const PageLoader = () => <div></div>;
@@ -23,6 +24,14 @@ function AppRouter() {
                     </Suspense>
                 }
             /> */}
+            <Route
+                path="/*"
+                element={
+                    <Suspense fallback={<PageLoader />}>
+                        <NotFoundPage />
+                    </Suspense>
+                }
+            />
             <Route
                 path="/"
                 element={

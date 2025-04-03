@@ -14,10 +14,20 @@ import { closeAllModals } from 'entities/ui/Modal/slice/modalSlice';
 import { setError } from 'entities/Error/slice/errorSlice';
 
 interface HeaderProps {
-    currentNotificationsCount: number;
+    currentNotificationsCount?: number;
+    variant: 'main' | 'fallback';
 }
 
-export const Header = ({ currentNotificationsCount }: HeaderProps) => {
+export const Header = ({ currentNotificationsCount, variant }: HeaderProps) => {
+
+    if (variant === 'fallback') {
+        return (
+            <header className={styles.header}>
+                <Icon Svg={HeaderIcon} width={171} height={18.5} />
+            </header>
+        );
+    }
+
     const [isActive, setIsActive] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const { token, is_active } = useSelector((state: RootState) => state.user)
@@ -49,6 +59,7 @@ export const Header = ({ currentNotificationsCount }: HeaderProps) => {
     const headerMods: Mods = {
         [styles.open]: isOpen,
     };
+
 
     return (
         <header className={classNames(styles.header, headerMods, [])}>

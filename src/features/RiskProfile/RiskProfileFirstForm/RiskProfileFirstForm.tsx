@@ -314,6 +314,7 @@ export const RiskProfileFirstForm: React.FC = () => {
                     <Input
                         placeholder="Введите номер телефона"
                         name="trusted_person_phone"
+                        inputMode="numeric"
                         type="text"
                         value={formik.values.trusted_person_phone || ""}
                         onChange={(e) => {

@@ -18,6 +18,7 @@ import { closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { UploadProgressModal } from "features/Ui/UploadProgressModal.tsx/UploadProgressModal";
 import { getUserDocumentsStateThunk } from "entities/Documents/slice/documentsSlice";
+import { setError } from "entities/Error/slice/errorSlice";
 
 export interface PasportScanData {
     file_scan_page_first: null | string;
@@ -59,12 +60,21 @@ export const PasportScanForm: React.FC = () => {
     const handleClickFirst = () => fileInputFirstRef.current?.click();
     const handleClickReg = () => fileInputRegRef.current?.click();
 
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 МБ в байтах
+
     const handleFileChange = (
         e: React.ChangeEvent<HTMLInputElement>,
         fieldName: "file_scan_page_first" | "file_scan_page_registration"
     ) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
+
+            // Проверка размера файла
+            if (file.size > MAX_FILE_SIZE) {
+                dispatch(setError("Загруженный фаил превышает 5 МБ"));
+                return; // Прерываем дальнейшую обработку
+            }
+
             formik.setFieldValue(fieldName, file);
             updatePreview(
                 file,
@@ -73,6 +83,7 @@ export const PasportScanForm: React.FC = () => {
             );
         }
     };
+
 
     useEffect(() => {
         if (modalState.isOpen && !loading) {
@@ -326,7 +337,7 @@ export const PasportScanForm: React.FC = () => {
                             onChange={(e) => handleFileChange(e, "file_scan_page_first")}
                         />
                         <div className={styles.uploadBlock__content}>
-                            {previewFirst || formik.values.file_scan_page_first && (
+                            {(previewFirst || formik.values.file_scan_page_first) && (
                                 <div className={styles.uploadBlock__preview_success}>
                                     <Icon Svg={SuccessLabel} />
                                 </div>
@@ -373,7 +384,7 @@ export const PasportScanForm: React.FC = () => {
                             onChange={(e) => handleFileChange(e, "file_scan_page_registration")}
                         />
                         <div className={styles.uploadBlock__content}>
-                            {previewReg || formik.values.file_scan_page_registration && (
+                            {(previewReg || formik.values.file_scan_page_registration) && (
                                 <div className={styles.uploadBlock__preview_success}>
                                     <Icon Svg={SuccessLabel} />
                                 </div>

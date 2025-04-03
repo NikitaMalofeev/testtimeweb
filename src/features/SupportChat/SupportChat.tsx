@@ -25,11 +25,22 @@ interface SupportMessageProps {
     highlight?: boolean;
 }
 
+const formatDateTime = (datetime: any) => {
+    const d = new Date(datetime);
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, "0");
+    const minutes = String(d.getMinutes()).padStart(2, "0");
+    return `${day}.${month}.${year} ${hours}:${minutes}`;
+};
+
 export const UserMessage = ({ message }: { message: ChatMessage }) => {
+    console.log(message)
     return (
         <div className={styles.message_user}>
             <span className={styles.message__date}>
-                {new Date(`${message.created}`).toLocaleDateString("ru-RU")}
+                {formatDateTime(message.created)}
             </span>
             <p className={styles.message__message_user}>{message.text}</p>
         </div>
@@ -40,7 +51,7 @@ export const SupportMessage = ({ message, highlight }: SupportMessageProps) => {
     return (
         <div className={styles.message_support}>
             <span className={styles.message__date}>
-                {new Date(`${message.created}`).toLocaleDateString("ru-RU")}
+                {formatDateTime(message.created)}
                 {highlight && <div className={styles.highlight}></div>}
             </span>
             <p className={styles.message__message_support}>{message.text}</p>

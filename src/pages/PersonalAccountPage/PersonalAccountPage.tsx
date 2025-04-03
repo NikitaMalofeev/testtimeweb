@@ -176,7 +176,7 @@ const PersonalAccountMenu: React.FC = () => {
                                         squerePosition={{ top: "15px", left: "-4px" }}
                                         topForCenteringIcons="24px"
                                         className={styles.modalContent__tooltip}
-                                        description="статус работы с вашим счётом"
+                                        description="Текущий статус вашего счета"
                                     />
                                 </div>
                             </div>
@@ -189,7 +189,7 @@ const PersonalAccountMenu: React.FC = () => {
                                         squerePosition={{ top: "15px", left: "-4px" }}
                                         topForCenteringIcons="24px"
                                         className={styles.modalContent__tooltip}
-                                        description="статус работы с вашим счётом"
+                                        description="Текущий статус работы с вашим счетом, чтобы активировать заполните документы и выберите тариф"
                                     />
                                 </div>
                             </div>

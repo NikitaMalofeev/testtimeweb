@@ -432,7 +432,9 @@ const DocumentsPage: React.FC = () => {
                                 <div className={styles.document__status}>
                                     {/* Показываем дату, если документ подписан */}
                                     <span className={styles.document__date}>
-                                        {doc.date ? new Date(doc.date).toLocaleDateString() : "Дата подписания"}
+                                        {doc.date
+                                            ? new Date(doc.date).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" })
+                                            : "Дата подписания"}
                                     </span>
                                     {showSuccess ? (
                                         <div className={styles.document__button_success}>

@@ -256,6 +256,7 @@ export const PasportDataForm: React.FC = () => {
         return value.slice(0, 3) + "-" + value.slice(3);
     };
 
+
     const handleDepartmentCodeChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         let rawValue = e.target.value.replace(/\D/g, "");
         if (rawValue.length > 6) {
@@ -389,6 +390,7 @@ export const PasportDataForm: React.FC = () => {
                     <Input
                         placeholder="Серия паспорта"
                         type="number"
+                        inputMode="numeric"
                         min={0}
                         max={9999}
                         maxLength={4}
@@ -403,6 +405,7 @@ export const PasportDataForm: React.FC = () => {
                     <Input
                         placeholder="Номер паспорта"
                         type="number"
+                        inputMode="numeric"
                         maxLength={6}
                         min={0}
                         max={999999}
@@ -418,6 +421,7 @@ export const PasportDataForm: React.FC = () => {
                         placeholder="Код подразделения"
                         name="department_code"
                         type="text"
+                        inputMode="numeric"
                         value={maskDepartmentCode(formik.values.department_code)}
                         onChange={handleDepartmentCodeChange}
                         onBlur={formik.handleBlur}
@@ -450,6 +454,7 @@ export const PasportDataForm: React.FC = () => {
                         placeholder="ИНН"
                         name="inn"
                         type="number"
+                        inputMode="numeric"
                         min={0}
                         max={999999999999}
                         maxLength={12}

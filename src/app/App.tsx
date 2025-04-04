@@ -65,11 +65,10 @@ function App() {
     dispatch(setUnreadAnswersCount(unread));
   }, [messages, dispatch]);
 
-  // --- НОВЫЙ ЭФФЕКТ: когда флаг true -> скроллим вверх, сбрасываем false ---
   useEffect(() => {
     if (isNeedScrollToTop) {
-      // Скроллим всю страницу на самый верх
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0 });
 
       // Ставим обратно false, чтобы не скроллить снова
       dispatch(setScrollToTop(false));

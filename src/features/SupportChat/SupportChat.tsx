@@ -18,6 +18,7 @@ import {
 } from "entities/SupportChat/slice/supportChatSlice";
 import { Loader } from "shared/ui/Loader/Loader";
 import { closeAllModals } from "entities/ui/Modal/slice/modalSlice";
+import { setScrollToTop } from "entities/ui/Ui/slice/uiSlice";
 
 interface SupportMessageProps {
     message: ChatMessage;
@@ -44,6 +45,11 @@ export const UserMessage = ({ message }: { message: ChatMessage }) => {
         </div>
     );
 };
+
+interface SupportMessageProps {
+    message: ChatMessage;
+    highlight?: boolean;
+}
 
 export const SupportMessage = ({ message, highlight }: SupportMessageProps) => {
     return (
@@ -130,29 +136,10 @@ export const SupportChat = () => {
         setMessageText("");
     };
 
+    // --- ВАЖНО: по дисфокусу отправляем в Redux флаг, что надо проскроллить всё вверх ---
     const handleBlur = () => {
-        setTimeout(() => {
-
-            const userVh = window.innerHeight * 0.01;
-            document.documentElement.style.setProperty('--vh', `${userVh}px`);
-        }, 200);
+        dispatch(setScrollToTop(true));
     };
-    const handleFocus = () => {
-        // Иногда iOS меняет вьюпорт не сразу, поэтому используем setTimeout:
-        setTimeout(() => {
-            // Пересчитываем vh через window.innerHeight 
-            // (или через visualViewport?.height, если нужно)
-            const userVh = window.innerHeight * 0.01;
-            document.documentElement.style.setProperty('--vh', `${userVh}px`);
-
-            // При желании можно проскроллить чат к низу,
-            // чтобы Input был виден над клавиатурой:
-            if (chatContainerRef.current) {
-                chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-            }
-        }, 200);
-    };
-
 
     // Определяем, какие сообщения подсвечивать (непрочитанные)
     const unreadMessageKeys = React.useMemo(() => {
@@ -216,24 +203,15 @@ export const SupportChat = () => {
             </div>
             <div className={styles.chat__input__container}>
                 <div className={`${styles.chat__input} ${!isBottom ? styles.shadow : ""}`}>
-                    {/* <Icon
-                    Svg={ChatImportIcon}
-                    width={24}
-                    height={24}
-                    className={styles.chat__input__icon}
-                /> */}
-
-
                     <Input
                         placeholder="Написать сообщение..."
                         name="message"
                         type="text"
                         value={messageText}
                         onChange={handleChange}
-                        onBlur={handleBlur} // <-- ВАЖНО
+                        onBlur={handleBlur}  // <-- ВАЖНО: дисфокус -> setScrollToTop(true)
                         withoutCloudyLabel
                         error={false}
-                        onFocus={handleFocus}
                     />
                     <Icon
                         className={styles.chat__input__icon}

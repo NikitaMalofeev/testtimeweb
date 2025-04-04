@@ -21,6 +21,8 @@ import { useAuthTokenManagement } from 'shared/hooks/useAuthTokenManager';
 import { setError } from 'entities/Error/slice/errorSlice';
 import { useModalsController } from 'shared/hooks/useModalsController';
 import { useAuthModalsController } from 'shared/hooks/useAuthModalsController';
+import { setScrollToTop } from 'entities/ui/Ui/slice/uiSlice';
+
 
 function App() {
   const modalState = useSelector((state: RootState) => state.modal);
@@ -31,27 +33,28 @@ function App() {
   const { unreadAnswersCount } = useSelector((state: RootState) => state.supportChat);
   const token = useSelector((state: RootState) => state.user.token);
 
-  useAuthTokenManagement()
-  useModalsController()
-  useAuthModalsController()
+  // --- Берём наш флаг из ui ---
+  const isNeedScrollToTop = useSelector((state: RootState) => state.ui.isScrollToBottom);
+
+  useAuthTokenManagement();
+  useModalsController();
+  useAuthModalsController();
 
   useEffect(() => {
     const userVh = window.innerHeight / 100;
     document.documentElement.style.setProperty('--vh', `${userVh}px`);
   }, []);
 
-
   // Обновляем сообщения в личном кабинете каждые 30 секунд
   useEffect(() => {
     if (location.pathname !== '/' && token) {
       const interval = setInterval(() => {
         // Здесь вызывается getAllMessages для получения полного списка сообщений
-        dispatch(getAllMessagesThunk()); // если требуется запрос к getAllMessages, замените на соответствующий thunk
+        dispatch(getAllMessagesThunk());
       }, 30000);
       return () => clearInterval(interval);
     }
-
-  }, []);
+  }, [location.pathname, token, dispatch]);
 
   // Логика для вычисления количества новых сообщений по сравнению с localStorage
   useEffect(() => {
@@ -60,7 +63,18 @@ function App() {
     const currentAnswerCount = messages.filter((m) => m.is_answer).length;
     const unread = currentAnswerCount > storedAnswerCount ? currentAnswerCount - storedAnswerCount : 0;
     dispatch(setUnreadAnswersCount(unread));
-  }, [messages]);
+  }, [messages, dispatch]);
+
+  // --- НОВЫЙ ЭФФЕКТ: когда флаг true -> скроллим вверх, сбрасываем false ---
+  useEffect(() => {
+    if (isNeedScrollToTop) {
+      // Скроллим всю страницу на самый верх
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Ставим обратно false, чтобы не скроллить снова
+      dispatch(setScrollToTop(false));
+    }
+  }, [isNeedScrollToTop, dispatch]);
 
   return (
     <div className='page__wrapper'>

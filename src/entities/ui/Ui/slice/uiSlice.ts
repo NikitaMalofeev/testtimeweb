@@ -1,5 +1,6 @@
+// src/entities/ui/Modal/slice/uiSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { ReactElement } from "react";
+
 interface UiState {
     additionalMenu: {
         currentStep: number;
@@ -12,13 +13,15 @@ interface UiState {
     isTooltipActive: {
         active: boolean
         message: string
-    }
+    };
     isPushNotificationActive: {
         active: boolean;
         purpose: string;
-    }
+    };
     confirmationDocs: string;
 }
+
+// ТЕКУЩИЙ initialState:
 const initialState: UiState = {
     additionalMenu: {
         currentStep: 0,
@@ -38,7 +41,6 @@ const initialState: UiState = {
     },
     confirmationDocs: 'не определено',
 };
-
 
 const uiSlice = createSlice({
     name: "ui",
@@ -84,6 +86,14 @@ const uiSlice = createSlice({
         setIsBottom: (state, action: PayloadAction<boolean>) => {
             state.isScrollToBottom = action.payload;
         },
+
+        // --- НОВЫЙ РЕДЮСЕР: чтобы скроллить всё приложение вверх ---
+        setScrollToTop: (state, action: PayloadAction<boolean>) => {
+            // Например, назовём его isScrollToTop, чтобы не путать с isScrollToBottom
+            // Можно сохранить в том же UiState или отдельно, как вам удобно
+            state.isScrollToBottom = action.payload;
+        },
+        // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     },
 });
 
@@ -99,7 +109,9 @@ export const {
     setConfirmationDocsSuccess,
     setTooltipActive,
     setStepAdditionalMenuUI,
-    setPushNotificationActive
+    setPushNotificationActive,
+    // экспортируем новый экшен:
+    setScrollToTop,
 } = uiSlice.actions;
 
 export default uiSlice.reducer;

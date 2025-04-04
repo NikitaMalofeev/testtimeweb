@@ -67,8 +67,8 @@ function App() {
 
   useEffect(() => {
     if (isNeedScrollToTop) {
-      // window.scrollTo({ top: 0, behavior: 'smooth' });
-      window.scrollTo({ top: 0 });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // window.scrollTo({ top: 0 });
 
       // Ставим обратно false, чтобы не скроллить снова
       dispatch(setScrollToTop(false));

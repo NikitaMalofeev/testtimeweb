@@ -209,7 +209,7 @@ export const SupportChat = () => {
                         type="text"
                         value={messageText}
                         onChange={handleChange}
-                        onBlur={handleBlur}  // <-- ВАЖНО: дисфокус -> setScrollToTop(true)
+                        onBlur={handleBlur} 
                         withoutCloudyLabel
                         error={false}
                     />

@@ -62,16 +62,13 @@ export const ConfirmAllDocs: React.FC = () => {
 
     useEffect(() => {
         dispatch(getUserDocumentsStateThunk())
-    }, [currentTypeDoc])
+        dispatch(getUserDocumentsNotSignedThunk());
+    }, [currentTypeDoc, dispatch])
 
     const handleMethodChange = (method: 'SMS' | 'EMAIL' | 'WHATSAPP') => {
         formik.setFieldValue("type_message", method);
         dispatch(setCurrentConfirmationMethod(method));
     };
-
-    useEffect(() => {
-        dispatch(getUserDocumentsNotSignedThunk());
-    }, [dispatch]);
 
     const currentIndex = docTypes.findIndex((d) => d === currentTypeDoc);
     const totalDocs = docTypes.length;

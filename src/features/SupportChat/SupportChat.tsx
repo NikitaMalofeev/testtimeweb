@@ -189,6 +189,7 @@ export const SupportChat = () => {
                 className={`${styles.chat__chat__container} ${isScrolled ? styles.shadow_top : ""}`}
                 ref={chatContainerRef}
                 onScroll={handleScroll}
+                style={!/Mobi|Android/i.test(navigator.userAgent) ? { paddingBottom: '74px' } : {}}
             >
                 <div className={styles.chat__chat}>
                     {messages

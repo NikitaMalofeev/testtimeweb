@@ -72,8 +72,9 @@
     }
   
     &__input {
-      position: absolute;
+      position: fixed;
       bottom: 0;
+      z-index: 200;
       width: 100%;
       background-color: #fff;
       padding: 13px 24px 0;
@@ -81,7 +82,6 @@
       gap: 20px;
       align-items: center;
       justify-content: space-between;
-      z-index: 10; /* чтобы всегда быть сверху */
     }
   
     &__input__icon {

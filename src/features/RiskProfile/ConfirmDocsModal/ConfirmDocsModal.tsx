@@ -34,7 +34,7 @@ import {
     setConfirmationDocsSuccess,
     setStepAdditionalMenuUI
 } from "entities/ui/Ui/slice/uiSlice";
-import { confirmDocsRequestThunk, docTypes, getUserDocumentsStateThunk, nextDocType, sendDocsConfirmationCode } from "entities/Documents/slice/documentsSlice";
+import { confirmDocsRequestThunk, docTypes, getUserDocumentsNotSignedThunk, getUserDocumentsStateThunk, nextDocType, sendDocsConfirmationCode } from "entities/Documents/slice/documentsSlice";
 import { ConfirmDocsPayload } from "entities/Documents/types/documentsTypes";
 import { getUserPersonalAccountInfoThunk } from "entities/User/slice/userSlice";
 
@@ -79,6 +79,8 @@ export const ConfirmDocsModal = memo(
                 setPhoneTimerActive(false);
             }
         }, [isOpen]);
+
+
 
         //FIXME Вызывает бесконечный рендер
         // useEffect(() => {

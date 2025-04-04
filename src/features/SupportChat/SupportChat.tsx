@@ -79,6 +79,7 @@ export const SupportChat = () => {
     const chatContainerRef = useRef<HTMLDivElement>(null);
 
     // Динамический расчёт высоты viewport для мобильных устройств
+
     useEffect(() => {
         const setVh = () => {
             const vh = window.innerHeight * 0.01;

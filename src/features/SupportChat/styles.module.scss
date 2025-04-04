@@ -1,6 +1,7 @@
 .chat {
     display: flex;
     width: 100%;
+    overflow: hidden;
     height: 100%;
     flex-direction: column;
     background-color: #fff;
@@ -49,7 +50,7 @@
   
     /* Основная область чата занимает оставшуюся высоту */
     &__chat__container {
-      overflow: hidden;
+        overflow: auto;
       height: 100%;
       display: flex;
       flex-direction: column;

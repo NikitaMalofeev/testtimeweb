@@ -149,10 +149,8 @@ export const SupportChat = () => {
 
     const handleSendMessage = () => {
         if (!messageText.trim()) return;
-        const now = new Date();
         const newMessage: ChatMessage = {
             text: messageText,
-            created: now.toISOString(),
         };
         dispatch(postMessage(newMessage));
         setMessageText("");

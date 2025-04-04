@@ -92,8 +92,8 @@
 
   .mc {
     position: fixed;
-    height: 100%;
     width: calc(100% - 32px);
+    min-height: max-content;
     max-height: max-content;
     border-radius: 10px 10px 40px 40px;
     bottom: 16px;

@@ -72,17 +72,6 @@ export const SupportChat = () => {
 
     const chatContainerRef = useRef<HTMLDivElement>(null);
 
-    // Динамический расчёт высоты viewport для мобильных устройств
-    useEffect(() => {
-        const setVh = () => {
-            const vh = window.innerHeight * 0.01;
-            document.documentElement.style.setProperty("--vh", `${vh}px`);
-        };
-        setVh();
-        window.addEventListener("resize", setVh);
-        return () => window.removeEventListener("resize", setVh);
-    }, []);
-
     // Получение ID веб-сокета и сообщений
     useEffect(() => {
         dispatch(fetchWebsocketId());
@@ -116,6 +105,23 @@ export const SupportChat = () => {
                 chatContainerRef.current.scrollHeight;
         }
     }, [messages]);
+
+    useEffect(() => {
+        const setVh = () => {
+            // Берём текущую высоту экрана
+            const vh = window.innerHeight * 0.01;
+            // Записываем её как CSS-переменную
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        };
+
+        setVh(); // Устанавливаем при загрузке
+        window.addEventListener('resize', setVh);
+
+        return () => {
+            window.removeEventListener('resize', setVh);
+        };
+    }, []);
+
 
     // Сброс непрочитанных сообщений через 5 секунд
     useEffect(() => {
@@ -164,7 +170,7 @@ export const SupportChat = () => {
 
     return (
         <div className={styles.chat}>
-            <div className={styles.chat__header}>
+            <div className={`${styles.chat__header} ${isScrolled ? styles.shadow : ""}`}>
                 <div className={styles.chat__header__content}>
                     <Icon
                         Svg={ArrowBack}

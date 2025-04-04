@@ -46,7 +46,7 @@
   
   /* Область сообщений */
   .chat__chat__container {
-    max-height: calc(var(--vh, 1vh) * 100 - 192px);
+    max-height: calc(100vh - 192px);
     display: flex;
     flex-direction: column;
   }

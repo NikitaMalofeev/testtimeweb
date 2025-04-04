@@ -78,18 +78,6 @@ export const SupportChat = () => {
 
     const chatContainerRef = useRef<HTMLDivElement>(null);
 
-    // Динамический расчёт высоты viewport для мобильных устройств
-
-    useEffect(() => {
-        const setVh = () => {
-            const vh = window.innerHeight * 0.01;
-            document.documentElement.style.setProperty("--vh", `${vh}px`);
-        };
-        setVh();
-        window.addEventListener("resize", setVh);
-        return () => window.removeEventListener("resize", setVh);
-    }, []);
-
     // Получение ID веб-сокета и сообщений
     useEffect(() => {
         dispatch(fetchWebsocketId());
@@ -100,6 +88,28 @@ export const SupportChat = () => {
     useEffect(() => {
         dispatch(closeAllModals());
     }, [dispatch]);
+
+    const inputRef = useRef(null);
+
+    const handleFocus = () => {
+        if (chatContainerRef.current) {
+            // Перематываем чат чуть вниз, если нужно
+            chatContainerRef.current.scrollTo({ top: chatContainerRef.current.scrollHeight });
+        }
+    };
+
+    const handleBlur = () => {
+        // Дожидаемся, пока клавиатура скроется, и делаем пересчёт
+        setTimeout(() => {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+            if (chatContainerRef.current) {
+                chatContainerRef.current.scrollTo({ top: chatContainerRef.current.scrollHeight });
+            }
+        }, 200);
+    };
+
+
 
     // Отключаем прокрутку страницы при открытом чате
     useEffect(() => {
@@ -222,7 +232,7 @@ export const SupportChat = () => {
                     </div>
                 </div>
             </div>
-            <div className={`${styles.chat__input} ${!isBottom ? styles.shadow : ""}`}>
+            <div className={`${styles.chat__input} ${!isBottom ? styles.shadow : ""}`} ref={inputRef}>
                 {/* <Icon
                     Svg={ChatImportIcon}
                     width={24}
@@ -235,9 +245,10 @@ export const SupportChat = () => {
                     type="text"
                     value={messageText}
                     onChange={handleChange}
-                    onBlur={() => { }}
                     withoutCloudyLabel
                     error={false}
+                    onFocus={handleFocus}
+                    onBlur={handleBlur}
                 />
 
 

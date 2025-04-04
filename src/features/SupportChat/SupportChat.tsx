@@ -24,14 +24,8 @@ interface SupportMessageProps {
     highlight?: boolean;
 }
 
-const parseDate = (dateStr: string): Date => {
-    const isoStr = dateStr.includes(" ") ? dateStr.replace(" ", "T") : dateStr;
-    return new Date(isoStr);
-};
-
 const formatDateTime = (datetime: any) => {
-    // Если datetime уже является строкой, преобразуем в ISO-формат
-    const d = typeof datetime === "string" ? parseDate(datetime) : new Date(datetime);
+    const d = new Date(datetime);
     const day = String(d.getDate()).padStart(2, "0");
     const month = String(d.getMonth() + 1).padStart(2, "0");
     const year = d.getFullYear();
@@ -78,6 +72,17 @@ export const SupportChat = () => {
 
     const chatContainerRef = useRef<HTMLDivElement>(null);
 
+    // Динамический расчёт высоты viewport для мобильных устройств
+    useEffect(() => {
+        const setVh = () => {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty("--vh", `${vh}px`);
+        };
+        setVh();
+        window.addEventListener("resize", setVh);
+        return () => window.removeEventListener("resize", setVh);
+    }, []);
+
     // Получение ID веб-сокета и сообщений
     useEffect(() => {
         dispatch(fetchWebsocketId());
@@ -89,14 +94,14 @@ export const SupportChat = () => {
         dispatch(closeAllModals());
     }, [dispatch]);
 
-    // // Отключаем прокрутку страницы при открытом чате
-    // useEffect(() => {
-    //     const originalOverflow = document.body.style.overflow;
-    //     document.body.style.overflow = "hidden";
-    //     return () => {
-    //         document.body.style.overflow = originalOverflow;
-    //     };
-    // }, []);
+    // Отключаем прокрутку страницы при открытом чате
+    useEffect(() => {
+        const originalOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => {
+            document.body.style.overflow = originalOverflow;
+        };
+    }, []);
 
     useEffect(() => {
         if (websocketId) {
@@ -179,10 +184,7 @@ export const SupportChat = () => {
                     </div>
                 )}
             </div>
-            <div
-                className={`${styles.chat__chat__container} ${isScrolled ? styles.shadow_top : ""}`}
-            // style={/Mobi|Android/i.test(navigator.userAgent) ? { paddingBottom: '74px' } : {}}
-            >
+            <div className={styles.chat__chat__container}>
                 <div
                     className={styles.chat__wrapper}
                     ref={chatContainerRef}
@@ -210,13 +212,7 @@ export const SupportChat = () => {
                     </div>
                 </div>
             </div>
-            <div className={`${styles.chat__input} ${!isBottom ? styles.shadow : ""}`}>
-                {/* <Icon
-                    Svg={ChatImportIcon}
-                    width={24}
-                    height={24}
-                    className={styles.chat__input__icon}
-                /> */}
+            <div className={styles.chat__input}>
                 <Input
                     placeholder="Написать сообщение..."
                     name="message"
@@ -227,8 +223,6 @@ export const SupportChat = () => {
                     withoutCloudyLabel
                     error={false}
                 />
-
-
                 <Icon
                     className={styles.chat__input__icon}
                     Svg={ChatSendIcon}

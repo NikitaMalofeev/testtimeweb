@@ -40,28 +40,6 @@ function App() {
     document.documentElement.style.setProperty('--vh', `${userVh}px`);
   }, []);
 
-  // отслеживание размера vieport после открытия клавиатуры и обратно
-  useEffect(() => {
-    const setVh = () => {
-      const vh = window.visualViewport
-        ? window.visualViewport.height * 0.01
-        : window.innerHeight * 0.01;
-      document.documentElement.style.setProperty('--vh', `${vh}px`);
-    };
-
-    setVh();
-    // Подписка только на resize
-    window.visualViewport?.addEventListener('resize', setVh);
-    // И возможно, дублируем на window.resize:
-    window.addEventListener('resize', setVh);
-
-    return () => {
-      window.visualViewport?.removeEventListener('resize', setVh);
-      window.removeEventListener('resize', setVh);
-    };
-  }, []);
-
-
 
   // Обновляем сообщения в личном кабинете каждые 30 секунд
   useEffect(() => {

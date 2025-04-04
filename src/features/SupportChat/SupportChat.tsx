@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Icon } from "shared/ui/Icon/Icon";
 import { Input } from "shared/ui/Input/Input";
@@ -72,42 +72,32 @@ export const SupportChat = () => {
 
     const chatContainerRef = useRef<HTMLDivElement>(null);
 
-    // Получение ID веб-сокета и сообщений
+    // Получение ID веб-сокета и всех сообщений
     useEffect(() => {
         dispatch(fetchWebsocketId());
         dispatch(getAllMessagesThunk());
     }, [token, dispatch]);
 
-    // Закрываем все модальные окна при открытии чата
+    // Закрываем любые модалки при открытии чата
     useEffect(() => {
         dispatch(closeAllModals());
     }, [dispatch]);
 
-    // // Отключаем прокрутку страницы при открытом чате
-    // useEffect(() => {
-    //     const originalOverflow = document.body.style.overflow;
-    //     document.body.style.overflow = "hidden";
-    //     return () => {
-    //         document.body.style.overflow = originalOverflow;
-    //     };
-    // }, []);
-
+    // Подключаемся по веб-сокету, когда узнали websocketId
     useEffect(() => {
         if (websocketId) {
             dispatch(openWebSocketConnection(websocketId));
         }
     }, [websocketId, dispatch]);
 
-    // Автоскролл вниз при изменении сообщений
+    // Скроллим вниз при каждом новом сообщении
     useEffect(() => {
         if (chatContainerRef.current) {
-            chatContainerRef.current.scrollTop =
-                chatContainerRef.current.scrollHeight;
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
         }
     }, [messages]);
 
-
-    // Сброс непрочитанных сообщений через 5 секунд
+    // Сбрасываем счётчик непрочитанных через 5 сек
     useEffect(() => {
         const timer = setTimeout(() => {
             const currentAnswerCount = messages.filter((m) => m.is_answer).length;
@@ -117,6 +107,7 @@ export const SupportChat = () => {
         return () => clearTimeout(timer);
     }, [messages, dispatch]);
 
+    // Обработчик прокрутки
     const handleScroll = () => {
         if (chatContainerRef.current) {
             const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
@@ -125,22 +116,30 @@ export const SupportChat = () => {
         }
     };
 
+    // Отслеживаем изменение текста в инпуте
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => {
         setMessageText(e.target.value);
     };
 
+    // Отправка сообщения
     const handleSendMessage = () => {
         if (!messageText.trim()) return;
-        const newMessage: ChatMessage = {
-            text: messageText,
-        };
-        dispatch(postMessage(newMessage));
+        dispatch(postMessage({ text: messageText }));
         setMessageText("");
     };
 
-    // Вычисляем ключи для непрочитанных сообщений поддержки
+    // --- ВАЖНО: Blur‐хак для iOS. Пересчитываем vh через 200мс после закрытия клавы ---
+    const handleBlur = () => {
+        setTimeout(() => {
+            // здесь можно считать visualViewport.height, если хотите
+            const userVh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${userVh}px`);
+        }, 200);
+    };
+
+    // Определяем, какие сообщения подсвечивать (непрочитанные)
     const unreadMessageKeys = React.useMemo(() => {
         const answerMessages = messages.filter((m) => m.is_answer).slice().reverse();
         const count = unreadAnswersCount;
@@ -175,7 +174,8 @@ export const SupportChat = () => {
                 )}
             </div>
             <div
-                className={`${styles.chat__chat__container} ${isScrolled ? styles.shadow_top : ""}`} ref={chatContainerRef}
+                className={`${styles.chat__chat__container} ${isScrolled ? styles.shadow_top : ""}`}
+                ref={chatContainerRef}
                 onScroll={handleScroll}
             >
                 <div className={styles.chat__chat}>
@@ -198,7 +198,6 @@ export const SupportChat = () => {
                             );
                         })}
                 </div>
-
             </div>
             <div className={styles.chat__input__container}>
                 <div className={`${styles.chat__input} ${!isBottom ? styles.shadow : ""}`}>
@@ -209,13 +208,14 @@ export const SupportChat = () => {
                     className={styles.chat__input__icon}
                 /> */}
 
+
                     <Input
                         placeholder="Написать сообщение..."
                         name="message"
                         type="text"
                         value={messageText}
                         onChange={handleChange}
-                        onBlur={() => { }}
+                        onBlur={handleBlur} // <-- ВАЖНО
                         withoutCloudyLabel
                         error={false}
                     />
@@ -228,7 +228,6 @@ export const SupportChat = () => {
                     />
                 </div>
             </div>
-
         </div>
     );
 };

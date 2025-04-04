@@ -89,36 +89,14 @@ export const SupportChat = () => {
         dispatch(closeAllModals());
     }, [dispatch]);
 
-    const inputRef = useRef(null);
-
-    const handleFocus = () => {
-        if (chatContainerRef.current) {
-            // Перематываем чат чуть вниз, если нужно
-            chatContainerRef.current.scrollTo({ top: chatContainerRef.current.scrollHeight });
-        }
-    };
-
-    const handleBlur = () => {
-        // Дожидаемся, пока клавиатура скроется, и делаем пересчёт
-        setTimeout(() => {
-            const vh = window.innerHeight * 0.01;
-            document.documentElement.style.setProperty('--vh', `${vh}px`);
-            if (chatContainerRef.current) {
-                chatContainerRef.current.scrollTo({ top: chatContainerRef.current.scrollHeight });
-            }
-        }, 200);
-    };
-
-
-
-    // Отключаем прокрутку страницы при открытом чате
-    useEffect(() => {
-        const originalOverflow = document.body.style.overflow;
-        document.body.style.overflow = "hidden";
-        return () => {
-            document.body.style.overflow = originalOverflow;
-        };
-    }, []);
+    // // Отключаем прокрутку страницы при открытом чате
+    // useEffect(() => {
+    //     const originalOverflow = document.body.style.overflow;
+    //     document.body.style.overflow = "hidden";
+    //     return () => {
+    //         document.body.style.overflow = originalOverflow;
+    //     };
+    // }, []);
 
     useEffect(() => {
         if (websocketId) {
@@ -232,7 +210,7 @@ export const SupportChat = () => {
                     </div>
                 </div>
             </div>
-            <div className={`${styles.chat__input} ${!isBottom ? styles.shadow : ""}`} ref={inputRef}>
+            <div className={`${styles.chat__input} ${!isBottom ? styles.shadow : ""}`}>
                 {/* <Icon
                     Svg={ChatImportIcon}
                     width={24}
@@ -245,10 +223,9 @@ export const SupportChat = () => {
                     type="text"
                     value={messageText}
                     onChange={handleChange}
+                    onBlur={() => { }}
                     withoutCloudyLabel
                     error={false}
-                    onFocus={handleFocus}
-                    onBlur={handleBlur}
                 />
 
 

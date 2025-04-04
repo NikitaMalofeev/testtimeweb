@@ -211,26 +211,24 @@ export const SupportChat = () => {
                         })}
                 </div>
             </div>
-            <div className={styles.chat__input__container}>
-                <div className={`${styles.chat__input} ${!isBottom ? styles.shadow : ""}`}>
-                    <Input
-                        placeholder="Написать сообщение..."
-                        name="message"
-                        type="text"
-                        value={messageText}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        withoutCloudyLabel
-                        error={false}
-                    />
-                    <Icon
-                        className={styles.chat__input__icon}
-                        Svg={ChatSendIcon}
-                        width={24}
-                        height={24}
-                        onClick={handleSendMessage}
-                    />
-                </div>
+            <div className={`${styles.chat__input} ${!isBottom ? styles.shadow : ""}`}>
+                <Input
+                    placeholder="Написать сообщение..."
+                    name="message"
+                    type="text"
+                    value={messageText}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    withoutCloudyLabel
+                    error={false}
+                />
+                <Icon
+                    className={styles.chat__input__icon}
+                    Svg={ChatSendIcon}
+                    width={24}
+                    height={24}
+                    onClick={handleSendMessage}
+                />
             </div>
         </div>
     );

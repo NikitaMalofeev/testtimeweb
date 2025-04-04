@@ -185,62 +185,58 @@ export const SupportChat = () => {
                 )}
             </div>
             <div
-                className={`${styles.chat__chat__container} ${isScrolled ? styles.shadow_top : ""}`}
+                className={`${styles.chat__chat__container} ${isScrolled ? styles.shadow_top : ""}`} ref={chatContainerRef}
+                onScroll={handleScroll}
             >
-
-                <div
-                    className={styles.chat__wrapper}
-                    ref={chatContainerRef}
-                    onScroll={handleScroll}
-                >
-                    <div className={styles.chat__chat}>
-                        {messages
-                            .slice()
-                            .reverse()
-                            .map((msg, index) => {
-                                const msgKey = `${msg.created}-${msg.user_id}-${index}`;
-                                if (!msg.is_answer) {
-                                    return <UserMessage key={msgKey} message={msg} />;
-                                }
-                                const messageKey = `${msg.created}-${msg.user_id}`;
-                                const highlight = unreadMessageKeys.has(messageKey);
-                                return (
-                                    <SupportMessage
-                                        key={msgKey}
-                                        message={msg}
-                                        highlight={highlight}
-                                    />
-                                );
-                            })}
-                    </div>
+                <div className={styles.chat__chat}>
+                    {messages
+                        .slice()
+                        .reverse()
+                        .map((msg, index) => {
+                            const msgKey = `${msg.created}-${msg.user_id}-${index}`;
+                            if (!msg.is_answer) {
+                                return <UserMessage key={msgKey} message={msg} />;
+                            }
+                            const messageKey = `${msg.created}-${msg.user_id}`;
+                            const highlight = unreadMessageKeys.has(messageKey);
+                            return (
+                                <SupportMessage
+                                    key={msgKey}
+                                    message={msg}
+                                    highlight={highlight}
+                                />
+                            );
+                        })}
                 </div>
 
             </div>
-            <div className={`${styles.chat__input} ${!isBottom ? styles.shadow : ""}`}>
-                {/* <Icon
+            <div className={styles.chat__input__container}>
+                <div className={`${styles.chat__input} ${!isBottom ? styles.shadow : ""}`}>
+                    {/* <Icon
                     Svg={ChatImportIcon}
                     width={24}
                     height={24}
                     className={styles.chat__input__icon}
                 /> */}
 
-                <Input
-                    placeholder="Написать сообщение..."
-                    name="message"
-                    type="text"
-                    value={messageText}
-                    onChange={handleChange}
-                    onBlur={() => { }}
-                    withoutCloudyLabel
-                    error={false}
-                />
-                <Icon
-                    className={styles.chat__input__icon}
-                    Svg={ChatSendIcon}
-                    width={24}
-                    height={24}
-                    onClick={handleSendMessage}
-                />
+                    <Input
+                        placeholder="Написать сообщение..."
+                        name="message"
+                        type="text"
+                        value={messageText}
+                        onChange={handleChange}
+                        onBlur={() => { }}
+                        withoutCloudyLabel
+                        error={false}
+                    />
+                    <Icon
+                        className={styles.chat__input__icon}
+                        Svg={ChatSendIcon}
+                        width={24}
+                        height={24}
+                        onClick={handleSendMessage}
+                    />
+                </div>
             </div>
 
         </div>

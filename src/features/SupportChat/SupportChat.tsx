@@ -106,22 +106,6 @@ export const SupportChat = () => {
         }
     }, [messages]);
 
-    useEffect(() => {
-        const setVh = () => {
-            // Берём текущую высоту экрана
-            const vh = window.innerHeight * 0.01;
-            // Записываем её как CSS-переменную
-            document.documentElement.style.setProperty('--vh', `${vh}px`);
-        };
-
-        setVh(); // Устанавливаем при загрузке
-        window.addEventListener('resize', setVh);
-
-        return () => {
-            window.removeEventListener('resize', setVh);
-        };
-    }, []);
-
 
     // Сброс непрочитанных сообщений через 5 секунд
     useEffect(() => {

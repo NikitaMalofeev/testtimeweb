@@ -1,10 +1,8 @@
-// entities/SupportChat/SupportChat.tsx
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Icon } from "shared/ui/Icon/Icon";
 import { Input } from "shared/ui/Input/Input";
 import ArrowBack from "shared/assets/svg/ArrowBack.svg";
-import ChatImportIcon from "shared/assets/svg/ChatImportIcon.svg";
 import ChatSendIcon from "shared/assets/svg/ChatSendIcon.svg";
 import styles from "./styles.module.scss";
 import { RootState } from "app/providers/store/config/store";
@@ -37,7 +35,6 @@ const formatDateTime = (datetime: any) => {
 };
 
 export const UserMessage = ({ message }: { message: ChatMessage }) => {
-    console.log(message)
     return (
         <div className={styles.message_user}>
             <span className={styles.message__date}>
@@ -75,25 +72,29 @@ export const SupportChat = () => {
 
     const chatContainerRef = useRef<HTMLDivElement>(null);
 
-    // Вычисляем ключи для сообщений с is_answer, которые считаются непрочитанными.
-    // Сортируем сообщения с is_answer в хронологическом порядке (от старых к новым)
-    // и берём последние unreadAnswersCount элементов.
-    const unreadMessageKeys = React.useMemo(() => {
-        const answerMessages = messages.filter((m) => m.is_answer).slice().reverse();
-        const count = unreadAnswersCount;
-        const unreadMessages = count > 0 ? answerMessages.slice(-count) : [];
-        return new Set(unreadMessages.map((m) => `${m.created}-${m.user_id}`));
-    }, [messages, unreadAnswersCount]);
+    // Динамический расчёт высоты viewport для мобильных устройств
+    useEffect(() => {
+        const setVh = () => {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty("--vh", `${vh}px`);
+        };
+        setVh();
+        window.addEventListener("resize", setVh);
+        return () => window.removeEventListener("resize", setVh);
+    }, []);
 
+    // Получение ID веб-сокета и сообщений
     useEffect(() => {
         dispatch(fetchWebsocketId());
         dispatch(getAllMessagesThunk());
-    }, [token]);
+    }, [token, dispatch]);
 
+    // Закрываем все модальные окна при открытии чата
     useEffect(() => {
-        dispatch(closeAllModals())
-    }, [])
+        dispatch(closeAllModals());
+    }, [dispatch]);
 
+    // Отключаем прокрутку страницы при открытом чате
     useEffect(() => {
         const originalOverflow = document.body.style.overflow;
         document.body.style.overflow = "hidden";
@@ -106,16 +107,17 @@ export const SupportChat = () => {
         if (websocketId) {
             dispatch(openWebSocketConnection(websocketId));
         }
-    }, [websocketId]);
+    }, [websocketId, dispatch]);
 
     // Автоскролл вниз при изменении сообщений
     useEffect(() => {
         if (chatContainerRef.current) {
-            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+            chatContainerRef.current.scrollTop =
+                chatContainerRef.current.scrollHeight;
         }
     }, [messages]);
 
-    // После входа в чат ждем 5 секунд, затем обновляем localStorage и сбрасываем счетчик новых сообщений
+    // Сброс непрочитанных сообщений через 5 секунд
     useEffect(() => {
         const timer = setTimeout(() => {
             const currentAnswerCount = messages.filter((m) => m.is_answer).length;
@@ -123,7 +125,7 @@ export const SupportChat = () => {
             dispatch(setUnreadAnswersCount(0));
         }, 5000);
         return () => clearTimeout(timer);
-    }, [messages]);
+    }, [messages, dispatch]);
 
     const handleScroll = () => {
         if (chatContainerRef.current) {
@@ -147,6 +149,14 @@ export const SupportChat = () => {
         dispatch(postMessage(newMessage));
         setMessageText("");
     };
+
+    // Вычисляем ключи для непрочитанных сообщений поддержки
+    const unreadMessageKeys = React.useMemo(() => {
+        const answerMessages = messages.filter((m) => m.is_answer).slice().reverse();
+        const count = unreadAnswersCount;
+        const unreadMessages = count > 0 ? answerMessages.slice(-count) : [];
+        return new Set(unreadMessages.map((m) => `${m.created}-${m.user_id}`));
+    }, [messages, unreadAnswersCount]);
 
     if (loading && messages.length === 0) {
         return <Loader />;
@@ -174,9 +184,7 @@ export const SupportChat = () => {
                     </div>
                 )}
             </div>
-            <div
-                className={`${styles.chat__chat__container} ${isScrolled ? styles.shadow_top : ""}`}
-            >
+            <div className={styles.chat__chat__container}>
                 <div
                     className={styles.chat__wrapper}
                     ref={chatContainerRef}
@@ -204,13 +212,7 @@ export const SupportChat = () => {
                     </div>
                 </div>
             </div>
-            <div className={`${styles.chat__input} ${!isBottom ? styles.shadow : ""}`}>
-                {/* <Icon
-                    Svg={ChatImportIcon}
-                    width={24}
-                    height={24}
-                    className={styles.chat__input__icon}
-                /> */}
+            <div className={styles.chat__input}>
                 <Input
                     placeholder="Написать сообщение..."
                     name="message"

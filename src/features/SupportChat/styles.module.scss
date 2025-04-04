@@ -1,173 +1,155 @@
 .chat {
+    display: flex;
     width: 100%;
-    flex-grow: 1;
-    max-height: 100%;
-    overflow-y: hidden;
-    max-height: calc(100vh - 56px);
-    padding-bottom: 73px;
-
+    flex-direction: column;
+    background-color: #fff;
+  
     &__header {
-        position: relative;
-        display: flex;
-        gap: 26px;
-        align-items: center;
-        justify-content: space-between;
-        padding: 13px 24px;
-        flex-shrink: 0;
-    }
-
-    &__header__status {
-        border-radius: 13.65px;
-        background-color: #52C417;
-        padding: 1.5px 8px 3.5px ;
-        font-weight: 500;
-        font-size: 12px;
-        line-height: 100%;
-        letter-spacing: 0%;
-        text-align: right;
-        color: white;
-    }
-
-    &__header__content {
+      flex: 0 0 auto;
+      display: flex;
+      gap: 26px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 24px;
+  
+      &__content {
         display: flex;
         gap: 2px;
         align-items: center;
-        justify-content: center;
-    }
-
-    &__header__title {
-
+      }
+  
+      &__title {
         font-weight: 500;
         font-size: 24px;
         line-height: 120%;
-        letter-spacing: 0%;
-        color: #0F0E0E;
-    }
-
-    &__header__description {
+        color: #0f0e0e;
+      }
+  
+      &__status {
+        flex: 0 0 auto;
+        border-radius: 13.65px;
+        background-color: #52c417;
+        padding: 1.5px 8px 3.5px;
+        font-weight: 500;
+        font-size: 12px;
+        color: #fff;
+      }
+  
+      &__description {
         position: absolute;
         bottom: -45px;
         font-weight: 400;
         font-size: 12px;
-        line-height: 100%;
-        letter-spacing: 0%;
-        text-align: center;
-        color: #A8A8A8;
+        color: #a8a8a8;
         padding: 0 24px;
+      }
     }
-
+  
+    /* Основная область чата занимает оставшуюся высоту */
     &__chat__container {
-        display: flex;
-        flex-grow: 1;
-        flex-direction: column;
-        justify-content: space-between;
-        overflow: hidden;
-
-        min-height: 0;
+      flex: 1 1 auto;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
-
+  
     &__wrapper {
-        max-height: calc(100dvh - 183.8px);
-        overflow-y: auto;
-        padding: 13px 24px 0;
+      flex: 1 1 auto;
+      overflow-y: auto;
+      padding: 13px 24px 0;
     }
-
+  
     &__chat {
-
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        justify-content: end;
-        overflow-y: auto; 
-        flex-grow: 1;
-        width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      justify-content: flex-end;
+      width: 100%;
     }
-
+  
     &__input {
-        position: fixed;
-        bottom: 0;
-        height: 73px;
-        flex-shrink: 0;
-        padding: 13px 24px 0;
-        width: 100%;
-        background-color: white;
-        display: flex;
-        gap: 20px;
-        align-items: center;
-        justify-content: space-between;
+      flex: 0 0 auto;
+      position: sticky;
+      bottom: 0;
+      background-color: #fff;
+      padding: 13px 24px 0;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 10; /* чтобы всегда быть сверху */
     }
-
+  
     &__input__icon {
-        margin-bottom: 6px;
+      margin-bottom: 6px;
     }
-}
-
-.message {
+  }
+  
+  /* Стили для сообщений */
+  .message {
     &_support {
-        display: flex;
-        flex-direction: column;
-        gap: 3px;
-        align-items: start;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      align-items: flex-start;
     }
-
+  
     &_user {
-        display: flex;
-        flex-direction: column;
-        gap: 3px;
-        align-items: end;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      align-items: flex-end;
     }
-
+  
     &__date {
-        position: relative;
-        font-weight: 400;
-        font-size: 12px;
-        line-height: 100%;
-        letter-spacing: 0%;
-        color: #797979;
+      position: relative;
+      font-weight: 400;
+      font-size: 12px;
+      color: #797979;
     }
-
+  
     &__message_support {
-        font-family: Inter;
-        font-weight: 400;
-        font-size: 12px;
-        line-height: 130%;
-        letter-spacing: 0%;
-        color: #0F0E0E;
-        padding: 10px;
-        background-color: #EBEBED;
-        border-radius: 15px;
-        max-width: 85%;
+      font-family: Inter, sans-serif;
+      font-weight: 400;
+      font-size: 12px;
+      line-height: 130%;
+      color: #0f0e0e;
+      padding: 10px;
+      background-color: #ebebed;
+      border-radius: 15px;
+      max-width: 85%;
     }
-
+  
     &__message_user {
-        font-family: Inter;
-        font-weight: 400;
-        font-size: 12px;
-        line-height: 130%;
-        letter-spacing: 0%;
-        color: #0F0E0E;
-        padding: 10px;
-        background-color: #E1ECFB;
-        border-radius: 15px;
-        max-width: 85%;
+      font-family: Inter, sans-serif;
+      font-weight: 400;
+      font-size: 12px;
+      line-height: 130%;
+      color: #0f0e0e;
+      padding: 10px;
+      background-color: #e1ecfb;
+      border-radius: 15px;
+      max-width: 85%;
     }
-}
-
-.shadow_top {
+  }
+  
+  /* Тени для скролла */
+  .shadow_top {
     box-shadow: inset 0px 10px 13.4px -5px rgba(0, 0, 0, 0.15);
-}
-
-
-.shadow {
+  }
+  
+  .shadow {
     box-shadow: 0px -1px 13.4px 0px #00000026;
-}
-
-.highlight {
+  }
+  
+  /* Хайлайт для непрочитанных сообщений */
+  .highlight {
     position: absolute;
     top: 2px;
     right: -11px;
     width: 7px;
     height: 7px;
-    background-color: #045FDD;
-    border-radius: 7px;
-}
+    background-color: #045fdd;
+    border-radius: 50%;
+  }
+  

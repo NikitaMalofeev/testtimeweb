@@ -159,7 +159,6 @@ export const PasportDataForm: React.FC = () => {
             g_recaptcha: "",
             type_message: "EMAIL",
             ...savedPassportData,
-            gender: userPersonalAccountInfo?.gender || '',
             first_name: userPersonalAccountInfo?.first_name,
             last_name: userPersonalAccountInfo?.last_name,
             patronymic: userPersonalAccountInfo?.patronymic,
@@ -225,7 +224,6 @@ export const PasportDataForm: React.FC = () => {
     const handleTextInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         formik.setFieldValue(name, value);
-        dispatch(updatePassportFormData({ [name]: value }));
     };
 
     /**
@@ -284,6 +282,7 @@ export const PasportDataForm: React.FC = () => {
             formik.setFieldValue('address_residential_house', '')
             formik.setFieldValue('address_residential_apartment', '')
         }
+        dispatch(updatePassportFormData(formik.values));
     }, [formik.values])
 
     useEffect(() => {

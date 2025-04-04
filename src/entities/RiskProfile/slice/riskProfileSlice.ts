@@ -73,6 +73,7 @@ const initialState: RiskProfileFormState = {
     },
     passportFormData: {
         last_name: "",
+        gender: '',
         first_name: "",
         patronymic: "",
         birth_date: "",

@@ -135,6 +135,7 @@ export interface PassportFormData {
     last_name: string;
     first_name: string;
     patronymic?: string;
+    gender: string;
     birth_date: string;
     birth_place: string;
     passport_series: string;

@@ -64,7 +64,7 @@ function App() {
   return (
     <div className='page__wrapper'>
       <div className='page__content'>
-        <Header currentNotificationsCount={unreadAnswersCount} />
+        <Header currentNotificationsCount={unreadAnswersCount} variant='main' />
         <Cover />
         <AppRouter />
       </div>

@@ -24,8 +24,14 @@ interface SupportMessageProps {
     highlight?: boolean;
 }
 
+const parseDate = (dateStr: string): Date => {
+    const isoStr = dateStr.includes(" ") ? dateStr.replace(" ", "T") : dateStr;
+    return new Date(isoStr);
+};
+
 const formatDateTime = (datetime: any) => {
-    const d = new Date(datetime);
+    // Если datetime уже является строкой, преобразуем в ISO-формат
+    const d = typeof datetime === "string" ? parseDate(datetime) : new Date(datetime);
     const day = String(d.getDate()).padStart(2, "0");
     const month = String(d.getMonth() + 1).padStart(2, "0");
     const year = d.getFullYear();
@@ -143,8 +149,10 @@ export const SupportChat = () => {
 
     const handleSendMessage = () => {
         if (!messageText.trim()) return;
+        const now = new Date();
         const newMessage: ChatMessage = {
             text: messageText,
+            created: now.toISOString(),
         };
         dispatch(postMessage(newMessage));
         setMessageText("");

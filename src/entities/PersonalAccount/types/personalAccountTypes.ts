@@ -13,4 +13,5 @@ export interface PersonalAccountItem {
     warningMessage?: ReactElement | null
     iconWidth: number;
     iconHeight: number;
+    message?: string | false;
 }

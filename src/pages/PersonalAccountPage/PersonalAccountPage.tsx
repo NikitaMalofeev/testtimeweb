@@ -41,6 +41,7 @@ const PersonalAccountMenu: React.FC = () => {
     // Используем новое значение unreadAnswersCount вместо personalNewAnswersCount
     const { userPersonalAccountInfo, loading } = useSelector((state: RootState) => state.user);
     const { unreadAnswersCount } = useSelector((state: RootState) => state.supportChat);
+    const brokersId = useSelector((state: RootState) => state.documents.brokerIds);
 
     useEffect(() => {
         dispatch(getUserPersonalAccountInfoThunk());
@@ -97,13 +98,15 @@ const PersonalAccountMenu: React.FC = () => {
             icon: AccountBrokerIcon,
             title: "Брокер",
             action: () => {
-                if (isPassportFilled) {
-                    console.log(isPassportFilled)
+                if (brokersId.length === 0) {
+                    return
+                } else if (isPassportFilled) {
                     dispatch(setStepAdditionalMenuUI(5))
                     dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
                     // Здесь можно сбрасывать уведомления, если это требуется при переходе в чат
                 }
             },
+            message: brokersId.length > 0 && 'подключен',
             iconWidth: 28,
             iconHeight: 28,
             warningMessage: (!filledRiskProfileChapters.is_complete_passport || !filledRiskProfileChapters.is_exist_scan_passport) ? (
@@ -253,6 +256,11 @@ const PersonalAccountMenu: React.FC = () => {
                                 {item.notificationsCount !== undefined && (
                                     <div className={styles.page__count}>
                                         {item.notificationsCount}
+                                    </div>
+                                )}
+                                {item.message && (
+                                    <div className={styles.page__message}>
+                                        {item.message}
                                     </div>
                                 )}
                                 {item.warningMessage}

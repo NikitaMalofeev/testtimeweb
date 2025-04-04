@@ -10,6 +10,17 @@
         padding: 16px;
     }
 
+    &__message {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5px 8px 3.5px;
+        background-color: #52C417;
+        border-radius: 13.65px;
+        color: white;
+        margin-left: auto;
+    }
+
     &__title {
         font-weight: 600;
         font-size: 24px;

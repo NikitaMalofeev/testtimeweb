@@ -3,7 +3,7 @@
     width: 100%;
     flex-direction: column;
     background-color: #fff;
-    max-height: calc(100vh - 130px);
+    max-height: calc(100vh - 140px);
   
     &__header {
       flex: 0 0 auto;
@@ -52,7 +52,6 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      padding-bottom: 74px;
     }
   
     &__wrapper {

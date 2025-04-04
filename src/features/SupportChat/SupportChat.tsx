@@ -136,6 +136,16 @@ export const SupportChat = () => {
         setMessageText("");
     };
 
+    // Отключаем прокрутку страницы при открытом чате
+    useEffect(() => {
+        const originalOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => {
+            document.body.style.overflow = originalOverflow;
+        };
+    }, []);
+
+
     // --- ВАЖНО: по дисфокусу отправляем в Redux флаг, что надо проскроллить всё вверх ---
     const handleBlur = () => {
         dispatch(setScrollToTop(true));
@@ -209,7 +219,7 @@ export const SupportChat = () => {
                         type="text"
                         value={messageText}
                         onChange={handleChange}
-                        onBlur={handleBlur} 
+                        onBlur={handleBlur}
                         withoutCloudyLabel
                         error={false}
                     />

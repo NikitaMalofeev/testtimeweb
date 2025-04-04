@@ -130,14 +130,29 @@ export const SupportChat = () => {
         setMessageText("");
     };
 
-    // --- ВАЖНО: Blur‐хак для iOS. Пересчитываем vh через 200мс после закрытия клавы ---
     const handleBlur = () => {
         setTimeout(() => {
-            // здесь можно считать visualViewport.height, если хотите
+
             const userVh = window.innerHeight * 0.01;
             document.documentElement.style.setProperty('--vh', `${userVh}px`);
         }, 200);
     };
+    const handleFocus = () => {
+        // Иногда iOS меняет вьюпорт не сразу, поэтому используем setTimeout:
+        setTimeout(() => {
+            // Пересчитываем vh через window.innerHeight 
+            // (или через visualViewport?.height, если нужно)
+            const userVh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${userVh}px`);
+
+            // При желании можно проскроллить чат к низу,
+            // чтобы Input был виден над клавиатурой:
+            if (chatContainerRef.current) {
+                chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+            }
+        }, 200);
+    };
+
 
     // Определяем, какие сообщения подсвечивать (непрочитанные)
     const unreadMessageKeys = React.useMemo(() => {
@@ -218,6 +233,7 @@ export const SupportChat = () => {
                         onBlur={handleBlur} // <-- ВАЖНО
                         withoutCloudyLabel
                         error={false}
+                        onFocus={handleFocus}
                     />
                     <Icon
                         className={styles.chat__input__icon}

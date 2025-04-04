@@ -40,6 +40,34 @@ function App() {
     document.documentElement.style.setProperty('--vh', `${userVh}px`);
   }, []);
 
+  // отслеживание размера vieport после открытия клавиатуры и обратно
+  useEffect(() => {
+    const setVh = () => {
+      // visualViewport может отсутствовать в некоторых старых браузерах, проверяем:
+      const vh = window.visualViewport
+        ? window.visualViewport.height * 0.01
+        : window.innerHeight * 0.01;
+
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+
+    setVh();
+
+    // Подписываемся на 'resize' у visualViewport
+    window.visualViewport?.addEventListener('resize', setVh);
+    window.visualViewport?.addEventListener('scroll', setVh);
+
+    // На всякий случай подписываемся и на обычный window.resize
+    window.addEventListener('resize', setVh);
+
+    return () => {
+      window.visualViewport?.removeEventListener('resize', setVh);
+      window.visualViewport?.removeEventListener('scroll', setVh);
+      window.removeEventListener('resize', setVh);
+    };
+  }, []);
+
+
   // Обновляем сообщения в личном кабинете каждые 30 секунд
   useEffect(() => {
     if (location.pathname !== '/' && token) {

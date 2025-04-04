@@ -83,14 +83,14 @@ export const SupportChat = () => {
         dispatch(closeAllModals());
     }, [dispatch]);
 
-    // Отключаем прокрутку страницы при открытом чате
-    useEffect(() => {
-        const originalOverflow = document.body.style.overflow;
-        document.body.style.overflow = "hidden";
-        return () => {
-            document.body.style.overflow = originalOverflow;
-        };
-    }, []);
+    // // Отключаем прокрутку страницы при открытом чате
+    // useEffect(() => {
+    //     const originalOverflow = document.body.style.overflow;
+    //     document.body.style.overflow = "hidden";
+    //     return () => {
+    //         document.body.style.overflow = originalOverflow;
+    //     };
+    // }, []);
 
     useEffect(() => {
         if (websocketId) {

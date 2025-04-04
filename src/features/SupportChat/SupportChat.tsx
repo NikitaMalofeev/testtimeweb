@@ -192,7 +192,7 @@ export const SupportChat = () => {
             </div>
             <div
                 className={`${styles.chat__chat__container} ${isScrolled ? styles.shadow_top : ""}`}
-                style={/Mobi|Android/i.test(navigator.userAgent) ? { paddingBottom: '74px' } : {}}
+            // style={/Mobi|Android/i.test(navigator.userAgent) ? { paddingBottom: '74px' } : {}}
             >
                 <div
                     className={styles.chat__wrapper}

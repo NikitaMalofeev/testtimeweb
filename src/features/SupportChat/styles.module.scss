@@ -1,93 +1,77 @@
-.chat {
+
+  
+  .chat {
     display: flex;
-    width: 100%;
     flex-direction: column;
+    width: 100%;
     background-color: #fff;
-    max-height: calc(100vh - 140px);
+  }
   
-    &__header {
-      flex: 0 0 auto;
+  /* Хедер чата */
+  .chat__header {
+    padding: 16px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  
+    &__content {
       display: flex;
-      gap: 26px;
       align-items: center;
-      justify-content: space-between;
-      padding: 13px 24px;
-  
-      &__content {
-        display: flex;
-        gap: 2px;
-        align-items: center;
-      }
-  
-      &__title {
-        font-weight: 500;
-        font-size: 24px;
-        line-height: 120%;
-        color: #0f0e0e;
-      }
-  
-      &__status {
-        flex: 0 0 auto;
-        border-radius: 13.65px;
-        background-color: #52c417;
-        padding: 1.5px 8px 3.5px;
-        font-weight: 500;
-        font-size: 12px;
-        color: #fff;
-      }
-  
-      &__description {
-        position: absolute;
-        bottom: -45px;
-        font-weight: 400;
-        font-size: 12px;
-        color: #a8a8a8;
-        padding: 0 24px;
-      }
+      gap: 8px;
     }
   
-    /* Основная область чата занимает оставшуюся высоту */
-    &__chat__container {
-      flex: 1 1 auto;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
+    &__title {
+      font-weight: 500;
+      font-size: 24px;
+      color: #0f0e0e;
     }
   
-    &__wrapper {
-      flex: 1 1 auto;
-      overflow-y: auto;
-      padding: 13px 24px 0;
+    &__status {
+      align-self: flex-start;
+      border-radius: 13px;
+      background-color: #52c417;
+      padding: 2px 8px;
+      font-weight: 500;
+      font-size: 12px;
+      color: #fff;
     }
   
-    &__chat {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      justify-content: flex-end;
-      width: 100%;
-    }
-  
-    &__input {
-      flex: 0 0 auto;
-      position: fixed;
-      width: 100%;
-      bottom: 0;
-      background-color: #fff;
-      padding: 13px 24px 0;
-      display: flex;
-      gap: 20px;
-      align-items: center;
-      justify-content: space-between;
-      z-index: 10; /* чтобы всегда быть сверху */
-    }
-  
-    &__input__icon {
-      margin-bottom: 6px;
+    &__description {
+      font-size: 12px;
+      color: #a8a8a8;
     }
   }
   
-  /* Стили для сообщений */
+  /* Область сообщений */
+  .chat__chat__container {
+    max-height: calc(100dvh - 192px);
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Скроллимая область, содержащая сообщения */
+  .chat__wrapper {
+    overflow-y: auto;
+    padding: 16px;
+  }
+  
+  /* Контейнер с сообщениями */
+  .chat__chat {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  /* Область ввода сообщения */
+  .chat__input {
+    padding: 16px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+  
   .message {
     &_support {
       display: flex;
@@ -132,19 +116,16 @@
       background-color: #e1ecfb;
       border-radius: 15px;
       max-width: 85%;
-    }
-  }
-  
-  /* Тени для скролла */
+    }}
+  /* Опционально: если нужны тени для скролла или выделения непрочитанных сообщений */
   .shadow_top {
     box-shadow: inset 0px 10px 13.4px -5px rgba(0, 0, 0, 0.15);
   }
   
   .shadow {
-    box-shadow: 0px -1px 13.4px 0px #00000026;
+    box-shadow: 0px -1px 13.4px 0px rgba(0, 0, 0, 0.15);
   }
   
-  /* Хайлайт для непрочитанных сообщений */
   .highlight {
     position: absolute;
     top: 2px;

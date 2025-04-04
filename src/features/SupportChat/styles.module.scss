@@ -71,7 +71,8 @@
   
     &__input {
       flex: 0 0 auto;
-      position: sticky;
+      position: fixed;
+      width: 100%;
       bottom: 0;
       background-color: #fff;
       padding: 13px 24px 0;
@@ -154,4 +155,3 @@
     background-color: #045fdd;
     border-radius: 50%;
   }
-  

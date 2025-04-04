@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useFormik } from "formik";
 import ReCAPTCHA from "react-google-recaptcha";
-import { postPasportInfo, updateFieldValue } from "entities/RiskProfile/slice/riskProfileSlice";
+import { postPasportInfo, updateFieldValue, updatePassportFormData } from "entities/RiskProfile/slice/riskProfileSlice";
 import { Input } from "shared/ui/Input/Input";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
 import styles from "./styles.module.scss";
@@ -31,6 +31,7 @@ export const PasportDataForm: React.FC = () => {
     const modalState = useSelector((state: RootState) => state.modal);
     const token = useSelector((state: RootState) => state.user.token);
     const NAME_REGEX = /^[А-Яа-яЁё\s-]+$/;
+    const savedPassportData = useSelector((state: RootState) => state.riskProfile.passportFormData);
 
     // const rehydrated = useSelector((state: RootState) => state._persist?.rehydrated);
 
@@ -42,6 +43,7 @@ export const PasportDataForm: React.FC = () => {
     //         dispatch(getAllUserInfoThunk());
     //     }
     // }, [rehydrated]);
+
 
     useEffect(() => {
         dispatch(getUserPersonalAccountInfoThunk());
@@ -156,30 +158,11 @@ export const PasportDataForm: React.FC = () => {
         initialValues: {
             g_recaptcha: "",
             type_message: "EMAIL",
+            ...savedPassportData,
             gender: userPersonalAccountInfo?.gender || '',
             first_name: userPersonalAccountInfo?.first_name,
             last_name: userPersonalAccountInfo?.last_name,
             patronymic: userPersonalAccountInfo?.patronymic,
-            birth_date: null,
-            birth_place: "",
-            passport_series: "",
-            passport_number: "",
-            department_code: "",
-            issue_date: null,
-            issue_whom: '',
-            inn: "",
-            region: "",
-            city: "",
-            street: "",
-            house: "",
-            apartment: "",
-            is_live_this_address: false,
-            is_receive_mail_this_address: false,
-            address_residential_region: "",
-            address_residential_city: "",
-            address_residential_street: "",
-            address_residential_house: "",
-            address_residential_apartment: "",
         },
         enableReinitialize: true,
         validationSchema: passportValidationSchema,
@@ -242,6 +225,7 @@ export const PasportDataForm: React.FC = () => {
     const handleTextInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         formik.setFieldValue(name, value);
+        dispatch(updatePassportFormData({ [name]: value }));
     };
 
     /**
@@ -367,8 +351,10 @@ export const PasportDataForm: React.FC = () => {
                     />
 
                     <Datepicker
-                        value={formik.values.birth_date}
-                        onChange={(date) => date && formik.setFieldValue("birth_date", format(date, 'yyyy-MM-dd'))}
+                        value={formik.values.birth_date ? new Date(formik.values.birth_date) : null}
+                        onChange={(date) =>
+                            date && formik.setFieldValue("birth_date", format(date, "yyyy-MM-dd"))
+                        }
                         placeholder="Дата рождения"
                         maxDate={new Date()}
                         needValue={true}
@@ -439,15 +425,16 @@ export const PasportDataForm: React.FC = () => {
                         needValue
                         error={formik.touched.issue_whom && formik.errors.issue_whom}
                     />
-
-
                     <Datepicker
-                        value={formik.values.issue_date}
-                        onChange={(date) => date && formik.setFieldValue("issue_date", format(date, 'yyyy-MM-dd'))}
-                        needValue={true}
+                        value={formik.values.issue_date ? new Date(formik.values.issue_date) : null}
+                        onChange={(date) =>
+                            date && formik.setFieldValue("issue_date", format(date, "yyyy-MM-dd"))
+                        }
                         placeholder="Дата выдачи"
                         maxDate={new Date()}
+                        needValue={true}
                         error={formik.touched.issue_date && formik.errors.issue_date}
+                        majority
                     />
 
                     <Input

@@ -13,7 +13,8 @@ import {
     PasportFormData,
     SendCodeDocsConfirmPayload,
     SecondRiskProfileFinalPayload,
-    BrokerSetTokenPayload
+    BrokerSetTokenPayload,
+    PassportFormData
 } from "../model/types";
 import {
     getAllSelects,
@@ -51,6 +52,7 @@ interface RiskProfileFormState {
     stepsFirstForm: {
         currentStep: number;
     };
+    passportFormData: PassportFormData;
     currentConfirmingDoc: string;
     pasportScanSocketId: string;
     pasportScanProgress: number
@@ -68,6 +70,31 @@ const initialState: RiskProfileFormState = {
     formValues: {},
     stepsFirstForm: {
         currentStep: 0
+    },
+    passportFormData: {
+        last_name: "",
+        first_name: "",
+        patronymic: "",
+        birth_date: "",
+        birth_place: "",
+        passport_series: "",
+        passport_number: "",
+        department_code: "",
+        issue_date: "",
+        issue_whom: "",
+        inn: "",
+        region: "",
+        city: "",
+        street: "",
+        house: "",
+        apartment: "",
+        is_live_this_address: false,
+        is_receive_mail_this_address: false,
+        address_residential_region: "",
+        address_residential_city: "",
+        address_residential_street: "",
+        address_residential_house: "",
+        address_residential_apartment: ""
     },
     currentConfirmingDoc: 'type_doc_passport',
     pasportScanSocketId: '',
@@ -513,6 +540,12 @@ const riskProfileSlice = createSlice({
                 state.stepsFirstForm.currentStep -= 1;
             }
         },
+        updatePassportFormData: (
+            state,
+            action: PayloadAction<Partial<PassportFormData>>
+        ) => {
+            state.passportFormData = { ...state.passportFormData, ...action.payload };
+        },
         setStep(state, action) {
             state.stepsFirstForm.currentStep = action.payload;
         },
@@ -615,6 +648,7 @@ const riskProfileSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload as string;
             });
+
     }
 });
 
@@ -628,6 +662,7 @@ export const {
     prevRiskProfileStep,
     setThirdRiskProfileResponse,
     setFirstRiskProfileData,
-    setPassportScanProgress
+    setPassportScanProgress,
+    updatePassportFormData
 } = riskProfileSlice.actions;
 export default riskProfileSlice.reducer;

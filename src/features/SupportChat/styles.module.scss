@@ -72,6 +72,9 @@
     }
   
     &__input {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
       background-color: #fff;
       padding: 13px 24px 0;
       display: flex;

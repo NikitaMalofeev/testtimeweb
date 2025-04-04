@@ -184,7 +184,10 @@ export const SupportChat = () => {
                     </div>
                 )}
             </div>
-            <div className={styles.chat__chat__container}>
+            <div
+                className={`${styles.chat__chat__container} ${isScrolled ? styles.shadow_top : ""}`}
+            >
+
                 <div
                     className={styles.chat__wrapper}
                     ref={chatContainerRef}
@@ -211,26 +214,34 @@ export const SupportChat = () => {
                             })}
                     </div>
                 </div>
-            </div>
-            <div className={styles.chat__input}>
-                <Input
-                    placeholder="Написать сообщение..."
-                    name="message"
-                    type="text"
-                    value={messageText}
-                    onChange={handleChange}
-                    onBlur={() => { }}
-                    withoutCloudyLabel
-                    error={false}
-                />
-                <Icon
-                    className={styles.chat__input__icon}
-                    Svg={ChatSendIcon}
+                <div className={`${styles.chat__input} ${!isBottom ? styles.shadow : ""}`}>
+                    {/* <Icon
+                    Svg={ChatImportIcon}
                     width={24}
                     height={24}
-                    onClick={handleSendMessage}
-                />
+                    className={styles.chat__input__icon}
+                /> */}
+
+                    <Input
+                        placeholder="Написать сообщение..."
+                        name="message"
+                        type="text"
+                        value={messageText}
+                        onChange={handleChange}
+                        onBlur={() => { }}
+                        withoutCloudyLabel
+                        error={false}
+                    />
+                    <Icon
+                        className={styles.chat__input__icon}
+                        Svg={ChatSendIcon}
+                        width={24}
+                        height={24}
+                        onClick={handleSendMessage}
+                    />
+                </div>
             </div>
+
         </div>
     );
 };

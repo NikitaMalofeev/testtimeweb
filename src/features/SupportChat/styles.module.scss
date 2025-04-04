@@ -50,13 +50,13 @@
   
     /* Основная область чата занимает оставшуюся высоту */
     &__chat__container {
-        overflow: auto;
       display: flex;
       flex-direction: column;
     }
   
     &__wrapper {
       overflow-y: auto;
+      max-height: calc(100vh - 184px);
       padding: 13px 24px 0;
     }
   

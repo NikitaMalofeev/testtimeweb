@@ -190,7 +190,9 @@ export const SupportChat = () => {
                     </div>
                 )}
             </div>
-            <div className={styles.chat__chat__container}>
+            <div
+                className={`${styles.chat__chat__container} ${isScrolled ? styles.shadow_top : ""}`}
+            >
                 <div
                     className={styles.chat__wrapper}
                     ref={chatContainerRef}
@@ -218,7 +220,13 @@ export const SupportChat = () => {
                     </div>
                 </div>
             </div>
-            <div className={styles.chat__input}>
+            <div className={`${styles.chat__input} ${!isBottom ? styles.shadow : ""}`}>
+                {/* <Icon
+                    Svg={ChatImportIcon}
+                    width={24}
+                    height={24}
+                    className={styles.chat__input__icon}
+                /> */}
                 <Input
                     placeholder="Написать сообщение..."
                     name="message"
@@ -229,6 +237,8 @@ export const SupportChat = () => {
                     withoutCloudyLabel
                     error={false}
                 />
+
+
                 <Icon
                     className={styles.chat__input__icon}
                     Svg={ChatSendIcon}

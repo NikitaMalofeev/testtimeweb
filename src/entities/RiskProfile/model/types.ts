@@ -161,7 +161,7 @@ export interface PassportFormData {
 
 
 export interface BrokerSetTokenPayload {
-    market: string;
+    market?: string;
     broker: string;
     token: string;
 }

@@ -33,17 +33,6 @@ export const PasportDataForm: React.FC = () => {
     const NAME_REGEX = /^[А-Яа-яЁё\s-]+$/;
     const savedPassportData = useSelector((state: RootState) => state.riskProfile.passportFormData);
 
-    // const rehydrated = useSelector((state: RootState) => state._persist?.rehydrated);
-
-    // useEffect(() => {
-    //     if (rehydrated) {
-    //         dispatch(getUserPersonalAccountInfoThunk());
-    //         dispatch(getUserDocumentsStateThunk());
-    //         dispatch(getUserDocumentsInfoThunk());
-    //         dispatch(getAllUserInfoThunk());
-    //     }
-    // }, [rehydrated]);
-
 
     useEffect(() => {
         dispatch(getUserPersonalAccountInfoThunk());
@@ -67,7 +56,7 @@ export const PasportDataForm: React.FC = () => {
             .typeError("Некорректная дата")
             .required("Дата рождения обязательна"),
         gender: Yup.string()
-            .required("Гендер обязательно"),
+            .required("Пол обязательно"),
         birth_place: Yup.string()
             .min(2, "Минимум 2 символа")
             .required("Место рождения обязательно"),
@@ -159,14 +148,13 @@ export const PasportDataForm: React.FC = () => {
             g_recaptcha: "",
             type_message: "EMAIL",
             ...savedPassportData,
-            first_name: userPersonalAccountInfo?.first_name,
-            last_name: userPersonalAccountInfo?.last_name,
-            patronymic: userPersonalAccountInfo?.patronymic,
+            first_name: savedPassportData ? savedPassportData.first_name : userPersonalAccountInfo?.first_name,
+            last_name: savedPassportData ? savedPassportData.last_name : userPersonalAccountInfo?.last_name,
+            patronymic: savedPassportData ? savedPassportData.patronymic : userPersonalAccountInfo?.patronymic,
         },
         enableReinitialize: true,
         validationSchema: passportValidationSchema,
         onSubmit: (values) => {
-
             dispatch(postPasportInfo({
                 data: values,
                 onSuccess: () => {
@@ -203,8 +191,8 @@ export const PasportDataForm: React.FC = () => {
     // иначе передаём данные в onSubmit.
     const handleSubmitWrapper = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
         const errors = await formik.validateForm();
-        // Отмечаем все поля как touched, чтобы ошибки отобразились
         formik.setTouched(
             Object.keys(formik.values).reduce((acc, key) => ({ ...acc, [key]: true }), {})
         );
@@ -346,7 +334,7 @@ export const PasportDataForm: React.FC = () => {
 
                         }}
                         needValue
-                        error={formik.touched.gender && formik.errors.gender}
+                        error={formik.values.birth_date && formik.errors.gender}
                     />
 
                     <Datepicker
@@ -433,7 +421,6 @@ export const PasportDataForm: React.FC = () => {
                         maxDate={new Date()}
                         needValue={true}
                         error={formik.touched.issue_date && formik.errors.issue_date}
-                        majority
                     />
 
                     <Input

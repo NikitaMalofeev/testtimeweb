@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { AllUserInfo, userAllData, UserLogin, UserPersonalAccount, userType } from "../types/userTypes";
-import { ProblemsRequestData, sendProblemsRequest, sendProblemsRequestNotAuth } from "shared/api/userApi/userApi";
+import { AllUserInfo, ProblemsRequestData, userAllData, UserLogin, UserPersonalAccount, userType } from "../types/userTypes";
+import { sendProblemsRequest, sendProblemsRequestNotAuth } from "entities/User/api/userApi";
 import { getAllUserInfo, getUserPersonalAccountInfo, userLogin } from "../api/userApi";
 import { setError } from "entities/Error/slice/errorSlice";
 import { RootState } from "app/providers/store/config/store";

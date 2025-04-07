@@ -49,7 +49,7 @@ export const BrokerConnectionForm: React.FC = () => {
 
     // Схема валидации для формы
     const validationSchema = Yup.object().shape({
-        market: Yup.string().required('Обязательное поле'),
+        // market: Yup.string().required('Обязательное поле'),
         broker: Yup.string().required('Обязательное поле'),
         token: Yup.string().required('Обязательное поле'),
     });
@@ -57,7 +57,7 @@ export const BrokerConnectionForm: React.FC = () => {
     // Инициализируем Formik
     const formik = useFormik({
         initialValues: {
-            market: '',
+            // market: '',
             broker: '',
             token: '',
         },
@@ -79,7 +79,7 @@ export const BrokerConnectionForm: React.FC = () => {
     return (
         <form className={styles.form}>
             {/* Выбор рынка */}
-            <h2 className={styles.subtitle}>Выбор рынка <span style={{ color: 'red' }}>*</span></h2>
+            {/* <h2 className={styles.subtitle}>Выбор рынка <span style={{ color: 'red' }}>*</span></h2>
             <CheckboxGroup
                 name="market"
                 direction='row'
@@ -90,7 +90,7 @@ export const BrokerConnectionForm: React.FC = () => {
                 ]}
                 value={formik.values.market}
                 onChange={(name, value) => formik.setFieldValue(name, value)}
-            />
+            /> */}
 
             <Select
                 items={brokersItems}

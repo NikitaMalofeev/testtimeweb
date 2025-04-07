@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { PersonalAccountItem } from "../types/personalAccountTypes";
-import { getUserId, resetPassword } from "shared/api/userApi/userApi";
 import { setError } from "entities/Error/slice/errorSlice";
+import { getUserId, resetPassword } from "entities/User/api/userApi";
 
 interface PasswordResetState {
     type_confirm: string;

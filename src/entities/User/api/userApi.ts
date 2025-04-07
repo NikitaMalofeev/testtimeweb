@@ -1,5 +1,5 @@
 import axios from "axios";
-import { UserLogin } from "../types/userTypes";
+import { ProblemsRequestData, ResetPasswordConfirm, UserLogin } from "../types/userTypes";
 
 const apiUrl = import.meta.env.VITE_RANKS_TEST_API_URL;
 
@@ -29,5 +29,55 @@ export const userLogin = async (data: UserLogin) => {
             "Content-Type": "application/json",
         },
     });
+    return response.data;
+};
+
+
+export const sendProblemsRequest = async (data: ProblemsRequestData, token: string) => {
+    const response = await axios.post(`${apiUrl}create_doc_user/need_help/`, data, {
+        headers: {
+            "Accept-Language": "ru",
+            "Content-Type": "application/json",
+            "Authorization": `Token ${token}`
+        },
+    });
+    return response.data;
+};
+
+export const sendProblemsRequestNotAuth = async (data: ProblemsRequestData) => {
+    const response = await axios.post(`${apiUrl}create_doc_user/need_help_not_auth/`, data, {
+        headers: {
+            "Accept-Language": "ru",
+            "Content-Type": "application/json",
+        },
+    });
+    return response.data;
+};
+
+export const resetPassword = async (data: ResetPasswordConfirm) => {
+    const response = await axios.post(
+        `${apiUrl}create_doc_user/confirm_reset_password/`,
+        data,
+        {
+            headers: {
+                "Accept-Language": "ru",
+                "Content-Type": "application/json",
+            },
+        }
+    );
+    return response.data;
+};
+
+export const getUserId = async (data: { phone?: string; email?: string }) => {
+    const response = await axios.post(
+        `${apiUrl}create_doc_user/get_user_id/`,
+        data,
+        {
+            headers: {
+                "Accept-Language": "ru",
+                "Content-Type": "application/json",
+            },
+        }
+    );
     return response.data;
 };

@@ -62,8 +62,20 @@ export const ConfirmAllDocs: React.FC = () => {
 
     useEffect(() => {
         dispatch(getUserDocumentsStateThunk())
-        dispatch(getUserDocumentsNotSignedThunk());
-    }, [currentTypeDoc, dispatch, isRPFilled, isRPFinalFilled])
+
+    }, [currentTypeDoc, isRPFilled, isRPFinalFilled])
+
+    useEffect(() => {
+        if (isPasportFilled) {
+            dispatch(getUserDocumentsNotSignedThunk());
+        }
+    }, [isPasportFilled])
+
+    useEffect(() => {
+        if (isRPFinalFilled) {
+            dispatch(getUserDocumentsNotSignedThunk());
+        }
+    }, [isRPFinalFilled])
 
     const handleMethodChange = (method: 'SMS' | 'EMAIL' | 'WHATSAPP') => {
         formik.setFieldValue("type_message", method);

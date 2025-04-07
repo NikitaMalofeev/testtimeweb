@@ -139,7 +139,7 @@ export const RiskProfileFirstForm: React.FC = () => {
         const extraTextQuestions: Question[] = [
             {
                 name: "trusted_person",
-                label: `Доверенное лицо. Укажите, пожалуйста, при наличии:\n• ФИО\n• Контактные данные`,
+                label: `Доверенное лицо. \nУкажите, пожалуйста, при наличии:\n• ФИО\n• Контактные данные`,
                 needTextField: true,
                 placeholder: "Ответ",
                 fieldType: "textarea",

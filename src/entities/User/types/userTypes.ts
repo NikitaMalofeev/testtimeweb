@@ -105,3 +105,23 @@ export type AllUserInfo = {
     issue_whom: string;
     inn: string;
 };
+
+
+export interface ProblemsRequestData {
+    user_id?: string;
+    screen: string;
+    email?: string;
+    phone?: string;
+    is_phone_code_not_received?: boolean;
+    is_email_code_not_received?: boolean;
+    is_invalid_code_received?: boolean;
+    description: string;
+}
+
+export interface ResetPasswordConfirm {
+    user_id: string; // ID пользователя (обязательный)
+    code: string; // Код подтверждения (обязательный)
+    type?: string; // Способ подтверждения (необязательный, может быть только "phone" или "email")
+    password: string; // Новый пароль (обязательный)
+    password2: string; // Подтверждение пароля (обязательный)
+}

@@ -9,7 +9,6 @@ import {
     confirmDocsRequestThunk,
     setCurrentConfirmableDoc,
     getUserDocumentsStateThunk,
-    getUserDocumentsNotSignedThunk,
     getUserDocumentsSignedThunk,
     getBrokerDocumentsSignedThunk,
     // Удалён старый setNotConfirmedDocuments
@@ -46,7 +45,6 @@ const DocumentsPage: React.FC = () => {
 
     useEffect(() => {
         dispatch(getUserDocumentsStateThunk());
-        dispatch(getUserDocumentsNotSignedThunk());
         dispatch(getAllUserInfoThunk());
         dispatch(getUserPersonalAccountInfoThunk());
     }, []);

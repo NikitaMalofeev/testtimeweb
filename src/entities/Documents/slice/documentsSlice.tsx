@@ -8,7 +8,7 @@ import { setCurrentConfirmingDoc } from "entities/RiskProfile/slice/riskProfileS
 import { setConfirmationDocsSuccess } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
 import { SendCodeDocsConfirmPayload } from "entities/RiskProfile/model/types";
-import { postBrokerConfirmationDocsCode, postConfirmationDocsCode } from "shared/api/RiskProfileApi/riskProfileApi";
+import { postBrokerConfirmationDocsCode, postConfirmationDocsCode } from "entities/RiskProfile/api/riskProfileApi";
 
 // Новый тип, соответствующий элементам из "confirmed_documents"
 export interface DocumentConfirmationInfo {
@@ -29,9 +29,9 @@ export interface UserPassportData {
 // Массив с последовательностью типов документов,
 // которые необходимо подписать по порядку (меняется редко).
 export const docTypes = [
-    "type_doc_RP_questionnairy",
     "type_doc_passport",
     "type_doc_EDS_agreement",
+    "type_doc_RP_questionnairy",
     "type_doc_agreement_investment_advisor",
     "type_doc_risk_declarations",
     "type_doc_agreement_personal_data_policy",

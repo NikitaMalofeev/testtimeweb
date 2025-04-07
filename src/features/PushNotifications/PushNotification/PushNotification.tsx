@@ -6,7 +6,7 @@ import styles from "./styles.module.scss";
 import MiniLogo from "shared/assets/images/miniLogo.png";
 import { setPushNotificationActive, setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
-import { getUserDocumentsNotSignedThunk, getUserDocumentsStateThunk } from "entities/Documents/slice/documentsSlice";
+import { getUserDocumentsStateThunk } from "entities/Documents/slice/documentsSlice";
 import { openModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { useNavigate } from "react-router-dom";

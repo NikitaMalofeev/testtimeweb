@@ -30,7 +30,7 @@ import {
     postSecondRiskProfile,
     postSecondRiskProfileFinal,
     postTrustedPersonInfoApi
-} from "shared/api/RiskProfileApi/riskProfileApi";
+} from "entities/RiskProfile/api/riskProfileApi";
 import { setUserId, setUserIsActive, setUserToken, updateUserAllData } from "entities/User/slice/userSlice";
 import { setConfirmationEmailSuccess, setConfirmationPhoneSuccess, setConfirmationStatusSuccess, setConfirmationWhatsappSuccess, setTooltipActive } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";

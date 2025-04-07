@@ -8,9 +8,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
 import { Input } from "shared/ui/Input/Input";
 import { sendProblemsNotAuthThunk } from "entities/User/slice/userSlice";
-import { ProblemsRequestData } from "shared/api/userApi/userApi";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { setTooltipActive } from "entities/ui/Ui/slice/uiSlice";
+import { ProblemsRequestData } from "entities/User/types/userTypes";
 
 interface ConfirmInfoModalProps {
     isOpen: boolean;

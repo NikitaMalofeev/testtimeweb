@@ -6,7 +6,6 @@ import { Input } from "shared/ui/Input/Input";
 import { ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
-import { ProblemsRequestData } from "shared/api/userApi/userApi";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { setTooltipActive } from "entities/ui/Ui/slice/uiSlice";
 import { useNavigate } from "react-router-dom";

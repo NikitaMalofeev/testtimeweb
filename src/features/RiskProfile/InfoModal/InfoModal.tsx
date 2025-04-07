@@ -1,16 +1,10 @@
-import React, { memo, useState } from "react";
+import React, { memo } from "react";
 import { Modal } from "shared/ui/Modal/Modal";
 import styles from "./styles.module.scss";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
-import { Input } from "shared/ui/Input/Input";
-import { ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
+import { ModalType } from "entities/ui/Modal/model/modalTypes";
 import { useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
-import { ProblemsRequestData } from "shared/api/userApi/userApi";
-import { useAppDispatch } from "shared/hooks/useAppDispatch";
-import { setTooltipActive } from "entities/ui/Ui/slice/uiSlice";
-import { useNavigate } from "react-router-dom";
-import { closeAllModals } from "entities/ui/Modal/slice/modalSlice";
 
 interface InfoModalProps {
     isOpen: boolean;

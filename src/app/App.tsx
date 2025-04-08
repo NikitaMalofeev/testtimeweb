@@ -33,7 +33,6 @@ function App() {
   const { unreadAnswersCount } = useSelector((state: RootState) => state.supportChat);
   const token = useSelector((state: RootState) => state.user.token);
 
-  // --- Берём наш флаг из ui ---
   const isNeedScrollToTop = useSelector((state: RootState) => state.ui.isScrollToBottom);
 
   useAuthTokenManagement();
@@ -55,6 +54,18 @@ function App() {
       return () => clearInterval(interval);
     }
   }, [location.pathname, token, dispatch]);
+
+  // useEffect(() => {
+  //   const handleLogout = () => {
+  //     localStorage.removeItem("savedToken");
+  //     localStorage.removeItem("lastExit");
+  //     localStorage.removeItem("lastExitSignature");
+  //     dispatch(setUserToken(""));
+  //     window.scrollTo({ top: 0, behavior: "smooth" });
+  //   };
+
+  //   handleLogout()
+  // }, [])
 
   // Логика для вычисления количества новых сообщений по сравнению с localStorage
   useEffect(() => {

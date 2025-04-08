@@ -148,9 +148,10 @@ export const PasportDataForm: React.FC = () => {
             g_recaptcha: "",
             type_message: "EMAIL",
             ...savedPassportData,
-            first_name: savedPassportData ? savedPassportData.first_name : userPersonalAccountInfo?.first_name,
-            last_name: savedPassportData ? savedPassportData.last_name : userPersonalAccountInfo?.last_name,
-            patronymic: savedPassportData ? savedPassportData.patronymic : userPersonalAccountInfo?.patronymic,
+            first_name: userPersonalAccountInfo?.first_name ? userPersonalAccountInfo.first_name : savedPassportData.first_name,
+            last_name: userPersonalAccountInfo?.last_name ? userPersonalAccountInfo.last_name : savedPassportData.last_name,
+            patronymic: userPersonalAccountInfo?.patronymic ? userPersonalAccountInfo.patronymic : savedPassportData.patronymic,
+
         },
         enableReinitialize: true,
         validationSchema: passportValidationSchema,

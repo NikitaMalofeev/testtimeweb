@@ -48,6 +48,7 @@ export const ProblemsCodeModal = memo(({ isOpen, onClose, title = 'Пробле�
         //     console.error("User ID отсутствует");
         //     return;
         // }
+        //
 
         const requestData: ProblemsRequestData = {
             screen: currentProblemScreen ? currentProblemScreen : 'identification',

@@ -69,19 +69,14 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
             if (allDocumentsHtml && allDocumentsHtml.hasOwnProperty(docId)) {
                 setTimeout(() => {
                     setIsContentReady(true);
-                    return;
-                }, 1000)
-                console.log('неподписанные')
+                }, 1000);
             }
             // Если документ подписан – проверяем наличие бинарных данных
-            if (
-                !isSignedDoc && hasCurrentSighedDocument &&
-                hasCurrentSighedDocument.document &&
-                Object.keys(hasCurrentSighedDocument.document).length > 0
-            ) {
-                setIsContentReady(true);
-                console.log('подписанные')
-                return;
+            if (isSignedDoc && hasCurrentSighedDocument && hasCurrentSighedDocument.document) {
+                if (hasCurrentSighedDocument.document.length > 0) {
+                    setIsContentReady(true);
+                    return;
+                }
             }
         }
         setIsContentReady(false);
@@ -90,8 +85,13 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
         justPreview,
         docId,
         allDocumentsHtml,
-        hasCurrentSighedDocument.document
+        hasCurrentSighedDocument.document,
+        isSignedDoc
     ]);
+
+    useEffect(() => {
+        console.log('hasCurrentSighedDocument', hasCurrentSighedDocument);
+    }, [hasCurrentSighedDocument]);
 
     // Блокировка скролла, если модалка открыта
     const isAnyModalOpen = useSelector(selectIsAnyModalOpen);

@@ -144,7 +144,7 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                     <span className={styles.modalTitle}>{title || "Документ"}</span>
                     <Icon Svg={CloseIcon} width={20} height={20} onClick={handleClose} />
                 </div>
-                <div className={styles.modalContent}>
+                <div className={styles.modalContent} style={isSignedDoc ? { padding: '8px 0 8px 22px' } : { padding: '8px 16px' }}>
                     {!isContentReady && !loading ? (
                         <Loader />
                     ) : (hasCurrentSighedDocument &&

@@ -44,8 +44,16 @@ body::-webkit-scrollbar-thumb,
   content: none !important;
 }
 
-.rpv-core__text-layer {
-  width: 100%;
+// .rpv-core__text-layer {
+//   width: 100% !important;
+// }
+
+// // .rpv-core__page-layer {
+// //   width: 100% !important;
+// // }
+
+.rpv-core__inner-pages .rpv-core__inner-pages--vertical {
+  padding: 0 !important;
 }
 
 .rpv-core__page-layer--single {
@@ -54,11 +62,14 @@ body::-webkit-scrollbar-thumb,
 
 .rpv-core__page-layer .rpv-core__page-layer--single {
   margin: 0;
+  width: 100%;
 }
 
-.rpv-core__page-layer {
-  margin: 0;
-}
+// // .rpv-core__page-layer {
+// //   margin: 0;
+// // }
+
+
 
 /* Внешний вид самого input */
 .datepickerItem {

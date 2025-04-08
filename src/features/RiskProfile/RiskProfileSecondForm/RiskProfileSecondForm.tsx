@@ -248,7 +248,7 @@ export const RiskProfileSecondForm: React.FC = () => {
                                 <span className={styles.form__item__potintial__title}>Возможный убыток</span>
                                 <Tooltip
                                     className={styles.form__item__tooltip}
-                                    description="Возможное снижение цены портфеля в моменте, с учетом действующих на рынке факторов"
+                                    description="Возможное снижение цены портфеля в моменте с учетом действующих на рынке факторов"
                                     topForCenteringIcons="24px"
                                     direction='top'
                                     squerePosition={{ bottom: '-4px' }}

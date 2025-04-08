@@ -82,9 +82,9 @@ function App() {
       // window.scrollTo({ top: 0 });
 
       // Ставим обратно false, чтобы не скроллить снова
-      dispatch(setScrollToTop(false));
+      // dispatch(setScrollToTop(false));
     }
-  }, [isNeedScrollToTop, dispatch]);
+  }, [isNeedScrollToTop]);
 
   return (
     <div className='page__wrapper'>

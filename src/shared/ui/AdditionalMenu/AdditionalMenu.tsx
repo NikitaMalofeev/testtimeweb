@@ -26,13 +26,17 @@ export const AdditionalMenu: React.FC<AdditionalMenuProps> = ({ onClose, title, 
     );
 
     useEffect(() => {
+        let lastIsAtBottom: boolean | null = null;
         const handleScroll = () => {
             if (containerRef.current) {
                 const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
                 setHasScrolled(scrollTop > 0);
 
-                const isAtBottom = scrollTop + clientHeight >= scrollHeight - 1; // -1 для учета округления
-                dispatch(setIsBottom(isAtBottom));
+                const isAtBottom = scrollTop + clientHeight >= scrollHeight - 55;
+                if (lastIsAtBottom !== isAtBottom) {
+                    lastIsAtBottom = isAtBottom;
+                    dispatch(setIsBottom(isAtBottom));
+                }
             }
         };
 
@@ -46,26 +50,26 @@ export const AdditionalMenu: React.FC<AdditionalMenuProps> = ({ onClose, title, 
                 container.removeEventListener("scroll", handleScroll);
             }
         };
-    }, []);
-
-    //очищаю контейнер кнопок от скрола
-    useEffect(() => {
-        dispatch(setIsBottom(true));
-    }, [currentStepFirstForm])
+    }, [dispatch]);
 
 
-
-    useEffect(() => {
-        // При монтировании проверяем, есть ли скролл чтобы накинуть на кнопки скролл эффект
-        if (containerRef.current) {
-            const { scrollHeight, clientHeight } = containerRef.current;
+    // useEffect(() => {
+    //     dispatch(setIsBottom(true));
+    // }, [currentStepFirstForm])
 
 
-            if (scrollHeight > clientHeight) {
-                dispatch(setIsBottom(false))
-            }
-        }
-    }, [currentStepFirstForm]);
+
+    // useEffect(() => {
+    //     // При монтировании проверяем, есть ли скролл чтобы накинуть на кнопки скролл эффект
+    //     if (containerRef.current) {
+    //         const { scrollHeight, clientHeight } = containerRef.current;
+
+
+    //         if (scrollHeight > clientHeight) {
+    //             dispatch(setIsBottom(false))
+    //         }
+    //     }
+    // }, [currentStepFirstForm]);
 
     useEffect(() => {
         if (currentTypeDoc) {
@@ -86,7 +90,6 @@ export const AdditionalMenu: React.FC<AdditionalMenuProps> = ({ onClose, title, 
 
             <div ref={containerRef} className={`${styles.additionalMenu__container} ${hasScrolled ? styles.additionalMenu__container_scrolled : ""}`}>
                 <div className={`${styles.header} ${hasScrolled ? styles.shadow : ""}`}>
-                    <span className={styles.header__steps}>{steps[currentStep]}</span>
                     <h2 className={styles.header__title}>{title}</h2>
                     {description && <Tooltip positionBox={{ top: '26px', left: '-264px' }} bigContentSquerePosition={currentStep === 2 ? { top: '32px', left: '241px' } : { top: '15px', left: '241px' }} topForCenteringIcons='24px' description={description} className={`${styles.header__tooltip} ${hasScrolled ? styles.header__tooltip_scrolled : ""}`} />}
                 </div>

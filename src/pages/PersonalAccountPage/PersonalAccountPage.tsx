@@ -185,7 +185,7 @@ const PersonalAccountMenu: React.FC = () => {
                             </div>
                         ) : (
                             <div className={styles.page__status}>
-                                <div className={styles.page__status_inactive}>остановлена</div>
+                                <div className={styles.page__status_inactive}>Не активна</div>
                                 <div className={styles.page__status__tooltip}>
                                     <Tooltip
                                         positionBox={{ top: "8px", left: '30px' }}

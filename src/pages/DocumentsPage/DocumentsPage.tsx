@@ -11,6 +11,7 @@ import {
     getUserDocumentsStateThunk,
     getUserDocumentsSignedThunk,
     getBrokerDocumentsSignedThunk,
+    getUserDocumentsNotSignedThunk,
     // Удалён старый setNotConfirmedDocuments
 } from "entities/Documents/slice/documentsSlice";
 
@@ -51,6 +52,9 @@ const DocumentsPage: React.FC = () => {
 
     useEffect(() => {
         dispatch(getUserDocumentsStateThunk());
+
+        //test
+        dispatch(getUserDocumentsNotSignedThunk())
     }, [currentConfirmableDocument]);
 
     const isAnyModalOpen = useSelector(selectIsAnyModalOpen);

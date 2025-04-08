@@ -193,6 +193,10 @@ export const ConfirmAllDocs: React.FC = () => {
         formik.setFieldValue("is_agree", false);
     }, [currentTypeDoc]);
 
+    useEffect(() => {
+        console.log("isBottom:", isBottom);
+    }, [isBottom])
+
     return (
         <>
             <div className={styles.page}>

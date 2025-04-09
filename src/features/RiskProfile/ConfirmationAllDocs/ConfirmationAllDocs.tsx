@@ -19,6 +19,7 @@ import {
     docTypeLabels,
     docTypes,
     getAllBrokersThunk,
+    getUserDocumentNotSignedThunk,
     getUserDocumentsNotSignedThunk,
     getUserDocumentsStateThunk,
     setCurrentConfirmableDoc,
@@ -79,6 +80,7 @@ export const ConfirmAllDocs: React.FC = () => {
     const totalDocs = docTypes.length;
 
     const handleOpenPreview = () => {
+        // dispatch(getUserDocumentNotSignedThunk())
         dispatch(
             openModal({
                 type: ModalType.DOCUMENTS_PREVIEW,

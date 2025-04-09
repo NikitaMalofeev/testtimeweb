@@ -32,7 +32,7 @@ export const AdditionalMenu: React.FC<AdditionalMenuProps> = ({ onClose, title, 
                 const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
                 setHasScrolled(scrollTop > 0);
 
-                const isAtBottom = scrollTop + clientHeight >= scrollHeight - 55;
+                const isAtBottom = scrollTop + clientHeight >= scrollHeight - 1;
                 if (lastIsAtBottom !== isAtBottom) {
                     lastIsAtBottom = isAtBottom;
                     dispatch(setIsBottom(isAtBottom));

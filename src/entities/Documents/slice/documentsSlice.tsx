@@ -3,7 +3,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "app/providers/store/config/store";
 import { ConfirmDocsPayload, FilledRiskProfileChapters } from "../types/documentsTypes";
-import { confirmBrokerDocsRequest, confirmDocsRequest, getAllBrokers, getBrokerDocumentsSigned, getDocumentsInfo, getDocumentsNotSigned, getDocumentsSigned, getDocumentsState } from "../api/documentsApi";
+import { confirmBrokerDocsRequest, confirmDocsRequest, getAllBrokers, getBrokerDocumentsSigned, getDocumentNotSigned, getDocumentsInfo, getDocumentsNotSigned, getDocumentsSigned, getDocumentsState } from "../api/documentsApi";
 import { setCurrentConfirmingDoc } from "entities/RiskProfile/slice/riskProfileSlice";
 import { setConfirmationDocsSuccess } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
@@ -252,6 +252,32 @@ export const getUserDocumentsNotSignedThunk = createAsyncThunk<
             const documents = response.not_signed_documents_htmls;
             console.log(documents)
             dispatch(setNotSignedDocumentsHtmls(documents));
+        } catch (error: any) {
+            console.log(error);
+            const msg =
+                error.response?.data?.errorText
+            dispatch(setError(msg));
+        }
+    }
+);
+
+export const getUserDocumentNotSignedThunk = createAsyncThunk<
+    void,
+    void,
+    { rejectValue: string; state: RootState }
+>(
+    "documents/getUserDocumentsNotSignedThunk",
+    async (_, { getState, dispatch, rejectWithValue }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+            const currentConfirmableDoc = getState().documents.currentConfirmableDoc
+            const response = await getDocumentNotSigned(token, currentConfirmableDoc);
+
+            console.log(response.not_signed_document_html + 'документ')
+            dispatch(setNotSignedDocumentsHtmls(response.not_signed_document_html));
         } catch (error: any) {
             console.log(error);
             const msg =

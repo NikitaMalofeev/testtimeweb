@@ -51,6 +51,12 @@ const initialState: ExtendedModalState = {
         animation: ModalAnimation.LEFT,
         isScrolled: false
     },
+    [ModalType.DOCUMENTS_PREVIEW_SIGNED]: {
+        isOpen: false,
+        size: ModalSize.FULL,
+        animation: ModalAnimation.LEFT,
+        isScrolled: false
+    },
     [ModalType.RESET_PASSWORD]: {
         isOpen: false,
         size: ModalSize.MC,
@@ -67,6 +73,12 @@ const initialState: ExtendedModalState = {
     [ModalType.INFO]: {
         isOpen: false,
         size: ModalSize.XXS,
+        animation: ModalAnimation.BOTTOM,
+        isScrolled: false
+    },
+    [ModalType.SUCCESS]: {
+        isOpen: false,
+        size: ModalSize.MC,
         animation: ModalAnimation.BOTTOM,
         isScrolled: false
     },

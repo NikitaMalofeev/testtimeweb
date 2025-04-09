@@ -48,8 +48,6 @@ export const RiskProfileSecondForm: React.FC = () => {
 
     const goBack = () => dispatch(prevStep());
 
-
-
     const formik = useFormik({
         enableReinitialize: true,
         initialValues: {

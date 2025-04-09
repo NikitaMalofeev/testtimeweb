@@ -115,6 +115,7 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
 
     const handleClose = () => {
         dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW));
+        dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW_SIGNED));
         onClose();
     };
 

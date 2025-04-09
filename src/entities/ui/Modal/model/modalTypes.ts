@@ -23,10 +23,12 @@ export enum ModalType {
     PROBLEM_WITH_CODE = 'problemWithCodeModal',
     PROBLEM = 'problem',
     PREVIEW = 'preview',
+    DOCUMENTS_PREVIEW_SIGNED = 'documentsPreviewSigned',
     DOCUMENTS_PREVIEW = 'documentsPreview',
     RESET_PASSWORD = 'resetPassword',
     PROGRESS = 'progress',
-    INFO = 'info'
+    INFO = 'info',
+    SUCCESS = 'success'
 }
 
 /** Состояние одной конкретной модалки */

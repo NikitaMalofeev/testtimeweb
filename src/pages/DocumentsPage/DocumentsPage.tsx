@@ -297,7 +297,7 @@ const DocumentsPage: React.FC = () => {
             setSelectedDocId(docId);
             dispatch(
                 openModal({
-                    type: ModalType.DOCUMENTS_PREVIEW,
+                    type: ModalType.DOCUMENTS_PREVIEW_SIGNED,
                     animation: ModalAnimation.LEFT,
                     size: ModalSize.FULL,
                 })
@@ -307,7 +307,7 @@ const DocumentsPage: React.FC = () => {
             dispatch(getBrokerDocumentsSignedThunk({ purpose: "download", onSuccess: () => { } }));
             dispatch(
                 openModal({
-                    type: ModalType.DOCUMENTS_PREVIEW,
+                    type: ModalType.DOCUMENTS_PREVIEW_SIGNED,
                     animation: ModalAnimation.LEFT,
                     size: ModalSize.FULL,
                 })
@@ -323,7 +323,7 @@ const DocumentsPage: React.FC = () => {
             setSelectedDocId(docId);
             dispatch(
                 openModal({
-                    type: ModalType.DOCUMENTS_PREVIEW,
+                    type: ModalType.DOCUMENTS_PREVIEW_SIGNED,
                     animation: ModalAnimation.LEFT,
                     size: ModalSize.FULL,
                 })
@@ -363,7 +363,7 @@ const DocumentsPage: React.FC = () => {
     const handleClosePreview = () => {
         setSelectedDocId(null);
         setTimeout(() => {
-            dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW));
+            dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW_SIGNED));
         }, 0); // Убедимся, что стейт обновился перед Redux-диспатчем
     };
 
@@ -467,9 +467,9 @@ const DocumentsPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* Модалка предпросмотра документа */}
             <DocumentPreviewModal
-                isOpen={modalState.documentsPreview.isOpen}
+                key={currentConfirmableDocument}
+                isOpen={modalState.documentsPreviewSigned.isOpen}
                 onClose={handleClosePreview}
                 title={selectedDocId ? docTypeLabels[selectedDocId] || "Документ" : "Документ"}
                 isSignedDoc

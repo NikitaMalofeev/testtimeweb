@@ -6,7 +6,11 @@ import { Checkbox } from "shared/ui/Checkbox/Checkbox";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
-import { closeAllModals, closeModal, openModal, setCurrentConfirmModalType } from "entities/ui/Modal/slice/modalSlice";
+import {
+    closeAllModals,
+    closeModal,
+    openModal
+} from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { ConfirmDocsModal } from "../ConfirmDocsModal/ConfirmDocsModal";
 import styles from "./styles.module.scss";
@@ -17,65 +21,54 @@ import {
     getAllBrokersThunk,
     getUserDocumentsNotSignedThunk,
     getUserDocumentsStateThunk,
-    setCurrentConfirmationMethod,
+    setCurrentConfirmableDoc,
+    setCurrentConfirmationMethod
 } from "entities/Documents/slice/documentsSlice";
 import DocsImage from "shared/assets/svg/docsImage.svg";
 import { Icon } from "shared/ui/Icon/Icon";
-import { RiskProfileAllData } from "../RiskProfileAllData/RiskProfileAllData";
 import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/DocumentPreviewModal";
 import { getAllUserInfoThunk } from "entities/User/slice/userSlice";
 import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
 import { useNavigate } from "react-router-dom";
-import ArrowBack from 'shared/assets/svg/ArrowBack.svg'
+import ArrowBack from 'shared/assets/svg/ArrowBack.svg';
+import { SuccessModal } from "../SuccessModal/SuccessModal";
 
 export const ConfirmAllDocs: React.FC = () => {
     const dispatch = useAppDispatch();
     const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
     const navigate = useNavigate();
-    const currentTypeDoc = useSelector(
-        (state: RootState) => state.documents.currentConfirmableDoc
-    );
+    const currentTypeDoc = useSelector((state: RootState) => state.documents.currentConfirmableDoc);
     const [currentTimeout, setCurrentTimeout] = useState(0);
     const modalState = useSelector((state: RootState) => state.modal.documentsPreview);
-    const isPasportFilled = useSelector(
-        (state: RootState) => state.documents.filledRiskProfileChapters.is_complete_passport
-    );
-    const isRPFilled = useSelector(
-        (state: RootState) => state.documents.filledRiskProfileChapters.is_risk_profile_complete
-    );
-    const isRPFinalFilled = useSelector(
-        (state: RootState) => state.documents.filledRiskProfileChapters.is_risk_profile_complete
-    );
-    const timeoutBetweenConfirmation = useSelector(
-        (state: RootState) => state.documents.timeoutBetweenConfirmation
-    );
-    const messageTypeOptions = {
-        SMS: "SMS",
-        EMAIL: "Email",
-        WHATSAPP: "Whatsapp",
-    };
+    const isPasportFilled = useSelector((state: RootState) => state.documents.filledRiskProfileChapters.is_complete_passport);
+    const isRPFilled = useSelector((state: RootState) => state.documents.filledRiskProfileChapters.is_risk_profile_complete);
+    const isRPFinalFilled = useSelector((state: RootState) => state.documents.filledRiskProfileChapters.is_risk_profile_complete);
+    const timeoutBetweenConfirmation = useSelector((state: RootState) => state.documents.timeoutBetweenConfirmation);
+    const messageTypeOptions = { SMS: "SMS", EMAIL: "Email", WHATSAPP: "Whatsapp" };
+
+    // Состояние для хранения последнего подписанного документа (для описания в successModal)
+    const [lastConfirmedDoc, setLastConfirmedDoc] = useState<string>("");
 
     useEffect(() => {
-        dispatch(getAllBrokersThunk({ is_confirmed_type_doc_agreement_transfer_broker: true, onSuccess: () => { } }))
-    }, [])
+        dispatch(getAllBrokersThunk({ is_confirmed_type_doc_agreement_transfer_broker: true, onSuccess: () => { } }));
+    }, [dispatch]);
 
     useEffect(() => {
-        dispatch(getUserDocumentsStateThunk())
-
-    }, [currentTypeDoc, isRPFilled, isRPFinalFilled])
+        dispatch(getUserDocumentsStateThunk());
+    }, [currentTypeDoc, isRPFilled, isRPFinalFilled, dispatch]);
 
     useEffect(() => {
         if (isPasportFilled) {
             dispatch(getUserDocumentsNotSignedThunk());
         }
-    }, [isPasportFilled])
+    }, [isPasportFilled, dispatch]);
 
     useEffect(() => {
         if (isRPFinalFilled) {
             dispatch(getUserDocumentsNotSignedThunk());
         }
-    }, [isRPFinalFilled])
+    }, [isRPFinalFilled, dispatch]);
 
     const handleMethodChange = (method: 'SMS' | 'EMAIL' | 'WHATSAPP') => {
         formik.setFieldValue("type_message", method);
@@ -94,6 +87,14 @@ export const ConfirmAllDocs: React.FC = () => {
             })
         );
     };
+
+    // useEffect(() => {
+    //     dispatch(getUserDocumentsNotSignedThunk())
+    // }, [currentTypeDoc])
+
+    // useEffect(() => {
+    //     dispatch(getUserDocumentsNotSignedThunk())
+    // }, [])
 
     const formik = useFormik({
         initialValues: {
@@ -116,6 +117,7 @@ export const ConfirmAllDocs: React.FC = () => {
                     dispatch(setStepAdditionalMenuUI(4));
                 }
             } else {
+                // При успешном запросе открываем ConfirmDocsModal
                 dispatch(
                     confirmDocsRequestThunk({
                         data: formik.values,
@@ -164,6 +166,7 @@ export const ConfirmAllDocs: React.FC = () => {
             });
             window.scrollTo({ top: 0, behavior: "smooth" });
         }
+
     }, [currentTypeDoc]);
 
     const renderDocLabel = () => {
@@ -194,8 +197,25 @@ export const ConfirmAllDocs: React.FC = () => {
     }, [currentTypeDoc]);
 
     useEffect(() => {
-        console.log("isBottom:", isBottom);
-    }, [isBottom])
+        if (currentTypeDoc === 'type_doc_passport') {
+            dispatch(setCurrentConfirmableDoc('type_doc_EDS_agreement'));
+        }
+    }, []);
+
+    // Функция для открытия SuccessModal после успешного действия в ConfirmDocsModal
+    const openSuccessModal = (docType?: string) => {
+        const confirmedDoc = docType || currentTypeDoc;
+        setLastConfirmedDoc(confirmedDoc);
+        dispatch(
+            openModal({
+                type: ModalType.SUCCESS,
+                size: ModalSize.MC,
+                animation: ModalAnimation.BOTTOM,
+            })
+        );
+    };
+
+
 
     return (
         <>
@@ -211,7 +231,6 @@ export const ConfirmAllDocs: React.FC = () => {
 
                 <div className={styles.page__container}>
                     <div className={styles.page__image}>
-
                         <div className={styles.page__image__circle}>
                             <Icon Svg={DocsImage} width={194} height={194} />
                         </div>
@@ -220,11 +239,7 @@ export const ConfirmAllDocs: React.FC = () => {
                 <div className={styles.page__container}>
                     <div className={styles.page__preview}>
                         <span className={styles.page__doctype}>{renderDocLabel()}</span>
-                        <Button
-                            onClick={handleOpenPreview}
-                            theme={ButtonTheme.UNDERLINE}
-                            className={styles.button_preview}
-                        >
+                        <Button onClick={handleOpenPreview} theme={ButtonTheme.UNDERLINE} className={styles.button_preview}>
                             Просмотр
                         </Button>
                     </div>
@@ -236,16 +251,8 @@ export const ConfirmAllDocs: React.FC = () => {
                             value={formik.values.is_agree}
                             onChange={formik.handleChange}
                             onBlur={formik.handleBlur}
-                            label={
-                                <span className={styles.checkbox__text}>
-                                    Я ознакомился с вышеизложенным документом и его содержанием
-                                </span>
-                            }
-                            error={
-                                formik.touched.is_agree && formik.errors.is_agree
-                                    ? formik.errors.is_agree
-                                    : ""
-                            }
+                            label={<span className={styles.checkbox__text}>Я ознакомился с вышеизложенным документом и его содержанием</span>}
+                            error={formik.touched.is_agree && formik.errors.is_agree ? formik.errors.is_agree : ""}
                         />
                     </div>
                 </div>
@@ -255,13 +262,10 @@ export const ConfirmAllDocs: React.FC = () => {
                         name="type_message"
                         label=""
                         direction="row"
-                        options={Object.entries(messageTypeOptions).map(([value, label]) => ({
-                            label,
-                            value,
-                        }))}
+                        options={Object.entries(messageTypeOptions).map(([value, label]) => ({ label, value }))}
                         value={formik.values.type_message}
                         onChange={(name, selectedValue) => {
-                            handleMethodChange(selectedValue as keyof typeof messageTypeOptions)
+                            handleMethodChange(selectedValue as keyof typeof messageTypeOptions);
                         }}
                     />
                 </div>
@@ -277,7 +281,6 @@ export const ConfirmAllDocs: React.FC = () => {
                 </div>
             </div>
             <DocumentPreviewModal
-                key={currentTypeDoc}
                 isOpen={modalState.isOpen}
                 onClose={() => {
                     dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW));
@@ -292,6 +295,23 @@ export const ConfirmAllDocs: React.FC = () => {
                 }}
                 docsType={currentTypeDoc}
                 lastData={formik.values}
+                openSuccessModal={openSuccessModal}
+            />
+            <SuccessModal
+                isOpen={useSelector((state: RootState) => state.modal.success.isOpen)}
+                onClose={() => {
+                    dispatch(closeModal(ModalType.SUCCESS));
+                }}
+                title="Документ подписан"
+                description={
+                    <div style={{ textAlign: "center" }}>
+                        Документ “<strong>{lastConfirmedDoc ? docTypeLabels[lastConfirmedDoc] : ""}</strong>” успешно подписан. Можете перейти к подписанию следующего документа
+                    </div>
+                }
+                action={() => {
+                    dispatch(closeModal(ModalType.SUCCESS));
+                    dispatch(closeModal(ModalType.CONFIRM_DOCS));
+                }}
             />
         </>
     );

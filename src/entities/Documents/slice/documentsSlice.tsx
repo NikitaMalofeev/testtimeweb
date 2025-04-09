@@ -77,7 +77,7 @@ const initialState: DocumentsState = {
     loading: false,
     error: null,
     success: false,
-    currentConfirmableDoc: docTypes[0],
+    currentConfirmableDoc: docTypes[1],
     confirmationMethod: 'EMAIL',
     timeoutBetweenConfirmation: 0,
     allNotSignedDocumentsHtml: null,
@@ -250,6 +250,7 @@ export const getUserDocumentsNotSignedThunk = createAsyncThunk<
             const response = await getDocumentsNotSigned(token);
 
             const documents = response.not_signed_documents_htmls;
+            console.log(documents)
             dispatch(setNotSignedDocumentsHtmls(documents));
         } catch (error: any) {
             console.log(error);
@@ -395,10 +396,9 @@ export const documentsSlice = createSlice({
             }
             const currentDocs = state.allNotSignedDocumentsHtml;
             Object.entries(action.payload).forEach(([key, value]) => {
-                if (!(key in currentDocs)) {
-                    currentDocs[key] = value;
-                }
+                currentDocs[key] = value;
             });
+
         },
 
 

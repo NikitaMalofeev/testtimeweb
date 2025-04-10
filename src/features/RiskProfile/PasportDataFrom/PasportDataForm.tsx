@@ -509,7 +509,7 @@ export const PasportDataForm: React.FC = () => {
                         value={formik.values.is_receive_mail_this_address}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
-                        label={<span className={styles.checkbox__text}>Получать почту по этому адресу</span>}
+                        label={<span className={styles.checkbox__text}>Получать почту по этому адресу {!formik.values.is_live_this_address && <span style={{ color: 'red' }}>*</span>}</span>}
                         error={formik.touched.is_receive_mail_this_address && formik.errors.is_receive_mail_this_address}
                     />
 

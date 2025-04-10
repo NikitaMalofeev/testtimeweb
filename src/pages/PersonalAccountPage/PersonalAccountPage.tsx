@@ -31,6 +31,7 @@ import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
 import { ProblemsCodeModal } from "features/RiskProfile/ProblemsCodeModal/ProblemsCodeModal";
 import { postPasportScanThunk } from "entities/RiskProfile/slice/riskProfileSlice";
 import { Tooltip } from "shared/ui/Tooltip/Tooltip";
+import { getAllBrokersThunk } from "entities/Documents/slice/documentsSlice";
 
 const PersonalAccountMenu: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -47,6 +48,10 @@ const PersonalAccountMenu: React.FC = () => {
         dispatch(getUserPersonalAccountInfoThunk());
         window.scrollTo({ top: 0, behavior: "smooth" });
     }, [token]);
+
+    useEffect(() => {
+        dispatch(getAllBrokersThunk({ is_confirmed_type_doc_agreement_transfer_broker: true, onSuccess: () => { } }));
+    }, []);
 
 
     const handleLogout = () => {
@@ -98,7 +103,7 @@ const PersonalAccountMenu: React.FC = () => {
             icon: AccountBrokerIcon,
             title: "Брокер",
             action: () => {
-                if (brokersId.length === 0) {
+                if (brokersId.length !== 0) {
                     return
                 } else if (isPassportFilled) {
                     dispatch(setStepAdditionalMenuUI(5))

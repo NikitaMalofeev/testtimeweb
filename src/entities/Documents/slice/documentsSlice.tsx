@@ -374,6 +374,7 @@ export const getAllBrokersThunk = createAsyncThunk<
                 return rejectWithValue("Отсутствует токен авторизации");
             }
             const response = await getAllBrokers(token, is_confirmed_type_doc_agreement_transfer_broker);
+            dispatch(setBrokerIds({ brokerId: response.data[0].id }))
             console.log(response)
         } catch (error: any) {
             const msg =
@@ -412,6 +413,12 @@ export const documentsSlice = createSlice({
             }
             state.allNotSignedDocumentsHtml["type_doc_broker_api_token"] =
                 action.payload.notSignedDocBroker;
+        },
+        setBrokerIds(
+            state,
+            action: PayloadAction<{ brokerId: string; }>
+        ) {
+            state.brokerIds.push(action.payload.brokerId);
         },
         setTimeoutBetweenConfirmation(state, action: PayloadAction<number>) {
             state.timeoutBetweenConfirmation = action.payload;
@@ -523,7 +530,8 @@ export const {
     setCurrentSignedDocuments,
     setIsRiksProfileComplete,
     setUserPasportData,
-    setBrokerSuccessResponseInfo
+    setBrokerSuccessResponseInfo,
+    setBrokerIds
 } = documentsSlice.actions;
 
 export default documentsSlice.reducer;

@@ -196,6 +196,7 @@ export const ConfirmDocsModal = memo(
                             dispatch(getUserDocumentsStateThunk());
                             if (docsType === 'type_doc_passport') {
                                 dispatch(setStepAdditionalMenuUI(1));
+                                dispatch(getUserDocumentsStateThunk())
                             }
                             if (docsType === 'type_doc_EDS_agreement' && (!isRPFilled || !isRPFinalFilled)) {
                                 dispatch(setStepAdditionalMenuUI(2));
@@ -206,6 +207,10 @@ export const ConfirmDocsModal = memo(
                             }
                             if (docsType === 'type_doc_broker_api_token') {
                                 dispatch(closeAllModals());
+                                document.body.style.overflow = '';
+                                document.body.style.position = '';
+                                document.body.style.width = '';
+                                document.documentElement.style.overflow = '';
                             }
                             setSmsCodeFirst(Array(codeLength).fill(""));
                             // После успешного подтверждения вызываем openSuccessModal (если передан)
@@ -214,6 +219,7 @@ export const ConfirmDocsModal = memo(
                             } else {
                                 onClose();
                             }
+
                         },
                         onClose: () => onClose()
                     })

@@ -76,7 +76,7 @@ export const getDocumentsInfo = async (token: string) => {
 // };
 
 export const getAllBrokers = async (token: string, is_confirmed_type_doc_agreement_transfer_broker: boolean) => {
-    const response = await axios.post(`${apiUrl}user_lk/get_all_brokers/`, { is_confirmed_type_doc_agreement_transfer_broker: false, broker: "tinkoff_brokers" }, {
+    const response = await axios.post(`${apiUrl}user_lk/get_all_brokers/`, { is_confirmed_type_doc_agreement_transfer_broker: is_confirmed_type_doc_agreement_transfer_broker, broker: "tinkoff_brokers" }, {
         headers: {
             "Accept-Language": "ru",
             "Authorization": `Token ${token}`

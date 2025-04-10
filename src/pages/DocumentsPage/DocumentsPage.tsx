@@ -13,6 +13,7 @@ import {
     getBrokerDocumentsSignedThunk,
     getUserDocumentsNotSignedThunk,
     getUserDocumentNotSignedThunk,
+    getAllBrokersThunk,
     // Удалён старый setNotConfirmedDocuments
 } from "entities/Documents/slice/documentsSlice";
 
@@ -359,6 +360,10 @@ const DocumentsPage: React.FC = () => {
             }
         }
     };
+
+    useEffect(() => {
+        dispatch(getAllBrokersThunk({ is_confirmed_type_doc_agreement_transfer_broker: true, onSuccess: () => { } }));
+    }, []);
 
 
     const handleClosePreview = () => {

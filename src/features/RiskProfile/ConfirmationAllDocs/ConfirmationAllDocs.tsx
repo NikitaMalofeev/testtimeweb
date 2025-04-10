@@ -139,8 +139,12 @@ export const ConfirmAllDocs: React.FC = () => {
     });
 
     useEffect(() => {
-        setCurrentTimeout(timeoutBetweenConfirmation);
-    }, [timeoutBetweenConfirmation]);
+        if (timeoutBetweenConfirmation) {
+            setCurrentTimeout(timeoutBetweenConfirmation);
+        } else {
+            setCurrentTimeout(5);
+        }
+    }, [timeoutBetweenConfirmation, currentTypeDoc]);
 
     useEffect(() => {
         if (currentTimeout > 0) {

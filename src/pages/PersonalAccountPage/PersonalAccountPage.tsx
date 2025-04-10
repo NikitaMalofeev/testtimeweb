@@ -197,7 +197,7 @@ const PersonalAccountMenu: React.FC = () => {
                                         squerePosition={{ top: "15px", left: "-4px" }}
                                         topForCenteringIcons="24px"
                                         className={styles.modalContent__tooltip}
-                                        description="Текущий статус работы с вашим счетом, чтобы активировать заполните документы и выберите тариф"
+                                        description="Текущий статус работы с Вашим счетом. Чтобы активировать, заполните документы и выберите тариф"
                                     />
                                 </div>
                             </div>

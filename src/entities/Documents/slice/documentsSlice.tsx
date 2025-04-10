@@ -77,7 +77,7 @@ const initialState: DocumentsState = {
     loading: false,
     error: null,
     success: false,
-    currentConfirmableDoc: docTypes[1],
+    currentConfirmableDoc: docTypes[0],
     confirmationMethod: 'EMAIL',
     timeoutBetweenConfirmation: 0,
     allNotSignedDocumentsHtml: null,

@@ -196,7 +196,6 @@ export const ConfirmDocsModal = memo(
                             dispatch(getUserDocumentsStateThunk());
                             if (docsType === 'type_doc_passport') {
                                 dispatch(setStepAdditionalMenuUI(1));
-                                dispatch(getUserDocumentsStateThunk())
                             }
                             if (docsType === 'type_doc_EDS_agreement' && (!isRPFilled || !isRPFinalFilled)) {
                                 dispatch(setStepAdditionalMenuUI(2));

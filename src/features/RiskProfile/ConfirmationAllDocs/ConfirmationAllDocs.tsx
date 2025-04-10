@@ -286,6 +286,7 @@ export const ConfirmAllDocs: React.FC = () => {
                 isOpen={modalState.isOpen}
                 onClose={() => {
                     dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW));
+                    dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW_SIGNED));
                 }}
                 title={renderDocLabel()}
                 docId={currentTypeDoc}

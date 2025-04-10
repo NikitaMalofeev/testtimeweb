@@ -354,8 +354,8 @@ export const getBrokerDocumentsSignedThunk = createAsyncThunk<
             }
         } catch (error: any) {
             const msg =
-                error.response?.data?.errorText ||
-                "Ошибка при получении подписанного документа";
+                error.response?.request?.errorText ||
+                "Брокер не подтвержден. Обратитесь в поддержку";
             dispatch(setError(msg))
             return rejectWithValue(msg);
         }

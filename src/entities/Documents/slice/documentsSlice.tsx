@@ -356,6 +356,7 @@ export const getBrokerDocumentsSignedThunk = createAsyncThunk<
             const msg =
                 error.response?.data?.errorText ||
                 "Ошибка при получении подписанного документа";
+            dispatch(setError(msg))
             return rejectWithValue(msg);
         }
     }

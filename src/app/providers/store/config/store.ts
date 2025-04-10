@@ -11,6 +11,8 @@ import documentsReducer, { setCurrentSignedDocuments } from 'entities/Documents/
 import riskProfileReducer from 'entities/RiskProfile/slice/riskProfileSlice';
 import personalAccountReducer from 'entities/PersonalAccount/slice/personalAccountSlice';
 import supportChatReducer from 'entities/SupportChat/slice/supportChatSlice';
+import createTransform from 'redux-persist/es/createTransform';
+import { ModalState, ModalType } from 'entities/ui/Modal/model/modalTypes';
 
 const rootReducer = combineReducers({
     ui: uiReducer,
@@ -27,8 +29,42 @@ const rootReducer = combineReducers({
 const persistConfig = getPersistConfig({
     key: 'root',
     storage, // используем localStorage
-    whitelist: ['ui.additionalMenu.currentStep', 'ui.isPushNotificationActive.purpose', 'modal', 'user.user', 'user.token', 'documents.userDocuments', 'documents.allNotSignedDocumentsHtml', 'documents.confirmationMethod', 'documents.currentConfirmableDoc', 'documents.currentSugnedDocument', 'documents.filledRiskProfileChapters', 'documents.userPassportData', 'riskProfile.currentConfirmingDoc', 'riskProfile.passportFormData'],
+    whitelist: [
+        'ui.additionalMenu.currentStep',
+        'ui.isPushNotificationActive.purpose',
+
+        'modal.identificationModal',
+        'modal.select',
+        'modal.confirmCodeModal',
+        'modal.confirmDocsModal',
+        'modal.problemWithCodeModal',
+        'modal.problem',
+        'modal.preview',
+        'modal.resetPassword',
+        'modal.progress',
+        'modal.info',
+        'modal.success',
+        'modal.modalStack',
+        'modal.confirmationMethod',
+        'modal.selectedCountry',
+        'modal.currentProblemScreen',
+
+        'user.user',
+        'user.token',
+
+        'documents.userDocuments',
+        'documents.allNotSignedDocumentsHtml',
+        'documents.confirmationMethod',
+        'documents.currentConfirmableDoc',
+        'documents.currentSugnedDocument',
+        'documents.filledRiskProfileChapters',
+        'documents.userPassportData',
+
+        'riskProfile.currentConfirmingDoc',
+        'riskProfile.passportFormData'],
+    // blacklist: ['modal.documentsPreview', 'modal.documentsPreviewSigned'],
     rootReducer, // обязательно передаём корневой редьюсер
+    // blacklist: ['modal.documentsPreview', 'modal.documentsPreviewSigned']
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

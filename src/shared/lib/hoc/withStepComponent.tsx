@@ -15,20 +15,20 @@ interface WithStepContentProps {
 }
 
 const stepTitles = [
-    "Паспортные данные",
-    "Отправка документов",
     "Риск-профилирование",
     "Уточнение риск профиля",
+    "Паспортные данные",
+    "Отправка документов",
     "Подписание документов",
     "Настройка подключения к брокеру",
     "Отправка документов"
 ];
 
 const stepContents = [
-    <PasportDataForm />,
-    <PasportScanForm />,
     <RiskProfileFirstForm />,
     <RiskProfileSecondForm />,
+    <PasportDataForm />,
+    <PasportScanForm />,
     <ConfirmAllDocs />,
     <BrokerConnectionForm />
 ];
@@ -58,8 +58,6 @@ const withStepContent = (
         const currentStep = useSelector((state: RootState) => state.ui.additionalMenu.currentStep);
 
         const stepTooltipDescriptions = [
-            'Данные вводимые в форму должны совпадать с паспортными данными и свидетельством ИНН',
-            'Данные вводимые в форму должны совпадать с паспортными данными и свидетельством ИНН',
             'Пройдите анкетирование для определения вашего инвестиционного профиля',
             <div className={styles.description}>
                 <div className={styles.description__container}>
@@ -68,6 +66,8 @@ const withStepContent = (
                     <span className={styles.description__value}>{maxRiskProfile}</span> */}
                 </div>
             </div>,
+            'Данные вводимые в форму должны совпадать с паспортными данными и свидетельством ИНН',
+            'Данные вводимые в форму должны совпадать с паспортными данными и свидетельством ИНН',
             'Подписание документов по "ЭДО"'
         ];
 

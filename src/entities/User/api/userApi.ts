@@ -1,7 +1,11 @@
 import axios from "axios";
 import { ProblemsRequestData, ResetPasswordConfirm, UserLogin } from "../types/userTypes";
 
-const apiUrl = import.meta.env.VITE_RANKS_TEST_API_URL;
+const apiUrl =
+    import.meta.env.VITE_USE_LOCAL_API === "true"
+        ? import.meta.env.VITE_RANKS_TEST_API_URL_LOCAL
+        : import.meta.env.VITE_RANKS_TEST_API_URL;
+
 
 export const getAllUserInfo = async (token: string) => {
     const response = await axios.get(`${apiUrl}create_doc_user/get_user_info/`, {

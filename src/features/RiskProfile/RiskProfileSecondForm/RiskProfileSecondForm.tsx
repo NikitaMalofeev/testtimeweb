@@ -13,6 +13,10 @@ import { debounce } from "lodash";
 import { SecondRiskProfilePayload } from "entities/RiskProfile/model/types";
 import { Select } from "shared/ui/Select/Select";
 import { Loader } from "shared/ui/Loader/Loader";
+import { SuccessModal } from "../SuccessModal/SuccessModal";
+import { closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
+import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
+import { useNavigate } from "react-router-dom";
 
 interface SwiperParametrValues {
     risk_prof_conservative: string;
@@ -45,8 +49,9 @@ export const RiskProfileSecondForm: React.FC = () => {
     const secondRiskProfileData = useSelector((state: RootState) => state.riskProfile.secondRiskProfileData);
     const { loading } = useSelector((state: RootState) => state.riskProfile);
     const thirdRiskProfileResponse = useSelector((state: RootState) => state.riskProfile.thirdRiskProfileResponse);
-
+    const navigate = useNavigate();
     const goBack = () => dispatch(prevStep());
+    const successModalOpen = useSelector((state: RootState) => state.modal.success.isOpen);
 
     const formik = useFormik({
         enableReinitialize: true,
@@ -58,7 +63,6 @@ export const RiskProfileSecondForm: React.FC = () => {
             risk_profiling_final: ''
         },
         onSubmit: async (values) => {
-
         },
     });
 
@@ -125,7 +129,13 @@ export const RiskProfileSecondForm: React.FC = () => {
     const handlePostRiskProfileDetailedInfo = async () => {
         try {
             await dispatch(postSecondRiskProfileFormFinal(formik.values)).unwrap();
-            dispatch(setStepAdditionalMenuUI(4));
+            dispatch(
+                openModal({
+                    type: ModalType.SUCCESS,
+                    size: ModalSize.MC,
+                    animation: ModalAnimation.BOTTOM,
+                })
+            );
         } catch (error) {
 
         }
@@ -319,6 +329,26 @@ export const RiskProfileSecondForm: React.FC = () => {
                         </Button>
                     </div>
                 </form>
+                <SuccessModal
+                    isOpen={successModalOpen}
+                    onClose={() => {
+                        dispatch(closeModal(ModalType.SUCCESS));
+                    }}
+                    title="Анкета риск профиля заполнена"
+                    description={
+                        <div style={{ textAlign: "center" }}>
+                            Отлично! Анкета заполнена, теперь вы можете перейти к заполнению документов.
+                        </div>
+                    }
+                    action={() => {
+                        navigate('/documents')
+                        dispatch(closeModal(ModalType.SUCCESS));
+                        dispatch(closeModal(ModalType.IDENTIFICATION));
+                        dispatch(closeModal(ModalType.CONFIRM_DOCS));
+                    }}
+                    actionText="Перейти к документам"
+
+                />
             </div>
         );
     }

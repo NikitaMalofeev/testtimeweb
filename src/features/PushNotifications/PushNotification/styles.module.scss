@@ -6,6 +6,7 @@
     display: flex;
     gap: 10px;
     max-height: max-content;
+    animation: scalePulse 5s infinite;
 
     &__title {
         font-family: Inter;
@@ -30,3 +31,16 @@ letter-spacing: -0.27px;
         height: 38px;
     }
 }
+
+@keyframes scalePulse {
+    0%, 85%, 100% {
+      transform: scale(1);
+    }
+    90% {
+      transform: scale(0.95);
+    }
+  }
+  
+  .your-element {
+    animation: scalePulse 5s infinite;
+  }

@@ -47,6 +47,7 @@ export const ConfirmAllDocs: React.FC = () => {
     const isRPFinalFilled = useSelector((state: RootState) => state.documents.filledRiskProfileChapters.is_risk_profile_complete);
     const timeoutBetweenConfirmation = useSelector((state: RootState) => state.documents.timeoutBetweenConfirmation);
     const messageTypeOptions = { SMS: "SMS", EMAIL: "Email", WHATSAPP: "Whatsapp" };
+    const successModalOpen = useSelector((state: RootState) => state.modal.success.isOpen)
 
     // Состояние для хранения последнего подписанного документа (для описания в successModal)
     const [lastConfirmedDoc, setLastConfirmedDoc] = useState<string>("");
@@ -109,12 +110,12 @@ export const ConfirmAllDocs: React.FC = () => {
         }),
         onSubmit: () => {
             if (currentTypeDoc === "type_doc_passport" && !isPasportFilled) {
-                dispatch(setStepAdditionalMenuUI(0));
+                dispatch(setStepAdditionalMenuUI(3));
             } else if (currentTypeDoc === "type_doc_RP_questionary") {
                 if (isRPFilled) {
-                    dispatch(setStepAdditionalMenuUI(2));
+                    dispatch(setStepAdditionalMenuUI(0));
                 } else if (isRPFinalFilled) {
-                    dispatch(setStepAdditionalMenuUI(3));
+                    dispatch(setStepAdditionalMenuUI(1));
                 } else {
                     dispatch(setStepAdditionalMenuUI(4));
                 }
@@ -231,7 +232,7 @@ export const ConfirmAllDocs: React.FC = () => {
                         <Icon Svg={ArrowBack} width={24} height={24} /> Назад
                     </div>
                     <div className={styles.page__counter}>
-                        Документ {currentIndex + 1} из {totalDocs}
+                        Документ {currentIndex} из {totalDocs - 1}
                     </div>
                 </div>
 
@@ -305,7 +306,7 @@ export const ConfirmAllDocs: React.FC = () => {
                 openSuccessModal={openSuccessModal}
             />
             <SuccessModal
-                isOpen={useSelector((state: RootState) => state.modal.success.isOpen)}
+                isOpen={successModalOpen}
                 onClose={() => {
                     dispatch(closeModal(ModalType.SUCCESS));
                 }}

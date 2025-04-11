@@ -1,7 +1,11 @@
 import axios from "axios";
 import { ConfirmDocsPayload } from "../types/documentsTypes";
 
-const apiUrl = import.meta.env.VITE_RANKS_TEST_API_URL;
+const apiUrl =
+    import.meta.env.VITE_USE_LOCAL_API === "true"
+        ? import.meta.env.VITE_RANKS_TEST_API_URL_LOCAL
+        : import.meta.env.VITE_RANKS_TEST_API_URL;
+
 
 export const confirmDocsRequest = async (data: ConfirmDocsPayload, token: string) => {
     const response = await axios.post(`${apiUrl}create_doc_user/sixth_signing_documents/`, data, {

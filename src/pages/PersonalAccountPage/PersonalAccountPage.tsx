@@ -62,7 +62,6 @@ const PersonalAccountMenu: React.FC = () => {
         navigate("/");
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
-
     const isPassportFilled = filledRiskProfileChapters.is_complete_passport && filledRiskProfileChapters.is_exist_scan_passport;
 
     const items: PersonalAccountItem[] = [
@@ -70,34 +69,23 @@ const PersonalAccountMenu: React.FC = () => {
             icon: AccountDocumentIcon,
             title: "Документы",
             route: "/documents",
-            notificationsCount: 9 - userDocuments.length,
+            notificationsCount: 8 - userDocuments.length,
             iconWidth: 23,
             iconHeight: 28,
-            warningMessage: 9 - userDocuments.length !== 0 ? (
-                <div className={styles.warning}>
-                    <Icon Svg={WarningIcon} width={16} height={16} />
-                    <div>Есть неподписанные документы ({9 - userDocuments.length} шт.)</div>
-                </div>
-            ) : null,
-        },
-        {
-            icon: AccountChatIcon,
-            title: "Чат поддержки",
-            action: () => {
-                navigate("/support");
-                // Здесь можно сбрасывать уведомления, если это требуется при переходе в чат
-            },
-            iconWidth: 28,
-            iconHeight: 28,
-            notificationsCount: unreadAnswersCount,
-        },
-        {
-            icon: AccountNotificationIcon,
-            title: "Уведомления",
-            action: () => dispatch(setCurrentTab("notifications")),
-            notificationsCount: 0,
-            iconWidth: 25,
-            iconHeight: 28,
+            warningMessage: filledRiskProfileChapters.is_risk_profile_complete_final
+                ? (8 - userDocuments.length !== 0 ? (
+                    <div className={styles.warning}>
+                        <Icon Svg={WarningIcon} width={16} height={16} />
+                        <div>Есть неподписанные документы ({9 - userDocuments.length - 1} шт.)</div>
+                    </div>
+                ) : null)
+                :
+                (
+                    <div className={styles.warning}>
+                        <Icon Svg={WarningIcon} width={16} height={16} />
+                        <div>Заполните анкету риск-профиля</div>
+                    </div>
+                )
         },
         {
             icon: AccountBrokerIcon,
@@ -122,6 +110,25 @@ const PersonalAccountMenu: React.FC = () => {
                     </div>
                 </div>
             ) : null,
+        },
+        {
+            icon: AccountChatIcon,
+            title: "Чат поддержки",
+            action: () => {
+                navigate("/support");
+                // Здесь можно сбрасывать уведомления, если это требуется при переходе в чат
+            },
+            iconWidth: 28,
+            iconHeight: 28,
+            notificationsCount: unreadAnswersCount,
+        },
+        {
+            icon: AccountNotificationIcon,
+            title: "Уведомления",
+            action: () => dispatch(setCurrentTab("notifications")),
+            notificationsCount: 0,
+            iconWidth: 25,
+            iconHeight: 28,
         },
         {
             icon: AccountSettingsIcon,
@@ -194,8 +201,9 @@ const PersonalAccountMenu: React.FC = () => {
                                 <div className={styles.page__status__tooltip}>
                                     <Tooltip
                                         positionBox={{ top: "8px", left: '30px' }}
-                                        squerePosition={{ top: "15px", left: "-4px" }}
+                                        squerePosition={{ top: "54px", left: "-4px" }}
                                         topForCenteringIcons="24px"
+                                        boxWidth={{ maxWidth: '200px' }}
                                         className={styles.modalContent__tooltip}
                                         description="Текущий статус работы с Вашим счетом. Чтобы активировать, заполните документы и выберите тариф"
                                     />
@@ -231,21 +239,24 @@ const PersonalAccountMenu: React.FC = () => {
                                 key={index}
                                 style={{
                                     ...(
-                                        (item.title !== "Документы" &&
-                                            item.title !== "Чат поддержки" &&
-                                            item.title !== "Выйти из учетной записи") &&
-                                            (item.title === "Брокер"
-                                                ? (!isPassportFilled)
-                                                : true)
-                                            ? { opacity: "0.5" }
-                                            : {}
+                                        item.title === "Документы"
+                                            ? (!filledRiskProfileChapters.is_risk_profile_complete_final ? { opacity: "0.5" } : {})
+                                            : (item.title !== "Чат поддержки" &&
+                                                item.title !== "Выйти из учетной записи" &&
+                                                (item.title === "Брокер" ? !isPassportFilled : true)
+                                            )
+                                                ? { opacity: "0.5" }
+                                                : {}
                                     ),
                                     ...(item.warningMessage && { padding: "18px 0 34px" }),
                                 }}
 
+
                                 onClick={() => {
                                     if (item.route) {
-                                        navigate(item.route);
+                                        if (item.route === '/documents') {
+                                            filledRiskProfileChapters.is_risk_profile_complete_final && navigate(item.route);
+                                        }
                                     } else if (item.action) {
                                         item.action();
                                     }

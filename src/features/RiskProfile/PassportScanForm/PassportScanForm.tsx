@@ -115,7 +115,7 @@ export const PasportScanForm: React.FC = () => {
                     dispatch(getUserDocumentsStateThunk())
                     setTimeout(() => {
                         closeModal(ModalType.PROGRESS)
-                        dispatch(setStepAdditionalMenuUI(2))
+                        dispatch(setStepAdditionalMenuUI(4))
                     }, 2000)
                 }
             })
@@ -426,7 +426,7 @@ export const PasportScanForm: React.FC = () => {
                 description="Вы можете дождаться загрузки или перейти к следующему шагу"
                 buttonTitle="Далее" action={() => {
                     closeModal(ModalType.PROGRESS)
-                    dispatch(setStepAdditionalMenuUI(2))
+                    dispatch(setStepAdditionalMenuUI(4))
                 }} />
         </>
     );

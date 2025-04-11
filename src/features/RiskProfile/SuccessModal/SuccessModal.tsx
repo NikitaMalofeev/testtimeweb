@@ -17,9 +17,10 @@ interface SuccessModalProps {
     title?: string;
     description: ReactElement;
     action: () => void;
+    actionText?: string;
 }
 
-export const SuccessModal = memo(({ isOpen, onClose, title, description, action }: SuccessModalProps) => {
+export const SuccessModal = memo(({ isOpen, onClose, title, description, action, actionText }: SuccessModalProps) => {
     const modalState = useSelector((state: RootState) => state.modal);
     const navigate = useNavigate()
     const dispatch = useAppDispatch()
@@ -57,7 +58,7 @@ export const SuccessModal = memo(({ isOpen, onClose, title, description, action 
                         onClick={() => action()}
                         className={styles.submitButton}
                     >
-                        Перейти к следующему
+                        {actionText ? actionText : 'Перейти к следующему'}
                     </Button>
                 </div>
             </div>

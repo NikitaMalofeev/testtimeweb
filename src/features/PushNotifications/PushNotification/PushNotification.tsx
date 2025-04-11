@@ -25,8 +25,8 @@ export const PushNotification = () => {
 
     const pushPurpose: { [key: string]: { title: string; description: string, action: () => void } } = {
         filledPasport: {
-            title: "Необходимо заполнить паспортные данные",
-            description: "Заполнить паспортные данные можно в разделе \"Документы\"",
+            title: "Необходимо заполнить Анкету риск-профилирования",
+            description: "Заполнить Анкету можно в разделе \"Личный кабинет\"",
             action: () => {
                 navigate('/documents')
                 dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }));

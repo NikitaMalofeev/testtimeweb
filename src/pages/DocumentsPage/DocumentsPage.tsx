@@ -111,38 +111,15 @@ const DocumentsPage: React.FC = () => {
     const handleSignDocument = (docId: string) => {
         switch (docId) {
             case "type_doc_RP_questionnairy":
-                if (
-                    filledRiskProfileChapters.is_risk_profile_complete &&
-                    !filledRiskProfileChapters.is_risk_profile_complete_final
-                ) {
-                    dispatch(setStepAdditionalMenuUI(3));
-                    dispatch(
-                        openModal({
-                            type: ModalType.IDENTIFICATION,
-                            size: ModalSize.FULL,
-                            animation: ModalAnimation.LEFT,
-                        })
-                    );
-                } else if (filledRiskProfileChapters.is_risk_profile_complete_final) {
-                    dispatch(setCurrentConfirmableDoc("type_doc_RP_questionnairy"));
-                    dispatch(setStepAdditionalMenuUI(4));
-                    dispatch(
-                        openModal({
-                            type: ModalType.IDENTIFICATION,
-                            size: ModalSize.FULL,
-                            animation: ModalAnimation.LEFT,
-                        })
-                    );
-                } else {
-                    dispatch(setStepAdditionalMenuUI(2));
-                    dispatch(
-                        openModal({
-                            type: ModalType.IDENTIFICATION,
-                            size: ModalSize.FULL,
-                            animation: ModalAnimation.LEFT,
-                        })
-                    );
-                }
+                dispatch(setCurrentConfirmableDoc("type_doc_RP_questionnairy"));
+                dispatch(setStepAdditionalMenuUI(4));
+                dispatch(
+                    openModal({
+                        type: ModalType.IDENTIFICATION,
+                        size: ModalSize.FULL,
+                        animation: ModalAnimation.LEFT,
+                    })
+                );
                 break;
             case "type_doc_passport": {
                 // Проверяем, подписан ли паспорт (есть ли дата подтверждения)
@@ -151,7 +128,7 @@ const DocumentsPage: React.FC = () => {
 
                 if (!filledRiskProfileChapters.is_complete_passport || !isPassportSigned) {
                     dispatch(setCurrentConfirmableDoc("type_doc_passport"));
-                    dispatch(setStepAdditionalMenuUI(0));
+                    dispatch(setStepAdditionalMenuUI(2));
                     dispatch(
                         openModal({
                             type: ModalType.IDENTIFICATION,
@@ -161,7 +138,7 @@ const DocumentsPage: React.FC = () => {
                     );
                 } else if (!filledRiskProfileChapters.is_exist_scan_passport) {
                     dispatch(setCurrentConfirmableDoc("type_doc_passport"));
-                    dispatch(setStepAdditionalMenuUI(1));
+                    dispatch(setStepAdditionalMenuUI(3));
                     dispatch(
                         openModal({
                             type: ModalType.IDENTIFICATION,

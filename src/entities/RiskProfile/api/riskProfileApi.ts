@@ -1,8 +1,11 @@
 import axios from "axios";
 import { IdentificationProfileData, ConfirmationCodeData, NeedHelpData, TrustedPersonInfo, SecondRiskProfilePayload, PasportFormData, ConfirmationDocsData, BrokerSetTokenPayload } from "entities/RiskProfile/model/types";
 import { PasportScanData } from "features/RiskProfile/PassportScanForm/PassportScanForm";
+const apiUrl =
+    import.meta.env.VITE_USE_LOCAL_API === "true"
+        ? import.meta.env.VITE_RANKS_TEST_API_URL_LOCAL
+        : import.meta.env.VITE_RANKS_TEST_API_URL;
 
-const apiUrl = import.meta.env.VITE_RANKS_TEST_API_URL;
 
 export const postIdentificationData = async (data: IdentificationProfileData) => {
     const response = await axios.post(`${apiUrl}create_doc_user/first_primary_data/`, data, {

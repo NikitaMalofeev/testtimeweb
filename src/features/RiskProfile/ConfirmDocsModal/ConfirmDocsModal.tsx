@@ -195,13 +195,9 @@ export const ConfirmDocsModal = memo(
                         onSuccess: (data: any) => {
                             dispatch(getUserDocumentsStateThunk());
                             if (docsType === 'type_doc_passport') {
-                                dispatch(setStepAdditionalMenuUI(1));
-                            }
-                            if (docsType === 'type_doc_EDS_agreement' && (!isRPFilled || !isRPFinalFilled)) {
-                                dispatch(setStepAdditionalMenuUI(2));
-                            } else if (docsType === 'type_doc_EDS_agreement' && (isRPFilled && !isRPFinalFilled)) {
                                 dispatch(setStepAdditionalMenuUI(3));
-                            } else if (docsType === 'type_doc_EDS_agreement' && (isRPFilled && isRPFinalFilled)) {
+                            }
+                            if (docsType === 'type_doc_EDS_agreement' && (isRPFilled && isRPFinalFilled)) {
                                 dispatch(setStepAdditionalMenuUI(4));
                             }
                             if (docsType === 'type_doc_broker_api_token') {
@@ -213,9 +209,7 @@ export const ConfirmDocsModal = memo(
                             }
                             setSmsCodeFirst(Array(codeLength).fill(""));
 
-                            console.log('таймаут1')
                             if (docsType) {
-                                console.log('таймаут2')
                                 dispatch(setDocumentTimeoutPending({ docKey: docsType, timeout: 10000 }));
                             }
 

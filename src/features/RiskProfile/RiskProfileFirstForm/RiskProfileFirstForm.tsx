@@ -240,7 +240,7 @@ export const RiskProfileFirstForm: React.FC = () => {
         if (isLastStep) {
             dispatch(postFirstRiskProfileForm(formik.values));
             dispatch(updateUserAllData({ gender: String(formik.values.gender) }));
-            dispatch(setStepAdditionalMenuUI(3));
+            dispatch(setStepAdditionalMenuUI(1));
         } else {
             dispatch(updateRiskProfileForm(formik.values));
             dispatch(nextRiskProfileStep());

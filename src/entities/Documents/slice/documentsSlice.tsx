@@ -14,6 +14,7 @@ import { postBrokerConfirmationDocsCode, postConfirmationDocsCode } from "entiti
 export interface DocumentConfirmationInfo {
     key: string;
     date_last_confirmed: string | null; // null, если документ не подписан
+    timeoutPending?: number;
 }
 
 export interface UserPassportData {
@@ -195,22 +196,39 @@ export const getUserDocumentsStateThunk = createAsyncThunk<
                 return rejectWithValue("Отсутствует токен авторизации");
             }
             const response = await getDocumentsState(token);
-            const { is_risk_profile_complete, is_risk_profile_complete_final, is_exist_scan_passport, is_complete_passport } = response
+            const { is_risk_profile_complete, is_risk_profile_complete_final, is_exist_scan_passport, is_complete_passport } = response;
 
-            dispatch(setIsRiksProfileComplete({ is_risk_profile_complete, is_risk_profile_complete_final, is_complete_passport, is_exist_scan_passport }))
-            // См. пример структуры: { confirmed_documents: DocumentConfirmationInfo[] }
+            dispatch(
+                setIsRiksProfileComplete({
+                    is_risk_profile_complete,
+                    is_risk_profile_complete_final,
+                    is_complete_passport,
+                    is_exist_scan_passport,
+                })
+            );
+
             const confirmedDocuments = response.confirmed_documents;
+            const currentDocs = getState().documents.userDocuments;
+            const mergedDocs = confirmedDocuments.map((doc: DocumentConfirmationInfo) => {
+                const localDoc = currentDocs.find(d => d.key === doc.key);
+                return {
+                    ...doc,
+                    // сохраняем локальное значение таймера, если оно уже было установлено,
+                    // иначе оставляем значение из данных сервера или 0
+                    timeoutPending: localDoc?.timeoutPending ?? doc.timeoutPending ?? 0,
+                };
+            });
 
-            // Сохраняем весь массив в state.userDocuments
-            dispatch(setUserDocuments(confirmedDocuments));
+            dispatch(setUserDocuments(mergedDocs));
         } catch (error: any) {
             console.log(error);
-            const msg =
-                error.response?.data?.errorText
+            const msg = error.response?.data?.errorText;
             dispatch(setError(msg));
         }
     }
 );
+
+
 
 export const getUserDocumentsInfoThunk = createAsyncThunk<
     void,
@@ -448,7 +466,41 @@ export const documentsSlice = createSlice({
         ) {
             state.filledRiskProfileChapters = action.payload;
         },
+        setDocumentTimeoutPending(
+            state,
+            action: PayloadAction<{ docKey: string; timeout: number }>
+        ) {
+            const { docKey, timeout } = action.payload;
+            const doc = state.userDocuments.find(doc => doc.key === docKey);
+            if (doc) {
+                doc.timeoutPending = timeout;
+            } else {
+                // Если документа с таким ключом ещё нет, добавляем его с null датой подтверждения
+                state.userDocuments.push({
+                    key: docKey,
+                    date_last_confirmed: null,
+                    timeoutPending: timeout,
+                });
+            }
+        },
 
+        decrementDocumentTimeout(
+            state,
+            action: PayloadAction<{ docKey: string; decrement: number }>
+        ) {
+            const { docKey, decrement } = action.payload;
+            const doc = state.userDocuments.find(doc => doc.key === docKey);
+            if (doc && typeof doc.timeoutPending === "number" && doc.timeoutPending > 0) {
+                doc.timeoutPending = Math.max(0, doc.timeoutPending - decrement);
+            }
+        },
+        clearDocumentTimeout(state, action: PayloadAction<string>) {
+            const docKey = action.payload;
+            const doc = state.userDocuments.find(doc => doc.key === docKey);
+            if (doc) {
+                doc.timeoutPending = 0;
+            }
+        },
 
         nextDocType(state) {
             const currentIndex = docTypes.findIndex(
@@ -532,7 +584,10 @@ export const {
     setIsRiksProfileComplete,
     setUserPasportData,
     setBrokerSuccessResponseInfo,
-    setBrokerIds
+    setBrokerIds,
+    setDocumentTimeoutPending,
+    decrementDocumentTimeout,
+    clearDocumentTimeout
 } = documentsSlice.actions;
 
 export default documentsSlice.reducer;

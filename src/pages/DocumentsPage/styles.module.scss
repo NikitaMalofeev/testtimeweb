@@ -65,6 +65,7 @@ text-align: center;
     display: flex;
     flex-direction: column;
     gap: 10px;
+    justify-content: space-between;
 }
 
 .document__preview {
@@ -115,6 +116,16 @@ text-align: center;
     letter-spacing: 0%;
     text-align: end;
     color: #797979;
+}
+
+.documents__timer {
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 14.52px;
+    letter-spacing: 0%;
+    text-align: end;
+    color: #797979;
+    margin-bottom: 4px;
 }
 
 .documents__list {

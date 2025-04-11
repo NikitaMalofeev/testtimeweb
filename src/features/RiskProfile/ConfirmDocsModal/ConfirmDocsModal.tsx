@@ -17,7 +17,7 @@ import {
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { selectModalState } from "entities/ui/Modal/selectors/selectorsModals";
 import { setTooltipActive, setConfirmationDocsSuccess, setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
-import { confirmDocsRequestThunk, getUserDocumentsStateThunk, sendDocsConfirmationCode } from "entities/Documents/slice/documentsSlice";
+import { clearDocumentTimeout, confirmDocsRequestThunk, getUserDocumentsStateThunk, sendDocsConfirmationCode, setDocumentTimeoutPending } from "entities/Documents/slice/documentsSlice";
 import { ConfirmDocsPayload } from "entities/Documents/types/documentsTypes";
 
 interface ConfirmInfoModalProps {
@@ -212,19 +212,25 @@ export const ConfirmDocsModal = memo(
                                 document.documentElement.style.overflow = '';
                             }
                             setSmsCodeFirst(Array(codeLength).fill(""));
-                            // После успешного подтверждения вызываем openSuccessModal (если передан)
+
+                            console.log('таймаут1')
+                            if (docsType) {
+                                console.log('таймаут2')
+                                dispatch(setDocumentTimeoutPending({ docKey: docsType, timeout: 10000 }));
+                            }
+
                             if (openSuccessModal) {
                                 openSuccessModal(docsType);
                             } else {
                                 onClose();
                             }
-
                         },
                         onClose: () => onClose()
                     })
                 );
             }
         }, [smsCodeFirst, isRPFilled, isRPFinalFilled]);
+
 
         return (
             <Modal

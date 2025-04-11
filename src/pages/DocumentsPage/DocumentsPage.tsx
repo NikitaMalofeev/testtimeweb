@@ -14,6 +14,7 @@ import {
     getUserDocumentsNotSignedThunk,
     getUserDocumentNotSignedThunk,
     getAllBrokersThunk,
+    decrementDocumentTimeout,
     // Удалён старый setNotConfirmedDocuments
 } from "entities/Documents/slice/documentsSlice";
 
@@ -236,14 +237,13 @@ const DocumentsPage: React.FC = () => {
     // Если date_last_confirmed === null => "not signed" (или "signable").
     // Иначе => "signed".
     const documents = docOrder.map((type) => {
-        // Ищем объект в userDocuments с key===type
+        // Ищем документ с key===type в userDocuments
         const docInfo = userDocuments.find((doc) => doc.key === type);
 
         const date = docInfo?.date_last_confirmed || null;
         let status = date ? "signed" : "signable"; // если нет даты => значит не подписан
 
-        // Для type_doc_EDS_agreement проверяем filledRiskProfileChapters.exist_passport.
-        // Если паспорта нет, документ нельзя подписывать – ставим статус "disabled".
+        // Обработка исключений для EDS и брокерского документа
         if (type === "type_doc_EDS_agreement" && !filledRiskProfileChapters.is_exist_scan_passport) {
             status = "disabled";
         }
@@ -255,8 +255,10 @@ const DocumentsPage: React.FC = () => {
             title: docTypeLabels[type],
             date, // date_last_confirmed или null
             status,
+            timeoutPending: docInfo?.timeoutPending // здесь добавляем новое свойство
         };
     });
+
 
     // Ищем первый документ, у которого status === "signable" (то есть не подписан)
     const firstNotConfirmed = documents.find((doc) => doc.status === "signable")?.id;
@@ -290,6 +292,7 @@ const DocumentsPage: React.FC = () => {
             colorClass,
         };
     });
+
 
     const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
 
@@ -362,6 +365,19 @@ const DocumentsPage: React.FC = () => {
     };
 
     useEffect(() => {
+        const interval = setInterval(() => {
+            // Пройдём по каждому документу, если таймер активен, уменьшаем его на 1000 мс
+            documents.forEach((doc) => {
+                if (doc.status === "signed" && typeof doc.timeoutPending === "number" && doc.timeoutPending > 0) {
+                    dispatch(decrementDocumentTimeout({ docKey: doc.id, decrement: 1000 }));
+                }
+            });
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [userDocuments, dispatch]);
+
+
+    useEffect(() => {
         dispatch(getAllBrokersThunk({ is_confirmed_type_doc_agreement_transfer_broker: true, onSuccess: () => { } }));
     }, []);
 
@@ -417,23 +433,34 @@ const DocumentsPage: React.FC = () => {
                                     <div className={styles.document__info__flex}>
                                         {doc.status === "signed" && (
                                             <>
-                                                <Button
-                                                    className={styles.document__preview}
-                                                    theme={ButtonTheme.UNDERLINE}
-                                                    onClick={() => handleOpenPreview(doc.id)}
-                                                >
-                                                    Просмотр
-                                                </Button>
-                                                {doc.id !== "type_doc_passport" && (
-                                                    <Icon
-                                                        Svg={DownloadIcon}
-                                                        onClick={() => handleDownloadPdf(doc.id)}
-                                                        width={33}
-                                                        height={33}
-                                                    />
+                                                {doc.timeoutPending && doc.timeoutPending > 0 ? (
+                                                    <span className={styles.documents__timer}>
+                                                        Формирование документа (
+                                                        {Math.ceil(doc.timeoutPending / 1000)} с)
+                                                    </span>
+                                                ) : (
+                                                    <>
+                                                        <Button
+                                                            className={styles.document__preview}
+                                                            theme={ButtonTheme.UNDERLINE}
+                                                            onClick={() => handleOpenPreview(doc.id)}
+                                                        >
+                                                            Просмотр
+                                                        </Button>
+                                                        {doc.id !== "type_doc_passport" && (
+                                                            <Icon
+                                                                Svg={DownloadIcon}
+                                                                onClick={() => handleDownloadPdf(doc.id)}
+                                                                width={33}
+                                                                height={33}
+                                                            />
+                                                        )}
+                                                    </>
                                                 )}
                                             </>
                                         )}
+
+
                                     </div>
                                 </div>
 

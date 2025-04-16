@@ -8,6 +8,8 @@ import footerSocialVK from 'shared/assets/svg/footerSocialVK.svg'
 import footerSocialYT from 'shared/assets/svg/footerSocialYT.svg'
 import footerEagle from 'shared/assets/svg/FooterEagle.svg'
 import footerDocument from 'shared/assets/svg/footerDocument.svg'
+import faqWhite from 'shared/assets/svg/faqWhite.svg'
+import { useNavigate } from "react-router-dom";
 
 export const Footer = () => {
 
@@ -17,6 +19,8 @@ export const Footer = () => {
         vk: "https://vk.com/rankspro",
         youtube: "https://www.youtube.com/@ranksanalytics",
     };
+
+    const navigate = useNavigate()
 
     const handleSocialClick = (url: string) => {
         window.open(url, "_blank");
@@ -80,7 +84,11 @@ export const Footer = () => {
                 </div>
                 <div className={styles.footer__docs}>
                     <Icon width={24} height={24} Svg={footerDocument} className={styles.footer__docIcon} />
-                    <p className={styles.footer__docsText}>Документы/Раскрытие информации</p>
+                    <p className={styles.footer__docsText} onClick={() => navigate('/information')}>Документы/Раскрытие информации</p>
+                </div>
+                <div className={styles.footer__docs}>
+                    <Icon width={24} height={24} Svg={faqWhite} className={styles.footer__docIcon} />
+                    <p className={styles.footer__docsText} onClick={() => navigate('/faq')}>FAQ</p>
                 </div>
             </div>
 

@@ -18,6 +18,7 @@ import AccountMailIcon from "shared/assets/svg/AccountMailIcon.svg";
 import AccountChatIcon from "shared/assets/svg/AccountChatIcon.svg";
 import AccountBrokerIcon from "shared/assets/svg/AccountBrokerIcon.svg";
 import AccountRPIcon from "shared/assets/svg/AccountRPIcon.svg";
+import faqBlue from "shared/assets/svg/faqBlue.svg";
 
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { getUserPersonalAccountInfoThunk, setUserToken } from "entities/User/slice/userSlice";
@@ -144,6 +145,13 @@ const PersonalAccountMenu: React.FC = () => {
             iconWidth: 28,
             iconHeight: 28,
             notificationsCount: unreadAnswersCount,
+        },
+        {
+            icon: faqBlue,
+            title: "FAQ",
+            action: () => navigate("/faq"),
+            iconWidth: 26,
+            iconHeight: 26,
         },
         {
             icon: AccountNotificationIcon,

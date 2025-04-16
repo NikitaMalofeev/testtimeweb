@@ -16,7 +16,7 @@ import PasportExFirst from 'shared/assets/images/pasportExFirst.jpg'
 import PasportExSecond from 'shared/assets/images/pasportExSecond.jpg'
 import { closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
-import { UploadProgressModal } from "features/Ui/UploadProgressModal.tsx/UploadProgressModal";
+import { UploadProgressModal } from "features/Ui/UploadProgressModal/UploadProgressModal";
 import { getUserDocumentsStateThunk } from "entities/Documents/slice/documentsSlice";
 import { setError } from "entities/Error/slice/errorSlice";
 

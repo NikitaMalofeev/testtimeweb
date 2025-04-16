@@ -31,6 +31,10 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     display: none !important;
 }
 
+input[type="search"]::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    display: none;
+  }
 
 input[type="date"] {
     &::-webkit-calendar-picker-indicator {

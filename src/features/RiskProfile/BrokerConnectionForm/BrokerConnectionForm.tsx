@@ -159,7 +159,7 @@ export const BrokerConnectionForm: React.FC = () => {
             <InfoModal
                 isOpen={modalState.info.isOpen}
                 title='Завершающий шаг'
-                description='Для предоставления услуги необходимо подписать документ «Согласие на передачу API ключак брокерскому счету»'
+                description='Для предоставления услуги необходимо подписать документ «Согласие на передачу API ключа к брокерскому счету»'
                 buttonText='Перейти к подписи'
                 action={() => {
                     navigate('/documents')

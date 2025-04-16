@@ -15,30 +15,35 @@ export interface AccordionProps {
     items: AccordionItem[];
     /** Разрешает открывать несколько секций одновременно. По умолчанию false. */
     allowMultipleOpen?: boolean;
-    /** Начальные (принудительно открытые) элементы */
+    /** Начальные (принудительно открытые) элементы.
+     * Если не передан, используется внутреннее состояние и toggleItem работает как обычно.
+     * Если передан, при изменении значения родителя состояние синхронизируется с пропсом.
+     */
     defaultOpenItems?: string[];
 }
 
-const Accordion: React.FC<AccordionProps> = ({ items, allowMultipleOpen = false, defaultOpenItems = [] }) => {
-    // Изначально открыты элементы переданные через defaultOpenItems
-    const [openItems, setOpenItems] = useState<string[]>(defaultOpenItems);
+const Accordion: React.FC<AccordionProps> = ({ items, allowMultipleOpen = false, defaultOpenItems }) => {
+    // Если defaultOpenItems передан, используем его, иначе пустой массив.
+    const [openItems, setOpenItems] = useState<string[]>(defaultOpenItems ?? []);
 
-    // При изменении пропа defaultOpenItems обновляем состояние открытых элементов
+    // Обновляем openItems, если defaultOpenItems передан и изменился.
     useEffect(() => {
-        setOpenItems(defaultOpenItems);
+        if (defaultOpenItems !== undefined) {
+            setOpenItems(defaultOpenItems);
+        }
     }, [defaultOpenItems]);
 
     const toggleItem = (id: string) => {
         if (openItems.includes(id)) {
             setOpenItems(openItems.filter(itemId => itemId !== id));
         } else {
-            // Если multiple не допускается, закрываем остальные
+            // Если множественное открытие не допускается, закрываем остальные
             setOpenItems(allowMultipleOpen ? [...openItems, id] : [id]);
         }
     };
 
-    // Варианты анимации для открытого/закрытого состояния.
-    // height: 'auto' позволяет не ограничивать высоту контента.
+    // Варианты анимации для открытого/закрытого состояния. 
+    // Используем height: 'auto' для автоматического расчёта высоты содержимого.
     const variants = {
         collapsed: { height: 0, opacity: 0, overflow: 'hidden' },
         expanded: { height: 'auto', opacity: 1, overflow: 'visible' },
@@ -64,7 +69,7 @@ const Accordion: React.FC<AccordionProps> = ({ items, allowMultipleOpen = false,
                     <AnimatePresence initial={false}>
                         {openItems.includes(item.id) && (
                             <motion.div
-                                key="content"
+                                key={`content-${item.id}`} // Уникальный ключ для каждой секции
                                 initial="collapsed"
                                 animate="expanded"
                                 exit="collapsed"

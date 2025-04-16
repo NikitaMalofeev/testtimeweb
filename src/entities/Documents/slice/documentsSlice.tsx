@@ -69,6 +69,7 @@ interface DocumentsState {
         type: string;
     };
     brokerIds: string[];
+    brokersCount: number;
     filledRiskProfileChapters: FilledRiskProfileChapters;
     userPassportData: UserPassportData | null;
 
@@ -94,6 +95,7 @@ const initialState: DocumentsState = {
         is_exist_scan_passport: false,
     },
     brokerIds: [],
+    brokersCount: 0,
     userPassportData: null
 };
 
@@ -393,8 +395,7 @@ export const getAllBrokersThunk = createAsyncThunk<
                 return rejectWithValue("Отсутствует токен авторизации");
             }
             const response = await getAllBrokers(token, is_confirmed_type_doc_agreement_transfer_broker);
-            dispatch(setBrokerIds({ brokerId: response.data[0].id }))
-            console.log(response)
+            dispatch(setBrokerIds({ brokerId: response.data[0].id, count: response.count }))
         } catch (error: any) {
             const msg =
                 error.response?.data?.errorText ||
@@ -435,9 +436,10 @@ export const documentsSlice = createSlice({
         },
         setBrokerIds(
             state,
-            action: PayloadAction<{ brokerId: string; }>
+            action: PayloadAction<{ brokerId: string; count: number; }>
         ) {
             state.brokerIds.push(action.payload.brokerId);
+            state.brokersCount = action.payload.count
         },
         setTimeoutBetweenConfirmation(state, action: PayloadAction<number>) {
             state.timeoutBetweenConfirmation = action.payload;

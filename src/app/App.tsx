@@ -15,7 +15,7 @@ import { closeModal } from 'entities/ui/Modal/slice/modalSlice';
 import { ModalType } from 'entities/ui/Modal/model/modalTypes';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
 import { Footer } from 'shared/ui/Footer/Footer';
-import { setUserToken } from 'entities/User/slice/userSlice';
+import { getUserPersonalAccountInfoThunk, setUserToken } from 'entities/User/slice/userSlice';
 import { getAllMessagesThunk, setUnreadAnswersCount } from 'entities/SupportChat/slice/supportChatSlice';
 import { useAuthTokenManagement } from 'shared/hooks/useAuthTokenManager';
 import { setError } from 'entities/Error/slice/errorSlice';
@@ -85,6 +85,10 @@ function App() {
       // dispatch(setScrollToTop(false));
     }
   }, [isNeedScrollToTop]);
+
+  useEffect(() => {
+    dispatch(getUserPersonalAccountInfoThunk());
+  }, []);
 
   return (
     <div className='page__wrapper'>

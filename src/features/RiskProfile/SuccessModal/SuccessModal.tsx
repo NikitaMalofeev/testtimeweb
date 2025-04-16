@@ -1,4 +1,4 @@
-import React, { memo, ReactElement } from "react";
+import React, { memo, ReactElement, useEffect } from "react";
 import { Modal } from "shared/ui/Modal/Modal";
 import styles from "./styles.module.scss";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
@@ -7,7 +7,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
-import { closeAllModals } from "entities/ui/Modal/slice/modalSlice";
+import { closeAllModals, closeModal } from "entities/ui/Modal/slice/modalSlice";
 import { Icon } from "shared/ui/Icon/Icon";
 import SuccessIcon from 'shared/assets/svg/SuccessLabel.svg'
 

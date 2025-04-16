@@ -11,6 +11,7 @@ import documentsReducer, { setCurrentSignedDocuments } from 'entities/Documents/
 import riskProfileReducer from 'entities/RiskProfile/slice/riskProfileSlice';
 import personalAccountReducer from 'entities/PersonalAccount/slice/personalAccountSlice';
 import supportChatReducer from 'entities/SupportChat/slice/supportChatSlice';
+import pushReducer from 'entities/ui/PushNotifications/slice/pushSlice';
 import createTransform from 'redux-persist/es/createTransform';
 import { ModalState, ModalType } from 'entities/ui/Modal/model/modalTypes';
 
@@ -23,6 +24,7 @@ const rootReducer = combineReducers({
     documents: documentsReducer,
     personalAccount: personalAccountReducer,
     supportChat: supportChatReducer,
+    push: pushReducer,
 });
 
 // Получаем конфигурацию с помощью redux-deep-persist

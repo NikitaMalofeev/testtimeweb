@@ -50,7 +50,6 @@ const DocumentsPage: React.FC = () => {
     useEffect(() => {
         dispatch(getUserDocumentsStateThunk());
         dispatch(getAllUserInfoThunk());
-        dispatch(getUserPersonalAccountInfoThunk());
     }, []);
 
     useEffect(() => {

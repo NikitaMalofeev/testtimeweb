@@ -17,18 +17,19 @@ import {
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { selectModalState } from "entities/ui/Modal/selectors/selectorsModals";
 import { setTooltipActive, setConfirmationDocsSuccess, setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
-import { clearDocumentTimeout, confirmDocsRequestThunk, getUserDocumentsStateThunk, sendDocsConfirmationCode, setDocumentTimeoutPending } from "entities/Documents/slice/documentsSlice";
+import { clearDocumentTimeout, confirmDocsRequestThunk, getUserDocumentsStateThunk, sendCustomDocsConfirmationCode, sendDocsConfirmationCode, setDocumentTimeoutPending } from "entities/Documents/slice/documentsSlice";
 import { ConfirmDocsPayload } from "entities/Documents/types/documentsTypes";
 
 interface ConfirmCustomDocsModalProps {
     isOpen: boolean;
     onClose: () => void;
     docsType?: string;
+    custimId?: string;
     openSuccessModal?: (docsType?: string) => void;
 }
 
 export const ConfirmCustomDocsModal = memo(
-    ({ isOpen, onClose, docsType, openSuccessModal }: ConfirmCustomDocsModalProps) => {
+    ({ isOpen, onClose, docsType, custimId, openSuccessModal }: ConfirmCustomDocsModalProps) => {
         const dispatch = useAppDispatch();
         const modalState = useSelector((state: RootState) => state.modal);
         const { confirmationMethod } = useSelector((state: RootState) => state.documents);
@@ -102,6 +103,7 @@ export const ConfirmCustomDocsModal = memo(
         }, [confirmationMethod, codeLength]);
 
         const handleInputChangeFirst = (value: string, index: number) => {
+            console.log("→ onChange", { value, index });
             if (value.length > 1) {
                 const digits = value.slice(0, codeLength).split('');
                 const newCode = Array(codeLength).fill("");
@@ -183,26 +185,27 @@ export const ConfirmCustomDocsModal = memo(
 
         // При полном вводе кода отправляем запрос на подтверждение
         useEffect(() => {
-            const code = smsCodeFirst.join("");
-            if (code.length === codeLength) {
-                dispatch(
-                    //FIX
-                    sendDocsConfirmationCode({
-                        codeFirst: code,
-                        docs: docsType || "",
-                        onSuccess: (data: any) => {
-                            setSmsCodeFirst(Array(codeLength).fill(""));
+            // Смотрим «сырые» цифры и длину строки для дебага
+            console.log("smsCodeFirst:", smsCodeFirst, "code:", smsCodeFirst.join(""), "length:", smsCodeFirst.join("").length);
 
+            if (smsCodeFirst.every(digit => digit !== "") && custimId) {
+                const code = smsCodeFirst.join("");
+                console.log("ввод — отправляю код", code);
+                dispatch(sendCustomDocsConfirmationCode({
+                    codeFirst: code,
+                    docs: docsType || '',
+                    id_sign: custimId,
 
-                            if (openSuccessModal) {
-                                openSuccessModal(docsType);
-                            } else {
-                                onClose();
-                            }
-                        },
-                        onClose: () => onClose()
-                    })
-                );
+                    onSuccess: (data: any) => {
+                        setSmsCodeFirst(Array(codeLength).fill(""));
+                        if (openSuccessModal) {
+                            openSuccessModal(docsType);
+                        } else {
+                            onClose();
+                        }
+                    },
+                    onClose: () => onClose(),
+                }));
             }
         }, [smsCodeFirst]);
 

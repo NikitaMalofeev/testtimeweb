@@ -3,11 +3,11 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "app/providers/store/config/store";
 import { ConfirmCustomDocsPayload, ConfirmDocsPayload, FilledRiskProfileChapters, SetHtmlsPayload } from "../types/documentsTypes";
-import { confirmBrokerDocsRequest, confirmCustomDocsRequest, confirmDocsRequest, getAllBrokers, getBrokerDocumentsSigned, getCustomDocumentsNotSigned, getDocumentNotSigned, getDocumentsInfo, getDocumentsNotSigned, getDocumentsSigned, getDocumentsState } from "../api/documentsApi";
+import { confirmBrokerDocsRequest, confirmCustomDocsRequest, confirmDocsRequest, getAllBrokers, getBrokerDocumentsSigned, getCustomDocumentsNotSigned, getDocumentNotSigned, getDocumentsInfo, getDocumentsNotSigned, getDocumentsSigned, getDocumentsState, postConfirmationCodeCustom } from "../api/documentsApi";
 import { setCurrentConfirmingDoc } from "entities/RiskProfile/slice/riskProfileSlice";
 import { setConfirmationDocsSuccess } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
-import { SendCodeDocsConfirmPayload } from "entities/RiskProfile/model/types";
+import { SendCodeCustomDocsConfirmPayload, SendCodeDocsConfirmPayload } from "entities/RiskProfile/model/types";
 import { postBrokerConfirmationDocsCode, postConfirmationDocsCode } from "entities/RiskProfile/api/riskProfileApi";
 
 // Новый тип, соответствующий элементам из "confirmed_documents"
@@ -210,6 +210,27 @@ export const sendDocsConfirmationCode = createAsyncThunk<
     }
 );
 
+export const sendCustomDocsConfirmationCode = createAsyncThunk<
+    void,
+    SendCodeCustomDocsConfirmPayload,
+    { rejectValue: string; state: RootState }
+>(
+    "documents/sendCustomDocsConfirmationCode",
+    async ({ codeFirst, docs, id_sign, onSuccess }, { getState, dispatch, rejectWithValue }) => {
+        try {
+            const responseDocs = await postConfirmationCodeCustom(
+                { code: codeFirst, type_document: docs, id_sign: id_sign }
+            );
+            onSuccess?.(responseDocs);
+        } catch (error: any) {
+            dispatch(setConfirmationDocsSuccess("не пройдено"));
+            const msg =
+                error.response?.data?.errorText
+            dispatch(setError(msg));
+        }
+    }
+);
+
 export const getUserDocumentsStateThunk = createAsyncThunk<
     void,
     void,
@@ -328,10 +349,9 @@ export const getUserDocumentNotSignedThunk = createAsyncThunk<
                 ? await getCustomDocumentsNotSigned(token, customId, "type_doc_custom")
                 : await getDocumentNotSigned(token, docId);
 
-            // получаем строку html
+            
             const htmlString = response.not_signed_document_html;
 
-            // **Важный момент**: всегда оборачиваем в объект { [docId]: htmlString }
             dispatch(setNotSignedDocumentsHtmls({ [docId]: htmlString }));
         } catch (err: any) {
             const msg = err.response?.data?.errorText ?? err.message;

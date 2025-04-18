@@ -1,10 +1,26 @@
 import axios from "axios";
 import { ProblemsRequestData, ResetPasswordConfirm, UserLogin } from "../types/userTypes";
 
-const apiUrl =
-    import.meta.env.VITE_USE_LOCAL_API === "true"
-        ? import.meta.env.VITE_RANKS_TEST_API_URL_LOCAL
-        : import.meta.env.VITE_RANKS_TEST_API_URL;
+
+const envEnviroment = import.meta.env.VITE_ENVIROMENT;
+let apiUrl: string;
+
+switch (envEnviroment) {
+    case "PROD":
+        apiUrl = import.meta.env.VITE_RANKS_PROD_API_URL;
+        break;
+
+    case "LOCAL":
+        apiUrl = import.meta.env.VITE_RANKS_TEST_API_URL_LOCAL;
+        break;
+
+    case "TEST":
+    default:
+        apiUrl = import.meta.env.VITE_RANKS_TEST_API_URL;
+        break;
+}
+
+export default apiUrl;
 
 
 export const getAllUserInfo = async (token: string) => {

@@ -33,15 +33,6 @@ export const PasportDataForm: React.FC = () => {
     const NAME_REGEX = /^[А-Яа-яЁё\s-]+$/;
     const savedPassportData = useSelector((state: RootState) => state.riskProfile.passportFormData);
 
-
-    useEffect(() => {
-        dispatch(getUserPersonalAccountInfoThunk());
-        dispatch(getUserDocumentsStateThunk());
-        dispatch(getUserDocumentsInfoThunk());
-        dispatch(getAllUserInfoThunk());
-    }, []);
-
-
     // Yup-схема валидации
     const passportValidationSchema = Yup.object().shape({
         last_name: Yup.string()
@@ -148,9 +139,9 @@ export const PasportDataForm: React.FC = () => {
             g_recaptcha: "",
             type_message: "EMAIL",
             ...savedPassportData,
-            first_name: userPersonalAccountInfo?.first_name ? userPersonalAccountInfo.first_name : savedPassportData.first_name,
-            last_name: userPersonalAccountInfo?.last_name ? userPersonalAccountInfo.last_name : savedPassportData.last_name,
-            patronymic: userPersonalAccountInfo?.patronymic ? userPersonalAccountInfo.patronymic : savedPassportData.patronymic,
+            // first_name: savedPassportData.first_name && savedPassportData.first_name,
+            // last_name: savedPassportData.last_name && savedPassportData.last_name,
+            // patronymic: savedPassportData.patronymic && savedPassportData.patronymic,
 
         },
         enableReinitialize: true,
@@ -272,7 +263,13 @@ export const PasportDataForm: React.FC = () => {
             formik.setFieldValue('address_residential_apartment', '')
         }
         dispatch(updatePassportFormData(formik.values));
-    }, [formik.values])
+    }, [formik.values.is_live_this_address, formik.values.is_receive_mail_this_address])
+
+    useEffect(() => {
+        userPersonalAccountInfo?.first_name && formik.setFieldValue('first_name', userPersonalAccountInfo?.first_name)
+        userPersonalAccountInfo?.last_name && formik.setFieldValue('last_name', userPersonalAccountInfo?.last_name)
+        userPersonalAccountInfo?.patronymic && formik.setFieldValue('patronymic', userPersonalAccountInfo?.patronymic)
+    }, [userPersonalAccountInfo])
 
     useEffect(() => {
         if (!modalState.confirmDocsModal.isOpen) {
@@ -509,7 +506,7 @@ export const PasportDataForm: React.FC = () => {
                         value={formik.values.is_receive_mail_this_address}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
-                        label={<span className={styles.checkbox__text}>Получать почту по этому адресу</span>}
+                        label={<span className={styles.checkbox__text}>Получать почту по этому адресу {!formik.values.is_live_this_address && <span style={{ color: 'red' }}>*</span>}</span>}
                         error={formik.touched.is_receive_mail_this_address && formik.errors.is_receive_mail_this_address}
                     />
 

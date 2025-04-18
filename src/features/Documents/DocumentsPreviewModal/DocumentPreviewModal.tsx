@@ -24,7 +24,6 @@ interface PreviewModalProps {
     docId?: string | null; // Идентификатор документа
     justPreview?: string;  // Если передаём URL для превью
     isSignedDoc?: boolean;
-
 }
 
 export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
@@ -90,6 +89,8 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
     ]);
 
     useEffect(() => {
+        console.log(isSignedDoc)
+        console.log(isContentReady)
         console.log('hasCurrentSighedDocument', hasCurrentSighedDocument);
     }, [hasCurrentSighedDocument]);
 
@@ -115,6 +116,7 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
 
     const handleClose = () => {
         dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW));
+        dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW_SIGNED));
         onClose();
     };
 
@@ -144,10 +146,14 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                     <span className={styles.modalTitle}>{title || "Документ"}</span>
                     <Icon Svg={CloseIcon} width={20} height={20} onClick={handleClose} />
                 </div>
-                <div className={styles.modalContent}>
+                <div className={styles.modalContent} style={
+                    isSignedDoc
+                        ? ({ padding: '8px 0 8px 22px', '--after-display': 'block' } as React.CSSProperties)
+                        : ({ padding: '8px 16px', '--after-display': 'none' } as React.CSSProperties)
+                }>
                     {!isContentReady && !loading ? (
                         <Loader />
-                    ) : (hasCurrentSighedDocument &&
+                    ) : (isSignedDoc && hasCurrentSighedDocument &&
                         hasCurrentSighedDocument.document &&
                         Object.keys(hasCurrentSighedDocument.document).length > 0) ? (
                         <PdfViewer pdfBinary={hasCurrentSighedDocument.document} />

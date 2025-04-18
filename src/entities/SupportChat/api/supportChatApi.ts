@@ -1,6 +1,10 @@
 import axios from "axios";
 
-const apiUrl = import.meta.env.VITE_RANKS_TEST_API_URL;
+const apiUrl =
+    import.meta.env.VITE_USE_LOCAL_API === "true"
+        ? import.meta.env.VITE_RANKS_TEST_API_URL_LOCAL
+        : import.meta.env.VITE_RANKS_TEST_API_URL;
+
 
 // Пример существующей функции
 export const getGroupWs = async (token: string) => {

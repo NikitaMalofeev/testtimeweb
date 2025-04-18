@@ -44,8 +44,16 @@ body::-webkit-scrollbar-thumb,
   content: none !important;
 }
 
-.rpv-core__text-layer {
-  width: 100%;
+// .rpv-core__text-layer {
+//   width: 100% !important;
+// }
+
+// // .rpv-core__page-layer {
+// //   width: 100% !important;
+// // }
+
+.rpv-core__inner-pages .rpv-core__inner-pages--vertical {
+  padding: 0 !important;
 }
 
 .rpv-core__page-layer--single {
@@ -54,11 +62,14 @@ body::-webkit-scrollbar-thumb,
 
 .rpv-core__page-layer .rpv-core__page-layer--single {
   margin: 0;
+  width: 100%;
 }
 
-.rpv-core__page-layer {
-  margin: 0;
-}
+// // .rpv-core__page-layer {
+// //   margin: 0;
+// // }
+
+
 
 /* Внешний вид самого input */
 .datepickerItem {
@@ -79,4 +90,10 @@ body::-webkit-scrollbar-thumb,
 
 .react-datepicker__day--selected, .react-datepicker__day--in-selecting-range, .react-datepicker__day--in-range, .react-datepicker__month-text--selected, .react-datepicker__month-text--in-selecting-range, .react-datepicker__month-text--in-range, .react-datepicker__quarter-text--selected, .react-datepicker__quarter-text--in-selecting-range, .react-datepicker__quarter-text--in-range, .react-datepicker__year-text--selected, .react-datepicker__year-text--in-selecting-range, .react-datepicker__year-text--in-range {
   background-color: #0666EB !important;
+}
+
+mark {
+  background-color: #045FDD;
+  color: white8;
+  /* или другой цвет подсветки */
 }

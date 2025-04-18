@@ -16,7 +16,7 @@ import PasportExFirst from 'shared/assets/images/pasportExFirst.jpg'
 import PasportExSecond from 'shared/assets/images/pasportExSecond.jpg'
 import { closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
-import { UploadProgressModal } from "features/Ui/UploadProgressModal.tsx/UploadProgressModal";
+import { UploadProgressModal } from "features/Ui/UploadProgressModal/UploadProgressModal";
 import { getUserDocumentsStateThunk } from "entities/Documents/slice/documentsSlice";
 import { setError } from "entities/Error/slice/errorSlice";
 
@@ -115,7 +115,8 @@ export const PasportScanForm: React.FC = () => {
                     dispatch(getUserDocumentsStateThunk())
                     setTimeout(() => {
                         closeModal(ModalType.PROGRESS)
-                        dispatch(setStepAdditionalMenuUI(2))
+                        dispatch(setStepAdditionalMenuUI(4))
+                        dispatch(getUserDocumentsStateThunk())
                     }, 2000)
                 }
             })
@@ -426,7 +427,7 @@ export const PasportScanForm: React.FC = () => {
                 description="Вы можете дождаться загрузки или перейти к следующему шагу"
                 buttonTitle="Далее" action={() => {
                     closeModal(ModalType.PROGRESS)
-                    dispatch(setStepAdditionalMenuUI(2))
+                    dispatch(setStepAdditionalMenuUI(4))
                 }} />
         </>
     );

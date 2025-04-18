@@ -17,6 +17,8 @@ import AccountPhoneIcon from "shared/assets/svg/AccountPhoneIcon.svg";
 import AccountMailIcon from "shared/assets/svg/AccountMailIcon.svg";
 import AccountChatIcon from "shared/assets/svg/AccountChatIcon.svg";
 import AccountBrokerIcon from "shared/assets/svg/AccountBrokerIcon.svg";
+import AccountRPIcon from "shared/assets/svg/AccountRPIcon.svg";
+import faqBlue from "shared/assets/svg/faqBlue.svg";
 
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { getUserPersonalAccountInfoThunk, setUserToken } from "entities/User/slice/userSlice";
@@ -31,22 +33,35 @@ import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
 import { ProblemsCodeModal } from "features/RiskProfile/ProblemsCodeModal/ProblemsCodeModal";
 import { postPasportScanThunk } from "entities/RiskProfile/slice/riskProfileSlice";
 import { Tooltip } from "shared/ui/Tooltip/Tooltip";
+import { getAllBrokersThunk, getUserDocumentsStateThunk } from "entities/Documents/slice/documentsSlice";
+import { checkPushNotificationsThunk } from "entities/ui/PushNotifications/slice/pushSlice";
 
 const PersonalAccountMenu: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const token = useSelector((state: RootState) => state.user.token);
     const modalRPState = useSelector((state: RootState) => state.modal.identificationModal);
-    const { userDocuments, filledRiskProfileChapters } = useSelector((state: RootState) => state.documents);
+    const { userDocuments, filledRiskProfileChapters, currentConfirmableDoc, brokerIds, brokersCount } = useSelector((state: RootState) => state.documents);
+    const pushNotifications = useSelector((state: RootState) => state.push.notifications);
+    const activePush = pushNotifications.find((n) => n.active);
     // Используем новое значение unreadAnswersCount вместо personalNewAnswersCount
     const { userPersonalAccountInfo, loading } = useSelector((state: RootState) => state.user);
     const { unreadAnswersCount } = useSelector((state: RootState) => state.supportChat);
-    const brokersId = useSelector((state: RootState) => state.documents.brokerIds);
+    const ifFilledRp = filledRiskProfileChapters.is_risk_profile_complete && filledRiskProfileChapters.is_risk_profile_complete_final
 
     useEffect(() => {
         dispatch(getUserPersonalAccountInfoThunk());
         window.scrollTo({ top: 0, behavior: "smooth" });
     }, [token]);
+
+    useEffect(() => {
+        dispatch(getAllBrokersThunk({ is_confirmed_type_doc_agreement_transfer_broker: true, onSuccess: () => { } }));
+        dispatch(getUserDocumentsStateThunk())
+    }, []);
+
+    useEffect(() => {
+        dispatch(checkPushNotificationsThunk())
+    }, [filledRiskProfileChapters, currentConfirmableDoc, brokerIds, brokersCount])
 
 
     const handleLogout = () => {
@@ -57,21 +72,67 @@ const PersonalAccountMenu: React.FC = () => {
         navigate("/");
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
-
     const isPassportFilled = filledRiskProfileChapters.is_complete_passport && filledRiskProfileChapters.is_exist_scan_passport;
 
     const items: PersonalAccountItem[] = [
         {
+            icon: AccountRPIcon,
+            title: "Риск-профиль",
+            action: () => {
+                if (!filledRiskProfileChapters.is_risk_profile_complete) {
+                    dispatch(setStepAdditionalMenuUI(0))
+                    dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
+                } else if (!filledRiskProfileChapters.is_risk_profile_complete_final) {
+                    dispatch(setStepAdditionalMenuUI(1))
+                    dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
+                }
+            },
+            iconWidth: 28,
+            iconHeight: 28,
+        },
+        {
             icon: AccountDocumentIcon,
             title: "Документы",
             route: "/documents",
-            notificationsCount: 9 - userDocuments.length,
-            iconWidth: 23,
+            notificationsCount: 8 - userDocuments.length,
+            iconWidth: 28,
             iconHeight: 28,
-            warningMessage: 9 - userDocuments.length !== 0 ? (
+            warningMessage: filledRiskProfileChapters.is_risk_profile_complete_final
+                ? (8 - userDocuments.length !== 0 ? (
+                    <div className={styles.warning}>
+                        <Icon Svg={WarningIcon} width={16} height={16} />
+                        <div>Есть неподписанные документы ({9 - userDocuments.length - 1} шт.)</div>
+                    </div>
+                ) : null)
+                :
+                (
+                    <div className={styles.warning}>
+                        <Icon Svg={WarningIcon} width={16} height={16} />
+                        <div>Заполните анкету риск-профиля</div>
+                    </div>
+                )
+        },
+        {
+            icon: AccountBrokerIcon,
+            title: "Брокер",
+            action: () => {
+                if (brokerIds.length !== 0) {
+                    return
+                } else if (isPassportFilled) {
+                    dispatch(setStepAdditionalMenuUI(5))
+                    dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
+                    // Здесь можно сбрасывать уведомления, если это требуется при переходе в чат
+                }
+            },
+            message: brokersCount > 0 && 'подключен',
+            iconWidth: 28,
+            iconHeight: 28,
+            warningMessage: (!filledRiskProfileChapters.is_complete_passport || !filledRiskProfileChapters.is_exist_scan_passport) ? (
                 <div className={styles.warning}>
                     <Icon Svg={WarningIcon} width={16} height={16} />
-                    <div>Есть неподписанные документы ({9 - userDocuments.length} шт.)</div>
+                    <div>
+                        Для подключения  подпишите документы
+                    </div>
                 </div>
             ) : null,
         },
@@ -87,36 +148,19 @@ const PersonalAccountMenu: React.FC = () => {
             notificationsCount: unreadAnswersCount,
         },
         {
+            icon: faqBlue,
+            title: "FAQ",
+            action: () => navigate("/faq"),
+            iconWidth: 26,
+            iconHeight: 26,
+        },
+        {
             icon: AccountNotificationIcon,
             title: "Уведомления",
             action: () => dispatch(setCurrentTab("notifications")),
             notificationsCount: 0,
             iconWidth: 25,
             iconHeight: 28,
-        },
-        {
-            icon: AccountBrokerIcon,
-            title: "Брокер",
-            action: () => {
-                if (brokersId.length === 0) {
-                    return
-                } else if (isPassportFilled) {
-                    dispatch(setStepAdditionalMenuUI(5))
-                    dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
-                    // Здесь можно сбрасывать уведомления, если это требуется при переходе в чат
-                }
-            },
-            message: brokersId.length > 0 && 'подключен',
-            iconWidth: 28,
-            iconHeight: 28,
-            warningMessage: (!filledRiskProfileChapters.is_complete_passport || !filledRiskProfileChapters.is_exist_scan_passport) ? (
-                <div className={styles.warning}>
-                    <Icon Svg={WarningIcon} width={16} height={16} />
-                    <div>
-                        Для подключения  подпишите документы
-                    </div>
-                </div>
-            ) : null,
         },
         {
             icon: AccountSettingsIcon,
@@ -160,6 +204,26 @@ const PersonalAccountMenu: React.FC = () => {
     //     dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }));
     // }, [])
 
+    // внутри компонента PersonalAccountMenu:
+    const getMenuItemStyle = (item: PersonalAccountItem): React.CSSProperties => {
+        // Инициализируем пустой объект стилей
+        let style: React.CSSProperties = {};
+
+
+        // Если пункт – "Документы" и риск-профиль заполнен не до конца
+        if (item.title === "Документы" && !filledRiskProfileChapters.is_risk_profile_complete_final) {
+            style.opacity = "0.5";
+        }
+        // Если пункт – "Брокер" и паспорт заполнен не полностью
+        else if (item.title === "Брокер" && !isPassportFilled) {
+            style.opacity = "0.5";
+        }
+        // Можно добавить здесь иные условия при необходимости
+
+        return style;
+    };
+
+
     if (loading || !userPersonalAccountInfo?.first_name) {
         return <Loader />;
     }
@@ -167,7 +231,7 @@ const PersonalAccountMenu: React.FC = () => {
     return (
         <>
             <div className={styles.page}>
-                <PushNotification />
+                <PushNotification pushNotifications={pushNotifications} activePush={activePush} />
                 <div className={styles.page__container}>
                     <div>
                         {userPersonalAccountInfo?.tariff_is_active ? (
@@ -185,14 +249,15 @@ const PersonalAccountMenu: React.FC = () => {
                             </div>
                         ) : (
                             <div className={styles.page__status}>
-                                <div className={styles.page__status_inactive}>остановлена</div>
+                                <div className={styles.page__status_inactive}>Не активна</div>
                                 <div className={styles.page__status__tooltip}>
                                     <Tooltip
                                         positionBox={{ top: "8px", left: '30px' }}
-                                        squerePosition={{ top: "15px", left: "-4px" }}
+                                        squerePosition={{ top: "54px", left: "-4px" }}
                                         topForCenteringIcons="24px"
+                                        boxWidth={{ maxWidth: '200px' }}
                                         className={styles.modalContent__tooltip}
-                                        description="Текущий статус работы с вашим счетом, чтобы активировать заполните документы и выберите тариф"
+                                        description="Текущий статус работы с Вашим счетом. Чтобы активировать, заполните документы и выберите тариф"
                                     />
                                 </div>
                             </div>
@@ -225,22 +290,14 @@ const PersonalAccountMenu: React.FC = () => {
                             <div
                                 key={index}
                                 style={{
-                                    ...(
-                                        (item.title !== "Документы" &&
-                                            item.title !== "Чат поддержки" &&
-                                            item.title !== "Выйти из учетной записи") &&
-                                            (item.title === "Брокер"
-                                                ? (!isPassportFilled)
-                                                : true)
-                                            ? { opacity: "0.5" }
-                                            : {}
-                                    ),
+                                    ...getMenuItemStyle(item),
                                     ...(item.warningMessage && { padding: "18px 0 34px" }),
                                 }}
-
                                 onClick={() => {
                                     if (item.route) {
-                                        navigate(item.route);
+                                        if (item.route === '/documents') {
+                                            filledRiskProfileChapters.is_risk_profile_complete_final && navigate(item.route);
+                                        }
                                     } else if (item.action) {
                                         item.action();
                                     }
@@ -266,6 +323,7 @@ const PersonalAccountMenu: React.FC = () => {
                                 {item.warningMessage}
                             </div>
                         ))}
+
                     </div>
                 </div>
             </div>

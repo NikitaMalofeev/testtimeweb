@@ -8,6 +8,8 @@ import { Route, Routes } from 'react-router-dom';
 import PublicRoute from './PublicRoute';
 import RequireAuthRoute from './RequireAuth';
 import { NotFoundPage } from 'pages/NotFoundPage/NotFoundPage';
+import OpenInformationPage from 'pages/OpenInformationPage/OpenInformationPage';
+import FAQPage from 'pages/FAQPage/FAQPage';
 
 // const PageLoader = () => <div>Loading...</div>;
 const PageLoader = () => <div></div>;
@@ -75,7 +77,25 @@ function AppRouter() {
 
                 }
             />
-        </Routes>
+            <Route
+                path="/information"
+                element={
+                    <Suspense fallback={<PageLoader />}>
+                        <OpenInformationPage />
+                    </Suspense>
+
+                }
+            />
+            <Route
+                path="/faq"
+                element={
+                    <Suspense fallback={<PageLoader />}>
+                        <FAQPage />
+                    </Suspense>
+
+                }
+            />
+        </Routes >
     );
 }
 

@@ -31,6 +31,10 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
     display: none !important;
 }
 
+input[type="search"]::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    display: none;
+  }
 
 input[type="date"] {
     &::-webkit-calendar-picker-indicator {
@@ -42,6 +46,17 @@ input[type="date"] {
         height: 20px;
         border-width: thin;
     }
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Для Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
 }
 
 progress {

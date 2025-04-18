@@ -1,7 +1,11 @@
 import axios from "axios";
 import { ConfirmDocsPayload } from "../types/documentsTypes";
 
-const apiUrl = import.meta.env.VITE_RANKS_TEST_API_URL;
+const apiUrl =
+    import.meta.env.VITE_USE_LOCAL_API === "true"
+        ? import.meta.env.VITE_RANKS_TEST_API_URL_LOCAL
+        : import.meta.env.VITE_RANKS_TEST_API_URL;
+
 
 export const confirmDocsRequest = async (data: ConfirmDocsPayload, token: string) => {
     const response = await axios.post(`${apiUrl}create_doc_user/sixth_signing_documents/`, data, {
@@ -45,6 +49,16 @@ export const getDocumentsNotSigned = async (token: string) => {
     return response.data;
 };
 
+export const getDocumentNotSigned = async (token: string, type_document: string) => {
+    const response = await axios.post(`${apiUrl}create_doc_user/get_user_not_signed_document_html/`, { type_document: type_document }, {
+        headers: {
+            "Accept-Language": "ru",
+            "Authorization": `Token ${token}`
+        },
+    });
+    return response.data;
+};
+
 export const getDocumentsInfo = async (token: string) => {
     const response = await axios.get(`${apiUrl}create_doc_user/get_user_documents/`, {
         headers: {
@@ -66,7 +80,7 @@ export const getDocumentsInfo = async (token: string) => {
 // };
 
 export const getAllBrokers = async (token: string, is_confirmed_type_doc_agreement_transfer_broker: boolean) => {
-    const response = await axios.post(`${apiUrl}user_lk/get_all_brokers/`, { is_confirmed_type_doc_agreement_transfer_broker: false, broker: "tinkoff_brokers" }, {
+    const response = await axios.post(`${apiUrl}user_lk/get_all_brokers/`, { is_confirmed_type_doc_agreement_transfer_broker: is_confirmed_type_doc_agreement_transfer_broker, broker: "tinkoff_brokers" }, {
         headers: {
             "Accept-Language": "ru",
             "Authorization": `Token ${token}`

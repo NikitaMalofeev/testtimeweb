@@ -224,7 +224,7 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
                 {activeTab === "form" && (
                     <>
                         <span className={styles.subtitle}>
-                            Укажите E-mail или телефон, использованные при регистрации и новый пароль
+                            Для восстановления пароля, пожалуйста, введите номер телефона или E-mail, которые были указаны Вами при регистрации, а также новый пароль.
                         </span>
 
                         <Input

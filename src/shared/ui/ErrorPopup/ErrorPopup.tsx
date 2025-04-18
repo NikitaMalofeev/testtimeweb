@@ -62,7 +62,7 @@ export const ErrorPopup = () => {
                     <div className={styles.purpose}>
                         <span>Ошибка загрузки сканов, пожалуйста повторите попытку загрузки</span>
                         <Button theme={ButtonTheme.UNDERLINE} children='Перейти' padding='7px 14px' onClick={() => {
-                            dispatch(setStepAdditionalMenuUI(1))
+                            dispatch(setStepAdditionalMenuUI(2))
                             dispatch(
                                 openModal({
                                     type: ModalType.IDENTIFICATION,

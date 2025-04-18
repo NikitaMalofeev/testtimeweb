@@ -16,22 +16,23 @@ const root = createRoot(document.getElementById('root')!);
 
 root.render(
   <React.StrictMode>
-    <ErrorBoundary
-      fallbackRender={(error, errorInfo, resetErrorBoundary) => (
-        <ErrorPage
-          error={error}
-          errorInfo={errorInfo}
-          resetErrorBoundary={resetErrorBoundary}
-        />
-      )}
-    >
-      <BrowserRouter basename="/">
-        <PersistGate loading={<Cover />} persistor={persistor}>
-          <StoreProvider>
+
+    <BrowserRouter basename="/">
+      <PersistGate loading={<Cover />} persistor={persistor}>
+        <StoreProvider>
+          <ErrorBoundary
+            fallbackRender={(error, errorInfo, resetErrorBoundary) => (
+              <ErrorPage
+                error={error}
+                errorInfo={errorInfo}
+                resetErrorBoundary={resetErrorBoundary}
+              />
+            )}
+          >
             <App />
-          </StoreProvider>
-        </PersistGate>
-      </BrowserRouter>
-    </ErrorBoundary>
+          </ErrorBoundary>
+        </StoreProvider>
+      </PersistGate>
+    </BrowserRouter>
   </React.StrictMode>
 );

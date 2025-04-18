@@ -5,6 +5,12 @@ export interface ConfirmDocsPayload {
     broker_id?: string;
 }
 
+export interface ConfirmCustomDocsPayload {
+    type_message: string;
+    is_agree: boolean;
+    type_document?: string;
+    id_sign?: string;
+}
 export interface FilledRiskProfileChapters {
     is_risk_profile_complete: boolean;
     is_risk_profile_complete_final: boolean;
@@ -15,4 +21,10 @@ export interface FilledRiskProfileChapters {
 export interface PostBrokerApiTokenResponse {
     broker_id: string;
     not_signed_doc_broker: string;
+}
+
+type HtmlMap = Record<string, string>
+export interface SetHtmlsPayload {
+    htmlMap: HtmlMap
+    customKey?: string
 }

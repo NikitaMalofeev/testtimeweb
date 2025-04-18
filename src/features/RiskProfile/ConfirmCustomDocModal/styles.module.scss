@@ -1,0 +1,133 @@
+.modalContent {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: calc(100% - 101px);
+    background: white;
+    gap: 32px;
+    border-radius: 40px;
+    padding: 0 24px 24px;
+    min-width: 300px;
+    text-align: center;
+    position: relative;
+
+    &__head {
+        flex-direction: column;
+        width: 100%;
+        display: flex;
+        justify-content: start;
+    }
+
+    &__tooltip {
+      right: 24px;
+      top: 24px;
+    }
+
+    &__description {
+        font-family: var(--font-inter);
+        font-size: 16px;
+        font-weight: 400;
+        max-width: 260px;
+        line-height: 21.6px;
+        text-align: left;
+        color: #121B2F;
+    }
+
+    &__problems {
+        font-family: var(--font-inter);
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 16.94px;
+        text-align: left;
+        color: #045FDD;
+    }
+  }
+
+  .codeInput__container {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 16px 0;
+    width: 100%;
+  }
+  
+  .codeInput__box {
+    min-width: 64px;
+    width: 25vw;
+    height: 64px;
+    text-align: center;
+    font-family: var(--font-inter);
+    font-size: 43px;
+    font-weight: 300;
+    line-height: 58.05px;
+    text-align: center;
+    color: #121B2F;
+    border: none; 
+    border-bottom: 2px solid #D4D4E8;
+    border-radius: 0;
+    transition: border-color 0.3s ease;
+
+    -webkit-appearance: none; 
+    -webkit-border-radius: 0 !important; // Отключаем сафари-стили
+    appearance: none;      // Убираем закругление
+    outline: none;
+  /* остальной нужный вам минимальный стиль */
+  
+    &:focus {
+      border-color: #045FDD;
+    }
+  }
+  
+  .buttonGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 4px;
+  }
+  
+  
+
+  .button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 19px 60.5px;
+    width: 100%;
+    font-family: var(--font-inter);
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 21.78px;
+  }
+
+  .timer {
+    color: #5A5A5A;
+    font-family: var(--font-inter);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 18.9px;
+    cursor: pointer;
+  }
+
+  @media (max-width: 450px) {
+    .button {
+      padding: 19px 15.5px;
+    }
+
+    .modalContent {
+      padding: 16px;
+    }
+
+    .modalContent__head {
+      padding: 0 8px;
+    }
+  }
+
+  .modalContent__shadow_top {
+
+    border-radius: 0 0 40px 40px;
+    box-shadow: inset 0px 10px 13.4px -5px rgba(0, 0, 0, 0.15);
+}
+
+// .modalContent__shadow_bottom {
+//     box-shadow: inset 0px -10px 13.4px -5px rgba(0, 0, 0, 0.15);
+// }

@@ -23,6 +23,13 @@ export interface ConfirmationDocsData {
     broker_id?: string;
 }
 
+export interface ConfirmationCustomDocsData {
+    code: string;
+    type_document?: string;
+    id_sign: string;
+    broker_id?: string;
+}
+
 export interface NeedHelpData {
     user_id: string;
     screen: string;
@@ -75,6 +82,15 @@ export interface SendCodeDocsConfirmPayload {
     codeFirst: string;
     codeSecond?: string;
     docs: string;
+    onSuccess?: (data?: any) => void;
+    onClose?: () => void
+}
+
+export interface SendCodeCustomDocsConfirmPayload {
+    codeFirst: string;
+    codeSecond?: string;
+    docs: string;
+    id_sign: string;
     onSuccess?: (data?: any) => void;
     onClose?: () => void
 }

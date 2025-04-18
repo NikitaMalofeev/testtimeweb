@@ -2,12 +2,12 @@
 
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "app/providers/store/config/store";
-import { ConfirmDocsPayload, FilledRiskProfileChapters } from "../types/documentsTypes";
-import { confirmBrokerDocsRequest, confirmDocsRequest, getAllBrokers, getBrokerDocumentsSigned, getDocumentNotSigned, getDocumentsInfo, getDocumentsNotSigned, getDocumentsSigned, getDocumentsState } from "../api/documentsApi";
+import { ConfirmCustomDocsPayload, ConfirmDocsPayload, FilledRiskProfileChapters, SetHtmlsPayload } from "../types/documentsTypes";
+import { confirmBrokerDocsRequest, confirmCustomDocsRequest, confirmDocsRequest, getAllBrokers, getBrokerDocumentsSigned, getCustomDocumentsNotSigned, getDocumentNotSigned, getDocumentsInfo, getDocumentsNotSigned, getDocumentsSigned, getDocumentsState, postConfirmationCodeCustom } from "../api/documentsApi";
 import { setCurrentConfirmingDoc } from "entities/RiskProfile/slice/riskProfileSlice";
 import { setConfirmationDocsSuccess } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
-import { SendCodeDocsConfirmPayload } from "entities/RiskProfile/model/types";
+import { SendCodeCustomDocsConfirmPayload, SendCodeDocsConfirmPayload } from "entities/RiskProfile/model/types";
 import { postBrokerConfirmationDocsCode, postConfirmationDocsCode } from "entities/RiskProfile/api/riskProfileApi";
 
 // Новый тип, соответствующий элементам из "confirmed_documents"
@@ -145,6 +145,30 @@ export const confirmDocsRequestThunk = createAsyncThunk<
     }
 );
 
+export const confirmCustomDocsRequestThunk = createAsyncThunk<
+    void,
+    { data: ConfirmCustomDocsPayload; onSuccess: () => void },
+    { rejectValue: string; state: RootState }
+>(
+    "documents/confirmCustomDocsRequestThunk",
+    async (
+        { data: { type_message, type_document, is_agree, id_sign }, onSuccess },
+        { getState, dispatch, rejectWithValue }
+    ) => {
+        try {
+            const responseDocs = await confirmCustomDocsRequest(
+                { type_message, id_sign, type_document, is_agree },
+            );
+            onSuccess?.();
+            return responseDocs;
+        } catch (error: any) {
+            const msg =
+                error.response?.data?.errorText
+            dispatch(setError(msg));
+        }
+    }
+);
+
 export const sendDocsConfirmationCode = createAsyncThunk<
     void,
     SendCodeDocsConfirmPayload,
@@ -179,6 +203,27 @@ export const sendDocsConfirmationCode = createAsyncThunk<
         } catch (error: any) {
             dispatch(setConfirmationDocsSuccess("не пройдено"));
             console.log(error);
+            const msg =
+                error.response?.data?.errorText
+            dispatch(setError(msg));
+        }
+    }
+);
+
+export const sendCustomDocsConfirmationCode = createAsyncThunk<
+    void,
+    SendCodeCustomDocsConfirmPayload,
+    { rejectValue: string; state: RootState }
+>(
+    "documents/sendCustomDocsConfirmationCode",
+    async ({ codeFirst, docs, id_sign, onSuccess }, { getState, dispatch, rejectWithValue }) => {
+        try {
+            const responseDocs = await postConfirmationCodeCustom(
+                { code: codeFirst, type_document: docs, id_sign: id_sign }
+            );
+            onSuccess?.(responseDocs);
+        } catch (error: any) {
+            dispatch(setConfirmationDocsSuccess("не пройдено"));
             const msg =
                 error.response?.data?.errorText
             dispatch(setError(msg));
@@ -282,31 +327,42 @@ export const getUserDocumentsNotSignedThunk = createAsyncThunk<
     }
 );
 
+// documentsSlice.ts
 export const getUserDocumentNotSignedThunk = createAsyncThunk<
     void,
-    void,
+    { custom?: boolean; customId?: string },
     { rejectValue: string; state: RootState }
 >(
-    "documents/getUserDocumentsNotSignedThunk",
-    async (_, { getState, dispatch, rejectWithValue }) => {
+    "documents/getUserDocumentNotSigned",
+    async ({ custom, customId }, { getState, dispatch, rejectWithValue }) => {
         try {
-            const token = getState().user.token;
-            if (!token) {
-                return rejectWithValue("Отсутствует токен авторизации");
-            }
-            const currentConfirmableDoc = getState().documents.currentConfirmableDoc
-            const response = await getDocumentNotSigned(token, currentConfirmableDoc);
+            const token = getState().user.token!;
+            if (!token) return rejectWithValue("Нет токена авторизации");
 
-            console.log(response.not_signed_document_html + 'документ')
-            dispatch(setNotSignedDocumentsHtmls(response.not_signed_document_html));
-        } catch (error: any) {
-            console.log(error);
-            const msg =
-                error.response?.data?.errorText
+            // выбираем какой id использовать
+            const docId = custom && customId
+                ? customId
+                : getState().documents.currentConfirmableDoc;
+
+            // вызываем нужный API
+            const response = custom && customId
+                ? await getCustomDocumentsNotSigned(token, customId, "type_doc_custom")
+                : await getDocumentNotSigned(token, docId);
+
+            
+            const htmlString = response.not_signed_document_html;
+
+            dispatch(setNotSignedDocumentsHtmls({ [docId]: htmlString }));
+        } catch (err: any) {
+            const msg = err.response?.data?.errorText ?? err.message;
             dispatch(setError(msg));
+            return rejectWithValue(msg);
         }
     }
 );
+
+
+
 
 export const getUserDocumentsSignedThunk = createAsyncThunk<
     Uint8Array, // изменили с void на Uint8Array
@@ -446,16 +502,21 @@ export const documentsSlice = createSlice({
         setTimeoutBetweenConfirmation(state, action: PayloadAction<number>) {
             state.timeoutBetweenConfirmation = action.payload;
         },
-        setNotSignedDocumentsHtmls(state, action: PayloadAction<Record<string, string>>) {
-            if (state.allNotSignedDocumentsHtml === null) {
+        // documentsSlice.ts
+        // вместо PayloadAction<SetHtmlsPayload> берём сразу Record<string,string>
+        setNotSignedDocumentsHtmls(
+            state,
+            action: PayloadAction<Record<string, string>>
+        ) {
+            if (!state.allNotSignedDocumentsHtml) {
                 state.allNotSignedDocumentsHtml = {};
             }
-            const currentDocs = state.allNotSignedDocumentsHtml;
-            Object.entries(action.payload).forEach(([key, value]) => {
-                currentDocs[key] = value;
+            // мержим все поля из action.payload
+            Object.entries(action.payload).forEach(([id, html]) => {
+                state.allNotSignedDocumentsHtml![id] = html;
             });
-
         },
+
 
 
         setCurrentSignedDocuments(

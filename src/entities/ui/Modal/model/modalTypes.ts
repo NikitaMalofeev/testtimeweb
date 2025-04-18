@@ -20,6 +20,7 @@ export enum ModalType {
     SELECT = 'select',
     CONFIRM_CODE = 'confirmCodeModal',
     CONFIRM_DOCS = 'confirmDocsModal',
+    CONFIRM_CUSTOM_DOCS = 'confirmCustomDocsModal',
     PROBLEM_WITH_CODE = 'problemWithCodeModal',
     PROBLEM = 'problem',
     PREVIEW = 'preview',

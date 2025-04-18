@@ -10,6 +10,7 @@ import RequireAuthRoute from './RequireAuth';
 import { NotFoundPage } from 'pages/NotFoundPage/NotFoundPage';
 import OpenInformationPage from 'pages/OpenInformationPage/OpenInformationPage';
 import FAQPage from 'pages/FAQPage/FAQPage';
+import { ConfirmCustomDocsPage } from 'pages/ConfirmCustomDocsPage/ConfirmCustomDocsPage';
 
 // const PageLoader = () => <div>Loading...</div>;
 const PageLoader = () => <div></div>;
@@ -91,6 +92,15 @@ function AppRouter() {
                 element={
                     <Suspense fallback={<PageLoader />}>
                         <FAQPage />
+                    </Suspense>
+
+                }
+            />
+            <Route
+                path="/custom_document/:id"
+                element={
+                    <Suspense fallback={<PageLoader />}>
+                        <ConfirmCustomDocsPage />
                     </Suspense>
 
                 }

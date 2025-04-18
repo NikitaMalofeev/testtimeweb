@@ -1,11 +1,16 @@
 import axios from "axios";
-import { ConfirmDocsPayload } from "../types/documentsTypes";
+import { ConfirmCustomDocsPayload, ConfirmDocsPayload } from "../types/documentsTypes";
+import { ConfirmationCodeData } from "entities/RiskProfile/model/types";
 
 const apiUrl =
     import.meta.env.VITE_USE_LOCAL_API === "true"
         ? import.meta.env.VITE_RANKS_TEST_API_URL_LOCAL
         : import.meta.env.VITE_RANKS_TEST_API_URL;
 
+const apiDocUrl =
+    import.meta.env.VITE_USE_LOCAL_API === "true"
+        ? import.meta.env.VITE_RANKS_TEST_API_DOC_URL_LOCAL
+        : import.meta.env.VITE_RANKS_TEST_API_DOC_URL;
 
 export const confirmDocsRequest = async (data: ConfirmDocsPayload, token: string) => {
     const response = await axios.post(`${apiUrl}create_doc_user/sixth_signing_documents/`, data, {
@@ -48,6 +53,17 @@ export const getDocumentsNotSigned = async (token: string) => {
     });
     return response.data;
 };
+
+export const getCustomDocumentsNotSigned = async (token: string, id_sign: string, type_document: string) => {
+    const response = await axios.post(`${apiDocUrl}custom_documents/get_user_not_signed_document_html/`, { id_sign, type_document }, {
+        headers: {
+            "Accept-Language": "ru",
+        },
+    });
+    return response.data;
+};
+
+
 
 export const getDocumentNotSigned = async (token: string, type_document: string) => {
     const response = await axios.post(`${apiUrl}create_doc_user/get_user_not_signed_document_html/`, { type_document: type_document }, {
@@ -97,6 +113,38 @@ export const getDocumentsSigned = async (type_document: string, token: string) =
             "Content-Type": "application/json",
         },
         responseType: "arraybuffer",
+    });
+    return response.data;
+};
+
+export const getCustomDocumentsSigned = async (type_document: string, token: string) => {
+    const response = await axios.post(`${apiDocUrl}custom_documents/get_signed_custom_document/`, { type_document }, {
+        headers: {
+            "Accept-Language": "ru",
+            "Authorization": `Token ${token}`,
+            "Content-Type": "application/json",
+        },
+        responseType: "arraybuffer",
+    });
+    return response.data;
+};
+
+export const confirmCustomDocsRequest = async (data: ConfirmCustomDocsPayload) => {
+    const response = await axios.post(`${apiDocUrl}custom_documents/signing_document/`, data, {
+        headers: {
+            "Accept-Language": "ru",
+            "Content-Type": "application/json",
+        },
+    });
+    return response.data;
+};
+
+export const postConfirmationCodeCustom = async (data: ConfirmationCodeData) => {
+    const response = await axios.post(`${apiDocUrl}custom_documents/check_confirmation_code/`, data, {
+        headers: {
+            "Accept-Language": "ru",
+            "Content-Type": "application/json",
+        },
     });
     return response.data;
 };

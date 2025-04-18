@@ -8,6 +8,8 @@ import SuccessIcon from "shared/assets/svg/SuccessLabel.svg";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
 import { ErrorInfo } from "react";
 import { motion } from "framer-motion";
+import { useAppDispatch } from "shared/hooks/useAppDispatch";
+import { closeAllModals } from "entities/ui/Modal/slice/modalSlice";
 
 interface ErrorPageProps {
     error: Error;
@@ -18,6 +20,7 @@ interface ErrorPageProps {
 export const ErrorPage: React.FC<ErrorPageProps> = ({ error, errorInfo, resetErrorBoundary }) => {
     const [copyNotification, setCopyNotification] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
+    const dispatch = useAppDispatch()
 
     const handleCopy = (e: React.MouseEvent<HTMLButtonElement>) => {
 
@@ -77,6 +80,7 @@ export const ErrorPage: React.FC<ErrorPageProps> = ({ error, errorInfo, resetErr
                     <Button
                         theme={ButtonTheme.UNDERLINE}
                         onClick={() => {
+                            dispatch(closeAllModals())
                             window.location.href = "/lk";
                         }}
                         padding="19px 26px"

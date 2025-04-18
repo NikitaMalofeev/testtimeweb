@@ -1,11 +1,19 @@
+// src/entities/ui/Modal/slice/modalSlice.ts
+
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { ModalType, ModalSize, ModalAnimation, ModalState, ModalStateItem } from '../model/modalTypes';
+import {
+    ModalType,
+    ModalSize,
+    ModalAnimation,
+    ModalState,
+    ModalStateItem,
+} from '../model/modalTypes';
 
 export interface ExtendedModalState extends ModalState {
+    modalStack: ModalType[];
     confirmationMethod: 'SMS' | 'WHATSAPP' | 'EMAIL';
     selectedCountry: string;
     currentProblemScreen: string | undefined;
-    modalStack: ModalType[];
 }
 
 const initialState: ExtendedModalState = {
@@ -13,79 +21,90 @@ const initialState: ExtendedModalState = {
         isOpen: false,
         size: ModalSize.FULL,
         animation: ModalAnimation.LEFT,
-        isScrolled: false
+        isScrolled: false,
+    },
+    [ModalType.SELECT]: {
+        isOpen: false,
+        size: ModalSize.FULL,
+        animation: ModalAnimation.LEFT,
+        isScrolled: false,
     },
     [ModalType.CONFIRM_CODE]: {
         isOpen: false,
         size: ModalSize.MIDDLE,
         animation: ModalAnimation.BOTTOM,
-        isScrolled: false
+        isScrolled: false,
     },
     [ModalType.CONFIRM_DOCS]: {
         isOpen: false,
         size: ModalSize.MIDDLE,
         animation: ModalAnimation.BOTTOM,
-        isScrolled: false
+        isScrolled: false,
     },
     [ModalType.PROBLEM_WITH_CODE]: {
         isOpen: false,
         size: ModalSize.MINI,
         animation: ModalAnimation.BOTTOM,
-        isScrolled: false
+        isScrolled: false,
     },
     [ModalType.PROBLEM]: {
         isOpen: false,
         size: ModalSize.MINI,
         animation: ModalAnimation.BOTTOM,
-        isScrolled: false
-    },
-    [ModalType.SELECT]: { // Добавлена модалка для селекта
-        isOpen: false,
-        size: ModalSize.FULL,
-        animation: ModalAnimation.LEFT,
-        isScrolled: false
+        isScrolled: false,
     },
     [ModalType.DOCUMENTS_PREVIEW]: {
         isOpen: false,
         size: ModalSize.FULL,
         animation: ModalAnimation.LEFT,
-        isScrolled: false
-    },
+        isScrolled: false,
+        // extra field for preview
+        docId: undefined,
+    } as ModalStateItem & { docId?: string },
     [ModalType.DOCUMENTS_PREVIEW_SIGNED]: {
         isOpen: false,
         size: ModalSize.FULL,
         animation: ModalAnimation.LEFT,
-        isScrolled: false
-    },
+        isScrolled: false,
+        // extra field for signed preview
+        docId: undefined,
+    } as ModalStateItem & { docId?: string },
     [ModalType.RESET_PASSWORD]: {
         isOpen: false,
         size: ModalSize.MC,
         animation: ModalAnimation.BOTTOM,
-        isScrolled: false
+        isScrolled: false,
     },
-    [ModalType.PREVIEW]: { isOpen: false, size: ModalSize.FULL, animation: ModalAnimation.LEFT, isScrolled: false },
+    [ModalType.PREVIEW]: {
+        isOpen: false,
+        size: ModalSize.FULL,
+        animation: ModalAnimation.LEFT,
+        isScrolled: false,
+    },
     [ModalType.PROGRESS]: {
         isOpen: false,
         size: ModalSize.XXS,
         animation: ModalAnimation.BOTTOM,
-        isScrolled: false
+        isScrolled: false,
     },
     [ModalType.INFO]: {
         isOpen: false,
         size: ModalSize.XXS,
         animation: ModalAnimation.BOTTOM,
-        isScrolled: false
+        isScrolled: false,
     },
     [ModalType.SUCCESS]: {
         isOpen: false,
         size: ModalSize.MC,
         animation: ModalAnimation.BOTTOM,
-        isScrolled: false
+        isScrolled: false,
     },
+
+    // auxiliary fields
     modalStack: [],
     confirmationMethod: 'SMS',
-    selectedCountry: "",
-    currentProblemScreen: ''
+    selectedCountry: '',
+    currentProblemScreen: '',
 };
 
 const modalSlice = createSlice({
@@ -94,54 +113,108 @@ const modalSlice = createSlice({
     reducers: {
         openModal: (
             state,
-            action: PayloadAction<{ type: ModalType; size: ModalSize; animation: ModalAnimation }>
+            action: PayloadAction<{
+                type: ModalType;
+                size: ModalSize;
+                animation: ModalAnimation;
+                title?: string;
+                docId?: string;
+            }>
         ) => {
-            const { type, size, animation } = action.payload;
+            const { type, size, animation, title, docId } = action.payload;
             if (state[type].isOpen) return;
-            state[type] = { ...state[type], isOpen: true, size, animation };
-            // Добавляем тип модалки в стек
+
+            state[type].isOpen = true;
+            state[type].size = size;
+            state[type].animation = animation;
+            if (title !== undefined) {
+                state[type].title = title;
+            }
+
+            // only store docId for preview modals
+            if (
+                type === ModalType.DOCUMENTS_PREVIEW ||
+                type === ModalType.DOCUMENTS_PREVIEW_SIGNED
+            ) {
+                // @ts-ignore
+                state[type].docId = docId;
+            }
+
             state.modalStack.push(type);
-        },
-
-
-        setCurrentConfirmModalType: (state, action: PayloadAction<'SMS' | 'WHATSAPP' | 'EMAIL'>) => {
-            state.confirmationMethod = action.payload;
         },
 
         closeModal: (state, action: PayloadAction<ModalType>) => {
             const type = action.payload;
             state[type].isOpen = false;
-            // Удаляем модалку из стека (если она там есть)
-            state.modalStack = state.modalStack.filter(modal => modal !== type);
+
+            // only clear docId for preview modals
+            if (
+                type === ModalType.DOCUMENTS_PREVIEW ||
+                type === ModalType.DOCUMENTS_PREVIEW_SIGNED
+            ) {
+                // @ts-ignore
+                state[type].docId = undefined;
+            }
+
+            state.modalStack = state.modalStack.filter((m) => m !== type);
         },
-        // Новый редьюсер для закрытия последней открытой модалки
+
         closeLastModal: (state) => {
-            const lastModal = state.modalStack.pop();
-            if (lastModal) {
-                state[lastModal].isOpen = false;
+            const last = state.modalStack.pop();
+            if (last) {
+                state[last].isOpen = false;
+                if (
+                    last === ModalType.DOCUMENTS_PREVIEW ||
+                    last === ModalType.DOCUMENTS_PREVIEW_SIGNED
+                ) {
+                    // @ts-ignore
+                    state[last].docId = undefined;
+                }
             }
         },
 
-        setModalScrolled: (state, action: PayloadAction<{ type: ModalType; isScrolled: boolean }>) => {
+        setModalScrolled: (
+            state,
+            action: PayloadAction<{ type: ModalType; isScrolled: boolean }>
+        ) => {
             const { type, isScrolled } = action.payload;
             state[type].isScrolled = isScrolled;
         },
 
-        // ✅ Экшен для установки выбранной страны
+        setCurrentConfirmModalType: (
+            state,
+            action: PayloadAction<'SMS' | 'WHATSAPP' | 'EMAIL'>
+        ) => {
+            state.confirmationMethod = action.payload;
+        },
+
         setSelectedCountry: (state, action: PayloadAction<string>) => {
             state.selectedCountry = action.payload;
         },
-        setCurrentProblemScreen: (state, action: PayloadAction<string | undefined>) => {
+
+        setCurrentProblemScreen: (
+            state,
+            action: PayloadAction<string | undefined>
+        ) => {
             state.currentProblemScreen = action.payload;
         },
+
         closeAllModals: (state) => {
             Object.values(ModalType).forEach((type) => {
-                if (type !== ModalType.CONFIRM_CODE && state[type]) {
+                if (type !== ModalType.CONFIRM_CODE) {
                     state[type].isOpen = false;
+                    if (
+                        type === ModalType.DOCUMENTS_PREVIEW ||
+                        type === ModalType.DOCUMENTS_PREVIEW_SIGNED
+                    ) {
+                        // @ts-ignore
+                        state[type].docId = undefined;
+                    }
                 }
             });
-            // Если в modalStack нужно оставить ConfirmCode, фильтруем его:
-            state.modalStack = state.modalStack.filter(modal => modal === ModalType.CONFIRM_CODE);
+            state.modalStack = state.modalStack.filter(
+                (m) => m === ModalType.CONFIRM_CODE
+            );
         },
     },
 });
@@ -149,13 +222,12 @@ const modalSlice = createSlice({
 export const {
     openModal,
     closeModal,
+    closeLastModal,
     setModalScrolled,
     setCurrentConfirmModalType,
     setSelectedCountry,
-    closeAllModals,
     setCurrentProblemScreen,
-    closeLastModal,
-    // Экспортируем экшен для открытия селекта
+    closeAllModals,
 } = modalSlice.actions;
 
 export default modalSlice.reducer;

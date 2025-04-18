@@ -33,7 +33,7 @@ import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
 import { ProblemsCodeModal } from "features/RiskProfile/ProblemsCodeModal/ProblemsCodeModal";
 import { postPasportScanThunk } from "entities/RiskProfile/slice/riskProfileSlice";
 import { Tooltip } from "shared/ui/Tooltip/Tooltip";
-import { getAllBrokersThunk } from "entities/Documents/slice/documentsSlice";
+import { getAllBrokersThunk, getUserDocumentsStateThunk } from "entities/Documents/slice/documentsSlice";
 import { checkPushNotificationsThunk } from "entities/ui/PushNotifications/slice/pushSlice";
 
 const PersonalAccountMenu: React.FC = () => {
@@ -56,6 +56,7 @@ const PersonalAccountMenu: React.FC = () => {
 
     useEffect(() => {
         dispatch(getAllBrokersThunk({ is_confirmed_type_doc_agreement_transfer_broker: true, onSuccess: () => { } }));
+        dispatch(getUserDocumentsStateThunk())
     }, []);
 
     useEffect(() => {

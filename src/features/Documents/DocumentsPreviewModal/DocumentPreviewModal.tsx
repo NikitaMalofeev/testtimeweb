@@ -24,7 +24,6 @@ interface PreviewModalProps {
     docId?: string | null; // Идентификатор документа
     justPreview?: string;  // Если передаём URL для превью
     isSignedDoc?: boolean;
-
 }
 
 export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
@@ -90,6 +89,8 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
     ]);
 
     useEffect(() => {
+        console.log(isSignedDoc)
+        console.log(isContentReady)
         console.log('hasCurrentSighedDocument', hasCurrentSighedDocument);
     }, [hasCurrentSighedDocument]);
 
@@ -152,7 +153,7 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                 }>
                     {!isContentReady && !loading ? (
                         <Loader />
-                    ) : (hasCurrentSighedDocument &&
+                    ) : (isSignedDoc && hasCurrentSighedDocument &&
                         hasCurrentSighedDocument.document &&
                         Object.keys(hasCurrentSighedDocument.document).length > 0) ? (
                         <PdfViewer pdfBinary={hasCurrentSighedDocument.document} />

@@ -154,37 +154,35 @@ const initialState: PushState = {
 };
 
 // push/checkNotifications.ts
-export const checkPushNotificationsThunk = createAsyncThunk<
-    void,
-    void,
-    { state: RootState }
->(
+export const checkPushNotificationsThunk = createAsyncThunk<void, void, { state: RootState }>(
     'push/checkNotifications',
     (_, { dispatch, getState }) => {
         const {
             filledRiskProfileChapters,
-            currentConfirmableDoc,
             brokerIds,
             brokersCount,
             userDocuments
         } = getState().documents;
 
-        /* ---------- 1. Рисковый профиль / паспорт ---------- */
-        const pushMapping: { field: keyof FilledRiskProfileChapters; id: string }[] =
-            [
-                { field: 'is_risk_profile_complete', id: 'fillRiskProfiling' },
-                { field: 'is_risk_profile_complete_final', id: 'confirmRiskProfile' },
-                { field: 'is_complete_passport', id: 'fillPassportData' },
-                { field: 'is_exist_scan_passport', id: 'uploadDocuments' },
-            ];
+        // 1. Рисковое профилирование / паспорт
+        const pushMapping: { field: keyof FilledRiskProfileChapters; id: string }[] = [
+            { field: 'is_risk_profile_complete', id: 'fillRiskProfiling' },
+            { field: 'is_risk_profile_complete_final', id: 'confirmRiskProfile' },
+            { field: 'is_complete_passport', id: 'fillPassportData' },
+            { field: 'is_exist_scan_passport', id: 'uploadDocuments' },
+        ];
 
-        pushMapping.forEach(({ field, id }) =>
-            filledRiskProfileChapters[field]
-                ? dispatch(deactivatePush(id))
-                : dispatch(activatePush(id)),
-        );
+        // Найдём первый незавершённый
+        const firstRisk = pushMapping.find(({ field }) => !filledRiskProfileChapters[field]);
+        if (firstRisk) {
+            dispatch(activatePush(firstRisk.id));
+            return;
+        }
+        // Всё из рисковой группы выполнено — сбросим их
+        pushMapping.forEach(({ id }) => dispatch(deactivatePush(id)));
 
-        const confirmableDocPushes: string[] = [
+        // 2. Подписание документов
+        const confirmableDocs = [
             'type_doc_EDS_agreement',
             'type_doc_RP_questionnairy',
             'type_doc_agreement_investment_advisor',
@@ -192,41 +190,39 @@ export const checkPushNotificationsThunk = createAsyncThunk<
             'type_doc_agreement_personal_data_policy',
             'type_doc_investment_profile_certificate',
             'type_doc_agreement_account_maintenance',
-        ];
+        ] as const;
 
-        confirmableDocPushes.forEach((docId) => {
-            // Проверяем, есть ли документ с данным id в userDocuments.
-            // Если userDocuments – объект, получаем массив его значений.
-            const documentExists = Object.values(userDocuments).some(
-                (doc: { key: string }) => doc.key === docId
-            );
+        const firstDocToSign = confirmableDocs.find(docId =>
+            !Object.values(userDocuments).some(doc => doc.key === docId)
+        );
+        if (firstDocToSign) {
+            dispatch(activatePush(firstDocToSign));
+            return;
+        }
+        // Уже все подписано — сбросим их
+        confirmableDocs.forEach(id => dispatch(deactivatePush(id)));
 
-            // Если документа нет, активируем пуш, иначе деактивируем.
-            if (!documentExists) {
-                dispatch(activatePush(docId));
-            } else {
-                dispatch(deactivatePush(docId));
-            }
-        });
-
-        /* ---------- 3. Старт работы с брокером ---------- */
+        // 3. Подключение брокера
         if (brokerIds.length === 0) {
             dispatch(activatePush('type_doc_broker_api_token_fill'));
-        } else {
-            dispatch(deactivatePush('type_doc_broker_api_token_fill'));
+            return;
         }
-        if (brokerIds.length !== 0 && brokersCount === 0) {
+        dispatch(deactivatePush('type_doc_broker_api_token_fill'));
+
+        if (brokerIds.length > 0 && brokersCount === 0) {
             dispatch(activatePush('type_doc_broker_api_token_sign'));
-        } else {
-            dispatch(deactivatePush('type_doc_broker_api_token_sign'));
+            return;
         }
+        dispatch(deactivatePush('type_doc_broker_api_token_sign'));
 
-        const allDocsIsSigned = Object.keys(userDocuments).length === 8
-
-        if (allDocsIsSigned && brokersCount > 0) {
+        // 4. Старт работы
+        const allDocsSigned = Object.values(userDocuments).length === confirmableDocs.length;
+        if (allDocsSigned && brokersCount > 0) {
             dispatch(activatePush('startWork'));
+            return;
         }
-    },
+        dispatch(deactivatePush('startWork'));
+    }
 );
 
 
@@ -234,13 +230,20 @@ const pushSlice = createSlice({
     name: "push",
     initialState,
     reducers: {
+        /** Активирует только указанный пуш, деактивируя все остальные */
         activatePush(state, action: PayloadAction<string>) {
             const id = action.payload;
+            // 1) Сначала сбросим флаг active у всех пушей
+            state.notifications.forEach((n) => {
+                n.active = false;
+            });
+            // 2) Затем найдём и включим только нужный
             const notification = state.notifications.find((n) => n.id === id);
             if (notification) {
                 notification.active = true;
             }
         },
+        /** Деактивирует конкретный пуш (не затрагивая остальные) */
         deactivatePush(state, action: PayloadAction<string>) {
             const id = action.payload;
             const notification = state.notifications.find((n) => n.id === id);

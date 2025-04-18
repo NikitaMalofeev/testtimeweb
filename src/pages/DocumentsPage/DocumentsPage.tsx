@@ -42,6 +42,7 @@ const DocumentsPage: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const modalState = useSelector((state: RootState) => state.modal);
+    const { documentsPreview, documentsPreviewSigned } = modalState;
 
     const { userDocuments, loading, filledRiskProfileChapters, brokerIds } = useSelector((state: RootState) => state.documents);
     const currentDocument = useSelector((state: RootState) => state.documents.currentSugnedDocument.document);
@@ -216,7 +217,10 @@ const DocumentsPage: React.FC = () => {
         // Ищем документ с key===type в userDocuments
         const docInfo = userDocuments.find((doc) => doc.key === type);
 
-        const date = docInfo?.date_last_confirmed || null;
+        const date =
+            type === "type_doc_broker_api_token"
+                ? docInfo?.date_last_confirmed_type_doc_agreement_transfer_broker ?? null
+                : docInfo?.date_last_confirmed ?? null;
         let status = date ? "signed" : "signable"; // если нет даты => значит не подписан
 
         // Обработка исключений для EDS и брокерского документа
@@ -291,6 +295,7 @@ const DocumentsPage: React.FC = () => {
                     type: ModalType.DOCUMENTS_PREVIEW_SIGNED,
                     animation: ModalAnimation.LEFT,
                     size: ModalSize.FULL,
+                    docId,
                 })
             );
         } else {
@@ -307,15 +312,30 @@ const DocumentsPage: React.FC = () => {
                     type: ModalType.DOCUMENTS_PREVIEW_SIGNED,
                     animation: ModalAnimation.LEFT,
                     size: ModalSize.FULL,
+                    docId,
                 })
             );
         }
     };
 
     const handleDownloadPdf = async (docId: string) => {
-        if (docId !== "type_doc_passport") {
-            try {
-                const pdfBytes = await dispatch(
+        try {
+            // 1) Брокерский токен
+            if (docId === "type_doc_broker_api_token") {
+
+                const pdfBytes: Uint8Array = await dispatch(
+                    getBrokerDocumentsSignedThunk({
+                        purpose: "download",
+                        onSuccess: () => { },
+                    })
+                ).unwrap();
+                downloadBlob(pdfBytes, docId);
+                return;
+            }
+
+            // 2) Прочие документы (кроме паспорта)
+            if (docId !== "type_doc_passport") {
+                const pdfBytes: Uint8Array = await dispatch(
                     getUserDocumentsSignedThunk({
                         type_document: docId,
                         purpose: "download",
@@ -323,22 +343,26 @@ const DocumentsPage: React.FC = () => {
                     })
                 ).unwrap();
 
-                const blob = new Blob([pdfBytes], { type: "application/pdf" });
-                const url = window.URL.createObjectURL(blob);
-
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = `${docId}.pdf`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-
-                window.URL.revokeObjectURL(url);
-            } catch (error) {
-                console.error("Ошибка при скачивании PDF", error);
+                downloadBlob(pdfBytes, docId);
             }
+        } catch (error) {
+            console.error("Ошибка при скачивании PDF", error);
         }
     };
+
+    // вспомогалка для создания Blob и скачивания
+    function downloadBlob(data: Uint8Array, docId: string) {
+        const blob = new Blob([data], { type: "application/pdf" });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${docId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    }
+
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -443,6 +467,7 @@ const DocumentsPage: React.FC = () => {
                                 <div className={styles.document__status}>
                                     {/* Показываем дату, если документ подписан */}
                                     <span className={styles.document__date}>
+
                                         {doc.date
                                             ? new Date(doc.date).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" })
                                             : "Дата подписания"}
@@ -477,12 +502,17 @@ const DocumentsPage: React.FC = () => {
             </div>
 
             <DocumentPreviewModal
-                key={currentConfirmableDocument}
-                isOpen={modalState.documentsPreviewSigned.isOpen}
+                isOpen={documentsPreview.isOpen || documentsPreviewSigned.isOpen}
                 onClose={handleClosePreview}
-                title={selectedDocId ? docTypeLabels[selectedDocId] || "Документ" : "Документ"}
-                isSignedDoc
-                docId={selectedDocId}
+                isSignedDoc={documentsPreviewSigned.isOpen}
+                docId={documentsPreview.docId || documentsPreviewSigned.docId}
+                title={
+                    (documentsPreview.docId || documentsPreviewSigned.docId)
+                        ? docTypeLabels[
+                        documentsPreview.docId || documentsPreviewSigned.docId!
+                        ]
+                        : 'Документ'
+                }
             />
         </div>
     );

@@ -14,6 +14,7 @@ import { postBrokerConfirmationDocsCode, postConfirmationDocsCode } from "entiti
 export interface DocumentConfirmationInfo {
     key: string;
     date_last_confirmed: string | null; // null, если документ не подписан
+    date_last_confirmed_type_doc_agreement_transfer_broker?: string | null;
     timeoutPending?: number;
 }
 
@@ -345,7 +346,7 @@ export const getUserDocumentsSignedThunk = createAsyncThunk<
 );
 
 export const getBrokerDocumentsSignedThunk = createAsyncThunk<
-    void,
+    Uint8Array,
     { purpose: string; onSuccess: () => void },
     { rejectValue: string; state: RootState }
 >(
@@ -372,6 +373,7 @@ export const getBrokerDocumentsSignedThunk = createAsyncThunk<
             if (purpose === 'download') {
                 onSuccess()
             }
+            return pdfBytes
         } catch (error: any) {
             const msg =
                 error.response?.request?.errorText ||

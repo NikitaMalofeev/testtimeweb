@@ -81,12 +81,12 @@ export const ConfirmAllDocs: React.FC = () => {
     const totalDocs = docTypes.length;
 
     const handleOpenPreview = () => {
-        // dispatch(getUserDocumentNotSignedThunk())
         dispatch(
             openModal({
                 type: ModalType.DOCUMENTS_PREVIEW,
                 size: ModalSize.FULL,
                 animation: ModalAnimation.LEFT,
+                docId: currentTypeDoc,      // <-- кладём id
             })
         );
     };
@@ -287,15 +287,6 @@ export const ConfirmAllDocs: React.FC = () => {
                     </Button>
                 </div>
             </div>
-            <DocumentPreviewModal
-                isOpen={modalState.isOpen}
-                onClose={() => {
-                    dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW));
-                    dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW_SIGNED));
-                }}
-                title={renderDocLabel()}
-                docId={currentTypeDoc}
-            />
             <ConfirmDocsModal
                 isOpen={useSelector((state: RootState) => state.modal.confirmDocsModal.isOpen)}
                 onClose={() => {

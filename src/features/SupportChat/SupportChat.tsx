@@ -80,21 +80,15 @@ export const SupportChat = () => {
 
     // Получение ID веб-сокета и всех сообщений
     useEffect(() => {
-        dispatch(fetchWebsocketId());
         dispatch(getAllMessagesThunk());
-    }, [token, dispatch]);
+    }, [token]);
 
     // Закрываем любые модалки при открытии чата
     useEffect(() => {
         dispatch(closeAllModals());
     }, [dispatch]);
 
-    // Подключаемся по веб-сокету, когда узнали websocketId
-    useEffect(() => {
-        if (websocketId) {
-            dispatch(openWebSocketConnection(websocketId));
-        }
-    }, [websocketId, dispatch]);
+
 
     // Скроллим вниз при каждом новом сообщении
     useEffect(() => {

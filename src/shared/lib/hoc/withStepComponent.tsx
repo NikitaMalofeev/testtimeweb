@@ -61,7 +61,7 @@ const withStepContent = (
             'Пройдите анкетирование для определения вашего инвестиционного профиля',
             <div className={styles.description}>
                 <div className={styles.description__container}>
-                    <span className={styles.description__title}>Максимально допустимый риск профиль</span>
+                    <span className={styles.description__title}>Максимально допустимый риск профиль: {maxRiskProfile}</span>
                     {/* Если нужно, можно вставить maxRiskProfile, например:
                     <span className={styles.description__value}>{maxRiskProfile}</span> */}
                 </div>

@@ -1,3 +1,5 @@
 import { lazy } from 'react';
 
-export const AuthorizationPageAsync = lazy(() => import('./AuthorizationPage'));
+const AuthorizationPage = lazy(() => import('./AuthorizationPage'));
+
+export default AuthorizationPage;

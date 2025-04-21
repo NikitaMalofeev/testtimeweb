@@ -30,7 +30,7 @@ import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/D
 import SuccessBlueIcon from "shared/assets/svg/SuccessBlueIcon.svg";
 import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
 
-export const ConfirmCustomDocsPage: React.FC = () => {
+const ConfirmCustomDocsPage: React.FC = () => {
     const { id = "" } = useParams<{ id: string }>();
     const dispatch = useAppDispatch();
 
@@ -44,10 +44,6 @@ export const ConfirmCustomDocsPage: React.FC = () => {
     const confirmCustomDocModalOpen = useSelector(
         (state: RootState) => state.modal.confirmCustomDocsModal.isOpen
     );
-
-    useEffect(() => {
-        customData?.is_confirmed_type_doc_EDS_agreement && setStep(2)
-    }, [customData])
 
     const displayKey = step === 1 ? "type_doc_EDS_agreement" : id;
     const previewDocId = step === 1 ? "type_doc_EDS_agreement" : id;
@@ -287,3 +283,5 @@ export const ConfirmCustomDocsPage: React.FC = () => {
         </div>
     );
 };
+
+export default ConfirmCustomDocsPage

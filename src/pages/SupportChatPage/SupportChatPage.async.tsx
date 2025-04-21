@@ -1,3 +1,5 @@
 import { lazy } from 'react';
 
-export const SupportChatPageAsync = lazy(() => import('./SupportChatPage'));
+const SupportChatPage = lazy(() => import('./SupportChatPage'));
+
+export default SupportChatPage;

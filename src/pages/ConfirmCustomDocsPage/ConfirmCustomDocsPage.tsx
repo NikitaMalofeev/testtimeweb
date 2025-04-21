@@ -60,11 +60,10 @@ export const ConfirmCustomDocsPage: React.FC = () => {
 
     useEffect(() => {
         if (step === 1) {
-            dispatch(getUserDocumentNotSignedThunk({ custom: true, customId: id, type: 'type_doc_EDS_agreement' }));
+            dispatch(getUserDocumentNotSignedThunk({ custom: true, customId: id, type: 'type_doc_custom' }));
         } else {
             dispatch(getUserDocumentNotSignedThunk({ custom: true, customId: id, type: 'type_doc_custom' }));
         }
-        console.log('1111111')
     }, [dispatch, step, id]);
 
     // Formik for shared fields (agreement checkbox and message method)
@@ -116,14 +115,16 @@ export const ConfirmCustomDocsPage: React.FC = () => {
     };
 
     const handleOpenPreview = async () => {
-        await dispatch(
-            getUserDocumentsSignedThunk({
-                type_document: 'type_doc_custom',
-                purpose: "preview",
-                onSuccess: () => { },
-                id_sign: id
-            })
-        );
+        if (step === 2 && customData?.is_confirmed_type_doc_custom) {
+            await dispatch(
+                getUserDocumentsSignedThunk({
+                    type_document: 'type_doc_custom',
+                    purpose: 'preview',
+                    onSuccess: () => { },
+                    id_sign: id,
+                })
+            );
+        }
         dispatch(
             openModal({
                 type: ModalType.DOCUMENTS_PREVIEW,
@@ -262,13 +263,14 @@ export const ConfirmCustomDocsPage: React.FC = () => {
                         Документ “<strong>{step === 1 ? 'Соглашение об ЭДО' : `${customData?.title}`}</strong>” успешно подписан.
                     </div>
                 }
+                customSuccessModal
                 action={handleSuccessAction}
             />
             {!customData?.is_confirmed_type_doc_custom ? (
                 <DocumentPreviewModal
                     isOpen={documentsPreviewState.isOpen}
                     onClose={() => dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW_SIGNED))}
-                    docId={'type_doc_EDS_agreement'}
+                    docId={step === 1 ? 'type_doc_EDS_agreement' : id}
                     title="Документ"
                 />
             ) : (

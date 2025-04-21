@@ -17,7 +17,7 @@ import {
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { selectModalState } from "entities/ui/Modal/selectors/selectorsModals";
 import { setTooltipActive, setConfirmationDocsSuccess, setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
-import { clearDocumentTimeout, confirmDocsRequestThunk, getUserDocumentsStateThunk, sendCustomDocsConfirmationCode, sendDocsConfirmationCode, setDocumentTimeoutPending } from "entities/Documents/slice/documentsSlice";
+import { clearDocumentTimeout, confirmDocsRequestThunk, getUserDocumentNotSignedThunk, getUserDocumentsStateThunk, sendCustomDocsConfirmationCode, sendDocsConfirmationCode, setDocumentTimeoutPending } from "entities/Documents/slice/documentsSlice";
 import { ConfirmDocsPayload } from "entities/Documents/types/documentsTypes";
 
 interface ConfirmCustomDocsModalProps {
@@ -199,6 +199,7 @@ export const ConfirmCustomDocsModal = memo(
                     id_sign: custimId,
 
                     onSuccess: (data: any) => {
+                        dispatch(getUserDocumentNotSignedThunk({ custom: true, customId: custimId, type: 'type_doc_custom' }));
                         setSmsCodeFirst(Array(codeLength).fill(""));
                         if (openSuccessModal) {
                             openSuccessModal(docsType);

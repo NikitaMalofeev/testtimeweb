@@ -18,10 +18,12 @@ interface SuccessModalProps {
     description: ReactElement;
     action: () => void;
     actionText?: string;
+    customSuccessModal?: boolean;
 }
 
-export const SuccessModal = memo(({ isOpen, onClose, title, description, action, actionText }: SuccessModalProps) => {
+export const SuccessModal = memo(({ isOpen, onClose, title, description, action, actionText, customSuccessModal }: SuccessModalProps) => {
     const modalState = useSelector((state: RootState) => state.modal);
+    const customDocsData = useSelector((state: RootState) => state.documents.customDocumentsData);
     const navigate = useNavigate()
     const dispatch = useAppDispatch()
     const handleBackToPA = () => {
@@ -46,20 +48,33 @@ export const SuccessModal = memo(({ isOpen, onClose, title, description, action,
                     <span className={styles.description}>{description}</span>
                 </div>
                 <div className={styles.buttons}>
-                    <Button
-                        theme={ButtonTheme.UNDERLINE}
-                        onClick={handleBackToPA}
-                        className={styles.submitButton}
-                    >
-                        Вернуться в личный кабинет
-                    </Button>
-                    <Button
-                        theme={ButtonTheme.BLUE}
-                        onClick={() => action()}
-                        className={styles.submitButton}
-                    >
-                        {actionText ? actionText : 'Перейти к следующему'}
-                    </Button>
+                    {!customSuccessModal && (
+                        <Button
+                            theme={ButtonTheme.UNDERLINE}
+                            onClick={handleBackToPA}
+                            className={styles.submitButton}
+                        >
+                            Вернуться в личный кабинет
+                        </Button>
+                    )}
+                    {customSuccessModal && customDocsData?.is_confirmed_type_doc_custom ? (
+                        <Button
+                            theme={ButtonTheme.BLUE}
+                            onClick={() => action()}
+                            className={styles.submitButton}
+                        >
+                            {actionText ? actionText : 'Просмотр документа'}
+                        </Button>
+                    ) : (
+                        <Button
+                            theme={ButtonTheme.BLUE}
+                            onClick={() => action()}
+                            className={styles.submitButton}
+                        >
+                            {actionText ? actionText : 'Перейти к следующему'}
+                        </Button>
+                    )}
+
                 </div>
             </div>
         </Modal>

@@ -26,10 +26,12 @@ interface ConfirmCustomDocsModalProps {
     docsType?: string;
     custimId?: string;
     openSuccessModal?: (docsType?: string) => void;
+    email: string;
+    phone: string;
 }
 
 export const ConfirmCustomDocsModal = memo(
-    ({ isOpen, onClose, docsType, custimId, openSuccessModal }: ConfirmCustomDocsModalProps) => {
+    ({ isOpen, onClose, docsType, custimId, openSuccessModal, email, phone }: ConfirmCustomDocsModalProps) => {
         const dispatch = useAppDispatch();
         const modalState = useSelector((state: RootState) => state.modal);
         const { confirmationMethod } = useSelector((state: RootState) => state.documents);
@@ -166,19 +168,19 @@ export const ConfirmCustomDocsModal = memo(
             if (confirmationMethod === "WHATSAPP") {
                 return (
                     <span className={styles.modalContent__description}>
-                        Код направлен в WhatsApp <b>{userInfo?.phone}</b>, указанный при регистрации
+                        Код направлен в WhatsApp <b>{phone}</b>
                     </span>
                 );
             } else if (confirmationMethod === "EMAIL") {
                 return (
                     <span className={styles.modalContent__description}>
-                        Код направлен на почту <b>{userInfo?.email}</b>, указанную при регистрации
+                        Код направлен на почту <b>{email}</b>
                     </span>
                 );
             }
             return (
                 <span className={styles.modalContent__description}>
-                    Код направлен на телефон <b>{userInfo?.phone}</b>, указанный при регистрации
+                    Код направлен на телефон <b>{phone}</b>
                 </span>
             );
         };

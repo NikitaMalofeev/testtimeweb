@@ -17,6 +17,8 @@ import {
     getUserDocumentsStateThunk,
     getUserDocumentNotSignedThunk,
     setCurrentConfirmableDoc,
+    setCurrentConfirmationMethod,
+    getUserDocumentsSignedThunk,
 } from "entities/Documents/slice/documentsSlice";
 import DocsImage from "shared/assets/svg/docsImage.svg";
 import { Icon } from "shared/ui/Icon/Icon";
@@ -25,6 +27,8 @@ import styles from "./styles.module.scss";
 import { ConfirmCustomDocsModal } from "features/RiskProfile/ConfirmCustomDocModal/ConfirmCustomDocModal";
 import { SuccessModal } from "features/RiskProfile/SuccessModal/SuccessModal";
 import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/DocumentPreviewModal";
+import SuccessBlueIcon from "shared/assets/svg/SuccessBlueIcon.svg";
+import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
 
 export const ConfirmCustomDocsPage: React.FC = () => {
     const { id = "" } = useParams<{ id: string }>();
@@ -33,31 +37,34 @@ export const ConfirmCustomDocsPage: React.FC = () => {
     // Step: 1 — EDS agreement, 2 — custom document
     const [step, setStep] = useState<1 | 2>(1);
     const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
+    const documentsPreviewState = useSelector((state: RootState) => state.modal.documentsPreview);
+    const { loading } = useSelector((state: RootState) => state.documents);
+    const customData = useSelector((state: RootState) => state.documents.customDocumentsData);
     const successModalOpen = useSelector((state: RootState) => state.modal.success.isOpen);
     const confirmCustomDocModalOpen = useSelector(
         (state: RootState) => state.modal.confirmCustomDocsModal.isOpen
     );
 
+    useEffect(() => {
+        customData?.is_confirmed_type_doc_EDS_agreement && setStep(2)
+    }, [customData])
+
     const displayKey = step === 1 ? "type_doc_EDS_agreement" : id;
-    const displayLabel = docTypeLabels[displayKey] || "Документ";
     const previewDocId = step === 1 ? "type_doc_EDS_agreement" : id;
 
     // Initial overall data fetch
     useEffect(() => {
-        dispatch(
-            getAllBrokersThunk({ is_confirmed_type_doc_agreement_transfer_broker: true, onSuccess: () => { } })
-        );
         dispatch(getUserDocumentsStateThunk());
         dispatch(setCurrentConfirmableDoc(displayKey));
     }, [dispatch, displayKey]);
 
-    // Fetch not-signed document depending on step
     useEffect(() => {
         if (step === 1) {
-            dispatch(getUserDocumentNotSignedThunk({ custom: false }));
+            dispatch(getUserDocumentNotSignedThunk({ custom: true, customId: id, type: 'type_doc_EDS_agreement' }));
         } else {
-            dispatch(getUserDocumentNotSignedThunk({ custom: true, customId: id }));
+            dispatch(getUserDocumentNotSignedThunk({ custom: true, customId: id, type: 'type_doc_custom' }));
         }
+        console.log('1111111')
     }, [dispatch, step, id]);
 
     // Formik for shared fields (agreement checkbox and message method)
@@ -71,6 +78,7 @@ export const ConfirmCustomDocsPage: React.FC = () => {
 
     const handleMethodChange = (method: string) => {
         formik.setFieldValue("type_message", method);
+        dispatch(setCurrentConfirmationMethod(method))
     };
 
     const handleSubmit = () => {
@@ -107,7 +115,15 @@ export const ConfirmCustomDocsPage: React.FC = () => {
         }
     };
 
-    const handleOpenPreview = () => {
+    const handleOpenPreview = async () => {
+        await dispatch(
+            getUserDocumentsSignedThunk({
+                type_document: 'type_doc_custom',
+                purpose: "preview",
+                onSuccess: () => { },
+                id_sign: id
+            })
+        );
         dispatch(
             openModal({
                 type: ModalType.DOCUMENTS_PREVIEW,
@@ -158,7 +174,8 @@ export const ConfirmCustomDocsPage: React.FC = () => {
     return (
         <div className={styles.page}>
             <div className={styles.header}>
-                <div className={styles.page__counter}>{displayLabel}</div>
+                {/* <div className={styles.page__counter}>{displayLabel}</div> */}
+                <div className={styles.page__counter}>документ {step} из 2</div>
             </div>
             <div className={styles.page__container}>
                 <div className={styles.page__image}>
@@ -169,60 +186,72 @@ export const ConfirmCustomDocsPage: React.FC = () => {
             </div>
             <div className={styles.page__container}>
                 <div className={styles.page__preview}>
-                    <span className={styles.page__doctype}>{displayLabel}</span>
+                    <span className={styles.page__doctype}>{step === 1 ? 'Соглашение об ЭДО' : `${customData?.title}`}</span>
                     <Button
                         onClick={handleOpenPreview}
                         theme={ButtonTheme.UNDERLINE}
                         className={styles.button_preview}
                     >
-                        Просмотр
+                        {loading ? <Loader size={LoaderSize.SMALL} theme={LoaderTheme.BLUE} /> : 'Просмотр'}
+
                     </Button>
                 </div>
             </div>
-            <div className={styles.page__container}>
-                <div className={styles.page__checkbox}>
-                    <Checkbox
-                        name="is_agree"
-                        value={formik.values.is_agree}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        label={<span className={styles.checkbox__text}>Я ознакомился с содержанием документа</span>}
-                        error={formik.touched.is_agree && formik.errors.is_agree ? formik.errors.is_agree : undefined}
-                    />
+            {customData?.is_confirmed_type_doc_custom ? (
+                <div className={styles.end}>
+                    <Icon Svg={SuccessBlueIcon} width={24} height={24} />
+                    Подписано
                 </div>
-            </div>
-            <span className={styles.method__title}>Куда отправить код</span>
-            <div className={styles.method}>
-                <CheckboxGroup
-                    name="type_message"
-                    direction="row"
-                    options={[
-                        { value: "SMS", label: "SMS" },
-                        { value: "EMAIL", label: "Email" },
-                        { value: "WHATSAPP", label: "Whatsapp" },
-                    ]}
-                    value={formik.values.type_message}
-                    onChange={(_, v) => handleMethodChange(v)}
-                />
-            </div>
-            <div className={`${styles.buttons} ${!isBottom ? styles.shadow : ""}`}>
-                <Button
-                    onClick={handleSubmit}
-                    theme={ButtonTheme.BLUE}
-                    className={styles.button}
-                    disabled={!formik.values.is_agree}
-                >
-                    Подтвердить
-                </Button>
-            </div>
+            ) : (
+                <>
+                    <div className={styles.page__container}>
+                        <div className={styles.page__checkbox}>
+                            <Checkbox
+                                name="is_agree"
+                                value={formik.values.is_agree}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                label={<span className={styles.checkbox__text}>Я ознакомился с содержанием документа</span>}
+                                error={formik.touched.is_agree && formik.errors.is_agree ? formik.errors.is_agree : undefined}
+                            />
+                        </div>
+                    </div>
+                    <span className={styles.method__title}>Куда отправить код</span>
+                    <div className={styles.method}>
+                        <CheckboxGroup
+                            name="type_message"
+                            direction="row"
+                            options={[
+                                { value: "SMS", label: "SMS" },
+                                { value: "EMAIL", label: "Email" },
+                                { value: "WHATSAPP", label: "Whatsapp" },
+                            ]}
+                            value={formik.values.type_message}
+                            onChange={(_, v) => handleMethodChange(v)}
+                        />
+                    </div>
+                    <div className={`${styles.buttons} ${!isBottom ? styles.shadow : ""}`}>
+                        <Button
+                            onClick={handleSubmit}
+                            theme={ButtonTheme.BLUE}
+                            className={styles.button}
+                            disabled={!formik.values.is_agree}
+                        >
+                            Подтвердить
+                        </Button>
+                    </div>
+                </>
+            )}
 
             {/* Confirmation modals */}
             <ConfirmCustomDocsModal
                 isOpen={confirmCustomDocModalOpen}
                 onClose={() => dispatch(closeModal(ModalType.CONFIRM_CUSTOM_DOCS))}
-                docsType={step === 1 ? 'type_doc_EDS_agreement' : id}
+                docsType={step === 1 ? 'type_doc_EDS_agreement' : "type_doc_custom"}
                 openSuccessModal={handleSuccessEffect}
                 custimId={id}
+                phone={customData?.phone || ''}
+                email={customData?.email || ''}
             />
             <SuccessModal
                 isOpen={successModalOpen}
@@ -230,17 +259,29 @@ export const ConfirmCustomDocsPage: React.FC = () => {
                 title="Документ подписан"
                 description={
                     <div style={{ textAlign: "center" }}>
-                        Документ “<strong>{step === 1 ? 'Соглашение об ЭДО' : 'кастомный'}</strong>” успешно подписан.
+                        Документ “<strong>{step === 1 ? 'Соглашение об ЭДО' : `${customData?.title}`}</strong>” успешно подписан.
                     </div>
                 }
                 action={handleSuccessAction}
             />
-            <DocumentPreviewModal
-                isOpen={useSelector((s: RootState) => s.modal.documentsPreview.isOpen)}
-                onClose={() => dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW_SIGNED))}
-                docId={useSelector((s: RootState) => s.modal.documentsPreview.docId)}
-                title="Документ"
-            />
+            {!customData?.is_confirmed_type_doc_custom ? (
+                <DocumentPreviewModal
+                    isOpen={documentsPreviewState.isOpen}
+                    onClose={() => dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW_SIGNED))}
+                    docId={'type_doc_EDS_agreement'}
+                    title="Документ"
+                />
+            ) : (
+                <DocumentPreviewModal
+                    isOpen={documentsPreviewState.isOpen}
+                    onClose={() => dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW))}
+                    isSignedDoc={true}
+                    docId={id}
+                    title={
+                        customData.title
+                    }
+                />
+            )}
         </div>
     );
 };

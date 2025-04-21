@@ -128,11 +128,10 @@ export const getDocumentsSigned = async (type_document: string, token: string) =
     return response.data;
 };
 
-export const getCustomDocumentsSigned = async (type_document: string, token: string) => {
-    const response = await axios.post(`${apiDocUrl}custom_documents/get_signed_custom_document/`, { type_document }, {
+export const getCustomDocumentsSigned = async (id_sign: string, type_document: string) => {
+    const response = await axios.post(`${apiDocUrl}custom_documents/get_signed_custom_document/`, { type_document, id_sign }, {
         headers: {
             "Accept-Language": "ru",
-            "Authorization": `Token ${token}`,
             "Content-Type": "application/json",
         },
         responseType: "arraybuffer",

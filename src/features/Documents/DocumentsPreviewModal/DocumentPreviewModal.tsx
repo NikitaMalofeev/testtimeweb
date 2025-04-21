@@ -88,11 +88,11 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
         isSignedDoc
     ]);
 
-    useEffect(() => {
-        console.log(isSignedDoc)
-        console.log(isContentReady)
-        console.log('hasCurrentSighedDocument', hasCurrentSighedDocument);
-    }, [hasCurrentSighedDocument]);
+    // useEffect(() => {
+    //     console.log(isSignedDoc)
+    //     console.log(isContentReady)
+    //     console.log('hasCurrentSighedDocument', hasCurrentSighedDocument);
+    // }, [hasCurrentSighedDocument, isContentReady]);
 
     // Блокировка скролла, если модалка открыта
     const isAnyModalOpen = useSelector(selectIsAnyModalOpen);

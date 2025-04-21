@@ -1,5 +1,9 @@
 .page {
+    display: flex;
+    flex-direction: column;
     padding: 24px;
+    height: 100%;
+    flex-grow: 1;
     &__container{
 position: relative;
 
@@ -18,7 +22,6 @@ position: relative;
     &__counter {
         display: inline-block;
         max-width: max-content;
-        margin: 0 auto;
         border-radius: 10px;
         padding: 2.5px 10px;
         background-color: #2977E2;
@@ -54,6 +57,7 @@ position: relative;
         align-items: center;
         justify-content: space-between;
         padding: 18px 0;
+        min-height: 72px;
     }
 
     &__checkbox {
@@ -148,5 +152,14 @@ position: relative;
     display: flex;
     gap: 10px;
     align-items: center;
-    justify-content: space-between;
+    justify-content: end;
+}
+
+.end {
+    display: flex;
+    flex-grow: 1;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin: 5% auto 0 ;
 }

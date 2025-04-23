@@ -94,14 +94,14 @@ const PersonalAccountMenu: React.FC = () => {
             icon: AccountDocumentIcon,
             title: "Документы",
             route: "/documents",
-            notificationsCount: 8 - userDocuments.length,
+            notificationsCount: 9 - userDocuments.length,
             iconWidth: 28,
             iconHeight: 28,
             warningMessage: filledRiskProfileChapters.is_risk_profile_complete_final
                 ? (8 - userDocuments.length !== 0 ? (
                     <div className={styles.warning}>
                         <Icon Svg={WarningIcon} width={16} height={16} />
-                        <div>Есть неподписанные документы ({9 - userDocuments.length - 1} шт.)</div>
+                        <div>Есть неподписанные документы ({9 - userDocuments.length} шт.)</div>
                     </div>
                 ) : null)
                 :

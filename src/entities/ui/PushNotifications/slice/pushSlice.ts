@@ -190,6 +190,7 @@ export const checkPushNotificationsThunk = createAsyncThunk<void, void, { state:
             'type_doc_agreement_personal_data_policy',
             'type_doc_investment_profile_certificate',
             'type_doc_agreement_account_maintenance',
+            'type_doc_agreement_investment_advisor_app_1',
         ] as const;
 
         const firstDocToSign = confirmableDocs.find(docId =>

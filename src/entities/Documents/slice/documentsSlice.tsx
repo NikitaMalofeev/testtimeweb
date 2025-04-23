@@ -49,7 +49,8 @@ export const docTypes = [
     "type_doc_agreement_personal_data_policy",
     "type_doc_investment_profile_certificate",
     "type_doc_agreement_account_maintenance",
-    "type_doc_broker_api_token"
+    "type_doc_broker_api_token",
+    "type_doc_agreement_investment_advisor_app_1"
 ];
 
 // Лейблы для UI.
@@ -62,7 +63,8 @@ export const docTypeLabels: Record<string, string> = {
     type_doc_agreement_personal_data_policy: "Политика перс. данных",
     type_doc_investment_profile_certificate: "Справка ИП",
     type_doc_agreement_account_maintenance: 'Доверенность на управление счетом',
-    type_doc_broker_api_token: 'Согласие на передачу API ключа к брокерскому счету'
+    type_doc_broker_api_token: 'Согласие на передачу API ключа к брокерскому счету',
+    type_doc_agreement_investment_advisor_app_1: 'Договор ИС приложение 1',
 };
 
 interface DocumentsState {

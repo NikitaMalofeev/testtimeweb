@@ -186,6 +186,7 @@ export const ConfirmAllDocs: React.FC = () => {
             case "type_doc_agreement_personal_data_policy":
             case "type_doc_investment_profile_certificate":
             case "type_doc_agreement_account_maintenance":
+            case 'type_doc_agreement_investment_advisor_app_1':
             case "type_doc_broker_api_token":
                 return docTypeLabels[currentTypeDoc];
             default:

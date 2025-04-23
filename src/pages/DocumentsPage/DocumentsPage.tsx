@@ -37,6 +37,7 @@ import styles from "./styles.module.scss";
 import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/DocumentPreviewModal";
 import { selectIsAnyModalOpen } from "entities/ui/Modal/selectors/selectorsModals";
 import { getAllUserInfoThunk, getUserPersonalAccountInfoThunk } from "entities/User/slice/userSlice";
+import WarningIcon from 'shared/assets/svg/Warning.svg'
 
 const DocumentsPage: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -91,7 +92,8 @@ const DocumentsPage: React.FC = () => {
         type_doc_agreement_personal_data_policy: "6. Политика перс. данных",
         type_doc_investment_profile_certificate: "7. Справка ИП",
         type_doc_agreement_account_maintenance: "8. Доверенность на управление счетом",
-        type_doc_broker_api_token: "9. Согласие на передачу API ключа к брокерскому счету"
+        type_doc_broker_api_token: "9. Согласие на передачу API ключа к брокерскому счету",
+        type_doc_agreement_investment_advisor_app_1: '10. Договор ИС: Приложение 1',
     };
 
     // Порядок документов
@@ -105,6 +107,7 @@ const DocumentsPage: React.FC = () => {
         "type_doc_investment_profile_certificate",
         "type_doc_agreement_account_maintenance",
         "type_doc_broker_api_token",
+        'type_doc_agreement_investment_advisor_app_1',
     ];
 
     // Метод для подписания конкретного документа
@@ -185,6 +188,7 @@ const DocumentsPage: React.FC = () => {
                 break;
             }
             case "type_doc_EDS_agreement":
+            case 'type_doc_agreement_investment_advisor_app_1':
             case "type_doc_agreement_investment_advisor":
             case "type_doc_risk_declarations":
             case "type_doc_agreement_personal_data_policy":
@@ -250,26 +254,49 @@ const DocumentsPage: React.FC = () => {
     // - Если не подписан, но не первый => красный
     const renderedDocuments = documents.map((doc) => {
         let colorClass = styles.button__gray;
-        if (doc.id === "type_doc_broker_api_token") {
-            if (brokerIds[0] || filledRiskProfileChapters.is_exist_scan_passport) {
-                colorClass = styles.button__gray; // первый неподписанный
+        let additionalMessages = '';
+        let tariffs = true
+
+        // 1) Специально для app_1
+        if (doc.id === 'type_doc_agreement_investment_advisor_app_1') {
+            // если хоть один из трёх флагов не выполняется — красим в red
+            if (
+                !filledRiskProfileChapters.is_exist_scan_passport ||
+                !brokerIds[0] ||
+                !tariffs
+            ) {
+                colorClass = styles.button__red;
+                additionalMessages = 'Для подписания заполните паспорт, подключите брокер и тариф';
             } else {
-                colorClass = styles.button__red; // остальные неподписанные
+                colorClass = styles.button__gray;
+                additionalMessages = '';
             }
+
+            // 2) Иначе для брокерского токена    
+        } else if (doc.id === "type_doc_broker_api_token") {
+            if (brokerIds[0] || filledRiskProfileChapters.is_exist_scan_passport) {
+                colorClass = styles.button__gray;
+            } else {
+                colorClass = styles.button__red;
+            }
+
+            // 3) Иначе общий случай    
         } else {
             if (doc.status === "signable") {
                 if (doc.id === firstNotConfirmed) {
-                    colorClass = styles.button__gray; // первый неподписанный
+                    colorClass = styles.button__gray;
                 } else {
-                    colorClass = styles.button__red; // остальные неподписанные
+                    colorClass = styles.button__red;
                 }
             } else if (doc.status === "disabled") {
-                colorClass = styles.button__gray; // используем тот же стиль для disabled
+                colorClass = styles.button__gray;
             }
         }
+
         return {
             ...doc,
             colorClass,
+            additionalMessages
         };
     });
 
@@ -422,9 +449,20 @@ const DocumentsPage: React.FC = () => {
                         }
 
                         const isDisabled =
-                            (isBroker && filledRiskProfileChapters.is_exist_scan_passport) || isPassport
-                                ? false
-                                : doc.id !== firstNotConfirmed || !filledRiskProfileChapters.is_exist_scan_passport;
+                            doc.id === 'type_doc_agreement_investment_advisor_app_1'
+                                // для app_1: отключаем, если нет паспорта, брокера или тарифа
+                                ? !(
+                                    filledRiskProfileChapters.is_exist_scan_passport &&
+                                    brokerIds[0] &&
+                                    true // <- захардкоденный флаг тарифа
+                                )
+                                // иначе — ваша прежняя логика
+                                : (isBroker && filledRiskProfileChapters.is_exist_scan_passport) || isPassport
+                                    ? false
+                                    : doc.id !== firstNotConfirmed || !filledRiskProfileChapters.is_exist_scan_passport;
+
+
+
 
                         return (
                             <div key={doc.id} className={styles.document__item}>
@@ -459,7 +497,12 @@ const DocumentsPage: React.FC = () => {
                                                 )}
                                             </>
                                         )}
-
+                                        {doc.additionalMessages && (
+                                            <div className={styles.documents__warning}>
+                                                <Icon Svg={WarningIcon} width={16} height={16} />
+                                                <span >{doc.additionalMessages}</span>
+                                            </div>
+                                        )}
 
                                     </div>
                                 </div>

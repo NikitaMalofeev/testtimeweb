@@ -5,7 +5,7 @@ import { RootState } from "app/providers/store/config/store";
 
 import {
     docTypes as docTypesConfirm,
-    docTypeLabels as docTypeLabelsConfirm,
+    docTypeLabels as docTypeLabelsCoавваваnfirm,
     confirmDocsRequestThunk,
     setCurrentConfirmableDoc,
     getUserDocumentsStateThunk,
@@ -90,7 +90,7 @@ const DocumentsPage: React.FC = () => {
         type_doc_risk_declarations: "5. Декларация о рисках",
         type_doc_agreement_personal_data_policy: "6. Политика перс. данных",
         type_doc_investment_profile_certificate: "7. Справка ИП",
-        type_doc_agreement_account_maintenance: "8. Договор об обслуживании аккаунта",
+        type_doc_agreement_account_maintenance: "8. Доверенность на управление счетом",
         type_doc_broker_api_token: "9. Согласие на передачу API ключа к брокерскому счету"
     };
 
@@ -469,8 +469,15 @@ const DocumentsPage: React.FC = () => {
                                     <span className={styles.document__date}>
 
                                         {doc.date
-                                            ? new Date(doc.date).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" })
-                                            : "Дата подписания"}
+                                            ? new Date(doc.date).toLocaleDateString("ru-RU", {
+                                                day: "2-digit",
+                                                month: "2-digit",
+                                                year: "numeric",
+                                            })
+                                            : (doc.id === "type_doc_passport"
+                                                ? "Дата заполнения"
+                                                : "Дата подписания")}
+
                                     </span>
                                     {showSuccess ? (
                                         <div className={styles.document__button_success}>

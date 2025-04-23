@@ -7,7 +7,7 @@ import styles from './styles.module.scss';
 
 export interface AccordionItem {
     id: string;
-    title: string;
+    title: React.ReactNode;
     content: React.ReactNode; // Можно передавать как строку, так и JSX
 }
 

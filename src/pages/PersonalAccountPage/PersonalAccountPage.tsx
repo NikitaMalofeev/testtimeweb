@@ -169,13 +169,13 @@ const PersonalAccountMenu: React.FC = () => {
             iconWidth: 25,
             iconHeight: 28,
         },
-        {
-            icon: AccountSettingsIcon,
-            title: "Настройки",
-            action: () => dispatch(setCurrentTab("settings")),
-            iconWidth: 28,
-            iconHeight: 28,
-        },
+        // {
+        //     icon: AccountSettingsIcon,
+        //     title: "Настройки",
+        //     action: () => dispatch(setCurrentTab("settings")),
+        //     iconWidth: 28,
+        //     iconHeight: 28,
+        // },
         // {
         //     icon: AccountIIRIcon,
         //     title: "Мои ИИР",

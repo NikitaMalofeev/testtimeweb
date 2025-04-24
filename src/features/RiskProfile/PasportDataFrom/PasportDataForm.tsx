@@ -30,8 +30,9 @@ export const PasportDataForm: React.FC = () => {
     const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
     const modalState = useSelector((state: RootState) => state.modal);
     const token = useSelector((state: RootState) => state.user.token);
+    const { confirmationMethod } = useSelector((state: RootState) => state.documents);
     const NAME_REGEX = /^[А-Яа-яЁё\s-]+$/;
-    const savedPassportData = useSelector((state: RootState) => state.riskProfile.passportFormData);
+    const { passportFormData } = useSelector((state: RootState) => state.riskProfile);
 
     // Yup-схема валидации
     const passportValidationSchema = Yup.object().shape({
@@ -137,8 +138,8 @@ export const PasportDataForm: React.FC = () => {
     const formik = useFormik({
         initialValues: {
             g_recaptcha: "",
-            type_message: "EMAIL",
-            ...savedPassportData,
+            ...passportFormData,
+            type_message: confirmationMethod,
             // first_name: savedPassportData.first_name && savedPassportData.first_name,
             // last_name: savedPassportData.last_name && savedPassportData.last_name,
             // patronymic: savedPassportData.patronymic && savedPassportData.patronymic,
@@ -159,6 +160,11 @@ export const PasportDataForm: React.FC = () => {
             }));
         },
     });
+
+    useEffect(() => {
+        console.log(confirmationMethod)
+        console.log(formik.values.type_message)
+    }, [confirmationMethod, formik.values])
 
     const messageTypeOptions = {
         "SMS": 'SMS',

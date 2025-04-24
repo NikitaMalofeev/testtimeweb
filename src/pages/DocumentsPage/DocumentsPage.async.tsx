@@ -1,3 +1,5 @@
 import { lazy } from 'react';
 
-export const DocumentsPageAsync = lazy(() => import('./DocumentsPage'));
+const DocumentsPage = lazy(() => import('./DocumentsPage'));
+
+export default DocumentsPage;

@@ -44,6 +44,7 @@ const IdentificationProfileForm: React.FC = () => {
 
     const checkConfirmmationSuccess = useSelector((state: RootState) => state.ui.confirmationStatusSuccess);
 
+    const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@([A-Za-z0-9-]+\.)+[A-Za-z]{2,}$/;
     const NAME_REGEX = /^[А-Яа-яЁё\s-]+$/;
 
     const formik = useFormik({
@@ -75,8 +76,8 @@ const IdentificationProfileForm: React.FC = () => {
                 .nullable(), // или .notRequired()
             // Остальные поля по вашему усмотрению...
             email: Yup.string()
-                .email("Некорректный email")
-                .required("E-mail обязательно"),
+                .required("E-mail обязательно")
+                .matches(EMAIL_REGEX, "Некорректный email"),
             phone: Yup.string()
                 .matches(/^\+\d{11}$/, "Неверный формат номера телефона")
                 .required("Номер телефона обязателен"),

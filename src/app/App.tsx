@@ -16,22 +16,22 @@ import { ModalType } from 'entities/ui/Modal/model/modalTypes';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
 import { Footer } from 'shared/ui/Footer/Footer';
 import { getUserPersonalAccountInfoThunk, setUserToken } from 'entities/User/slice/userSlice';
-import { getAllMessagesThunk, setUnreadAnswersCount } from 'entities/SupportChat/slice/supportChatSlice';
+import { closeWebSocketConnection, fetchWebsocketId, getAllMessagesThunk, openWebSocketConnection, setUnreadAnswersCount } from 'entities/SupportChat/slice/supportChatSlice';
 import { useAuthTokenManagement } from 'shared/hooks/useAuthTokenManager';
 import { setError } from 'entities/Error/slice/errorSlice';
 import { useModalsController } from 'shared/hooks/useModalsController';
 import { useAuthModalsController } from 'shared/hooks/useAuthModalsController';
 import { setScrollToTop } from 'entities/ui/Ui/slice/uiSlice';
 
-
 function App() {
   const modalState = useSelector((state: RootState) => state.modal);
   const dispatch = useAppDispatch();
   const location = useLocation();
   const isMainPages = location.pathname === '/lk' || location.pathname === '/';
-  const { messages } = useSelector((state: RootState) => state.supportChat);
-  const { unreadAnswersCount } = useSelector((state: RootState) => state.supportChat);
-  const token = useSelector((state: RootState) => state.user.token);
+  const { websocketId, messages, unreadAnswersCount } = useSelector(
+    (state: RootState) => state.supportChat
+  );
+  const { token, userId } = useSelector((state: RootState) => state.user);
 
   const isNeedScrollToTop = useSelector((state: RootState) => state.ui.isScrollToBottom);
 
@@ -44,16 +44,34 @@ function App() {
     document.documentElement.style.setProperty('--vh', `${userVh}px`);
   }, []);
 
-  // Обновляем сообщения в личном кабинете каждые 30 секунд
   useEffect(() => {
-    if (location.pathname !== '/' && token) {
-      const interval = setInterval(() => {
-        // Здесь вызывается getAllMessages для получения полного списка сообщений
+    if (!token) return;
+
+    (async () => {
+      try {
+        // 1) Получаем свежий ID
+        const id = await dispatch(fetchWebsocketId()).unwrap();
+
+        // 2) Открываем сокет на этот ID (старый внутри закроется сам)
+        await dispatch(openWebSocketConnection(id));
+
+        // 3) Подтягиваем историю
         dispatch(getAllMessagesThunk());
-      }, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [location.pathname, token, dispatch]);
+      } catch (err) {
+        console.error("WebSocket init error:", err);
+      }
+    })();
+  }, [token, userId, dispatch]);
+  // // Обновляем сообщения в личном кабинете каждые 30 секунд
+  // useEffect(() => {
+  //   if (location.pathname !== '/' && token) {
+  //     const interval = setInterval(() => {
+  //       // Здесь вызывается getAllMessages для получения полного списка сообщений
+  //       dispatch(getAllMessagesThunk());
+  //     }, 30000);
+  //     return () => clearInterval(interval);
+  //   }
+  // }, [location.pathname, token, dispatch]);
 
   // useEffect(() => {
   //   const handleLogout = () => {

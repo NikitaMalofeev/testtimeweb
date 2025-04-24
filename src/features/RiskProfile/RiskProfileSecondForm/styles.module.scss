@@ -87,7 +87,7 @@
     display: flex;
     flex-direction: column;
     align-items: start;
-    max-height: 168px;
+    max-height: 215px;
 
     &::after {
         position: absolute;
@@ -243,4 +243,52 @@
     text-align: left;
     color: #0F0E0E;
     margin: 32px 0 16px 24px;
+}
+
+.information {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background-color: #F0F0F3B2;
+    border-radius: 15px;
+
+    &__marker {
+        left: 1px;        // поднимите/опустите по вкусу
+        left: 0.5px;
+        transform: translateX(-50%);
+        width: 8px;
+        height: 0;
+        /* анимация качания */
+        animation: bounce 1s ease-in-out infinite;
+      }
+      
+      &__marker::before,
+      &__marker::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;              // начинаем от «точки» соединения
+        width: 2px;
+        height: 8px;
+        border-radius: 2px;
+        background-color: #045FDD;
+        transform-origin: bottom center;
+      }
+      
+      &__marker::before {
+        transform: rotate(45deg) translateX(-1px);
+      }
+      
+      &__marker::after {
+        transform: rotate(-45deg) translateX(1px);
+      }
+
+    &__description {
+        font-weight: 400;
+        font-size: 11px;
+        line-height: 120%;
+        letter-spacing: 0%;
+        text-align: left;
+        color: #131313;
+    }
 }

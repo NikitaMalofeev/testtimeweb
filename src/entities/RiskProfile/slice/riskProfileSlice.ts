@@ -184,7 +184,7 @@ export const postBrokerApiTokenThunk = createAsyncThunk<
                 onSuccess();
             }
         } catch (error: any) {
-            setError(error.response.data.token)
+            dispatch(setError(error.response.data.token))
         }
     }
 );

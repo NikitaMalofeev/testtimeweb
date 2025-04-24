@@ -192,7 +192,6 @@ export const PasportScanForm: React.FC = () => {
     };
 
     const toggleFullPreviewFirst = (e?: React.MouseEvent) => {
-        if (e) e.stopPropagation();
         setIsPreviewOpenFirst((prev) => !prev);
     };
 
@@ -247,7 +246,7 @@ export const PasportScanForm: React.FC = () => {
                         className={styles.fullPreviewImage}
                         src={previewFirst}
                         alt="Full preview first"
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={toggleFullPreviewFirst}
                     />
                 </div>
             )}
@@ -261,7 +260,7 @@ export const PasportScanForm: React.FC = () => {
                         className={styles.fullPreviewImage}
                         src={previewReg}
                         alt="Full preview registration"
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={toggleFullPreviewReg}
                     />
                 </div>
             )}
@@ -276,7 +275,7 @@ export const PasportScanForm: React.FC = () => {
                         className={styles.fullPreviewImage}
                         src={PasportExFirst}
                         alt="Пример первой страницы"
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={toggleExamplePreviewFirst}
                     />
                 </div>
             )}
@@ -290,7 +289,7 @@ export const PasportScanForm: React.FC = () => {
                         className={styles.fullPreviewImage}
                         src={PasportExSecond}
                         alt="Пример страницы регистрации"
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={toggleExamplePreviewSecond}
                     />
                 </div>
             )}

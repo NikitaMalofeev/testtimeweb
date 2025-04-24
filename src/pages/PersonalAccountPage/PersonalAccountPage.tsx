@@ -94,14 +94,14 @@ const PersonalAccountMenu: React.FC = () => {
             icon: AccountDocumentIcon,
             title: "Документы",
             route: "/documents",
-            notificationsCount: 8 - userDocuments.length,
+            notificationsCount: 9 - userDocuments.length,
             iconWidth: 28,
             iconHeight: 28,
             warningMessage: filledRiskProfileChapters.is_risk_profile_complete_final
                 ? (8 - userDocuments.length !== 0 ? (
                     <div className={styles.warning}>
                         <Icon Svg={WarningIcon} width={16} height={16} />
-                        <div>Есть неподписанные документы ({9 - userDocuments.length - 1} шт.)</div>
+                        <div>Есть неподписанные документы ({9 - userDocuments.length} шт.)</div>
                     </div>
                 ) : null)
                 :
@@ -137,6 +137,13 @@ const PersonalAccountMenu: React.FC = () => {
             ) : null,
         },
         {
+            icon: AccountTarifsIcon,
+            title: "Тарифы",
+            action: () => navigate("/payments"),
+            iconWidth: 24.54,
+            iconHeight: 24.24,
+        },
+        {
             icon: AccountChatIcon,
             title: "Чат поддержки",
             action: () => {
@@ -162,34 +169,28 @@ const PersonalAccountMenu: React.FC = () => {
             iconWidth: 25,
             iconHeight: 28,
         },
-        {
-            icon: AccountSettingsIcon,
-            title: "Настройки",
-            action: () => dispatch(setCurrentTab("settings")),
-            iconWidth: 28,
-            iconHeight: 28,
-        },
-        {
-            icon: AccountIIRIcon,
-            title: "Мои ИИР",
-            action: () => dispatch(setCurrentTab("analytics")),
-            iconWidth: 23,
-            iconHeight: 23,
-        },
-        {
-            icon: AccountBalanceIcon,
-            title: "Баланс",
-            action: () => dispatch(setCurrentTab("balance")),
-            iconWidth: 28,
-            iconHeight: 25,
-        },
-        {
-            icon: AccountTarifsIcon,
-            title: "Тарифы",
-            action: () => dispatch(setCurrentTab("tariffs")),
-            iconWidth: 24.54,
-            iconHeight: 24.24,
-        },
+        // {
+        //     icon: AccountSettingsIcon,
+        //     title: "Настройки",
+        //     action: () => dispatch(setCurrentTab("settings")),
+        //     iconWidth: 28,
+        //     iconHeight: 28,
+        // },
+        // {
+        //     icon: AccountIIRIcon,
+        //     title: "Мои ИИР",
+        //     action: () => dispatch(setCurrentTab("analytics")),
+        //     iconWidth: 23,
+        //     iconHeight: 23,
+        // },
+        // {
+        //     icon: AccountBalanceIcon,
+        //     title: "Баланс",
+        //     action: () => dispatch(setCurrentTab("balance")),
+        //     iconWidth: 28,
+        //     iconHeight: 25,
+        // },
+
         {
             icon: AccountLogoutIcon,
             title: "Выйти из учетной записи",

@@ -87,6 +87,7 @@ text-align: center;
 .document__item {
     position: relative;
     display: flex;
+    gap: 8px;
     width: 100%;
     justify-content: space-between;
     padding-bottom: 16px;
@@ -115,6 +116,17 @@ text-align: center;
     line-height: 14.52px;
     letter-spacing: 0%;
     text-align: end;
+    color: #797979;
+}
+
+.documents__warning {
+    display: flex;
+    font-weight: 400;
+    font-size: 12px;
+    gap: 4px;
+    line-height: 14.52px;
+    letter-spacing: 0%;
+    align-items: center;
     color: #797979;
 }
 

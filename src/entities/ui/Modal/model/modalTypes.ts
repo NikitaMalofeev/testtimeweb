@@ -29,7 +29,8 @@ export enum ModalType {
     RESET_PASSWORD = 'resetPassword',
     PROGRESS = 'progress',
     INFO = 'info',
-    SUCCESS = 'success'
+    SUCCESS = 'success',
+    WARNING = 'warning'
 }
 
 /** Состояние одной конкретной модалки */

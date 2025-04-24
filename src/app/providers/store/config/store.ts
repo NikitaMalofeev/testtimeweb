@@ -1,5 +1,12 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
-import { persistReducer, persistStore } from 'redux-persist';
+import {
+    persistReducer, persistStore, FLUSH,
+    REHYDRATE,
+    PAUSE,
+    PERSIST,
+    PURGE,
+    REGISTER,
+} from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import { getPersistConfig } from 'redux-deep-persist';
 
@@ -12,6 +19,7 @@ import riskProfileReducer from 'entities/RiskProfile/slice/riskProfileSlice';
 import personalAccountReducer from 'entities/PersonalAccount/slice/personalAccountSlice';
 import supportChatReducer from 'entities/SupportChat/slice/supportChatSlice';
 import pushReducer from 'entities/ui/PushNotifications/slice/pushSlice';
+import paymentsReducer from 'entities/Payments/slice/paymentsSlice'
 import createTransform from 'redux-persist/es/createTransform';
 import { ModalState, ModalType } from 'entities/ui/Modal/model/modalTypes';
 
@@ -25,6 +33,7 @@ const rootReducer = combineReducers({
     personalAccount: personalAccountReducer,
     supportChat: supportChatReducer,
     push: pushReducer,
+    payments: paymentsReducer,
 });
 
 // Получаем конфигурацию с помощью redux-deep-persist
@@ -65,8 +74,7 @@ const persistConfig = getPersistConfig({
         'riskProfile.currentConfirmingDoc',
         'riskProfile.passportFormData'],
     // blacklist: ['modal.documentsPreview', 'modal.documentsPreviewSigned'],
-    rootReducer, // обязательно передаём корневой редьюсер
-    // blacklist: ['modal.documentsPreview', 'modal.documentsPreviewSigned']
+    rootReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -77,7 +85,14 @@ export const store = configureStore({
         getDefaultMiddleware({
             //отключил сериализацию для бинарных pdf файлов
             serializableCheck: {
-                ignoredActions: ['modal/openModal', 'documents/setCurrentSignedDocuments'],
+                ignoredActions: ['modal/openModal', 'documents/setCurrentSignedDocuments',
+                    // чтобы сериализатор не ругался импортирую и игнорирую
+                    FLUSH,
+                    REHYDRATE,
+                    PAUSE,
+                    PERSIST,
+                    PURGE,
+                    REGISTER,],
                 ignoredPaths: ['documents.currentSugnedDocument.document'],
             },
         }),

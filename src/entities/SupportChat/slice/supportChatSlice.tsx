@@ -24,28 +24,79 @@ const initialState: SupportChatState = {
     unreadAnswersCount: 0,
 };
 
+// --------------------------------------------------
+// ВСЕГДА один сокет на приложение
 let chatSocket: WebSocket | null = null;
+// --------------------------------------------------
 
 export const fetchWebsocketId = createAsyncThunk<
-    string,
+    string,            // вернём строку‑ID
     void,
     { rejectValue: string; state: RootState }
 >(
     "supportChat/fetchWebsocketId",
-    async (_, { rejectWithValue, getState, dispatch }) => {
+    async (_, { getState, rejectWithValue, dispatch }) => {
         try {
             const token = getState().user.token;
-            const response = await getGroupWs(token);
-            const { group_ws } = response;
+            const { group_ws } = await getGroupWs(token);
+
+            // сохраняем в стор
             dispatch(setWebsocketId(group_ws));
-            return response.websocketId;
-        } catch (error: any) {
-            return rejectWithValue(
-                error.response?.data?.message || "Ошибка получения websocket ID"
-            );
+
+            return group_ws;            // <‑‑ важное изменение!
+        } catch (e: any) {
+            return rejectWithValue(e.response?.data?.message ?? "Не смогли получить websocketId");
         }
     }
 );
+
+export const openWebSocketConnection = createAsyncThunk<
+    void,
+    string,
+    { rejectValue: string; state: RootState }
+>(
+    "supportChat/openWebSocketConnection",
+    async (websocketId, { dispatch, rejectWithValue }) => {
+        try {
+            // --- ГЛАВНОЕ: жёстко закрываем старый сокет ---
+            if (chatSocket) {
+                chatSocket.close();
+                chatSocket = null;
+            }
+
+            // --- Открываем новый ---
+            chatSocket = new WebSocket(`wss://test.webbroker.ranks.pro/ws/chat_support/${websocketId}/`);
+
+            chatSocket.onopen = () => {
+                console.log("WebSocket opened:", websocketId);
+            };
+
+            chatSocket.onmessage = (evt) => {
+                try {
+                    const data = JSON.parse(evt.data);
+                    if (data.type === "message_to_support_chat") {
+                        dispatch(addMessage(data.data));
+                    } else {
+                        console.log("Неизвестный тип:", data.type);
+                    }
+                } catch (e) {
+                    console.error("Ошибка парсинга:", e);
+                }
+            };
+
+            chatSocket.onclose = () => {
+                console.log("WebSocket closed:", websocketId);
+            };
+
+            chatSocket.onerror = (err) => {
+                console.error("WebSocket error:", err);
+            };
+        } catch (e: any) {
+            return rejectWithValue("Ошибка при открытии WebSocket");
+        }
+    }
+);
+
 
 export const getAllMessagesThunk = createAsyncThunk<
     ChatMessage[],
@@ -67,48 +118,22 @@ export const getAllMessagesThunk = createAsyncThunk<
     }
 );
 
-export const openWebSocketConnection = createAsyncThunk<
+
+export const closeWebSocketConnection = createAsyncThunk<
     void,
-    string,
+    void,
     { rejectValue: string; state: RootState }
 >(
-    "supportChat/openWebSocketConnection",
-    async (websocketId, { dispatch, rejectWithValue }) => {
+    "supportChat/closeWebSocketConnection",
+    async (_, { rejectWithValue }) => {
         try {
-            if (!chatSocket) {
-                chatSocket = new WebSocket(
-                    `wss://test.webbroker.ranks.pro/ws/chat_support/${websocketId}/`
-                );
-                chatSocket.onopen = () => {
-                    console.log("WebSocket connection established");
-                };
-                chatSocket.onmessage = (event) => {
-                    try {
-                        const parsedData = JSON.parse(event.data);
-                        if (parsedData.type === "message_to_support_chat") {
-                            dispatch(addMessage(parsedData.data));
-                        } else {
-                            console.log(
-                                "Неизвестный тип WebSocket-сообщения:",
-                                parsedData.type
-                            );
-                        }
-                    } catch (e) {
-                        console.error("Ошибка парсинга сообщения из WebSocket:", e);
-                    }
-                };
-                chatSocket.onclose = () => {
-                    console.log("WebSocket closed");
-                };
-                chatSocket.onerror = (error) => {
-                    console.error("WebSocket error", error);
-                };
+            if (chatSocket) {
+                chatSocket.close();
+                chatSocket = null;
             }
-        } catch (error: any) {
-            return rejectWithValue(
-                error.response?.data?.message ||
-                "Ошибка открытия WebSocket-соединения"
-            );
+            // здесь мы ничего не возвращаем, просто закрыли сокет
+        } catch (e: any) {
+            return rejectWithValue("Ошибка при закрытии WebSocket");
         }
     }
 );
@@ -181,6 +206,13 @@ export const supportChatSlice = createSlice({
                 state.loading = false;
                 state.isWsConnected = false;
                 state.error = action.payload as string;
+            })
+            .addCase(closeWebSocketConnection.fulfilled, state => {
+                state.isWsConnected = false;
+                state.websocketId = "";
+            })
+            .addCase(closeWebSocketConnection.rejected, (state, action) => {
+                state.error = action.payload!;
             })
             .addCase(postMessage.pending, (state) => {
                 state.loading = true;

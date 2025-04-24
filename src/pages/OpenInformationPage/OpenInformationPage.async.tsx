@@ -1,3 +1,5 @@
 import { lazy } from 'react';
 
-export const OpenInformationPageAsync = lazy(() => import('./OpenInformationPage'));
+const OpenInformationPage = lazy(() => import('./OpenInformationPage'));
+
+export default OpenInformationPage;

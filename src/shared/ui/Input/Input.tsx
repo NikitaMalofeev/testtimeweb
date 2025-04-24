@@ -71,6 +71,7 @@ interface InputProps extends CommonHTMLProps {
      * по которым движется слайдер
      */
     discreteValues?: string[];
+    extraDescreteValue?: string;
     swiperDiscreteSubtitles?: string[];
     customSliderDivisions?: number;
 
@@ -97,6 +98,7 @@ export const Input: React.FC<InputProps> = ({
     max = 100,
     step = 1,
     discreteValues,
+    extraDescreteValue,
     swiperDiscreteSubtitles,
     maxLength,
     withoutCloudyLabel,
@@ -325,6 +327,8 @@ export const Input: React.FC<InputProps> = ({
                                 risk_prof_aggressive_super: 'Супер-агрессивный',
                             };
 
+
+
                             // Русское название для текущего значения
                             const displayValue =
                                 labelMap[value as keyof typeof labelMap] || value;
@@ -333,6 +337,12 @@ export const Input: React.FC<InputProps> = ({
                                 if (!discreteValues || !discreteValues.length) return 0;
                                 return discreteValues.indexOf(value);
                             }, [discreteValues, value]);
+
+                            // вычисляем индекс extraValue
+                            const extraTickIndex = useMemo(() => {
+                                if (!extraDescreteValue) return -1;
+                                return discreteValues?.indexOf(extraDescreteValue);
+                            }, [discreteValues, extraDescreteValue]);
 
                             return (
                                 <div className={`${styles.inputWrapper} ${styles[theme]}`}>
@@ -355,7 +365,7 @@ export const Input: React.FC<InputProps> = ({
                                             <span
                                                 style={{
                                                     position: "absolute",
-                                                    top: 0,
+                                                    top: -5,
                                                     left: 0,
                                                     fontSize: "12px",
                                                     color: "#989898",
@@ -395,13 +405,14 @@ export const Input: React.FC<InputProps> = ({
 
                                                     onChange(event);
                                                 }}
+                                                extraTickIndex={extraTickIndex}
                                                 sliderTheme={theme === "gradient" ? "gradient" : "default"}
                                             />
 
                                             <span
                                                 style={{
                                                     position: "absolute",
-                                                    top: 0,
+                                                    top: -5,
                                                     right: 0,
                                                     fontSize: "12px",
                                                     color: "#989898",

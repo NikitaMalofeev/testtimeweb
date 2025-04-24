@@ -19,6 +19,7 @@ interface CustomSliderProps {
     divisions?: number;
     onChange: (val: number) => void; // Вызывается, когда значение меняется
     sliderTheme?: SliderTheme;       // Тема слайдера
+    extraTickIndex?: number;
 }
 
 export const CustomSlider: React.FC<CustomSliderProps> = memo(({
@@ -29,6 +30,7 @@ export const CustomSlider: React.FC<CustomSliderProps> = memo(({
     disabled,
     divisions,
     onChange,
+    extraTickIndex = -1,
     sliderTheme = "default",
 }) => {
     const trackRef = useRef<HTMLDivElement | null>(null);
@@ -132,11 +134,12 @@ export const CustomSlider: React.FC<CustomSliderProps> = memo(({
 
     const renderTicks = () => {
         if (!divisions || divisions <= 0) return null;
-
         const ticks = [];
-        // Если делим на 7 сегментов, отрисуем 8 тиков (начало + 7 разделителей)
         for (let i = 0; i <= divisions; i++) {
             const leftPercent = (i / divisions) * 100;
+            const isExtra = i === extraTickIndex;
+            const isOverlap = i === extraTickIndex && i === sliderValue;
+
             ticks.push(
                 <div
                     key={i}
@@ -144,14 +147,27 @@ export const CustomSlider: React.FC<CustomSliderProps> = memo(({
                     style={{
                         position: "absolute",
                         left: `calc(${leftPercent}%)`,
-                        // Чтобы линия была по центру, можно добавить transform:
-
+                        transform: "translateX(-50%)",
                     }}
-                />
+                >
+                    {isExtra && (
+                        <div
+                            className={styles.extraTick}
+                            style={{
+                                top: isOverlap ? `-12px` : `-8px`,  // <- здесь меняем 
+                                transition: 'all 0.4s ease'
+                            }}
+                        >
+                            {/* ваш контент */}
+                        </div>
+                    )}
+                    <div />
+                </div>
             );
         }
         return ticks;
     };
+
 
     // Отпускаем мышь/палец
     const handlePointerUp = useCallback(() => {

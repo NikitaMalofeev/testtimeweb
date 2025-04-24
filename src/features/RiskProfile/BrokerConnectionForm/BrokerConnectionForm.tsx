@@ -137,7 +137,7 @@ export const BrokerConnectionForm: React.FC = () => {
                     onClick={handleSubmit}
 
                 >
-                    Подтвердить код
+                    Подтвердить токен
                 </Button>
 
                 <Button

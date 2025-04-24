@@ -1,16 +1,18 @@
-import AuthorizationPage from 'pages/AuthorizationPage/AuthorizationPage';
-import DocumentsPage from 'pages/DocumentsPage/DocumentsPage';
-import PersonalAccountPage from 'pages/PersonalAccountPage/PersonalAccountPage';
+import AuthorizationPage from 'pages/AuthorizationPage/AuthorizationPage.async';
+import DocumentsPage from 'pages/DocumentsPage/DocumentsPage.async';
+import PersonalAccountPage from 'pages/PersonalAccountPage/PersonalAccountPage.async'
 import { StartPage } from 'pages/StartPage';
-import SupportChatPage from 'pages/SupportChatPage/SupportChatPage';
+import SupportChatPage from 'pages/SupportChatPage/SupportChatPage.async';
 import { memo, Suspense, lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import PublicRoute from './PublicRoute';
 import RequireAuthRoute from './RequireAuth';
 import { NotFoundPage } from 'pages/NotFoundPage/NotFoundPage';
-import OpenInformationPage from 'pages/OpenInformationPage/OpenInformationPage';
-import FAQPage from 'pages/FAQPage/FAQPage';
-import { ConfirmCustomDocsPage } from 'pages/ConfirmCustomDocsPage/ConfirmCustomDocsPage';
+import OpenInformationPage from 'pages/OpenInformationPage/OpenInformationPage.async';
+import FAQPage from 'pages/FAQPage/FAQPage.async';
+import PaymentsPage from 'pages/PaymentsPage/PaymentsPage.async';
+import ConfirmCustomDocsPage from 'pages/ConfirmCustomDocsPage/ConfirmCustomDocsPage.async';
+
 
 // const PageLoader = () => <div>Loading...</div>;
 const PageLoader = () => <div></div>;
@@ -85,6 +87,16 @@ function AppRouter() {
                         <OpenInformationPage />
                     </Suspense>
 
+                }
+            />
+            <Route
+                path="/payments"
+                element={
+                    <RequireAuthRoute>
+                        <Suspense fallback={<PageLoader />}>
+                            <PaymentsPage />
+                        </Suspense>
+                    </RequireAuthRoute>
                 }
             />
             <Route

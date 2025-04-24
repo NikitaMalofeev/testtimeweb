@@ -3,7 +3,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "app/providers/store/config/store";
 import { ConfirmCustomDocsPayload, ConfirmDocsPayload, FilledRiskProfileChapters, SetHtmlsPayload } from "../types/documentsTypes";
-import { confirmBrokerDocsRequest, confirmCustomDocsRequest, confirmDocsRequest, getAllBrokers, getBrokerDocumentsSigned, getCustomDocumentsNotSigned, getDocumentNotSigned, getDocumentsInfo, getDocumentsNotSigned, getDocumentsSigned, getDocumentsState, postConfirmationCodeCustom } from "../api/documentsApi";
+import { confirmBrokerDocsRequest, confirmCustomDocsRequest, confirmDocsRequest, getAllBrokers, getBrokerDocumentsSigned, getCustomDocumentsNotSigned, getCustomDocumentsSigned, getDocumentNotSigned, getDocumentsInfo, getDocumentsNotSigned, getDocumentsSigned, getDocumentsState, postConfirmationCodeCustom } from "../api/documentsApi";
 import { setCurrentConfirmingDoc } from "entities/RiskProfile/slice/riskProfileSlice";
 import { setConfirmationDocsSuccess } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
@@ -28,6 +28,16 @@ export interface UserPassportData {
     inn: string;
 }
 
+export interface CustomDocData {
+    email: string;
+    is_confirmed_type_doc_EDS_agreement: boolean;
+    is_confirmed_type_doc_custom: boolean;
+    is_send_to_email: boolean;
+    not_signed_document_html: string;
+    phone: string;
+    title: string;
+}
+
 // Массив с последовательностью типов документов,
 // которые необходимо подписать по порядку (меняется редко).
 export const docTypes = [
@@ -39,7 +49,8 @@ export const docTypes = [
     "type_doc_agreement_personal_data_policy",
     "type_doc_investment_profile_certificate",
     "type_doc_agreement_account_maintenance",
-    "type_doc_broker_api_token"
+    "type_doc_broker_api_token",
+    "type_doc_agreement_investment_advisor_app_1"
 ];
 
 // Лейблы для UI.
@@ -51,8 +62,9 @@ export const docTypeLabels: Record<string, string> = {
     type_doc_risk_declarations: "Декларация о рисках",
     type_doc_agreement_personal_data_policy: "Политика перс. данных",
     type_doc_investment_profile_certificate: "Справка ИП",
-    type_doc_agreement_account_maintenance: 'Договор об обслуживании аккаунта',
-    type_doc_broker_api_token: 'Согласие на передачу API ключа к брокерскому счету'
+    type_doc_agreement_account_maintenance: 'Доверенность на управление счетом',
+    type_doc_broker_api_token: 'Согласие на передачу API ключа к брокерскому счету',
+    type_doc_agreement_investment_advisor_app_1: 'Договор ИС приложение 1',
 };
 
 interface DocumentsState {
@@ -73,6 +85,7 @@ interface DocumentsState {
     brokersCount: number;
     filledRiskProfileChapters: FilledRiskProfileChapters;
     userPassportData: UserPassportData | null;
+    customDocumentsData: CustomDocData | null;
 
 }
 
@@ -97,7 +110,8 @@ const initialState: DocumentsState = {
     },
     brokerIds: [],
     brokersCount: 0,
-    userPassportData: null
+    userPassportData: null,
+    customDocumentsData: null
 };
 
 export const confirmDocsRequestThunk = createAsyncThunk<
@@ -330,28 +344,27 @@ export const getUserDocumentsNotSignedThunk = createAsyncThunk<
 // documentsSlice.ts
 export const getUserDocumentNotSignedThunk = createAsyncThunk<
     void,
-    { custom?: boolean; customId?: string },
+    { custom?: boolean; customId?: string, type: string },
     { rejectValue: string; state: RootState }
 >(
     "documents/getUserDocumentNotSigned",
-    async ({ custom, customId }, { getState, dispatch, rejectWithValue }) => {
+    async ({ custom, customId, type }, { getState, dispatch, rejectWithValue }) => {
         try {
             const token = getState().user.token!;
-            if (!token) return rejectWithValue("Нет токена авторизации");
 
             // выбираем какой id использовать
             const docId = custom && customId
                 ? customId
                 : getState().documents.currentConfirmableDoc;
-
+            console.log('222222')
             // вызываем нужный API
-            const response = custom && customId
-                ? await getCustomDocumentsNotSigned(token, customId, "type_doc_custom")
+            const response = custom && customId && type
+                ? await getCustomDocumentsNotSigned(token, customId, type)
                 : await getDocumentNotSigned(token, docId);
 
-            
-            const htmlString = response.not_signed_document_html;
 
+            const htmlString = response.not_signed_document_html;
+            custom && dispatch(setCustomDocumentData(response))
             dispatch(setNotSignedDocumentsHtmls({ [docId]: htmlString }));
         } catch (err: any) {
             const msg = err.response?.data?.errorText ?? err.message;
@@ -365,41 +378,44 @@ export const getUserDocumentNotSignedThunk = createAsyncThunk<
 
 
 export const getUserDocumentsSignedThunk = createAsyncThunk<
-    Uint8Array, // изменили с void на Uint8Array
-    { type_document: string; purpose: string; onSuccess: () => void },
+    Uint8Array,
+    { type_document: string; purpose: string; onSuccess: () => void; id_sign?: string },
     { rejectValue: string; state: RootState }
 >(
     "documents/getUserDocumentsSignedThunk",
-    async ({ type_document, purpose, onSuccess }, { getState, dispatch, rejectWithValue }) => {
+    async ({ type_document, purpose, onSuccess, id_sign }, { getState, dispatch, rejectWithValue }) => {
         try {
             const token = getState().user.token;
-            if (!token) {
-                return rejectWithValue("Отсутствует токен авторизации");
-            }
-            // Запрашиваем PDF как бинарный ArrayBuffer
-            const arrayBuffer = await getDocumentsSigned(type_document, token);
-            // Превращаем ArrayBuffer в Uint8Array
+
+            // Выбираем нужный сервис
+            const arrayBuffer = id_sign
+                ? await getCustomDocumentsSigned(id_sign, type_document)
+                : await getDocumentsSigned(type_document, token);
+
+            // Универсально превращаем в Uint8Array
             const pdfBytes = new Uint8Array(arrayBuffer);
 
+            // Сохраняем в стор
             dispatch(setCurrentSignedDocuments({
                 type: type_document,
                 document: pdfBytes,
             }));
 
-            if (purpose === 'download') {
+            // Только для обычного (не кастомного) документа и при необходимости загрузки
+            if (!id_sign && purpose === 'download') {
                 onSuccess();
             }
 
-            // Возвращаем pdfBytes для дальнейшего использования (например, создания Blob)
+            // Возвращаем payload
             return pdfBytes;
         } catch (error: any) {
-            const msg =
-                error.response?.data?.errorText ||
-                "Ошибка при получении подписанного документа";
+            const msg = error.response?.data?.errorText
+                || "Ошибка при получении подписанного документа";
             return rejectWithValue(msg);
         }
     }
 );
+
 
 export const getBrokerDocumentsSignedThunk = createAsyncThunk<
     Uint8Array,
@@ -559,6 +575,9 @@ export const documentsSlice = createSlice({
                 doc.timeoutPending = Math.max(0, doc.timeoutPending - decrement);
             }
         },
+        setCustomDocumentData(state, action: PayloadAction<CustomDocData>) {
+            state.customDocumentsData = action.payload;
+        },
         clearDocumentTimeout(state, action: PayloadAction<string>) {
             const docKey = action.payload;
             const doc = state.userDocuments.find(doc => doc.key === docKey);
@@ -652,7 +671,8 @@ export const {
     setBrokerIds,
     setDocumentTimeoutPending,
     decrementDocumentTimeout,
-    clearDocumentTimeout
+    clearDocumentTimeout,
+    setCustomDocumentData
 } = documentsSlice.actions;
 
 export default documentsSlice.reducer;

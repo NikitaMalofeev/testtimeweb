@@ -20,15 +20,21 @@ export interface CreateOrderPayload {
 export interface CreateOrderResponse {
     order_id: string;
     payment_url: string;
-    // добавьте остальные поля ответа, если нужно
 }
 
 export interface Tariff {
     id: string;
-    name: string;
-    price: number;
-    currency: string;
-    // и т.д.
+    is_active: boolean;
+    title: string;
+    name_icon: string | null;
+    description: string;
+    days_service_validity: number;
+    commission_deposit: number | null;
+    commission_asset: number | null;
+    commission_asset_days: number | null;
+    created: string;
+    updated: string;
+    descriptionDetail: string;
 }
 
 export interface OrderStatusResponse {

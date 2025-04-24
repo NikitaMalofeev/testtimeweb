@@ -1,0 +1,102 @@
+.card {
+    background: #fff;
+    border-radius: 15px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .cardContent {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  
+  .left {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+  
+  .header {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+  }
+  
+  .title {
+    font-weight: 500;
+    font-size: 20px;
+    line-height: 120%;
+    letter-spacing: 0%;
+    
+  }
+  
+  .metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .metric {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+  }
+  
+  .metricValue {
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 114.99999999999999%;
+    letter-spacing: 0%;
+    color: #0F0E0E;
+  }
+  
+  .metricLabel {
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 130%;
+    letter-spacing: 0%;
+    color: #797979;
+  }
+  
+  .right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-left: 16px;
+  }
+  
+  .status {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 8px;
+  }
+  
+  .icon {
+    max-width: max-content;
+    width: 100%;
+    height: max-content;
+  }
+  
+  .footer {
+    margin-top: 16px;
+    display: flex;
+    justify-content: flex-start;
+  }
+  
+  .button {
+    padding: 0;
+    font-size: 14px;
+    line-height: 1;
+  }
+  
+
+  .subtitle {
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 130%;
+  letter-spacing: 0%;
+  color: #0F0E0E;
+  }

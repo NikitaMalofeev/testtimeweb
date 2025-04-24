@@ -17,6 +17,10 @@ import { SuccessModal } from "../SuccessModal/SuccessModal";
 import { closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { useNavigate } from "react-router-dom";
+import { WarningModal } from "features/Ui/WarningModal/WarningModal";
+import { PreviewModal } from "../PreviewModal/PreviewModal";
+import { riskProfiles } from "shared/static/riskProfiles";
+import { RiskProfileCard } from "../RiskProfileCard/RiskProfileCard";
 
 interface SwiperParametrValues {
     risk_prof_conservative: string;
@@ -97,12 +101,40 @@ export const RiskProfileSecondForm: React.FC = () => {
         }
     }, [secondRiskProfileData]);
 
-    const finalRiskProfileOptions = Object.entries(secondRiskProfileData?.recommended_risk_profiles || {}).map(
-        ([key, value]) => ({
-            value: key,
-            label: value,
-        })
+    // const finalRiskProfileOptions = Object.entries(secondRiskProfileData?.recommended_risk_profiles || {}).map(
+    //     ([key, value]) => ({
+    //         value: key,
+    //         label: value,
+    //     })
+    // );
+
+    const profileKeys = Object.keys(SWIPER_PARAM_VALUES) as Array<keyof SwiperParametrValues>;
+    const recommendedKeys = Object.keys(
+        secondRiskProfileData?.recommended_risk_profiles || {}
     );
+
+    // 2) сам onChange-проход в Select
+    const handleFinalProfileChange = (val: string) => {
+        formik.setFieldValue("risk_profiling_final", val);
+
+        if (val && !recommendedKeys.includes(val)) {
+            dispatch(openModal({
+                type: ModalType.WARNING,
+                animation: ModalAnimation.LEFT,
+                size: ModalSize.MC,
+            }));
+        }
+
+        // если сбросили выбор (например, val === "") — сброс touched, чтобы появился placeholder
+        if (val === "") {
+            formik.setFieldTouched("risk_profiling_final", false);
+        }
+    };
+    const finalRiskProfileOptions = profileKeys.map((key) => ({
+        value: key,
+        label:
+            SWIPER_PARAM_VALUES[key],
+    }));
 
     const handleGetNewPercentage = (values: SecondRiskProfilePayload) => {
         dispatch(postSecondRiskProfileForm({
@@ -222,6 +254,7 @@ export const RiskProfileSecondForm: React.FC = () => {
                                     "risk_prof_aggressive",
                                     "risk_prof_aggressive_super"
                                 ]}
+                                extraDescreteValue={recommendedKeys[recommendedKeys.length - 1]}
                                 customSliderDivisions={5}
                                 value={formik.values.portfolio_parameters}
                                 onChange={(e) => {
@@ -230,6 +263,10 @@ export const RiskProfileSecondForm: React.FC = () => {
                                 }}
                                 onBlur={formik.handleBlur}
                             />
+                        </div>
+                        <div className={styles.information}>
+                            <div className={styles.information__marker}></div>
+                            <span className={styles.information__description}>Маркер рекомендуемого риск-профиля согласно Вашим ответам на вопросы</span>
                         </div>
                     </div>
                     <div className={styles.form__container} style={{ minHeight: '74px' }}>
@@ -296,14 +333,7 @@ export const RiskProfileSecondForm: React.FC = () => {
                                     value={formik.values.risk_profiling_final || ""}
                                     title="Выберите риск профиль"
                                     items={finalRiskProfileOptions}
-                                    onChange={(selectedVal) => {
-                                        formik.setFieldValue("risk_profiling_final", selectedVal);
-                                        // Если выбрано "не выбрано" (пустая строка), сбрасываем touched,
-                                        // чтобы placeholder отобразился сразу
-                                        if (selectedVal === "") {
-                                            formik.setFieldTouched("risk_profiling_final", false);
-                                        }
-                                    }}
+                                    onChange={handleFinalProfileChange}
                                 />
                             </div>
                         )}
@@ -349,6 +379,26 @@ export const RiskProfileSecondForm: React.FC = () => {
                     actionText="Перейти к документам"
 
                 />
+                <WarningModal
+                    onClose={() => {
+                        dispatch(closeModal(ModalType.WARNING));
+                    }}
+                    title="Рекомендуемый риск-профиль"
+                    action={() => {
+                        dispatch(openModal({
+                            type: ModalType.PREVIEW,
+                            animation: ModalAnimation.LEFT,
+                            size: ModalSize.MC,
+                        }));
+                    }}
+                    actionText="Подробное описание риск-профилей"
+
+                />
+                <PreviewModal title="Подробное описание риск-профилей" content={<>
+                    {riskProfiles.map(profile => (
+                        <RiskProfileCard key={profile.id} {...profile} />
+                    ))}
+                </>} />
             </div>
         );
     }

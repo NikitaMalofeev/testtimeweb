@@ -109,3 +109,42 @@ text-align: center;
 }
 
 }
+
+.extraTick {
+  position: absolute;   
+  left: 0.5px;        // поднимите/опустите по вкусу
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  /* анимация качания */
+  animation: bounce 1s ease-in-out infinite;
+}
+
+.extraTick::before,
+.extraTick::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;              // начинаем от «точки» соединения
+  width: 2px;
+  height: 8px;
+  border-radius: 2px;
+  background-color: #045FDD;
+  transform-origin: bottom center;
+}
+
+.extraTick::before {
+  transform: rotate(45deg) translateX(-1px);
+}
+
+.extraTick::after {
+  transform: rotate(-45deg) translateX(1px);
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(2px);
+  }
+}

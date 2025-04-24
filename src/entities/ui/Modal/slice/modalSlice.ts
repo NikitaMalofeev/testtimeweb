@@ -105,6 +105,12 @@ const initialState: ExtendedModalState = {
         animation: ModalAnimation.BOTTOM,
         isScrolled: false,
     },
+    [ModalType.WARNING]: {
+        isOpen: false,
+        size: ModalSize.MC,
+        animation: ModalAnimation.BOTTOM,
+        isScrolled: false,
+    },
 
     // auxiliary fields
     modalStack: [],

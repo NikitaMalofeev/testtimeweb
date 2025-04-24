@@ -1,0 +1,83 @@
+.modalContent {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: white;
+    gap: 44px;
+    border-radius: 8px 8px 40px 40px;
+    padding: 16px 16px 16px 16px;
+    min-width: 300px;
+    text-align: center;
+    overflow: auto;
+    position: relative;
+    max-height: calc(100vh - 120px);
+}
+
+.submitButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 19px 30px;
+    width: 100%;
+    font-family: var(--font-inter);
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 21.78px;
+}
+
+.description {
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 110.00000000000001%;
+    letter-spacing: 0%;
+    text-align: left;
+
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+    overflow-y: auto    ;
+}
+
+.title {
+    font-family: Inter;
+    font-weight: 600;
+    font-size: 24px;
+    line-height: 110.00000000000001%;
+    letter-spacing: 0%;
+    color: #0F0E0E;
+}
+.buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+@media (max-width: 450px) {
+    .submitButton {
+      padding: 19px 20px;
+    }
+  }
+
+  .text {
+
+font-weight: 400;
+font-size: 13px;
+line-height: 130%;
+letter-spacing: 0px;
+color: #121B2F;
+text-align: left;
+  }
+
+  .modalContent__shadow_top {
+    /* увеличили смещение и размытие до 6px для более выраженной тени */
+    box-shadow: inset 0 6px 6px -4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .modalContent__shadow_bottom {
+    /* аналогично для нижней тени */
+    box-shadow: inset 0 -6px 6px -4px rgba(0, 0, 0, 0.1);
+  }

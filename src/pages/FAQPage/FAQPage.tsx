@@ -7,6 +7,8 @@ import styles from './styles.module.scss';
 import { highlightText } from 'shared/lib/helpers/highLightText';
 import { Input } from 'shared/ui/Input/Input';
 import { useDebounce } from 'shared/hooks/useDebounce';
+import AccountChatIcon from "shared/assets/svg/AccountChatIcon.svg";
+import { Button, ButtonTheme } from 'shared/ui/Button/Button';
 
 // отдельный интерфейс для исходных данных с title/content строками
 interface FAQRawItem {
@@ -101,6 +103,10 @@ const FAQPage: React.FC = () => {
                     allowMultipleOpen
                     defaultOpenItems={matchingOpenItems}
                 />
+            </div>
+            <div className={styles.chat} onClick={() => navigate('/support')}>
+                <Icon Svg={AccountChatIcon} width={28} height={28} />
+                <span>Если Вы не нашли ответа на свой вопрос, обратитесь, пожалуйста, в тех поддержку</span>
             </div>
         </div>
     );

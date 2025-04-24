@@ -21,6 +21,7 @@
         display: flex;
         flex-direction: column;
         flex-grow: 1;
+        margin-bottom: 16px;
     }
 }
 .header {
@@ -52,4 +53,17 @@
     font-size: 16px;
     border: 1px solid #ccc;
     border-radius: 4px;
+  }
+
+  .chat {
+    display: flex;
+    gap: 16px;
+    border: 1px solid #045FDD;
+    border-radius: 30px;
+    padding: 16px;
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 14.52px;
+    letter-spacing: 0%;
+    color: black;
   }

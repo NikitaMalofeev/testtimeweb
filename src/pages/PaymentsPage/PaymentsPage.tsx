@@ -8,11 +8,17 @@ import { getAllTariffsThunk } from "entities/Payments/slice/paymentsSlice";
 import { Icon } from "shared/ui/Icon/Icon";
 import BackIcon from "shared/assets/svg/ArrowBack.svg";
 import { PaymentsCardList } from "features/Payments/PaymentsCardList/PaymentsCardList";
+import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/DocumentPreviewModal";
+import { useSelector } from "react-redux";
+import { RootState } from "app/providers/store/config/store";
+import { closeModal } from "entities/ui/Modal/slice/modalSlice";
+import { ModalType } from "entities/ui/Modal/model/modalTypes";
 
 
 const PaymentsPage: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
+    const documentPreview = useSelector((state: RootState) => state.modal.documentsPreview)
 
     // return loading ? (
     //     <Loader />
@@ -29,7 +35,13 @@ const PaymentsPage: React.FC = () => {
             <div>
                 <PaymentsCardList />
             </div>
-
+            <DocumentPreviewModal
+                isOpen={documentPreview.isOpen}
+                onClose={() => dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW))}
+                isSignedDoc={documentPreview.isOpen}
+                docId={documentPreview.docId}
+                title='Договор ИС: Приложение 1'
+            />
         </div>
     );
 };

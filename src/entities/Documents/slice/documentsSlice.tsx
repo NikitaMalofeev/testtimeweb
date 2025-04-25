@@ -64,7 +64,7 @@ export const docTypeLabels: Record<string, string> = {
     type_doc_investment_profile_certificate: "Справка ИП",
     type_doc_agreement_account_maintenance: 'Доверенность на управление счетом',
     type_doc_broker_api_token: 'Согласие на передачу API ключа к брокерскому счету',
-    type_doc_agreement_investment_advisor_app_1: 'Договор ИС приложение 1',
+    type_doc_agreement_investment_advisor_app_1: 'Договор ИС: Приложение 1',
 };
 
 interface DocumentsState {
@@ -356,7 +356,6 @@ export const getUserDocumentNotSignedThunk = createAsyncThunk<
             const docId = custom && customId
                 ? customId
                 : getState().documents.currentConfirmableDoc;
-            console.log('222222')
             // вызываем нужный API
             const response = custom && customId && type
                 ? await getCustomDocumentsNotSigned(token, customId, type)

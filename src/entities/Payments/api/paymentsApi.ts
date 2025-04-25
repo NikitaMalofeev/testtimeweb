@@ -1,4 +1,5 @@
 import axios from "axios";
+import { PaymentsCreateOrderPayload } from "../types/paymentsTypes";
 
 const envEnviroment = import.meta.env.VITE_ENVIROMENT;
 
@@ -20,7 +21,7 @@ switch (envEnviroment) {
 }
 
 export const createOrder = async (
-    payload: Record<string, any>,
+    payload: PaymentsCreateOrderPayload,
     token: string
 ) => {
     const { data } = await axios.post(
@@ -71,6 +72,24 @@ export const robokassaResult = async (
             headers: {
                 "Accept-Language": "ru",
                 "Content-Type": "application/x-www-form-urlencoded",
+            },
+        }
+    );
+    return data;
+};
+
+export const paymentsSetTariff = async (
+    tariff_key: string,
+    token: string
+) => {
+    const { data } = await axios.post(
+        `${apiPaymentsUrl}set_tariff/`,
+        { tariff_key: tariff_key },
+        {
+            headers: {
+                "Accept-Language": "ru",
+                "Content-Type": "application/x-www-form-urlencoded",
+                Authorization: `Token ${token}`,
             },
         }
     );

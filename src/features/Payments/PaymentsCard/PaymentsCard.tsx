@@ -97,15 +97,17 @@ export const PaymentsCard: React.FC<PaymentsCardProps> = ({
             </div>
         </div>
 
-        <div className={styles.footer}>
-            <Button
-                theme={ButtonTheme.UNDERLINE}
-                className={styles.button}
-                padding="10px 62.5px"
-                onClick={onMore}
-            >
-                Подробнее о тарифе
-            </Button>
-        </div>
+        {!isSelected && (
+            <div className={styles.footer}>
+                <Button
+                    theme={ButtonTheme.UNDERLINE}
+                    className={styles.button}
+                    padding="10px 62.5px"
+                    onClick={onMore}
+                >
+                    Подробнее о тарифе
+                </Button>
+            </div>
+        )}
     </motion.div>
 );

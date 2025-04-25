@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from 'app/providers/store/config/store';
-import { getAllTariffsThunk } from 'entities/Payments/slice/paymentsSlice';
+import { createOrderThunk, getAllTariffsThunk, setTariffIdThunk } from 'entities/Payments/slice/paymentsSlice';
 import styles from './styles.module.scss';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
 import { Loader } from 'shared/ui/Loader/Loader';
@@ -10,12 +10,27 @@ import PaymentsActive from 'shared/assets/images/paymentsActive.png';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button, ButtonTheme } from 'shared/ui/Button/Button';
 import { PaymentsCard } from '../PaymentsCard/PaymentsCard';
+import { se } from 'date-fns/locale';
+import { setStepAdditionalMenuUI } from 'entities/ui/Ui/slice/uiSlice';
+import { openModal } from 'entities/ui/Modal/slice/modalSlice';
+import { ModalAnimation, ModalSize, ModalType } from 'entities/ui/Modal/model/modalTypes';
+import { setCurrentConfirmableDoc } from 'entities/Documents/slice/documentsSlice';
 
 export const PaymentsCardList: React.FC = () => {
     const dispatch = useAppDispatch();
     const tariffs = useSelector((state: RootState) => state.payments.tariffs);
     const isFetching = useSelector((state: RootState) => state.payments.isFetchingTariffs);
     const [selectedId, setSelectedId] = useState<string | null>(null);
+
+    const handleSetTariff = () => {
+        selectedId && dispatch(setTariffIdThunk({
+            tariff_key: selectedId, onSuccess: () => {
+                dispatch(setStepAdditionalMenuUI(4))
+                dispatch(setCurrentConfirmableDoc('type_doc_agreement_investment_advisor_app_1'))
+                dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
+            }
+        }))
+    }
 
     useEffect(() => {
         dispatch(getAllTariffsThunk());
@@ -38,7 +53,7 @@ export const PaymentsCardList: React.FC = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.2 }}
+                        transition={{ duration: 0.3 }}
                     >
                         <PaymentsCard
                             index={index}
@@ -69,7 +84,7 @@ export const PaymentsCardList: React.FC = () => {
                         transition={{ type: 'spring', stiffness: 300, damping: 30, duration: 300 }}
                     >
                         <Button theme={ButtonTheme.UNDERLINE} padding='10px 25px' onClick={() => setSelectedId('')}>Вернуться к выбору тарифов</Button>
-                        <Button theme={ButtonTheme.BLUE} padding='10px 25px'>Подключить</Button>
+                        <Button theme={ButtonTheme.BLUE} padding='10px 25px' onClick={handleSetTariff}>Подключить</Button>
                     </motion.div>
                 )}
             </AnimatePresence>

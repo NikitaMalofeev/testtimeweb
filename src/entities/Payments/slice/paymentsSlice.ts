@@ -5,8 +5,10 @@ import {
     createOrder,
     getAllTariffs,
     getOrderStatus,
+    paymentsSetTariff,
     robokassaResult,
 } from "entities/Payments/api/paymentsApi";
+import { PaymentsCreateOrderPayload } from "../types/paymentsTypes";
 
 // --- Types ---
 export interface CreateOrderPayload {
@@ -87,13 +89,14 @@ const initialState: PaymentsState = {
 // --- Thunks ---
 export const createOrderThunk = createAsyncThunk<
     CreateOrderResponse,
-    { payload: CreateOrderPayload; onSuccess?: () => void },
-    { rejectValue: string }
+    { payload: PaymentsCreateOrderPayload; onSuccess?: () => void },
+    { rejectValue: string, state: RootState }
 >(
     "payments/createOrder",
-    async ({ payload, onSuccess }, { dispatch, rejectWithValue }) => {
+    async ({ payload, onSuccess }, { dispatch, rejectWithValue, getState }) => {
         try {
-            const response = await createOrder(payload, /* token */ payload.payment_system);
+            const token = getState().user.token;
+            const response = await createOrder(payload, token);
             onSuccess?.();
             return response;
         } catch (err: any) {
@@ -114,6 +117,27 @@ export const getAllTariffsThunk = createAsyncThunk<
         try {
             const token = getState().user.token;
             const data = await getAllTariffs(token);
+            return data;
+        } catch (err: any) {
+            const msg = err.response?.data?.error || err.message;
+            dispatch(setError(msg));
+            return rejectWithValue(msg);
+        }
+    }
+);
+
+export const setTariffIdThunk = createAsyncThunk<
+    void,
+    { tariff_key: string, onSuccess: () => void },
+    { rejectValue: string, state: RootState }
+>(
+    "payments/setTariffIdThunk",
+    async ({ tariff_key, onSuccess }, { dispatch, rejectWithValue, getState }) => {
+        try {
+            const token = getState().user.token;
+            console.log(tariff_key)
+            const data = await paymentsSetTariff(tariff_key, token);
+            onSuccess()
             return data;
         } catch (err: any) {
             const msg = err.response?.data?.error || err.message;

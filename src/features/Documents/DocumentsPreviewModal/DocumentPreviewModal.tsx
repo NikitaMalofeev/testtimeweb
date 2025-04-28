@@ -42,9 +42,7 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
         (state: RootState) => state.documents.allNotSignedDocumentsHtml
     );
 
-    useEffect(() => {
-        dispatch(getUserDocumentNotSignedThunk({ custom: false }))
-    }, [])
+
     // Данные для подписанного документа (бинарный PDF)
     const hasCurrentSighedDocument = useSelector(
         (state: RootState) => state.documents.currentSugnedDocument

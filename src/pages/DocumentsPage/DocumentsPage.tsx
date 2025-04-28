@@ -48,6 +48,7 @@ const DocumentsPage: React.FC = () => {
     const { userDocuments, loading, filledRiskProfileChapters, brokerIds } = useSelector((state: RootState) => state.documents);
     const currentDocument = useSelector((state: RootState) => state.documents.currentSugnedDocument.document);
     const currentConfirmableDocument = useSelector((state: RootState) => state.documents.currentConfirmableDoc);
+    const currentTariffId = useSelector((state: RootState) => state.payments.currentTariffId)
 
     useEffect(() => {
         dispatch(getUserDocumentsStateThunk());
@@ -56,8 +57,6 @@ const DocumentsPage: React.FC = () => {
 
     useEffect(() => {
         dispatch(getUserDocumentsStateThunk());
-
-        //test
         dispatch(getUserDocumentsNotSignedThunk())
     }, [currentConfirmableDocument]);
 
@@ -255,7 +254,7 @@ const DocumentsPage: React.FC = () => {
     const renderedDocuments = documents.map((doc) => {
         let colorClass = styles.button__gray;
         let additionalMessages = '';
-        let tariffs = true
+        let tariffs = currentTariffId
 
         // 1) Специально для app_1
         if (doc.id === 'type_doc_agreement_investment_advisor_app_1') {
@@ -266,7 +265,7 @@ const DocumentsPage: React.FC = () => {
                 !tariffs
             ) {
                 colorClass = styles.button__red;
-                additionalMessages = 'Для подписания заполните паспорт, подключите брокер и тариф';
+                additionalMessages = 'Для подписания заполните паспорт, подключите брокера и тариф';
             } else {
                 colorClass = styles.button__gray;
                 additionalMessages = '';
@@ -454,7 +453,7 @@ const DocumentsPage: React.FC = () => {
                                 ? !(
                                     filledRiskProfileChapters.is_exist_scan_passport &&
                                     brokerIds[0] &&
-                                    true // <- захардкоденный флаг тарифа
+                                    currentTariffId // <- захардкоденный флаг тарифа
                                 )
                                 // иначе — ваша прежняя логика
                                 : (isBroker && filledRiskProfileChapters.is_exist_scan_passport) || isPassport

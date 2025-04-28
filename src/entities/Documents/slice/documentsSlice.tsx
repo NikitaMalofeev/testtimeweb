@@ -315,6 +315,7 @@ export const getUserDocumentsInfoThunk = createAsyncThunk<
     }
 );
 
+// documents/getUserDocumentsNotSignedThunk
 export const getUserDocumentsNotSignedThunk = createAsyncThunk<
     void,
     void,
@@ -327,16 +328,22 @@ export const getUserDocumentsNotSignedThunk = createAsyncThunk<
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");
             }
-            const response = await getDocumentsNotSigned(token);
 
-            const documents = response.not_signed_documents_htmls;
-            console.log(documents)
-            dispatch(setNotSignedDocumentsHtmls(documents));
+            const response = await getDocumentsNotSigned(token);
+            const htmls = response.not_signed_documents_htmls;      // ← что пришло от API
+
+            // ① Если API вернул строку, заворачиваем её в объект
+            if (typeof htmls === "string") {
+                const docId = getState().documents.currentConfirmableDoc;
+                dispatch(setNotSignedDocumentsHtmls({ [docId]: htmls }));
+            } else {
+                // ② Если уже объект, просто прокидываем дальше
+                dispatch(setNotSignedDocumentsHtmls(htmls));
+            }
         } catch (error: any) {
-            console.log(error);
-            const msg =
-                error.response?.data?.errorText
+            const msg = error.response?.data?.errorText ?? error.message;
             dispatch(setError(msg));
+            return rejectWithValue(msg);
         }
     }
 );
@@ -351,11 +358,14 @@ export const getUserDocumentNotSignedThunk = createAsyncThunk<
     async ({ custom, customId, type }, { getState, dispatch, rejectWithValue }) => {
         try {
             const token = getState().user.token!;
-
             // выбираем какой id использовать
             const docId = custom && customId
                 ? customId
                 : getState().documents.currentConfirmableDoc;
+            if (docId === 'type_doc_agreement_investment_advisor_app_1') {
+                return
+            }
+
             // вызываем нужный API
             const response = custom && customId && type
                 ? await getCustomDocumentsNotSigned(token, customId, type)
@@ -523,6 +533,12 @@ export const documentsSlice = createSlice({
             state,
             action: PayloadAction<Record<string, string>>
         ) {
+            if (typeof action.payload === "string") {
+                // строку игнорируем или логируем ошибку,
+                // чтобы не развалить стейт
+                console.warn("setNotSignedDocumentsHtmls: payload is string");
+                return;
+            }
             if (!state.allNotSignedDocumentsHtml) {
                 state.allNotSignedDocumentsHtml = {};
             }

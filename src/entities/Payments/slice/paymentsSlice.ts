@@ -2,13 +2,18 @@ import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "app/providers/store/config/store";
 import { setError } from "entities/Error/slice/errorSlice";
 import {
+    checkConfirmationCodeTariff,
     createOrder,
     getAllTariffs,
+    getNotSignedTariffDoc,
     getOrderStatus,
+    getSignedTariffDoc,
     paymentsSetTariff,
     robokassaResult,
+    signingTariff,
 } from "entities/Payments/api/paymentsApi";
 import { PaymentsCreateOrderPayload } from "../types/paymentsTypes";
+import { setCurrentSignedDocuments, setNotSignedDocumentsHtmls } from "entities/Documents/slice/documentsSlice";
 
 // --- Types ---
 export interface CreateOrderPayload {
@@ -66,7 +71,7 @@ interface PaymentsState {
 
     isPostingRobokassa: boolean;
     robokassaData: RobokassaResultResponse | null;
-
+    currentTariffId: string;
     error: string | null;
 }
 
@@ -82,7 +87,7 @@ const initialState: PaymentsState = {
 
     isPostingRobokassa: false,
     robokassaData: null,
-
+    currentTariffId: '',
     error: null,
 };
 
@@ -106,6 +111,102 @@ export const createOrderThunk = createAsyncThunk<
         }
     }
 );
+
+// 1. проверка кода подтверждения тарифа
+export const checkConfirmationCodeTariffThunk = createAsyncThunk<
+    void,
+    { tariff_id: string; code: string; onSuccess?: () => void },
+    { rejectValue: string; state: RootState }
+>(
+    "payments/checkConfirmationCodeTariff",
+    async ({ tariff_id, code, onSuccess }, { dispatch, getState, rejectWithValue }) => {
+        try {
+            const token = getState().user.token;
+            await checkConfirmationCodeTariff(tariff_id, code, token);
+            onSuccess?.();
+        } catch (err: any) {
+            const msg = err.response?.data?.error || err.message;
+            dispatch(setError(msg));
+            return rejectWithValue(msg);
+        }
+    }
+);
+
+// 2. получить подписанный PDF по тарифу
+export const getSignedTariffDocThunk = createAsyncThunk<
+    Uint8Array,
+    { tariff_id: string; purpose?: "download" | "preview"; onSuccess?: () => void },
+    { rejectValue: string; state: RootState }
+>(
+    "payments/getSignedTariffDoc",
+    async ({ tariff_id, purpose = "preview", onSuccess }, { dispatch, getState, rejectWithValue }) => {
+        try {
+            const token = getState().user.token;
+            const arrayBuf = await getSignedTariffDoc(tariff_id, token);
+            const pdfBytes = new Uint8Array(arrayBuf);
+
+            dispatch(
+                setCurrentSignedDocuments({
+                    type: `tariff_${tariff_id}`,
+                    document: pdfBytes,
+                })
+            );
+
+            if (purpose === "download") onSuccess?.();
+            return pdfBytes;
+        } catch (err: any) {
+            const msg = err.response?.data?.error || err.message;
+            dispatch(setError(msg));
+            return rejectWithValue(msg);
+        }
+    }
+);
+
+// 3. получить HTML неподписанного тарифа и сохранить в documentsSlice
+export const getNotSignedTariffDocThunk = createAsyncThunk<
+    void,
+    { tariff_id: string },
+    { rejectValue: string; state: RootState }
+>(
+    "payments/getNotSignedTariffDoc",
+    async ({ tariff_id }, { dispatch, getState, rejectWithValue }) => {
+        try {
+            const token = getState().user.token;
+            const { not_signed_document_html } = await getNotSignedTariffDoc(tariff_id, token);
+
+            dispatch(
+                setNotSignedDocumentsHtmls({
+                    [`tariff_${tariff_id}`]: not_signed_document_html,
+                })
+            );
+        } catch (err: any) {
+            const msg = err.response?.data?.error || err.message;
+            dispatch(setError(msg));
+            return rejectWithValue(msg);
+        }
+    }
+);
+
+// 4. инициировать подписание тарифа
+export const signingTariffThunk = createAsyncThunk<
+    void,
+    { tariff_id: string; type_message: string; is_agree: boolean; onSuccess?: () => void },
+    { rejectValue: string; state: RootState }
+>(
+    "payments/signingTariff",
+    async ({ tariff_id, type_message, is_agree, onSuccess }, { dispatch, getState, rejectWithValue }) => {
+        try {
+            const token = getState().user.token;
+            await signingTariff(tariff_id, type_message, is_agree, token);
+            onSuccess?.();
+        } catch (err: any) {
+            const msg = err.response?.data?.error || err.message;
+            dispatch(setError(msg));
+            return rejectWithValue(msg);
+        }
+    }
+);
+
 
 export const getAllTariffsThunk = createAsyncThunk<
     Tariff[],
@@ -191,6 +292,9 @@ export const paymentsSlice = createSlice({
         clearPaymentsError: (state) => {
             state.error = null;
         },
+        setCurrentTariff: (state, action: PayloadAction<string>) => {
+            state.currentTariffId = action.payload;
+        },
         resetPaymentsState: () => initialState,
     },
     extraReducers: (builder) => {
@@ -249,5 +353,5 @@ export const paymentsSlice = createSlice({
     },
 });
 
-export const { clearPaymentsError, resetPaymentsState } = paymentsSlice.actions;
+export const { clearPaymentsError, resetPaymentsState, setCurrentTariff } = paymentsSlice.actions;
 export default paymentsSlice.reducer;

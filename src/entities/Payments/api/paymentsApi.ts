@@ -95,3 +95,80 @@ export const paymentsSetTariff = async (
     );
     return data;
 };
+
+export const checkConfirmationCodeTariff = async (
+    tariff_id: string,
+    code: string,
+    token: string
+) => {
+    const { data } = await axios.post(
+        `${apiPaymentsUrl}check_confirmation_code_tariff/`,
+        { tariff_id, code },
+        {
+            headers: {
+                "Accept-Language": "ru",
+                "Content-Type": "application/x-www-form-urlencoded",
+                Authorization: `Token ${token}`,
+            },
+        }
+    );
+    return data;
+};
+
+export const getSignedTariffDoc = async (
+    tariff_id: string,
+    token: string
+) => {
+    const { data } = await axios.post(
+        `${apiPaymentsUrl}get_signed_tariff_document/`,
+        { tariff_id },
+        {
+            headers: {
+                "Accept-Language": "ru",
+                "Content-Type": "application/x-www-form-urlencoded",
+                Authorization: `Token ${token}`,
+            },
+        }
+    );
+    return data;
+};
+
+
+export const getNotSignedTariffDoc = async (
+    tariff_id: string,
+    token: string
+) => {
+    const { data } = await axios.post(
+        `${apiPaymentsUrl}get_user_not_signed_tariff_html/`,
+        { tariff_id },
+        {
+            headers: {
+                "Accept-Language": "ru",
+                "Content-Type": "application/x-www-form-urlencoded",
+                Authorization: `Token ${token}`,
+            },
+        }
+    );
+    return data;
+};
+
+
+export const signingTariff = async (
+    tariff_id: string,
+    type_message: string,
+    is_agree: boolean,
+    token: string
+) => {
+    const { data } = await axios.post(
+        `${apiPaymentsUrl}signing_tariff/`,
+        { tariff_id, type_message, is_agree },
+        {
+            headers: {
+                "Accept-Language": "ru",
+                "Content-Type": "application/x-www-form-urlencoded",
+                Authorization: `Token ${token}`,
+            },
+        }
+    );
+    return data;
+};

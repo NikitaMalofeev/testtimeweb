@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from 'app/providers/store/config/store';
-import { createOrderThunk, getAllTariffsThunk, setTariffIdThunk } from 'entities/Payments/slice/paymentsSlice';
+import { createOrderThunk, getAllTariffsThunk, setCurrentTariff, setTariffIdThunk } from 'entities/Payments/slice/paymentsSlice';
 import styles from './styles.module.scss';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
 import { Loader } from 'shared/ui/Loader/Loader';
@@ -20,16 +20,26 @@ export const PaymentsCardList: React.FC = () => {
     const dispatch = useAppDispatch();
     const tariffs = useSelector((state: RootState) => state.payments.tariffs);
     const isFetching = useSelector((state: RootState) => state.payments.isFetchingTariffs);
+    const { brokersCount, filledRiskProfileChapters } = useSelector((state: RootState) => state.documents);
     const [selectedId, setSelectedId] = useState<string | null>(null);
 
     const handleSetTariff = () => {
-        selectedId && dispatch(setTariffIdThunk({
-            tariff_key: selectedId, onSuccess: () => {
-                dispatch(setStepAdditionalMenuUI(4))
-                dispatch(setCurrentConfirmableDoc('type_doc_agreement_investment_advisor_app_1'))
-                dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
-            }
-        }))
+        if (!filledRiskProfileChapters.is_exist_scan_passport) {
+            dispatch(setStepAdditionalMenuUI(2))
+            dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
+        } else if (brokersCount === 0) {
+            dispatch(setStepAdditionalMenuUI(5))
+            dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
+        } else {
+            selectedId && dispatch(setTariffIdThunk({
+                tariff_key: selectedId, onSuccess: () => {
+                    dispatch(setCurrentTariff(selectedId))
+                    dispatch(setStepAdditionalMenuUI(4))
+                    dispatch(setCurrentConfirmableDoc('type_doc_agreement_investment_advisor_app_1'))
+                    dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
+                }
+            }))
+        }
     }
 
     useEffect(() => {

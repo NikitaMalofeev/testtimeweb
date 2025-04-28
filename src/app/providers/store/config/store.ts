@@ -72,7 +72,12 @@ const persistConfig = getPersistConfig({
         'documents.userPassportData',
 
         'riskProfile.currentConfirmingDoc',
-        'riskProfile.passportFormData'],
+        'riskProfile.passportFormData',
+
+        'payments',
+    ],
+
+
     // blacklist: ['modal.documentsPreview', 'modal.documentsPreviewSigned'],
     rootReducer,
 });

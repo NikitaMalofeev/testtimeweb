@@ -48,7 +48,8 @@ const DocumentsPage: React.FC = () => {
     const { userDocuments, loading, filledRiskProfileChapters, brokerIds } = useSelector((state: RootState) => state.documents);
     const currentDocument = useSelector((state: RootState) => state.documents.currentSugnedDocument.document);
     const currentConfirmableDocument = useSelector((state: RootState) => state.documents.currentConfirmableDoc);
-    const currentTariffId = useSelector((state: RootState) => state.payments.currentTariffId)
+    const currentTariffId = useSelector((state: RootState) => state.payments.currentTariffId);
+    const uploadDocs = useSelector((s: RootState) => s.documents.uploadDocs);
 
     useEffect(() => {
         dispatch(getUserDocumentsStateThunk());

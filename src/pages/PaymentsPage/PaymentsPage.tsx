@@ -19,6 +19,7 @@ const PaymentsPage: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const documentPreview = useSelector((state: RootState) => state.modal.documentsPreview)
+    const [isPaid, setIsPaid] = useState<boolean>(false)
 
     // return loading ? (
     //     <Loader />
@@ -28,12 +29,14 @@ const PaymentsPage: React.FC = () => {
     // );
     return (
         <div className={styles.page}>
-            <div className={styles.page__title}>
-                <Icon Svg={BackIcon} width={24} height={24} onClick={() => navigate("/lk")} />
-                <h2 className={styles.page__title}>Тарифы</h2>
-            </div>
+            {!isPaid && (
+                <div className={styles.page__title}>
+                    <Icon Svg={BackIcon} width={24} height={24} onClick={() => navigate("/lk")} />
+                    <h2 className={styles.page__title}>Тарифы</h2>
+                </div>
+            )}
             <div>
-                <PaymentsCardList />
+                <PaymentsCardList isPaid={(value) => setIsPaid(value)} />
             </div>
             <DocumentPreviewModal
                 isOpen={documentPreview.isOpen}

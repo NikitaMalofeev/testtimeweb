@@ -34,7 +34,7 @@ import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
 import { useNavigate } from "react-router-dom";
 import ArrowBack from 'shared/assets/svg/ArrowBack.svg';
 import { SuccessModal } from "../SuccessModal/SuccessModal";
-import { getNotSignedTariffDocThunk, signingTariffThunk } from "entities/Payments/slice/paymentsSlice";
+import { getNotSignedTariffDocThunk } from "entities/Payments/slice/paymentsSlice";
 
 export const ConfirmAllDocs: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -96,6 +96,8 @@ export const ConfirmAllDocs: React.FC = () => {
         );
     };
 
+
+
     // useEffect(() => {
     //     dispatch(getUserDocumentsNotSignedThunk())
     // }, [currentTypeDoc])
@@ -124,23 +126,6 @@ export const ConfirmAllDocs: React.FC = () => {
                 } else {
                     dispatch(setStepAdditionalMenuUI(4));
                 }
-            } else if (currentTypeDoc === 'type_doc_agreement_investment_advisor_app_1') {
-                dispatch(
-                    signingTariffThunk({
-                        tariff_id: currentTariffId,
-                        type_message: formik.values.type_message,
-                        is_agree: formik.values.is_agree,
-                        onSuccess: () => {
-                            dispatch(
-                                openModal({
-                                    type: ModalType.CONFIRM_DOCS,
-                                    size: ModalSize.MIDDLE,
-                                    animation: ModalAnimation.LEFT,
-                                })
-                            );
-                        },
-                    })
-                );
             } else {
                 // При успешном запросе открываем ConfirmDocsModal
                 dispatch(
@@ -160,6 +145,11 @@ export const ConfirmAllDocs: React.FC = () => {
             }
         },
     });
+
+    useEffect(() => {
+        formik.setFieldValue('type_message', 'EMAIL')
+        dispatch(setCurrentConfirmationMethod('EMAIL'))
+    }, [])
 
     useEffect(() => {
         if (timeoutBetweenConfirmation) {

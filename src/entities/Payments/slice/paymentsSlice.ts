@@ -72,6 +72,7 @@ interface PaymentsState {
     isPostingRobokassa: boolean;
     robokassaData: RobokassaResultResponse | null;
     currentTariffId: string;
+    currentUserTariffIdForPayments: string;
     error: string | null;
 }
 
@@ -88,6 +89,7 @@ const initialState: PaymentsState = {
     isPostingRobokassa: false,
     robokassaData: null,
     currentTariffId: '',
+    currentUserTariffIdForPayments: '',
     error: null,
 };
 
@@ -236,10 +238,15 @@ export const setTariffIdThunk = createAsyncThunk<
     async ({ tariff_key, onSuccess }, { dispatch, rejectWithValue, getState }) => {
         try {
             const token = getState().user.token;
-            console.log(tariff_key)
-            const data = await paymentsSetTariff(tariff_key, token);
+            const res = await paymentsSetTariff(tariff_key, token);
+
+            const key = res.tariff.key;                        // <-- нужный ключ
+            dispatch(setCurrentUserTariff(key));               // обязательно через dispatch
+
+            console.log('saved tariff key:', key);
+            console.log(key)
             onSuccess()
-            return data;
+            return key;
         } catch (err: any) {
             const msg = err.response?.data?.error || err.message;
             dispatch(setError(msg));
@@ -294,6 +301,9 @@ export const paymentsSlice = createSlice({
         },
         setCurrentTariff: (state, action: PayloadAction<string>) => {
             state.currentTariffId = action.payload;
+        },
+        setCurrentUserTariff: (state, action: PayloadAction<string>) => {
+            state.currentUserTariffIdForPayments = action.payload;
         },
         resetPaymentsState: () => initialState,
     },
@@ -353,5 +363,5 @@ export const paymentsSlice = createSlice({
     },
 });
 
-export const { clearPaymentsError, resetPaymentsState, setCurrentTariff } = paymentsSlice.actions;
+export const { clearPaymentsError, resetPaymentsState, setCurrentTariff, setCurrentUserTariff } = paymentsSlice.actions;
 export default paymentsSlice.reducer;

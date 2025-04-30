@@ -18,3 +18,126 @@
     width: 100%;
     left: 0;
 }
+
+.page {
+
+    &__container {
+      position: absolute;
+      padding: 0 16px;
+      bottom: 0;
+      left: 0;
+      width: 100dvw;
+      background-color: white;
+  
+      &::after {
+        position: absolute;
+        content: '';
+        top: 72px;
+        left: 0;
+        background-color: #EBEBED;
+        width: 100dvw;
+        height: 1px;
+      }
+    }
+  
+    &__checkbox {
+      max-height: 74px;
+      padding: 18px 0;
+      font-weight: 400;
+      font-size: 12px;
+      line-height: 16px;
+      letter-spacing: 0%;
+      margin-bottom: 10px;
+    }
+  }
+  
+  .checkbox__text {
+    font-size: 12px;
+    max-width: 250px;
+  }
+  
+  .method {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  
+    &__title {
+      display: inline-block;
+      width: 100%;
+      text-align: center;
+      font-weight: 400;
+      font-size: 14px;
+      line-height: 16.94px;
+      letter-spacing: 0%;
+      color: #989898;
+      margin-bottom: 10px;
+    }
+  }
+  
+  .buttons {
+    background-color: white;
+    padding: 16px 20px;
+    bottom: 50px;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    gap: 23px;
+    width: 100%;
+    z-index: 10;
+  }
+  
+  .button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18.5px 42px;
+    width: 100%;
+  }
+  
+  .shadow {
+    box-shadow: 0px -1px 13.4px 0px #00000026;
+  }
+
+  .confirm__title {
+    position: absolute;
+    top: 56px;
+    left: 0;
+    display: flex
+;
+box-shadow: 0px 4px 13.4px -4px rgba(0, 0, 0, 0.16);
+
+    align-items: center;
+    padding: 13px 16px;
+    background-color: white;
+    gap: 9px;
+    color: #0F0E0E;
+    width: 100%;
+    font-weight: 500;
+    font-size: 24px;
+    line-height: 28.8px;
+  }
+
+  .checkbox {
+    padding-left: 16px;
+    max-width: 320px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .confirm__container {
+    position: fixed;          // ключ: не влияем на layout
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100dvh;
+  }
+
+  .confirm__card {
+    position: absolute;
+    top: 122px;
+    max-width: calc(100vw - 32px);
+    left: 16px;
+    max-height: calc(100dvh - 382px);
+    overflow-y: auto;
+  }

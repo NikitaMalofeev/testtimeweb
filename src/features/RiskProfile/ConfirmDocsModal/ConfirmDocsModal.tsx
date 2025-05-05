@@ -19,7 +19,8 @@ import { selectModalState } from "entities/ui/Modal/selectors/selectorsModals";
 import { setTooltipActive, setConfirmationDocsSuccess, setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
 import { clearDocumentTimeout, confirmDocsRequestThunk, getUserDocumentsStateThunk, sendDocsConfirmationCode, setDocumentTimeoutPending } from "entities/Documents/slice/documentsSlice";
 import { ConfirmDocsPayload } from "entities/Documents/types/documentsTypes";
-import { checkConfirmationCodeTariffThunk, createOrderThunk, setCurrentOrderStatus } from "entities/Payments/slice/paymentsSlice";
+import { checkConfirmationCodeTariffThunk, setCurrentOrderStatus, createOrderThunk } from "entities/Payments/slice/paymentsSlice";
+import { useNavigate } from "react-router-dom";
 
 interface ConfirmInfoModalProps {
     isOpen: boolean;
@@ -27,13 +28,13 @@ interface ConfirmInfoModalProps {
     docsType?: string;
     lastData: ConfirmDocsPayload;
     confirmationPurpose?: string;
-    // Новый пропс: callback для открытия success-модали после успешного действия
     openSuccessModal?: (docsType?: string) => void;
 }
 
 export const ConfirmDocsModal = memo(
     ({ isOpen, onClose, docsType, lastData, confirmationPurpose, openSuccessModal }: ConfirmInfoModalProps) => {
         const dispatch = useAppDispatch();
+        const navigate = useNavigate()
         const modalState = useSelector((state: RootState) => state.modal);
         const { confirmationMethod } = useSelector((state: RootState) => state.documents);
         const docsSuccess = useSelector((state: RootState) => state.ui.confirmationDocs);
@@ -205,8 +206,12 @@ export const ConfirmDocsModal = memo(
                                     currency: 'RUB'
                                 },
                                 onSuccess: () => {
-                                    dispatch(setCurrentOrderStatus('pay'))
+                                    dispatch(setCurrentOrderStatus('loading'))
+                                    navigate('/payments/loading')
                                     dispatch(closeModal(ModalType.CONFIRM_DOCS))
+                                    setTimeout(() => {
+                                        navigate('/payments/success')
+                                    })
                                 }
                             }))
                         }

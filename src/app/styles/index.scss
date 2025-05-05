@@ -1,7 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 .page__wrapper {
-  min-height: calc(var(--vh, 1vh) * 100);
+  height: var(--vh); 
+  width: 100%;
     display: flex;
+    overflow-y: hidden;
     flex-direction: column;
     position: relative;
 }
@@ -11,13 +13,27 @@
   flex-direction: column;
   position: relative;
   overflow-x: hidden;
-  min-height: calc(var(--vh, 1vh) * 100);
+  height: var(--vh); 
+  width: 100%;
+}
+
+.page__scroll {
+  flex: 1;      
+  overflow-x: hidden;          /* забирает всё оставшееся */
+  overflow-y: auto;       /* ← скролл здесь */
+}
+
+html {
+  height: var(--vh); 
 }
 
 body {
-    min-height: calc(var(--vh, 1vh) * 100);
+  height: var(--vh); 
+  width: 100%;
     font-family: var(--font-inter);
-    
+    overflow-y: hidden;
+    position: fixed;
+    height: 100%;
 }
 
 /* Если хотите гарантированно применить везде, можно дублировать: */

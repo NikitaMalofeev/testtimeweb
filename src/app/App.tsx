@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import AppRouter from './providers/router/ui/AppRouter';
 import './styles/index.scss';
 import { Header } from 'widgets/Header/ui/Header';
@@ -39,8 +39,8 @@ function App() {
   useModalsController();
   useAuthModalsController();
 
-  useEffect(() => {
-    const userVh = window.innerHeight / 100;
+  useLayoutEffect(() => {
+    const userVh = window.innerHeight;
     document.documentElement.style.setProperty('--vh', `${userVh}px`);
   }, []);
 
@@ -112,11 +112,14 @@ function App() {
     <div className='page__wrapper'>
       <div className='page__content'>
         <Header currentNotificationsCount={unreadAnswersCount} variant='main' />
-        <Cover />
-        <AppRouter />
+        <div className="page__scroll">
+          <Cover />
+          <AppRouter />
+          {isMainPages && <Footer />}
+        </div>
       </div>
 
-      {isMainPages && <Footer />}
+
       <ErrorPopup />
       <SuccessPopup />
       <RiskProfileModal

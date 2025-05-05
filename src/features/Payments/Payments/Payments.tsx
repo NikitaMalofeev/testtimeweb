@@ -1,5 +1,5 @@
 // PaymentsCardList.tsx
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useSelector } from 'react-redux';
@@ -10,6 +10,7 @@ import {
     setTariffIdThunk,
     signingTariffThunk,
     setCurrentOrderStatus,
+    setCurrentOrderId,     // <== НОВОЕ
 } from 'entities/Payments/slice/paymentsSlice';
 import { setStepAdditionalMenuUI } from 'entities/ui/Ui/slice/uiSlice';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
@@ -35,8 +36,8 @@ type MessageKey = keyof typeof messageTypeOptions;
 
 const schema = Yup.object().shape({
     is_agree: Yup.boolean().oneOf([true], 'Необходимо подтвердить согласие'),
-    type_message: Yup.mixed<keyof typeof messageTypeOptions>()
-        .oneOf(Object.keys(messageTypeOptions) as (keyof typeof messageTypeOptions)[])
+    type_message: Yup.mixed<MessageKey>()
+        .oneOf(Object.keys(messageTypeOptions) as MessageKey[])
         .required(),
 });
 
@@ -60,6 +61,8 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     const currentPaymentOrder = useSelector((s: RootState) => s.payments.currentOrder);
     const currentOrderStatus = useSelector((s: RootState) => s.payments.currentOrderStatus);
 
+    const currentOrderId = useSelector((s: RootState) => s.payments.currentOrderId); // <== НОВОЕ
+
     /* ---------------- sync url → redux ------------- */
     useEffect(() => {
         if (
@@ -73,12 +76,11 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
 
     useEffect(() => {
         if (tariffs.length < 1) {
-            dispatch(getAllTariffsThunk())
+            dispatch(getAllTariffsThunk());
         }
-    }, [tariffs])
+    }, [tariffs, dispatch]);
 
     /* ---------------- ui state ------------- */
-    const [selectedId, setSelectedId] = useState<string | null>(null);
     const [isConfirming, setIsConfirming] = useState(false);
     const [currentTimeout, setCurrentTimeout] = useState(0);
 
@@ -90,9 +92,11 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     }, [currentTimeout]);
 
     useEffect(() => {
-        if (!currentPaymentOrder?.payment_url) return;
-        const newTab = window.open(currentPaymentOrder.payment_url, '_blank', 'noopener,noreferrer');
-        if (newTab) newTab.focus();
+        if (currentOrderStatus === 'loading') {
+            if (!currentPaymentOrder?.payment_url) return;
+            const newTab = window.open(currentPaymentOrder.payment_url, '_blank', 'noopener,noreferrer');
+            if (newTab) newTab.focus();8
+        }
     }, [currentPaymentOrder?.payment_url]);
 
     /* ---------------- formik ---------------- */
@@ -123,16 +127,12 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         },
     });
 
-    useEffect(() => {
-        dispatch(getAllTariffsThunk());
-    }, [dispatch]);
-
     const handleChooseTariff = useCallback(
         (id: string) => {
-            if (selectedId === id) return;
-            setSelectedId(id);
+            if (currentOrderId === id) return;
+            dispatch(setCurrentOrderId(id));        // <== НОВОЕ
         },
-        [selectedId],
+        [currentOrderId, dispatch],
     );
 
     const handleSetTariff = useCallback(() => {
@@ -147,6 +147,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
             );
             return;
         }
+        setWarning
         if (brokersCount === 0) {
             dispatch(setStepAdditionalMenuUI(5));
             dispatch(
@@ -159,30 +160,29 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
             return;
         }
 
-        selectedId && dispatch(setTariffIdThunk({ tariff_key: selectedId, onSuccess: () => { } }));
+        currentOrderId && dispatch(setTariffIdThunk({ tariff_key: currentOrderId, onSuccess: () => { } }));
         setIsConfirming(true);
         isPaid(true);
-    }, [brokersCount, dispatch, filledRiskProfileChapters, selectedId]);
+    }, [brokersCount, dispatch, filledRiskProfileChapters, currentOrderId, isPaid]);
 
     useEffect(() => {
         document.body.style.overflow = isConfirming ? 'hidden' : '';
     }, [isConfirming]);
 
     /* --- РАННИЙ ВЫХОД, если в url статус success|loading|failed --- */
-    if (statusParam && allowedStatus.includes(statusParam as any)) {
-        return <PaymentsStatus status={statusParam as any} paymentId={selectedId || ''} />;
+    if (currentOrderStatus) {
+        return <PaymentsStatus status={currentOrderStatus as any} paymentId={currentOrderId} />; // <== НОВОЕ
+    } else if (statusParam && allowedStatus.includes(statusParam as any)) {
+        return <PaymentsStatus status={statusParam as any} paymentId={currentOrderId} />; // <== НОВОЕ
     }
 
-    /* -------------------------------------------------- */
-    /* RENDER — LIST / CONFIRM                            */
-    /* -------------------------------------------------- */
-    if (isFetching) return <Loader />;
+    if (isFetching && !currentOrderStatus && !statusParam) return <Loader />;
 
     /* Cards, списки отображаем только пока не в confirm-step */
     const listPart = (
         <>
             <AnimatePresence mode="popLayout">
-                {(selectedId ? tariffs.filter((t) => t.id === selectedId) : tariffs).map(
+                {(currentOrderId ? tariffs.filter((t) => t.id === currentOrderId) : tariffs).map(
                     (t, index) => (
                         <motion.div
                             key={t.id}
@@ -194,7 +194,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                         >
                             <PaymentsCard
                                 index={index}
-                                isSelected={t.id === selectedId}
+                                isSelected={t.id === currentOrderId}
                                 status={t.is_active ? 'Active' : 'Inactive'}
                                 title={t.title}
                                 titleDesc={t.description}
@@ -211,7 +211,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
             </AnimatePresence>
 
             <AnimatePresence>
-                {selectedId && (
+                {currentOrderId && (
                     <motion.div
                         className={styles.detailed__actions}
                         initial={{ y: 100, opacity: 0 }}
@@ -223,7 +223,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                             theme={ButtonTheme.UNDERLINE}
                             padding="10px 25px"
                             onClick={() => {
-                                setSelectedId(null);
+                                dispatch(setCurrentOrderId(''));
                                 setIsConfirming(false);
                                 formik.resetForm();
                             }}
@@ -265,7 +265,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                     </motion.span>
 
                     <AnimatePresence mode="popLayout">
-                        {(selectedId ? tariffs.filter((t) => t.id === selectedId) : tariffs).map(
+                        {(currentOrderId ? tariffs.filter((t) => t.id === currentOrderId) : tariffs).map(
                             (t, index) => (
                                 <motion.div
                                     key={t.id}
@@ -278,7 +278,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                 >
                                     <PaymentsCard
                                         index={index}
-                                        isSelected={t.id === selectedId}
+                                        isSelected={t.id === currentOrderId}
                                         status={t.is_active ? 'Active' : 'Inactive'}
                                         title={t.title}
                                         titleDesc={t.description}
@@ -363,11 +363,9 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
 
     return (
         <div className={styles.list}>
-            {currentOrderStatus === 'pay'
-                ? !isConfirming && <span>Оплата</span>
-                : !isConfirming
-                    ? listPart
-                    : confirmPart}
+            {!isConfirming
+                ? listPart
+                : confirmPart}
 
             <ConfirmDocsModal
                 lastData={{

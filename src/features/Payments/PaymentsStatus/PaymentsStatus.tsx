@@ -9,7 +9,11 @@ import { Button, ButtonTheme } from 'shared/ui/Button/Button';
 import PaymentsBase from 'shared/assets/images/paymentsBase.png';
 import PaymentsActive from 'shared/assets/images/paymentsActive.png';
 import SuccessIcon from 'shared/assets/svg/SuccessLabel.svg';
+import ErrorIcon from 'shared/assets/svg/errorCircle.svg'
 import { Loader } from 'shared/ui/Loader/Loader';
+import { useNavigate } from 'react-router-dom';
+import { useAppDispatch } from 'shared/hooks/useAppDispatch';
+import { setCurrentOrderStatus } from 'entities/Payments/slice/paymentsSlice';
 
 interface PaymentsStatusProps {
     status: PaymentStatus;
@@ -19,103 +23,170 @@ interface PaymentsStatusProps {
 export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentId }) => {
     // достаём список тарифов и текущий заказ
     const tariffs = useSelector((s: RootState) => s.payments.tariffs);
+    const navigate = useNavigate()
+    const dispatch = useAppDispatch()
 
-    // в зависимости от статуса подготавливаем title и subtitle
-    const { title, subtitle, subtitleColor } = useMemo(() => {
+    const { title, subtitle, subtitleColor, statusColor, statusName, icon } = useMemo(() => {
         switch (status) {
             case 'success':
                 return {
                     title: 'Вы успешно подключили тариф',
                     subtitle: 'Благодарим за оплату. Подписка активна. Услуги возобновлены.',
-                    subtitleColor: '#DCF3D1'
+                    subtitleColor: '#DCF3D1',
+                    statusColor: '#52C417',
+                    statusName: 'подключен',
+                    icon: SuccessIcon
                 };
             case 'loading':
                 return {
                     title: 'Ожидание оплаты тарифа',
                     subtitle: 'Пожалуйста, проведите оплату и вернитесь в ranks.autopilot',
-                    subtitleColor: '#E1ECFB'
+                    subtitleColor: '#E1ECFB',
+                    statusColor: '#0666EB',
+                    statusName: 'ожидание',
+                    icon: 'loader'
                 };
             case 'failed':
                 return {
                     title: 'Оплата не удалась',
                     subtitle: 'Произошла ошибка при проведении платежа. Попробуйте снова.',
-                    subtitleColor: '#FF3C53'
+                    subtitleColor: '#FF3C53',
+                    statusColor: '#EA3C4E',
+                    statusName: 'ошибка',
+                    icon: ErrorIcon
                 };
             default:
-                return { title: '', subtitle: '' };
+                return { title: '', subtitle: '', subtitleColor: 'transparent' };
         }
     }, [status]);
+
 
     return (
         <div className={styles.status__wrapper}>
             {/* Иконка и заголовок */}
             <div className={styles.status__header}>
                 <div className={styles.status__status}>
-                    {status === 'success' ? (
-                        <Icon Svg={SuccessIcon} width={36} height={36} />
-                    ) : (
+                    {icon === 'loader' ? (
                         <Loader />
+                    ) : (
+                        <Icon Svg={icon} width={36} height={36} />
                     )}
                     <span className={styles.status__title}>{title}</span>
                 </div>
-                <div className={styles.status__subtitle} style={{ backgroundColor: subtitleColor }}>
+                <div
+                    className={styles.status__subtitle}
+                    style={status === 'failed' ? { backgroundColor: subtitleColor, color: 'white' } : { backgroundColor: subtitleColor }}
+                >
                     <span>{subtitle}</span>
                 </div>
             </div>
 
-            {/* Детали выбранного тарифа */}
-            <div className={styles.status__details}>
-                {tariffs
-                    .filter((t) => t.id === paymentId)
-                    .map((t) => (
-                        <div key={t.id} className={styles.status__card}>
-                            <Icon
-                                Svg={t.title === 'Долгосрочный инвестор' ? PaymentsBase : PaymentsActive}
-                                width={40}
-                                height={40}
-                            />
-                            <div className={styles.status__cardInfo}>
-                                <span className={styles.status__cardStatus}>{status}</span>
-                                <span className={styles.status__cardTitle}>{t.title}</span>
-                            </div>
+            {tariffs
+                .filter((t) => t.id === paymentId)
+                .map((t) => (
+                    <div key={t.id} className={styles.status__details}>
+                        <Icon
+                            Svg={t.title === 'Долгосрочный инвестор' ? PaymentsBase : PaymentsActive}
+                            width={64}
+                            height={46}
+                        />
+                        <div className={styles.status__cardInfo}>
+                            <span className={styles.status__cardStatus} style={{ backgroundColor: statusColor }}>{statusName}</span>
+                            <span className={styles.status__cardTitle}>{t.title}</span>
                         </div>
-                    ))}
-            </div>
+                    </div>
+                ))}
 
             {/* Анимированный блок кнопок только при успехе */}
-            {
-                status === 'success' && (
-                    <motion.div
-                        className={styles.status__actions}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 20 }}
-                        transition={{ duration: 0.5 }}
-                    >
-                        <span>Чек оплаты можно найти в разделе «Документы»</span>
+            {status === 'success' && (
+                <motion.div
+                    className={styles.status__actions}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    transition={{ duration: 0.5 }}
+                >
+                    <span className={styles.status__actionsTitle}>Чек оплаты можно найти в разделе «Документы»</span>
+                    <div className={styles.status__buttons}>
+                        <Button
+                            theme={ButtonTheme.UNDERLINE}
+                            padding="20px 25px"
+                            onClick={() => {
+                                navigate('/documents')
+                                dispatch(setCurrentOrderStatus(''))
+                            }}
+                        >
+                            Перейти в документы
+                        </Button>
+                        <Button
+                            theme={ButtonTheme.BLUE}
+                            padding="20px 25px"
+                            onClick={() => {
+                                navigate('/lk')
+                                dispatch(setCurrentOrderStatus(''))
+                            }}
+                        >
+                            Вернуться в учётную запись
+                        </Button>
+                    </div>
+                </motion.div>
+            )}
+            {status === 'loading' && (
+                <motion.div
+                    className={styles.status__actions}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    transition={{ duration: 0.5 }}
+                >
+                    <div className={styles.status__buttons}>
+                        <Button
+                            theme={ButtonTheme.BLUE}
+                            padding="20px 25px"
+                            onClick={() => {
+                                navigate('/lk')
+                            }}
+                        >
+                            Вернуться в учётную запись
+                        </Button>
+                    </div>
+                </motion.div>
+            )}
+            {status === 'failed' && (
+                <motion.div
+                    className={styles.status__actions}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    transition={{ duration: 0.5 }}
+                >
+                    <div className={styles.status__buttons}>
+                        <span className={styles.status__actionsTitle}>Что-то пошло не так, пожалуйста попробуйте оплатить снова</span>
                         <div className={styles.status__buttons}>
                             <Button
                                 theme={ButtonTheme.UNDERLINE}
-                                padding="10px 25px"
+                                padding="20px 25px"
                                 onClick={() => {
-                                    /* перейти в документы */
+                                    navigate('/payments')
+                                    dispatch(setCurrentOrderStatus(''))
                                 }}
                             >
-                                Перейти в документы
+                                Перейти к тарифам
                             </Button>
                             <Button
                                 theme={ButtonTheme.BLUE}
-                                padding="10px 25px"
+                                padding="20px 25px"
                                 onClick={() => {
-                                    /* вернуться в учётную запись */
+                                    navigate('/lk')
+                                    dispatch(setCurrentOrderStatus(''))
                                 }}
                             >
                                 Вернуться в учётную запись
                             </Button>
                         </div>
-                    </motion.div>
-                )
-            }
-        </div >
+                    </div>
+                </motion.div>
+            )}
+        </div>
     );
 };

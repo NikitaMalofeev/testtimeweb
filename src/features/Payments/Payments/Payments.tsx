@@ -3,11 +3,13 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
 import { RootState } from 'app/providers/store/config/store';
 import {
     getAllTariffsThunk,
     setTariffIdThunk,
     signingTariffThunk,
+    setCurrentOrderStatus,
 } from 'entities/Payments/slice/paymentsSlice';
 import { setStepAdditionalMenuUI } from 'entities/ui/Ui/slice/uiSlice';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
@@ -20,22 +22,17 @@ import { PaymentsCard } from '../PaymentsCard/PaymentsCard';
 import { Checkbox } from 'shared/ui/Checkbox/Checkbox';
 import { CheckboxGroup } from 'shared/ui/CheckboxGroup/CheckboxGroup';
 import styles from './styles.module.scss';
-import { closeModal, openModal, setCurrentConfirmModalType } from 'entities/ui/Modal/slice/modalSlice';
+import { closeModal, openModal } from 'entities/ui/Modal/slice/modalSlice';
 import { ModalAnimation, ModalSize, ModalType } from 'entities/ui/Modal/model/modalTypes';
-import BackIcon from 'shared/assets/svg/ArrowBack.svg'
+import BackIcon from 'shared/assets/svg/ArrowBack.svg';
 import { Icon } from 'shared/ui/Icon/Icon';
 import { ConfirmDocsModal } from 'features/RiskProfile/ConfirmDocsModal/ConfirmDocsModal';
 import { setCurrentConfirmationMethod } from 'entities/Documents/slice/documentsSlice';
+import { PaymentsStatus } from '../PaymentsStatus/PaymentsStatus';
 
-/* -------------------------------------------------- */
-/* message-type options                               */
-/* -------------------------------------------------- */
-const messageTypeOptions = { SMS: "SMS", EMAIL: "Email", WHATSAPP: "Whatsapp" } as const;
+const messageTypeOptions = { SMS: 'SMS', EMAIL: 'Email', WHATSAPP: 'Whatsapp' } as const;
 type MessageKey = keyof typeof messageTypeOptions;
 
-/* -------------------------------------------------- */
-/* yup schema                                         */
-/* -------------------------------------------------- */
 const schema = Yup.object().shape({
     is_agree: Yup.boolean().oneOf([true], 'Необходимо подтвердить согласие'),
     type_message: Yup.mixed<keyof typeof messageTypeOptions>()
@@ -43,23 +40,42 @@ const schema = Yup.object().shape({
         .required(),
 });
 
-export interface PaymentsCardListProps {
+export interface PaymentsProps {
     isPaid: (value: boolean) => void;
 }
 
-export const PaymentsCardList = ({ isPaid }: PaymentsCardListProps) => {
+export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     const dispatch = useAppDispatch();
+
+    /* ---------------- url параметр ---------------- */
+    const { status: statusParam } = useParams<{ status?: string }>();
+    const allowedStatus = ['success', 'loading', 'failed'] as const;
 
     /* ---------------- redux ---------------- */
     const tariffs = useSelector((s: RootState) => s.payments.tariffs);
     const idForPayments = useSelector((s: RootState) => s.payments.currentUserTariffIdForPayments);
     const isFetching = useSelector((s: RootState) => s.payments.isFetchingTariffs);
-    const { brokersCount, filledRiskProfileChapters } = useSelector(
-        (s: RootState) => s.documents,
-    );
-    const modalState = useSelector(
-        (s: RootState) => s.modal,
-    );
+    const { brokersCount, filledRiskProfileChapters } = useSelector((s: RootState) => s.documents);
+    const modalState = useSelector((s: RootState) => s.modal);
+    const currentPaymentOrder = useSelector((s: RootState) => s.payments.currentOrder);
+    const currentOrderStatus = useSelector((s: RootState) => s.payments.currentOrderStatus);
+
+    /* ---------------- sync url → redux ------------- */
+    useEffect(() => {
+        if (
+            statusParam &&
+            allowedStatus.includes(statusParam as any) &&
+            currentOrderStatus !== statusParam
+        ) {
+            dispatch(setCurrentOrderStatus(statusParam as any));
+        }
+    }, [statusParam, currentOrderStatus, dispatch]);
+
+    useEffect(() => {
+        if (tariffs.length < 1) {
+            dispatch(getAllTariffsThunk())
+        }
+    }, [tariffs])
 
     /* ---------------- ui state ------------- */
     const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -73,15 +89,20 @@ export const PaymentsCardList = ({ isPaid }: PaymentsCardListProps) => {
         return () => clearTimeout(t);
     }, [currentTimeout]);
 
+    useEffect(() => {
+        if (!currentPaymentOrder?.payment_url) return;
+        const newTab = window.open(currentPaymentOrder.payment_url, '_blank', 'noopener,noreferrer');
+        if (newTab) newTab.focus();
+    }, [currentPaymentOrder?.payment_url]);
+
     /* ---------------- formik ---------------- */
     const formik = useFormik({
         initialValues: {
             is_agree: false,
-            type_message: 'EMAIL' as keyof typeof messageTypeOptions | '',
+            type_message: 'EMAIL' as MessageKey | '',
         },
         validationSchema: schema,
         onSubmit: ({ is_agree, type_message }) => {
-
             dispatch(
                 signingTariffThunk({
                     tariff_id: idForPayments,
@@ -114,48 +135,43 @@ export const PaymentsCardList = ({ isPaid }: PaymentsCardListProps) => {
         [selectedId],
     );
 
-    const handleAgreeChange = useCallback(
-        (checked: boolean) => {
-            // просто руками прокидываем значение в formik
-            formik.setFieldValue('is_agree', checked);
-        },
-        [formik],
-    );
-
     const handleSetTariff = useCallback(() => {
-        /* — шаги идентификации — */
-        // if (!filledRiskProfileChapters.is_exist_scan_passport) {
-        //     dispatch(setStepAdditionalMenuUI(2));
-        //     dispatch(
-        //         openModal({
-        //             type: ModalType.IDENTIFICATION,
-        //             animation: ModalAnimation.LEFT,
-        //             size: ModalSize.FULL,
-        //         }),
-        //     );
-        //     return;
-        // }
-        // if (brokersCount === 0) {
-        //     dispatch(setStepAdditionalMenuUI(5));
-        //     dispatch(
-        //         openModal({
-        //             type: ModalType.IDENTIFICATION,
-        //             animation: ModalAnimation.LEFT,
-        //             size: ModalSize.FULL,
-        //         }),
-        //     );
-        //     return;
-        // }
+        if (!filledRiskProfileChapters.is_exist_scan_passport) {
+            dispatch(setStepAdditionalMenuUI(2));
+            dispatch(
+                openModal({
+                    type: ModalType.IDENTIFICATION,
+                    animation: ModalAnimation.LEFT,
+                    size: ModalSize.FULL,
+                }),
+            );
+            return;
+        }
+        if (brokersCount === 0) {
+            dispatch(setStepAdditionalMenuUI(5));
+            dispatch(
+                openModal({
+                    type: ModalType.IDENTIFICATION,
+                    animation: ModalAnimation.LEFT,
+                    size: ModalSize.FULL,
+                }),
+            );
+            return;
+        }
 
-        selectedId && dispatch(setTariffIdThunk({ tariff_key: selectedId, onSuccess: () => { } }))
+        selectedId && dispatch(setTariffIdThunk({ tariff_key: selectedId, onSuccess: () => { } }));
         setIsConfirming(true);
-        isPaid(true)
+        isPaid(true);
     }, [brokersCount, dispatch, filledRiskProfileChapters, selectedId]);
 
     useEffect(() => {
         document.body.style.overflow = isConfirming ? 'hidden' : '';
-
     }, [isConfirming]);
+
+    /* --- РАННИЙ ВЫХОД, если в url статус success|loading|failed --- */
+    if (statusParam && allowedStatus.includes(statusParam as any)) {
+        return <PaymentsStatus status={statusParam as any} paymentId={selectedId || ''} />;
+    }
 
     /* -------------------------------------------------- */
     /* RENDER — LIST / CONFIRM                            */
@@ -183,22 +199,10 @@ export const PaymentsCardList = ({ isPaid }: PaymentsCardListProps) => {
                                 title={t.title}
                                 titleDesc={t.description}
                                 descriptionDetail="Длинное описание деталей Длинное описание деталейДлинное описание деталей Длинное описание деталейДлинное описание деталей Длинное описание деталей"
-                                upfront={
-                                    t.commission_deposit != null
-                                        ? `${t.commission_deposit}%`
-                                        : ''
-                                }
-                                fee={
-                                    t.commission_asset != null
-                                        ? `${t.commission_asset}%`
-                                        : ''
-                                }
+                                upfront={t.commission_deposit != null ? `${t.commission_deposit}%` : ''}
+                                fee={t.commission_asset != null ? `${t.commission_asset}%` : ''}
                                 capital={`${t.days_service_validity} days`}
-                                imageUrl={
-                                    t.title === 'Долгосрочный инвестор'
-                                        ? PaymentsBase
-                                        : PaymentsActive
-                                }
+                                imageUrl={t.title === 'Долгосрочный инвестор' ? PaymentsBase : PaymentsActive}
                                 onMore={() => handleChooseTariff(t.id)}
                             />
                         </motion.div>
@@ -227,11 +231,7 @@ export const PaymentsCardList = ({ isPaid }: PaymentsCardListProps) => {
                             Вернуться к выбору тарифов
                         </Button>
 
-                        <Button
-                            theme={ButtonTheme.BLUE}
-                            padding="10px 25px"
-                            onClick={handleSetTariff}
-                        >
+                        <Button theme={ButtonTheme.BLUE} padding="10px 25px" onClick={handleSetTariff}>
                             Подключить
                         </Button>
                     </motion.div>
@@ -245,7 +245,6 @@ export const PaymentsCardList = ({ isPaid }: PaymentsCardListProps) => {
         <AnimatePresence>
             {isConfirming && (
                 <div className={styles.confirm__container}>
-                    {/* верхний элемент */}
                     <motion.span
                         className={styles.confirm__title}
                         initial={{ y: -30, opacity: 0 }}
@@ -253,10 +252,16 @@ export const PaymentsCardList = ({ isPaid }: PaymentsCardListProps) => {
                         exit={{ y: -30, opacity: 0, position: 'absolute' }}
                         transition={{ duration: 0.4 }}
                     >
-                        <Icon Svg={BackIcon} width={24} height={24} onClick={() => {
-                            setIsConfirming(false)
-                            isPaid(false)
-                        }} />Подключение тарифа
+                        <Icon
+                            Svg={BackIcon}
+                            width={24}
+                            height={24}
+                            onClick={() => {
+                                setIsConfirming(false);
+                                isPaid(false);
+                            }}
+                        />
+                        Подключение тарифа
                     </motion.span>
 
                     <AnimatePresence mode="popLayout">
@@ -277,23 +282,11 @@ export const PaymentsCardList = ({ isPaid }: PaymentsCardListProps) => {
                                         status={t.is_active ? 'Active' : 'Inactive'}
                                         title={t.title}
                                         titleDesc={t.description}
-                                        descriptionDetail="Длинное описание деталей Длинное описание деталейДлинное описание деталей Длинное описание деталейДлинное описание деталей Длинное описание деталейДлинное описание деталей Длинное описание деталей"
-                                        upfront={
-                                            t.commission_deposit != null
-                                                ? `${t.commission_deposit}%`
-                                                : ''
-                                        }
-                                        fee={
-                                            t.commission_asset != null
-                                                ? `${t.commission_asset}%`
-                                                : ''
-                                        }
+                                        descriptionDetail="Длинное описание деталей Длинное описание деталейДлинное описание деталей ..."
+                                        upfront={t.commission_deposit != null ? `${t.commission_deposit}%` : ''}
+                                        fee={t.commission_asset != null ? `${t.commission_asset}%` : ''}
                                         capital={`${t.days_service_validity} days`}
-                                        imageUrl={
-                                            t.title === 'Долгосрочный инвестор'
-                                                ? PaymentsBase
-                                                : PaymentsActive
-                                        }
+                                        imageUrl={t.title === 'Долгосрочный инвестор' ? PaymentsBase : PaymentsActive}
                                         onMore={() => handleChooseTariff(t.id)}
                                     />
                                 </motion.div>
@@ -301,8 +294,6 @@ export const PaymentsCardList = ({ isPaid }: PaymentsCardListProps) => {
                         )}
                     </AnimatePresence>
 
-
-                    {/* форма (снизу-вверх) */}
                     <motion.form
                         onSubmit={formik.handleSubmit}
                         className={styles.page__container}
@@ -319,8 +310,7 @@ export const PaymentsCardList = ({ isPaid }: PaymentsCardListProps) => {
                                 onBlur={formik.handleBlur}
                                 label={
                                     <span className={styles.checkbox__text}>
-                                        Я ознакомился с тарифом и его
-                                        содержанием
+                                        Я ознакомился с тарифом и его содержанием
                                     </span>
                                 }
                                 error={
@@ -331,31 +321,27 @@ export const PaymentsCardList = ({ isPaid }: PaymentsCardListProps) => {
                             />
                         </div>
 
-                        <span className={styles.method__title}>
-                            Куда прислать код
-                        </span>
+                        <span className={styles.method__title}>Куда прислать код</span>
 
                         <div className={styles.checkbox}>
                             <CheckboxGroup
                                 name="type_message"
                                 label=""
                                 direction="row"
-                                options={Object.entries(messageTypeOptions).map(
-                                    ([value, label]) => ({ value, label }),
-                                )}
+                                options={Object.entries(messageTypeOptions).map(([value, label]) => ({
+                                    value,
+                                    label,
+                                }))}
                                 value={formik.values.type_message}
                                 onChange={(_, v) => {
                                     const key = v as MessageKey;
-                                    formik.setFieldValue('type_message', v)
-                                    dispatch(setCurrentConfirmationMethod(key))
-                                }
-                                }
+                                    formik.setFieldValue('type_message', v);
+                                    dispatch(setCurrentConfirmationMethod(key));
+                                }}
                             />
                         </div>
 
-                        <div
-                            className={styles.buttons}
-                        >
+                        <div className={styles.buttons}>
                             <Button
                                 type="submit"
                                 theme={ButtonTheme.BLUE}
@@ -366,9 +352,7 @@ export const PaymentsCardList = ({ isPaid }: PaymentsCardListProps) => {
                                     currentTimeout > 0
                                 }
                             >
-                                {!currentTimeout
-                                    ? 'Подтвердить'
-                                    : `(${currentTimeout})`}
+                                {!currentTimeout ? 'Подтвердить' : `(${currentTimeout})`}
                             </Button>
                         </div>
                     </motion.form>
@@ -379,15 +363,22 @@ export const PaymentsCardList = ({ isPaid }: PaymentsCardListProps) => {
 
     return (
         <div className={styles.list}>
-            {!isConfirming ? listPart : confirmPart}
+            {currentOrderStatus === 'pay'
+                ? !isConfirming && <span>Оплата</span>
+                : !isConfirming
+                    ? listPart
+                    : confirmPart}
 
             <ConfirmDocsModal
-                lastData={{ type_message: formik.values.type_message, is_agree: formik.values.is_agree }}
+                lastData={{
+                    type_message: formik.values.type_message,
+                    is_agree: formik.values.is_agree,
+                }}
                 isOpen={modalState.confirmDocsModal.isOpen}
                 onClose={() => {
                     dispatch(closeModal(ModalType.CONFIRM_DOCS));
                 }}
-                confirmationPurpose='payments'
+                confirmationPurpose="payments"
             />
         </div>
     );

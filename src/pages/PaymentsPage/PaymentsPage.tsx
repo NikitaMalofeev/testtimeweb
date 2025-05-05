@@ -7,7 +7,7 @@ import { SupportChat } from "features/SupportChat/SupportChat";
 import { getAllTariffsThunk } from "entities/Payments/slice/paymentsSlice";
 import { Icon } from "shared/ui/Icon/Icon";
 import BackIcon from "shared/assets/svg/ArrowBack.svg";
-import { PaymentsCardList } from "features/Payments/PaymentsCardList/PaymentsCardList";
+import { Payments } from "features/Payments/Payments/Payments";
 import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/DocumentPreviewModal";
 import { useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
@@ -20,6 +20,7 @@ const PaymentsPage: React.FC = () => {
     const navigate = useNavigate();
     const documentPreview = useSelector((state: RootState) => state.modal.documentsPreview)
     const [isPaid, setIsPaid] = useState<boolean>(false)
+    const paymentStatus = useSelector((state: RootState) => state.payments.currentOrderStatus)
 
     // return loading ? (
     //     <Loader />
@@ -29,14 +30,14 @@ const PaymentsPage: React.FC = () => {
     // );
     return (
         <div className={styles.page}>
-            {!isPaid && (
+            {!isPaid && !paymentStatus && (
                 <div className={styles.page__title}>
                     <Icon Svg={BackIcon} width={24} height={24} onClick={() => navigate("/lk")} />
                     <h2 className={styles.page__title}>Тарифы</h2>
                 </div>
             )}
             <div>
-                <PaymentsCardList isPaid={(value) => setIsPaid(value)} />
+                <Payments isPaid={(value) => setIsPaid(value)} />
             </div>
             <DocumentPreviewModal
                 isOpen={documentPreview.isOpen}

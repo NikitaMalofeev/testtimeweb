@@ -19,7 +19,7 @@ import { selectModalState } from "entities/ui/Modal/selectors/selectorsModals";
 import { setTooltipActive, setConfirmationDocsSuccess, setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
 import { clearDocumentTimeout, confirmDocsRequestThunk, getUserDocumentsStateThunk, sendDocsConfirmationCode, setDocumentTimeoutPending } from "entities/Documents/slice/documentsSlice";
 import { ConfirmDocsPayload } from "entities/Documents/types/documentsTypes";
-import { checkConfirmationCodeTariffThunk, createOrderThunk } from "entities/Payments/slice/paymentsSlice";
+import { checkConfirmationCodeTariffThunk, createOrderThunk, setCurrentOrderStatus } from "entities/Payments/slice/paymentsSlice";
 
 interface ConfirmInfoModalProps {
     isOpen: boolean;
@@ -196,16 +196,19 @@ export const ConfirmDocsModal = memo(
                         tariff_id: paymentsTariffId,
                         code,
                         onSuccess: () => {
-                            setTimeout(() => {
-                                dispatch(createOrderThunk({
-                                    payload: {
-                                        tariff_id: paymentsTariffId,
-                                        payment_system: 'ROBOKASSA',
-                                        payment_type: 'TARIFF_ACTIVATION',
-                                        currency: 'RUB'
-                                    }
-                                }))
-                            }, 5000)
+                            dispatch(createOrderThunk({
+                                payload: {
+                                    // tariff_id: paymentsTariffId,
+                                    tariff_id: 'fd14cde27e1d4f76a9ed7b9480170bf2',
+                                    payment_system: 'ROBOKASSA',
+                                    payment_type: 'TARIFF_ACTIVATION',
+                                    currency: 'RUB'
+                                },
+                                onSuccess: () => {
+                                    dispatch(setCurrentOrderStatus('pay'))
+                                    dispatch(closeModal(ModalType.CONFIRM_DOCS))
+                                }
+                            }))
                         }
                     }))
                 } else {

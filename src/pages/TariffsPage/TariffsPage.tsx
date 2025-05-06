@@ -25,7 +25,7 @@ const TariffsPage: React.FC = () => {
     const [deposit, setDeposit] = useState<number>(MIN_DEPOSIT);
 
     /** 0.5 % от прибыли в 20 % от суммы = 0.1 % от депозита */
-    const commission = deposit * 0.2 * 0.005;
+    const commission = deposit * 0.02;
 
     return (
         <div className={styles.page}>

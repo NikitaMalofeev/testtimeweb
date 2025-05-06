@@ -28,7 +28,7 @@ function App() {
   const modalState = useSelector((state: RootState) => state.modal);
   const dispatch = useAppDispatch();
   const location = useLocation();
-  const isMainPages = location.pathname === '/lk' || location.pathname === '/';
+  const isMainPages = location.pathname === '/lk' || location.pathname === '/' || location.pathname === '/tariffs';
   const { websocketId, messages, unreadAnswersCount } = useSelector(
     (state: RootState) => state.supportChat
   );

@@ -65,6 +65,7 @@ interface InputProps extends CommonHTMLProps {
     min?: number;
     max?: number;
     step?: number;
+    needShowInput?: boolean;
 
     /**
      * В режиме "swiperDiscrete" — массив значений,
@@ -97,6 +98,7 @@ export const Input: React.FC<InputProps> = ({
     min = 0,
     max = 100,
     step = 1,
+    needShowInput,
     discreteValues,
     extraDescreteValue,
     swiperDiscreteSubtitles,
@@ -249,7 +251,7 @@ export const Input: React.FC<InputProps> = ({
                             return (
                                 <div className={`${styles.inputWrapper} ${styles[theme]}`}>
                                     <div className={styles.swiperWrapper}>
-                                        {theme !== "gradient" && (
+                                        {theme !== "gradient" && needShowInput && (
                                             <input
                                                 type="text"
                                                 placeholder={placeholder}

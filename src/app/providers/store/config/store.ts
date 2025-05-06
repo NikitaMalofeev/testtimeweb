@@ -98,7 +98,7 @@ export const store = configureStore({
                     PERSIST,
                     PURGE,
                     REGISTER,],
-                ignoredPaths: ['documents.currentSugnedDocument.document'],
+                ignoredPaths: ['documents.currentSugnedDocument.document', "ui.warningPopup.action"],
             },
         }),
 });

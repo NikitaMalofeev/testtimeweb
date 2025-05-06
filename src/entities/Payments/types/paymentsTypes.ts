@@ -32,15 +32,22 @@ export interface Tariff {
     id: string;
     is_active: boolean;
     title: string;
+    title_additional: string;
     name_icon: string | null;
-    description: string;
+    description: {
+        help: string,
+        description: string
+    }[];
     days_service_validity: number;
     commission_deposit: number | null;
     commission_asset: number | null;
     commission_asset_days: number | null;
     created: string;
     updated: string;
-    descriptionDetail: string;
+    description_detailed: {
+        help: string,
+        description: string
+    }[] | string;
 }
 
 export interface OrderStatusResponse {

@@ -8,8 +8,15 @@ export interface PaymentsCardProps {
     index: number;
     status: string;
     title: string;
-    titleDesc: string;
-    descriptionDetail?: string;
+    title_additional: string;
+    titleDesc: {
+        help: string,
+        description: string
+    }[];
+    descriptionDetail?: {
+        help: string,
+        description: string
+    }[] | string;
     upfront: string;
     fee: string;
     capital: string;
@@ -24,46 +31,66 @@ export const PaymentsCard: React.FC<PaymentsCardProps> = ({
     titleDesc,
     title,
     descriptionDetail,
+    title_additional
+    ,
     upfront,
     fee,
     capital,
     imageUrl,
     onMore,
-}) => (
-    <motion.div layout initial={false} exit={{ opacity: 0 }} className={styles.card}>
-        <div className={styles.cardContent}>
-            <div className={styles.left}>
-                <div className={styles.header}>
-                    <span className={styles.subtitle}>
-                        {title === 'Долгосрочный инвестор'
-                            ? 'для начинающих инвесторов'
-                            : 'для опытных инвесторов'}
-                    </span>
-                    <span className={styles.title}>{title}</span>
-                </div>
+}) => {
 
-                <AnimatePresence exitBeforeEnter>
-                    {isSelected ? (
-                        <motion.div
-                            key="detail"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0, transition: { duration: 0 } }}
-                            transition={{ duration: 0.3 }}
-                            className={styles.detailContent}
-                        >
-                            <p>{descriptionDetail}</p>
-                        </motion.div>
-                    ) : (
-                        <motion.div
-                            key="summary"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className={styles.metrics}
-                        >
-                            {upfront && (
+
+    return (
+        <motion.div initial={false} exit={{ opacity: 0 }} className={styles.card}>
+            <div className={styles.cardContent}>
+                <div className={styles.left}>
+                    <div className={styles.header}>
+                        <span className={styles.subtitle}>{title_additional}</span>
+                        <span className={styles.title}>{title}</span>
+                    </div>
+
+                    <AnimatePresence mode="wait">
+                        {isSelected ? (
+                            <motion.div
+                                key="detail"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0, transition: { duration: 0 } }}
+                                transition={{ duration: 0.3 }}
+                                className={styles.detailContent}
+                            >
+                                {typeof descriptionDetail === "string" ? (
+                                    <div
+                                        className={styles.htmlDescription}
+                                        dangerouslySetInnerHTML={{ __html: descriptionDetail }}
+                                    />
+                                ) : Array.isArray(descriptionDetail) && descriptionDetail.length > 0 ? (
+                                    <div className={styles.htmlDescription}>
+                                        {descriptionDetail.map((item, idx) => (
+                                            <div
+                                                key={idx}
+                                                dangerouslySetInnerHTML={{ __html: item.description }}
+                                            />
+                                        ))}
+                                    </div>
+                                ) : null}
+
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                key="summary"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.3 }}
+                                className={styles.metrics}
+                            >
+                                {titleDesc.map((item, index) => (
+                                    <div key={index} dangerouslySetInnerHTML={{ __html: item.description }} className={styles.innerHtml}></div>
+                                ))}
+
+                                {/* {upfront && (
                                 <div className={styles.metric}>
                                     <span className={styles.metricValue}>{upfront}</span>
                                     <span className={styles.metricLabel}>Upfront Fee</span>
@@ -79,35 +106,33 @@ export const PaymentsCard: React.FC<PaymentsCardProps> = ({
                             )}
                             <div className={styles.metric}>
                                 <span className={styles.metricValue}>{capital}</span>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </div>
+                            </div> */}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
 
-            <div className={styles.right}>
-                <motion.img
-                    src={imageUrl}
-                    alt=""
-                    className={styles.icon}
-                    layout
-                    initial={{ scale: 1 }}
-                    animate={{ scale: isSelected ? 1.05 : 1 }}
-                />
-            </div>
-        </div>
+                <motion.div layout={false} className={styles.right}>
+                    <img
+                        src={imageUrl}
+                        alt=""
+                        className={styles.icon}
+                    />
+                </motion.div>
+            </div >
 
-        {!isSelected && (
-            <div className={styles.footer}>
-                <Button
-                    theme={ButtonTheme.UNDERLINE}
-                    className={styles.button}
-                    padding="10px 62.5px"
-                    onClick={onMore}
-                >
-                    Подробнее о тарифе
-                </Button>
-            </div>
-        )}
-    </motion.div>
-);
+            {!isSelected && (
+                <div className={styles.footer}>
+                    <Button
+                        theme={ButtonTheme.UNDERLINE}
+                        className={styles.button}
+                        padding="10px 62.5px"
+                        onClick={onMore}
+                    >
+                        Подробнее о тарифе
+                    </Button>
+                </div>
+            )}
+        </motion.div >
+    )
+};

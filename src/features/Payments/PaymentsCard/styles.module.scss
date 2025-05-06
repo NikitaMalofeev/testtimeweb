@@ -63,6 +63,44 @@
     letter-spacing: 0%;
     color: #797979;
   }
+
+  .htmlDescription {
+    display: flex;
+    min-width: 100%;
+    flex-direction: column;
+  }
+
+  .htmlDescription span{
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 130%;
+    letter-spacing: 0%;
+    color: #797979;
+  }
+
+  .htmlDescription b {
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 114.99999999999999%;
+    letter-spacing: 0%;
+    color: #0F0E0E;
+  }
+
+  .innerHtml {
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 130%;
+    letter-spacing: 0%;
+    color: #797979;
+  }
+
+  .innerHtml b {
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 114.99999999999999%;
+    letter-spacing: 0%;
+    color: #0F0E0E;
+  }
   
   .right {
     display: flex;

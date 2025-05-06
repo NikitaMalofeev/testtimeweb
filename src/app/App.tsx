@@ -22,6 +22,7 @@ import { setError } from 'entities/Error/slice/errorSlice';
 import { useModalsController } from 'shared/hooks/useModalsController';
 import { useAuthModalsController } from 'shared/hooks/useAuthModalsController';
 import { setScrollToTop } from 'entities/ui/Ui/slice/uiSlice';
+import { WarningPopup } from 'features/Ui/WarningPopup/WarningPopup';
 
 function App() {
   const modalState = useSelector((state: RootState) => state.modal);
@@ -121,6 +122,7 @@ function App() {
 
 
       <ErrorPopup />
+      <WarningPopup />
       <SuccessPopup />
       <RiskProfileModal
         isOpen={modalState.identificationModal.isOpen}

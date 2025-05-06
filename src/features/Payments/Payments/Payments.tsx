@@ -12,7 +12,7 @@ import {
     setCurrentOrderStatus,
     setCurrentOrderId,     // <== НОВОЕ
 } from 'entities/Payments/slice/paymentsSlice';
-import { setStepAdditionalMenuUI } from 'entities/ui/Ui/slice/uiSlice';
+import { setStepAdditionalMenuUI, setWarning } from 'entities/ui/Ui/slice/uiSlice';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
 import { Loader } from 'shared/ui/Loader/Loader';
 import PaymentsBase from 'shared/assets/images/paymentsBase.png';
@@ -80,6 +80,11 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         }
     }, [tariffs, dispatch]);
 
+    useEffect(() => {
+        //
+        dispatch(getAllTariffsThunk());
+    }, []);
+
     /* ---------------- ui state ------------- */
     const [isConfirming, setIsConfirming] = useState(false);
     const [currentTimeout, setCurrentTimeout] = useState(0);
@@ -95,7 +100,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         if (currentOrderStatus === 'loading') {
             if (!currentPaymentOrder?.payment_url) return;
             const newTab = window.open(currentPaymentOrder.payment_url, '_blank', 'noopener,noreferrer');
-            if (newTab) newTab.focus();8
+            if (newTab) newTab.focus(); 8
         }
     }, [currentPaymentOrder?.payment_url]);
 
@@ -137,24 +142,41 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
 
     const handleSetTariff = useCallback(() => {
         if (!filledRiskProfileChapters.is_exist_scan_passport) {
-            dispatch(setStepAdditionalMenuUI(2));
             dispatch(
-                openModal({
-                    type: ModalType.IDENTIFICATION,
-                    animation: ModalAnimation.LEFT,
-                    size: ModalSize.FULL,
+                setWarning({
+                    active: true,
+                    description: "Для подключения тарифа, пожалуйста, предоставьте api-ключ брокера для работы с вашим счетом и заполните паспортные данные",
+                    buttonLabel: "Перейти к заполнению",
+                    action: () => {
+                        dispatch(setStepAdditionalMenuUI(2));
+                        dispatch(
+                            openModal({
+                                type: ModalType.IDENTIFICATION,
+                                animation: ModalAnimation.LEFT,
+                                size: ModalSize.FULL,
+                            }),
+                        );
+                    },
                 }),
             );
             return;
         }
-        setWarning
         if (brokersCount === 0) {
-            dispatch(setStepAdditionalMenuUI(5));
             dispatch(
-                openModal({
-                    type: ModalType.IDENTIFICATION,
-                    animation: ModalAnimation.LEFT,
-                    size: ModalSize.FULL,
+                setWarning({
+                    active: true,
+                    description: "Для подключения тарифа, пожалуйста, предоставьте api-ключ брокера для работы с вашим счетом и заполните паспортные данные",
+                    buttonLabel: "Перейти к заполнению",
+                    action: () => {
+                        dispatch(setStepAdditionalMenuUI(5));
+                        dispatch(
+                            openModal({
+                                type: ModalType.IDENTIFICATION,
+                                animation: ModalAnimation.LEFT,
+                                size: ModalSize.FULL,
+                            }),
+                        );
+                    },
                 }),
             );
             return;
@@ -194,15 +216,17 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                         >
                             <PaymentsCard
                                 index={index}
+                                title_additional={t.title_additional
+                                }
                                 isSelected={t.id === currentOrderId}
                                 status={t.is_active ? 'Active' : 'Inactive'}
                                 title={t.title}
                                 titleDesc={t.description}
-                                descriptionDetail="Длинное описание деталей Длинное описание деталейДлинное описание деталей Длинное описание деталейДлинное описание деталей Длинное описание деталей"
+                                descriptionDetail={t.description_detailed}
                                 upfront={t.commission_deposit != null ? `${t.commission_deposit}%` : ''}
                                 fee={t.commission_asset != null ? `${t.commission_asset}%` : ''}
                                 capital={`${t.days_service_validity} days`}
-                                imageUrl={t.title === 'Долгосрочный инвестор' ? PaymentsBase : PaymentsActive}
+                                imageUrl={t.title === 'Базовый тариф' ? PaymentsBase : PaymentsActive}
                                 onMore={() => handleChooseTariff(t.id)}
                             />
                         </motion.div>
@@ -281,8 +305,10 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                         isSelected={t.id === currentOrderId}
                                         status={t.is_active ? 'Active' : 'Inactive'}
                                         title={t.title}
+                                        title_additional={t.title_additional
+                                        }
                                         titleDesc={t.description}
-                                        descriptionDetail="Длинное описание деталей Длинное описание деталейДлинное описание деталей ..."
+                                        descriptionDetail={t.description_detailed}
                                         upfront={t.commission_deposit != null ? `${t.commission_deposit}%` : ''}
                                         fee={t.commission_asset != null ? `${t.commission_asset}%` : ''}
                                         capital={`${t.days_service_validity} days`}

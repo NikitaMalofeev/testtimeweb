@@ -53,6 +53,10 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
     const [isContentReady, setIsContentReady] = useState(false);
 
     useEffect(() => {
+        console.log(justPreview)
+    }, [justPreview])
+
+    useEffect(() => {
         if (loading) {
             setIsContentReady(false);
             return;

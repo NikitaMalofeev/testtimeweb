@@ -64,7 +64,7 @@ const TariffsPage: React.FC = () => {
 
                     <div className={styles.card__calc_table}>
                         <div className={styles.card__calc_column}>
-                            <span className={styles.card__calc_subtitle}>Депозит, ₽ (от 1 000 000)</span>
+                            <span className={styles.card__calc_subtitle}>Депозит, ₽ <br /> (от 1 000 000)</span>
                             <span>{formatMoney(deposit)}</span>
                         </div>
                         <div className={styles.card__calc_separator}></div>

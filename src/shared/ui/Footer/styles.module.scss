@@ -19,11 +19,12 @@
     }
 
     &__legal {
-        font-weight: 400;
-        font-size: 18px;
-        line-height: 26.1px;
-        letter-spacing: 0%;
         text-align: center;
+font-weight: 400;
+font-size: 14px;
+line-height: 138%;
+letter-spacing: 0%;
+
 
     }
 
@@ -51,7 +52,7 @@
         
         font-weight: 400;
         font-size: 14px;
-        line-height: 29.4px;
+        line-height: 210%;
         letter-spacing: 0%;
         text-align: center;
     }
@@ -139,3 +140,87 @@ letter-spacing: 0%;
         color: #7287A0;
     }
 }
+
+
+@media (min-width: 750px) {
+   
+    .footer {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        &__contacts {
+            max-width: 1200px;
+            width: 100%;
+            display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 20px;
+  align-items: start; 
+  padding: 0;
+
+  & > *:nth-child(4),
+  & > *:last-child {
+    justify-self: end;
+  }
+
+  & > *:nth-child(3),
+  & > *:nth-child(7),
+  & > *:nth-child(2),
+  & > *:nth-child(6) {
+    justify-self: center;
+  }
+
+  & > .footer__docs {
+    justify-self: center;
+    max-width: 168px;
+  }
+  
+        }
+
+        &__registry {
+            margin: 0;
+        }
+
+        &__description {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        &__description__text {
+            text-align: left;
+        }
+
+        &__footer {
+            max-width: 1200px;
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+
+        &__name {
+            text-align: left;
+        }
+
+        &__legal {
+            text-align: left;
+        }
+
+        &__details__text {
+            text-align: left;
+        }
+
+        &__email {
+            text-align: left;
+        }
+
+        &__email {
+            text-align: left;
+        }
+
+        &__email__link {
+            text-align: left;
+        }
+    }
+  }

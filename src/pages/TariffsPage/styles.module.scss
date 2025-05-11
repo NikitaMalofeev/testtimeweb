@@ -125,3 +125,26 @@
     background-color: white;
 }
 
+@media (max-width: 750px) {
+
+    .page {
+
+        &__container_row {
+            display: flex;
+            flex-direction: column;
+        }
+    }
+
+    .card {
+        max-width: 100%;
+
+        &__calc_table {
+            gap: 16px;
+        }
+
+        &__calc_column {
+            min-width: max-content;
+            justify-content: space-between;
+        }
+    }
+}

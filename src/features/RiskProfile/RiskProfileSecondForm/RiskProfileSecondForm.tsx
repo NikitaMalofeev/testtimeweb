@@ -209,6 +209,7 @@ export const RiskProfileSecondForm: React.FC = () => {
                                 value={formatMoney(
                                     formik.values.amount_expected_replenishment || 200000
                                 )}
+                                needShowInput
                                 onChange={(e) => {
                                     // Парсим обратно в число,
                                     // кладём это число в Formik

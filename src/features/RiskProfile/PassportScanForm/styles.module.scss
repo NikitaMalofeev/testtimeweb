@@ -107,13 +107,7 @@
         justify-content: center;
     }
 
-    @media (max-width: 370px) {
-        &__content {
-          padding: 6px 35px;
-        }
-      }
-
-      @media (max-width: 370px) {
+      @media (max-width: 380px) {
         &__content {
           padding: 6px 25px;
         }

@@ -224,6 +224,16 @@ const PersonalAccountMenu: React.FC = () => {
         return style;
     };
 
+    useEffect(() => {
+        if (filledRiskProfileChapters.is_risk_profile_complete_final) {
+            dispatch(getUserDocumentsStateThunk());
+            dispatch(getAllBrokersThunk({
+                is_confirmed_type_doc_agreement_transfer_broker: true,
+                onSuccess: () => { },
+            }));
+        }
+    }, [filledRiskProfileChapters.is_risk_profile_complete_final, dispatch]);
+
 
     if (loading || !userPersonalAccountInfo?.first_name) {
         return <Loader />;

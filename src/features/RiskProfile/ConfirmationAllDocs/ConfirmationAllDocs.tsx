@@ -155,7 +155,7 @@ export const ConfirmAllDocs: React.FC = () => {
         if (timeoutBetweenConfirmation) {
             setCurrentTimeout(timeoutBetweenConfirmation);
         } else {
-            setCurrentTimeout(3);
+            setCurrentTimeout(5);
         }
     }, [timeoutBetweenConfirmation, currentTypeDoc]);
 

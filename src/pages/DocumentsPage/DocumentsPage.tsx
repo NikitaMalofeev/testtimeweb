@@ -309,9 +309,10 @@ const DocumentsPage: React.FC = () => {
             setSelectedDocId(docId);
             dispatch(
                 openModal({
-                    type: ModalType.DOCUMENTS_PREVIEW_SIGNED,
+                    type: ModalType.DOCUMENTS_PREVIEW,
                     animation: ModalAnimation.LEFT,
                     size: ModalSize.FULL,
+                    docId: docId
                 })
             );
         } else if (docId === "type_doc_broker_api_token") {

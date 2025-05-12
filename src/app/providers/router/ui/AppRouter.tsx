@@ -12,6 +12,7 @@ import OpenInformationPage from 'pages/OpenInformationPage/OpenInformationPage.a
 import FAQPage from 'pages/FAQPage/FAQPage.async';
 import PaymentsPage from 'pages/PaymentsPage/PaymentsPage.async';
 import ConfirmCustomDocsPage from 'pages/ConfirmCustomDocsPage/ConfirmCustomDocsPage.async';
+import TariffsPage from 'pages/TariffsPage/TariffsPage';
 
 
 // const PageLoader = () => <div>Loading...</div>;
@@ -90,7 +91,15 @@ function AppRouter() {
                 }
             />
             <Route
-                path="/payments"
+                path="/tariffs"
+                element={
+                    <Suspense fallback={<PageLoader />}>
+                        <TariffsPage />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="/payments/:status?"
                 element={
                     <RequireAuthRoute>
                         <Suspense fallback={<PageLoader />}>

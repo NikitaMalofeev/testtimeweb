@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import AppRouter from './providers/router/ui/AppRouter';
 import './styles/index.scss';
 import { Header } from 'widgets/Header/ui/Header';
@@ -22,12 +22,13 @@ import { setError } from 'entities/Error/slice/errorSlice';
 import { useModalsController } from 'shared/hooks/useModalsController';
 import { useAuthModalsController } from 'shared/hooks/useAuthModalsController';
 import { setScrollToTop } from 'entities/ui/Ui/slice/uiSlice';
+import { WarningPopup } from 'features/Ui/WarningPopup/WarningPopup';
 
 function App() {
   const modalState = useSelector((state: RootState) => state.modal);
   const dispatch = useAppDispatch();
   const location = useLocation();
-  const isMainPages = location.pathname === '/lk' || location.pathname === '/';
+  const isMainPages = location.pathname === '/lk' || location.pathname === '/' || location.pathname === '/tariffs';
   const { websocketId, messages, unreadAnswersCount } = useSelector(
     (state: RootState) => state.supportChat
   );
@@ -39,8 +40,8 @@ function App() {
   useModalsController();
   useAuthModalsController();
 
-  useEffect(() => {
-    const userVh = window.innerHeight / 100;
+  useLayoutEffect(() => {
+    const userVh = window.innerHeight;
     document.documentElement.style.setProperty('--vh', `${userVh}px`);
   }, []);
 
@@ -112,12 +113,16 @@ function App() {
     <div className='page__wrapper'>
       <div className='page__content'>
         <Header currentNotificationsCount={unreadAnswersCount} variant='main' />
-        <Cover />
-        <AppRouter />
+        <div className="page__scroll">
+          <Cover />
+          <AppRouter />
+          {isMainPages && <Footer />}
+        </div>
       </div>
 
-      {isMainPages && <Footer />}
+
       <ErrorPopup />
+      <WarningPopup />
       <SuccessPopup />
       <RiskProfileModal
         isOpen={modalState.identificationModal.isOpen}

@@ -1,0 +1,64 @@
+.warningModal {
+    position: fixed;
+    max-width: calc(100dvw - 48px);
+    width: 100%;
+    top: 0;
+    left: 24px;
+    background-color: wheat;
+    height: auto; // Позволяет блоку расти по высоте
+    padding: 16px 25px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    z-index: 10000;
+    word-wrap: break-word; // Гарантирует перенос длинных слов
+    overflow-wrap: break-word; // Дополнительно для современных браузеров
+    white-space: normal; // Разрешает перенос строк
+
+    &__content {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    &__sub {
+      font-family: Inter;
+      font-weight: 400;
+      font-size: 14px;
+      line-height: 100%;
+      letter-spacing: 0%;
+    }
+  }
+  
+
+  .button {
+    max-width: 127px;
+    font-family: Inter;
+font-weight: 500;
+font-size: 14px;
+line-height: 100%;
+letter-spacing: 0%;
+text-align: center;
+  }
+
+  .button__purpose {
+    max-width: max-content;
+    font-family: Inter;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 100%;
+    letter-spacing: 0%;
+    text-align: center;
+  }
+
+  .closeIcon {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+  }
+
+  .purpose {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }

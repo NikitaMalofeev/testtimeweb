@@ -72,7 +72,12 @@ const persistConfig = getPersistConfig({
         'documents.userPassportData',
 
         'riskProfile.currentConfirmingDoc',
-        'riskProfile.passportFormData'],
+        'riskProfile.passportFormData',
+
+        'payments',
+    ],
+
+
     // blacklist: ['modal.documentsPreview', 'modal.documentsPreviewSigned'],
     rootReducer,
 });
@@ -93,7 +98,7 @@ export const store = configureStore({
                     PERSIST,
                     PURGE,
                     REGISTER,],
-                ignoredPaths: ['documents.currentSugnedDocument.document'],
+                ignoredPaths: ['documents.currentSugnedDocument.document', "ui.warningPopup.action"],
             },
         }),
 });

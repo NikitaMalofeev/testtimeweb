@@ -19,19 +19,22 @@ import { selectModalState } from "entities/ui/Modal/selectors/selectorsModals";
 import { setTooltipActive, setConfirmationDocsSuccess, setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
 import { clearDocumentTimeout, confirmDocsRequestThunk, getUserDocumentsStateThunk, sendDocsConfirmationCode, setDocumentTimeoutPending } from "entities/Documents/slice/documentsSlice";
 import { ConfirmDocsPayload } from "entities/Documents/types/documentsTypes";
+import { checkConfirmationCodeTariffThunk, setCurrentOrderStatus, createOrderThunk } from "entities/Payments/slice/paymentsSlice";
+import { useNavigate } from "react-router-dom";
 
 interface ConfirmInfoModalProps {
     isOpen: boolean;
     onClose: () => void;
     docsType?: string;
     lastData: ConfirmDocsPayload;
-    // Новый пропс: callback для открытия success-модали после успешного действия
+    confirmationPurpose?: string;
     openSuccessModal?: (docsType?: string) => void;
 }
 
 export const ConfirmDocsModal = memo(
-    ({ isOpen, onClose, docsType, lastData, openSuccessModal }: ConfirmInfoModalProps) => {
+    ({ isOpen, onClose, docsType, lastData, confirmationPurpose, openSuccessModal }: ConfirmInfoModalProps) => {
         const dispatch = useAppDispatch();
+        const navigate = useNavigate()
         const modalState = useSelector((state: RootState) => state.modal);
         const { confirmationMethod } = useSelector((state: RootState) => state.documents);
         const docsSuccess = useSelector((state: RootState) => state.ui.confirmationDocs);
@@ -39,6 +42,7 @@ export const ConfirmDocsModal = memo(
         const isRPFinalFilled = useSelector((state: RootState) => state.documents.filledRiskProfileChapters.is_risk_profile_complete);
         const hasNoTryPhoneConfirm = docsSuccess === "не определено";
         const userInfo = useSelector((state: RootState) => state.user.userPersonalAccountInfo);
+        const paymentsTariffId = useSelector((state: RootState) => state.payments.currentUserTariffIdForPayments);
         const [phoneTimeLeft, setPhoneTimeLeft] = useState(60);
         const [phoneTimerActive, setPhoneTimerActive] = useState(false);
 
@@ -188,40 +192,66 @@ export const ConfirmDocsModal = memo(
         useEffect(() => {
             const code = smsCodeFirst.join("");
             if (code.length === codeLength) {
-                dispatch(
-                    sendDocsConfirmationCode({
-                        codeFirst: code,
-                        docs: docsType || "",
-                        onSuccess: (data: any) => {
-                            dispatch(getUserDocumentsStateThunk());
-                            if (docsType === 'type_doc_passport') {
-                                dispatch(setStepAdditionalMenuUI(3));
-                            }
-                            if (docsType === 'type_doc_EDS_agreement' && (isRPFilled && isRPFinalFilled)) {
-                                dispatch(setStepAdditionalMenuUI(4));
-                            }
-                            if (docsType === 'type_doc_broker_api_token') {
-                                dispatch(closeAllModals());
-                                document.body.style.overflow = '';
-                                document.body.style.position = '';
-                                document.body.style.width = '';
-                                document.documentElement.style.overflow = '';
-                            }
-                            setSmsCodeFirst(Array(codeLength).fill(""));
+                if (confirmationPurpose === 'payments') {
+                    dispatch(checkConfirmationCodeTariffThunk({
+                        tariff_id: paymentsTariffId,
+                        code,
+                        onSuccess: () => {
+                            dispatch(createOrderThunk({
+                                payload: {
+                                    // tariff_id: paymentsTariffId,
+                                    tariff_id: 'fd14cde27e1d4f76a9ed7b9480170bf2',
+                                    payment_system: 'ROBOKASSA',
+                                    payment_type: 'TARIFF_ACTIVATION',
+                                    currency: 'RUB'
+                                },
+                                onSuccess: () => {
+                                    dispatch(setCurrentOrderStatus('loading'))
+                                    navigate('/payments/loading')
+                                    dispatch(closeModal(ModalType.CONFIRM_DOCS))
+                                    setTimeout(() => {
+                                        navigate('/payments/success')
+                                    })
+                                }
+                            }))
+                        }
+                    }))
+                } else {
+                    dispatch(
+                        sendDocsConfirmationCode({
+                            codeFirst: code,
+                            docs: docsType || "",
+                            onSuccess: (data: any) => {
+                                dispatch(getUserDocumentsStateThunk());
+                                if (docsType === 'type_doc_passport') {
+                                    dispatch(setStepAdditionalMenuUI(3));
+                                }
+                                if (docsType === 'type_doc_EDS_agreement' && (isRPFilled && isRPFinalFilled)) {
+                                    dispatch(setStepAdditionalMenuUI(4));
+                                }
+                                if (docsType === 'type_doc_broker_api_token') {
+                                    dispatch(closeAllModals());
+                                    document.body.style.overflow = '';
+                                    document.body.style.position = '';
+                                    document.body.style.width = '';
+                                    document.documentElement.style.overflow = '';
+                                }
+                                setSmsCodeFirst(Array(codeLength).fill(""));
 
-                            if (docsType) {
-                                dispatch(setDocumentTimeoutPending({ docKey: docsType, timeout: 10000 }));
-                            }
+                                if (docsType) {
+                                    dispatch(setDocumentTimeoutPending({ docKey: docsType, timeout: 10000 }));
+                                }
 
-                            if (openSuccessModal) {
-                                openSuccessModal(docsType);
-                            } else {
-                                onClose();
-                            }
-                        },
-                        onClose: () => onClose()
-                    })
-                );
+                                if (openSuccessModal) {
+                                    openSuccessModal(docsType);
+                                } else {
+                                    onClose();
+                                }
+                            },
+                            onClose: () => onClose()
+                        })
+                    );
+                }
             }
         }, [smsCodeFirst, isRPFilled, isRPFinalFilled]);
 

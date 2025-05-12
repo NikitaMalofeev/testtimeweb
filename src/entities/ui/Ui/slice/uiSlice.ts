@@ -19,6 +19,14 @@ interface UiState {
         purpose: string;
     };
     confirmationDocs: string;
+    warningPopup: WarningPopupState;
+}
+
+export interface WarningPopupState {
+    active: boolean;
+    description: string;
+    buttonLabel: string;
+    action?: () => void;
 }
 
 // ТЕКУЩИЙ initialState:
@@ -38,6 +46,12 @@ const initialState: UiState = {
     isPushNotificationActive: {
         active: false,
         purpose: 'filledPasport'
+    },
+    warningPopup: {
+        active: false,
+        description: "",
+        buttonLabel: "",
+        action: undefined,
     },
     confirmationDocs: 'не определено',
 };
@@ -86,7 +100,9 @@ const uiSlice = createSlice({
         setIsBottom: (state, action: PayloadAction<boolean>) => {
             state.isScrollToBottom = action.payload;
         },
-
+        setWarning: (state, action: PayloadAction<WarningPopupState>) => {
+            state.warningPopup = action.payload;
+        },
         // --- НОВЫЙ РЕДЮСЕР: чтобы скроллить всё приложение вверх ---
         setScrollToTop: (state, action: PayloadAction<boolean>) => {
             // Например, назовём его isScrollToTop, чтобы не путать с isScrollToBottom
@@ -110,6 +126,7 @@ export const {
     setTooltipActive,
     setStepAdditionalMenuUI,
     setPushNotificationActive,
+    setWarning,
     // экспортируем новый экшен:
     setScrollToTop,
 } = uiSlice.actions;

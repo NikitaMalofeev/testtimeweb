@@ -16,6 +16,7 @@ import { PdfViewer } from "shared/ui/PDFViewer/PDFViewer";
 import { useNavigate } from "react-router-dom";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
 import ErrorIcon from 'shared/assets/svg/Error.svg'
+import { getUserDocumentNotSignedThunk, getUserDocumentsStateThunk } from "entities/Documents/slice/documentsSlice";
 
 interface PreviewModalProps {
     isOpen: boolean;       // Открыта ли модалка
@@ -40,6 +41,8 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
     const allDocumentsHtml = useSelector(
         (state: RootState) => state.documents.allNotSignedDocumentsHtml
     );
+
+
     // Данные для подписанного документа (бинарный PDF)
     const hasCurrentSighedDocument = useSelector(
         (state: RootState) => state.documents.currentSugnedDocument
@@ -48,6 +51,10 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
 
     // Локальное состояние готовности содержимого
     const [isContentReady, setIsContentReady] = useState(false);
+
+    useEffect(() => {
+        console.log(justPreview)
+    }, [justPreview])
 
     useEffect(() => {
         if (loading) {

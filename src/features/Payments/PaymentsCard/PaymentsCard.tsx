@@ -1,7 +1,8 @@
-import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Button, ButtonTheme } from 'shared/ui/Button/Button';
-import styles from './styles.module.scss';
+import React, { useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button, ButtonTheme } from "shared/ui/Button/Button";
+import { useScrollShadow } from "shared/hooks/useScrollShadow";
+import styles from "./styles.module.scss";
 
 export interface PaymentsCardProps {
     isSelected?: boolean;
@@ -10,12 +11,12 @@ export interface PaymentsCardProps {
     title: string;
     title_additional: string;
     titleDesc: {
-        help: string,
-        description: string
+        help: string;
+        description: string;
     }[];
     descriptionDetail?: {
-        help: string,
-        description: string
+        help: string;
+        description: string;
     }[] | string;
     upfront: string;
     fee: string;
@@ -31,19 +32,26 @@ export const PaymentsCard: React.FC<PaymentsCardProps> = ({
     titleDesc,
     title,
     descriptionDetail,
-    title_additional
-    ,
+    title_additional,
     upfront,
     fee,
     capital,
     imageUrl,
     onMore,
 }) => {
-
+    const cardContentRef = useRef<HTMLDivElement>(null);
+    const { isScrolled, isBottom } = useScrollShadow(cardContentRef, true);
 
     return (
-        <motion.div initial={false} exit={{ opacity: 0 }} className={styles.card}>
-            <div className={styles.cardContent}>
+        <motion.div initial={false} exit={{ opacity: 0 }} className={`
+            ${styles.card}
+            ${isScrolled ? styles.cardContent__shadow_top : ""}
+            ${!isBottom ? styles.cardContent__shadow_bottom : ""}
+          `} ref={cardContentRef}>
+            <div
+
+                className={styles.cardContent}
+            >
                 <div className={styles.left}>
                     <div className={styles.header}>
                         <span className={styles.subtitle}>{title_additional}</span>
@@ -65,7 +73,8 @@ export const PaymentsCard: React.FC<PaymentsCardProps> = ({
                                         className={styles.htmlDescription}
                                         dangerouslySetInnerHTML={{ __html: descriptionDetail }}
                                     />
-                                ) : Array.isArray(descriptionDetail) && descriptionDetail.length > 0 ? (
+                                ) : Array.isArray(descriptionDetail) &&
+                                    descriptionDetail.length > 0 ? (
                                     <div className={styles.htmlDescription}>
                                         {descriptionDetail.map((item, idx) => (
                                             <div
@@ -75,7 +84,6 @@ export const PaymentsCard: React.FC<PaymentsCardProps> = ({
                                         ))}
                                     </div>
                                 ) : null}
-
                             </motion.div>
                         ) : (
                             <motion.div
@@ -86,40 +94,22 @@ export const PaymentsCard: React.FC<PaymentsCardProps> = ({
                                 transition={{ duration: 0.3 }}
                                 className={styles.metrics}
                             >
-                                {titleDesc.map((item, index) => (
-                                    <div key={index} dangerouslySetInnerHTML={{ __html: item.description }} className={styles.innerHtml}></div>
+                                {titleDesc.map((item, idx) => (
+                                    <div
+                                        key={idx}
+                                        dangerouslySetInnerHTML={{ __html: item.description }}
+                                        className={styles.innerHtml}
+                                    />
                                 ))}
-
-                                {/* {upfront && (
-                                <div className={styles.metric}>
-                                    <span className={styles.metricValue}>{upfront}</span>
-                                    <span className={styles.metricLabel}>Upfront Fee</span>
-                                </div>
-                            )}
-                            {fee && (
-                                <div className={styles.metric}>
-                                    <span className={styles.metricValue}>{fee}</span>
-                                    <span className={styles.metricLabel}>
-                                        Management Fee (90 дней)
-                                    </span>
-                                </div>
-                            )}
-                            <div className={styles.metric}>
-                                <span className={styles.metricValue}>{capital}</span>
-                            </div> */}
                             </motion.div>
                         )}
                     </AnimatePresence>
                 </div>
 
                 <motion.div layout={false} className={styles.right}>
-                    <img
-                        src={imageUrl}
-                        alt=""
-                        className={styles.icon}
-                    />
+                    <img src={imageUrl} alt="" className={styles.icon} />
                 </motion.div>
-            </div >
+            </div>
 
             {!isSelected && (
                 <div className={styles.footer}>
@@ -133,6 +123,6 @@ export const PaymentsCard: React.FC<PaymentsCardProps> = ({
                     </Button>
                 </div>
             )}
-        </motion.div >
-    )
+        </motion.div>
+    );
 };

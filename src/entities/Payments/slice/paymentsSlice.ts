@@ -5,6 +5,7 @@ import {
     checkConfirmationCodeTariff,
     createOrder,
     getAllTariffs,
+    getAllUserTariffs,
     getNotSignedTariffDoc,
     getOrderStatus,
     getSignedTariffDoc,
@@ -25,6 +26,41 @@ import {
 } from 'entities/Documents/slice/documentsSlice';
 
 /* -------------------------------------------------------------------------- */
+/* TYPES */
+/* -------------------------------------------------------------------------- */
+
+// Полное описание объекта из `payments_info`
+export interface PaymentInfo {
+    order: {
+        description: string;
+        payment_system: string;
+        amount: string;
+        currency: string;
+        paid: boolean;
+    };
+    broker: {
+        broker: string;
+        strategy: string | null;
+    };
+    payment_type: string | null;
+    user_tariff_id: string;
+    user_tariff_key: string | null;
+    user_tariff_is_active: boolean;
+    user_tariff_title: string | null;
+    user_tariff_description: string | null;
+    user_tariff_days_service_validity: number | null;
+    user_tariff_commission_deposit: number | null;
+    user_tariff_commission_asset: number | null;
+    user_tariff_commission_asset_days: number | null;
+    user_tariff_date_activated: string | null;
+    user_tariff_expiry: string | null;
+    user_tariff_created: string | null;
+    user_tariff_updated: string | null;
+    created: string;
+    updated: string;
+}
+
+/* -------------------------------------------------------------------------- */
 /* STATE */
 /* -------------------------------------------------------------------------- */
 
@@ -40,9 +76,10 @@ interface PaymentsState {
 
     currentTariffId: string;                 // выбранный тариф (back-id, нужен для API)
     currentUserTariffIdForPayments: string;  // тариф пользователя (ключ из ответа setTariff)
-    currentOrderId: string;                  // <== НОВОЕ: выбранный тариф для UI
+    currentOrderId: string;                  // выбранный заказ для UI
     currentOrder: PaymentData | null;
     currentOrderStatus: 'pay' | 'success' | 'loading' | 'failed' | 'exit' | '';
+    payments_info: PaymentInfo[];            // <== НОВОЕ: список платежей / активных тарифов
     error: string | null;
 }
 
@@ -58,9 +95,38 @@ const initialState: PaymentsState = {
 
     currentTariffId: '',
     currentUserTariffIdForPayments: '',
-    currentOrderId: '',          // <== НОВОЕ
+    currentOrderId: '',
     currentOrder: null,
     currentOrderStatus: '',
+    payments_info: [{
+        "order": {
+            "description": "username: Пушкин Александр Сергеевич 1000.0",
+            "payment_system": "ROBOKASSA",
+            "amount": "1000.00",
+            "currency": "RUB",
+            "paid": false
+        },
+        "broker": {
+            "broker": "tinkoff_brokers",
+            "strategy": null
+        },
+        "payment_type": null,
+        "user_tariff_id": "1663f09a-496b-40e2-bece-4f0f80f7ae0c",
+        "user_tariff_key": null,
+        "user_tariff_is_active": false,
+        "user_tariff_title": null,
+        "user_tariff_description": null,
+        "user_tariff_days_service_validity": null,
+        "user_tariff_commission_deposit": null,
+        "user_tariff_commission_asset": null,
+        "user_tariff_commission_asset_days": null,
+        "user_tariff_date_activated": null,
+        "user_tariff_expiry": null,
+        "user_tariff_created": null,
+        "user_tariff_updated": null,
+        "created": "2025-04-21T19:46:31.919550+03:00",
+        "updated": "2025-04-21T19:46:31.919561+03:00"
+    }],                       // <== НОВОЕ
     error: null,
 };
 
@@ -86,6 +152,28 @@ export const createOrderThunk = createAsyncThunk<
         return rejectWithValue(msg);
     }
 });
+
+// получить все тарифы пользователя + информацию о платежах
+export const getAllUserTariffsThunk = createAsyncThunk<
+    PaymentInfo[],                                       // <== НОВОЕ
+    { onSuccess?: () => void },
+    { rejectValue: string; state: RootState }
+>('payments/getAllUserTariffsThunk',
+    async ({ onSuccess }, { dispatch, rejectWithValue, getState }) => {
+        try {
+            const token = getState().user.token;
+            const response = await getAllUserTariffs('RUB', token);
+            // кладём массив в стейт
+            // dispatch(setPaymentsInfo(response.payments_info));
+            onSuccess?.();
+            return response.payments_info;
+        } catch (err: any) {
+            const msg = err.response?.data?.info || err.message;
+            dispatch(setError(msg));
+            return rejectWithValue(msg);
+        }
+    },
+);
 
 // 1. проверка кода подтверждения тарифа
 export const checkConfirmationCodeTariffThunk = createAsyncThunk<
@@ -180,7 +268,11 @@ export const signingTariffThunk = createAsyncThunk<
 );
 
 // 5. получить все тарифы
-export const getAllTariffsThunk = createAsyncThunk<Tariff[], void, { rejectValue: string; state: RootState }>(
+export const getAllTariffsThunk = createAsyncThunk<
+    Tariff[],
+    void,
+    { rejectValue: string; state: RootState }
+>(
     'payments/getAllTariffs',
     async (_, { dispatch, rejectWithValue, getState }) => {
         try {
@@ -222,33 +314,36 @@ export const getOrderStatusThunk = createAsyncThunk<
     OrderStatusResponse,
     { orderId: string; token: string },
     { rejectValue: string }
->('payments/getOrderStatus', async ({ orderId, token }, { dispatch, rejectWithValue }) => {
-    try {
-        const data = await getOrderStatus(orderId, token);
-        return data;
-    } catch (err: any) {
-        const msg = err.response?.data?.error || err.message;
-        dispatch(setError(msg));
-        return rejectWithValue(msg);
-    }
-});
+>('payments/getOrderStatus',
+    async ({ orderId, token }, { dispatch, rejectWithValue }) => {
+        try {
+            const data = await getOrderStatus(orderId, token);
+            return data;
+        } catch (err: any) {
+            const msg = err.response?.data?.error || err.message;
+            dispatch(setError(msg));
+            return rejectWithValue(msg);
+        }
+    },
+);
 
 // 8. приём результата от Robokassa
 export const robokassaResultThunk = createAsyncThunk<
     RobokassaResultResponse,
     { payload: RobokassaResultResponse },
     { rejectValue: string }
->('payments/robokassaResult', async ({ payload }, { dispatch, rejectWithValue }) => {
-    try {
-        const data = await robokassaResult(payload);
-        return data;
-    } catch (err: any) {
-        const msg = err.response?.data?.error || err.message;
-        dispatch(setError(msg));
-        return rejectWithValue(msg);
-    }
-});
-
+>('payments/robokassaResult',
+    async ({ payload }, { dispatch, rejectWithValue }) => {
+        try {
+            const data = await robokassaResult(payload);
+            return data;
+        } catch (err: any) {
+            const msg = err.response?.data?.error || err.message;
+            dispatch(setError(msg));
+            return rejectWithValue(msg);
+        }
+    },
+);
 
 /* -------------------------------------------------------------------------- */
 /* SLICE */
@@ -270,7 +365,7 @@ export const paymentsSlice = createSlice({
         setCurrentOrder: (state, action: PayloadAction<PaymentData>) => {
             state.currentOrder = action.payload;
         },
-        setCurrentOrderId: (state, action: PayloadAction<string>) => {   // <== НОВОЕ
+        setCurrentOrderId: (state, action: PayloadAction<string>) => {
             state.currentOrderId = action.payload;
         },
         setCurrentOrderStatus: (
@@ -280,6 +375,9 @@ export const paymentsSlice = createSlice({
             if (state.currentOrderStatus !== action.payload) {
                 state.currentOrderStatus = action.payload;
             }
+        },
+        setPaymentsInfo: (state, action: PayloadAction<PaymentInfo[]>) => { // <== НОВОЕ
+            state.payments_info = action.payload;
         },
         resetPaymentsState: () => initialState,
     },
@@ -298,7 +396,13 @@ export const paymentsSlice = createSlice({
                 state.isFetchingTariffs = false;
             })
 
-      /* -------- остальные cases оставлены без изменений -------- */;
+            /* getAllUserTariffs */
+            // .addCase(getAllUserTariffsThunk.fulfilled, (state, { payload }) => {
+            //     // payload уже массив PaymentInfo
+            //     state.payments_info = payload;
+            // })
+
+            /* -------- остальные cases оставлены без изменений -------- */;
     },
 });
 
@@ -312,8 +416,9 @@ export const {
     setCurrentTariff,
     setCurrentUserTariff,
     setCurrentOrder,
-    setCurrentOrderId,          // <== НОВОЕ
+    setCurrentOrderId,
     setCurrentOrderStatus,
+    setPaymentsInfo,            // <== НОВОЕ
 } = paymentsSlice.actions;
 
 export default paymentsSlice.reducer;

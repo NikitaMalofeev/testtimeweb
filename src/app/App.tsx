@@ -23,6 +23,7 @@ import { useModalsController } from 'shared/hooks/useModalsController';
 import { useAuthModalsController } from 'shared/hooks/useAuthModalsController';
 import { setScrollToTop } from 'entities/ui/Ui/slice/uiSlice';
 import { WarningPopup } from 'features/Ui/WarningPopup/WarningPopup';
+import { getAllUserTariffsThunk } from 'entities/Payments/slice/paymentsSlice';
 
 function App() {
   const modalState = useSelector((state: RootState) => state.modal);
@@ -107,6 +108,8 @@ function App() {
 
   useEffect(() => {
     dispatch(getUserPersonalAccountInfoThunk());
+
+    dispatch(getAllUserTariffsThunk({ onSuccess: () => { } }))
   }, []);
 
   return (

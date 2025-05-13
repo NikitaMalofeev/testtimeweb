@@ -106,6 +106,8 @@ text-align: center;
 .document__status {
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
+    padding-bottom: 5px;
     gap: 14px;
     max-width: max-content;
 }
@@ -155,6 +157,15 @@ text-align: center;
     letter-spacing: 0%;
     text-align: center;
     color: #0F0E0E;
+}
+
+.document__paymentStatus {
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 100%;
+    letter-spacing: 0%;
+    color: #4CB913
+
 }
 
 

@@ -27,8 +27,9 @@ export const SuccessModal = memo(({ isOpen, onClose, title, description, action,
     const navigate = useNavigate()
     const dispatch = useAppDispatch()
     const handleBackToPA = () => {
-        navigate('/lk')
-        dispatch(closeAllModals())
+        navigate('/lk');
+        onClose();
+        dispatch(closeAllModals());
     }
 
     return (

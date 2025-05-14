@@ -162,7 +162,7 @@ export const getAllUserTariffsThunk = createAsyncThunk<
     async ({ onSuccess }, { dispatch, rejectWithValue, getState }) => {
         try {
             const token = getState().user.token;
-            const response = await getAllUserTariffs('RUB', token);
+            const response = token && await getAllUserTariffs('RUB', token);
             // кладём массив в стейт
             // dispatch(setPaymentsInfo(response.payments_info));
             onSuccess?.();

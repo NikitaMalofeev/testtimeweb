@@ -12,6 +12,8 @@ import { useSelector } from 'react-redux';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
 import { closeAllModals } from 'entities/ui/Modal/slice/modalSlice';
 import { setError } from 'entities/Error/slice/errorSlice';
+import PhoneIcon from 'shared/assets/svg/phone.svg'
+import { Button, ButtonTheme } from 'shared/ui/Button/Button';
 
 interface HeaderProps {
     currentNotificationsCount?: number;
@@ -30,10 +32,10 @@ export const Header = ({ currentNotificationsCount, variant }: HeaderProps) => {
 
     const [isActive, setIsActive] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
-    const { token, is_active } = useSelector((state: RootState) => state.user)
     const navigate = useNavigate()
     const dispatch = useAppDispatch()
     const modalState = useSelector((state: RootState) => state.modal.identificationModal)
+    const haveUser = useSelector((state: RootState) => state.user.token)
 
     // useEffect(() => {
     //     if (!token) {
@@ -63,10 +65,16 @@ export const Header = ({ currentNotificationsCount, variant }: HeaderProps) => {
 
     return (
         <header className={classNames(styles.header, headerMods, [])}>
-            <Icon Svg={HeaderIcon} width={171} height={18.5} />
-            {!token
+            <Icon Svg={HeaderIcon} width={171} height={18.5} onClick={() => navigate('/')} />
+            {!haveUser
                 ?
-                <></>
+                <div className={styles.header__entry}>
+                    <div className={styles.header__contacts}>
+                        <Icon Svg={PhoneIcon} width={24} height={24} />
+                        <a href="tel:+78432126778">+7 843 212 67 78</a>
+                    </div>
+                    <Button theme={ButtonTheme.UNDERLINE} children='Подключиться' padding='10px 22px' className={styles.header__button} onClick={() => navigate('/auth')} />
+                </div>
                 // <div
                 //     className={classNames(styles.burger__container, burgerMods, [])}
                 //     onClick={toggleBurger}

@@ -24,7 +24,7 @@ const initialState: PushState = {
         {
             id: "fillRiskProfiling",
             title: "Пройдите риск-профилирование",
-            description: "Пройдите риск-профилирование в разделе \"\nРиск-профиль\"\n  Личного Кабинета",
+            description: "Пройдите риск-профилирование в разделе \n\"Риск-профиль\"\n  Личного Кабинета",
             active: false,
             hasOpened: false,
             uiStep: 0
@@ -32,7 +32,7 @@ const initialState: PushState = {
         {
             id: "confirmRiskProfile",
             title: "Подтвердите выбор риск-профиля",
-            description: "Подтвердить риск-профиль можно в разделе \"\nРиск-профиль\"\n  Личного Кабинета",
+            description: "Подтвердить риск-профиль можно в разделе \n\"Риск-профиль\"\n  Личного Кабинета",
             active: false,
             hasOpened: false,
             uiStep: 1
@@ -40,7 +40,7 @@ const initialState: PushState = {
         {
             id: "fillPassportData",
             title: "Заполнить паспортные данные",
-            description: "Заполните паспортные данные в разделе \n\"Документы\"\n Личного Кабинета",
+            description: "Заполните паспортные данные в разделt \n\"Документы\"\n Личного Кабинета",
             active: false,
             hasOpened: false,
             uiStep: 2

@@ -50,6 +50,7 @@ const DocumentsPage: React.FC = () => {
     const currentConfirmableDocument = useSelector((state: RootState) => state.documents.currentConfirmableDoc);
     const currentTariffId = useSelector((state: RootState) => state.payments.currentTariffId);
     const uploadDocs = useSelector((s: RootState) => s.documents.uploadDocs);
+    const payments = useSelector((s: RootState) => s.payments.payments_info);
 
     useEffect(() => {
         dispatch(getUserDocumentsStateThunk());
@@ -239,10 +240,24 @@ const DocumentsPage: React.FC = () => {
             title: docTypeLabels[type],
             date, // date_last_confirmed или null
             status,
-            timeoutPending: docInfo?.timeoutPending // здесь добавляем новое свойство
+            timeoutPending: docInfo?.timeoutPending, // здесь добавляем новое свойство
+            isPayment: false,
         };
     });
 
+    const paymentDocuments = payments
+        .map(p => ({
+            id: `payment_${p.user_tariff_id}`,
+            title: `Чек #${p.user_tariff_id[0]}`,
+            date: p.updated ?? null,
+            status: p.order.paid ? "signed" : "signable",
+            timeoutPending: 0,
+            isPayment: true,
+        }))
+        .filter(d => !documents.some(doc => doc.id === d.id));
+
+
+    const allDocuments = [...paymentDocuments, ...documents];
 
     // Ищем первый документ, у которого status === "signable" (то есть не подписан)
     const firstNotConfirmed = documents.find((doc) => doc.status === "signable")?.id;
@@ -252,7 +267,7 @@ const DocumentsPage: React.FC = () => {
     // - Если документ подписан => зелёная плашка "Подписано"
     // - Если не подписан, но это именно "первый" не подписанный => серый
     // - Если не подписан, но не первый => красный
-    const renderedDocuments = documents.map((doc) => {
+    const renderedDocuments = allDocuments.map((doc) => {
         let colorClass = styles.button__gray;
         let additionalMessages = '';
         let tariffs = currentTariffId
@@ -326,6 +341,28 @@ const DocumentsPage: React.FC = () => {
                     docId,
                 })
             );
+        } else if (docId.startsWith('payment_')) {
+            const tariffId = docId.split('_')[1];          // "payment_123" → 123
+            const isPaid = payments.find(p => p.user_tariff_id === tariffId)?.order.paid;
+
+            // подгружаем PDF чека (подписанный — или черновик, если ещё не оплачен)
+            // await dispatch(
+            //     (isPaid ? getSignedTariffDoc : getNotSignedTariffDoc)({
+            //         user_tariff_id: tariffId,
+            //         purpose: 'preview',
+            //         onSuccess: () => { }
+            //     })
+            // );
+
+            // setSelectedDocId(docId);
+            // dispatch(
+            //     openModal({
+            //         type: ModalType.DOCUMENTS_PREVIEW_SIGNED,
+            //         animation: ModalAnimation.LEFT,
+            //         size: ModalSize.FULL,
+            //         docId,
+            //     })
+            // );
         } else {
             dispatch(
                 getUserDocumentsSignedThunk({
@@ -470,6 +507,15 @@ const DocumentsPage: React.FC = () => {
                                 <div className={styles.document__info}>
                                     <span className={styles.document__info__title}>{doc.title}</span>
                                     <div className={styles.document__info__flex}>
+                                        {doc.isPayment && (
+                                            <Button
+                                                className={styles.document__preview}
+                                                theme={ButtonTheme.UNDERLINE}
+                                                onClick={() => handleOpenPreview(doc.id)}
+                                            >
+                                                Просмотр
+                                            </Button>
+                                        )}
                                         {doc.status === "signed" && (
                                             <>
                                                 {doc.timeoutPending && doc.timeoutPending > 0 ? (
@@ -523,28 +569,36 @@ const DocumentsPage: React.FC = () => {
                                                 : "Дата подписания")}
 
                                     </span>
-                                    {showSuccess ? (
-                                        <div className={styles.document__button_success}>
-                                            <Icon Svg={SuccessBlueIcon} width={24} height={24} />
-                                            <span>
-                                                {isPassport
-                                                    ? "Подтверждено"
-                                                    : isBroker && brokerIds[0] && filledRiskProfileChapters.is_exist_scan_passport
-                                                        ? "Подтверждено"
-                                                        : "Подписано"}
-                                            </span>
 
-                                        </div>
-                                    ) : (
-                                        <Button
-                                            onClick={() => handleSignDocument(doc.id)}
-                                            disabled={isDisabled}
-                                            className={doc.colorClass}
-                                            theme={ButtonTheme.BLUE}
-                                        >
-                                            {buttonText}
-                                        </Button>
-                                    )}
+                                    {doc.isPayment
+                                        ? (
+                                            <div className={styles.document__paymentStatus} >Оплачено</div>
+                                        )
+
+                                        : showSuccess
+                                            ? (
+                                                <div className={styles.document__button_success}>
+                                                    <Icon Svg={SuccessBlueIcon} width={24} height={24} />
+                                                    <span>
+                                                        {isPassport
+                                                            ? "Подтверждено"
+                                                            : isBroker && brokerIds[0] && filledRiskProfileChapters.is_exist_scan_passport
+                                                                ? "Подтверждено"
+                                                                : "Подписано"}
+                                                    </span>
+                                                </div>
+                                            )
+                                            : (
+                                                <Button
+                                                    onClick={() => handleSignDocument(doc.id)}
+                                                    disabled={isDisabled}
+                                                    className={doc.colorClass}
+                                                    theme={ButtonTheme.BLUE}
+                                                >
+                                                    {buttonText}
+                                                </Button>
+                                            )
+                                    }
                                 </div>
                             </div>
                         );

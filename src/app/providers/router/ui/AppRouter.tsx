@@ -1,7 +1,6 @@
 import AuthorizationPage from 'pages/AuthorizationPage/AuthorizationPage.async';
 import DocumentsPage from 'pages/DocumentsPage/DocumentsPage.async';
 import PersonalAccountPage from 'pages/PersonalAccountPage/PersonalAccountPage.async'
-import { StartPage } from 'pages/StartPage';
 import SupportChatPage from 'pages/SupportChatPage/SupportChatPage.async';
 import { memo, Suspense, lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
@@ -12,7 +11,7 @@ import OpenInformationPage from 'pages/OpenInformationPage/OpenInformationPage.a
 import FAQPage from 'pages/FAQPage/FAQPage.async';
 import PaymentsPage from 'pages/PaymentsPage/PaymentsPage.async';
 import ConfirmCustomDocsPage from 'pages/ConfirmCustomDocsPage/ConfirmCustomDocsPage.async';
-import TariffsPage from 'pages/TariffsPage/TariffsPage';
+import LandingPage from 'pages/LandingPage/LandingPage.async';
 
 
 // const PageLoader = () => <div>Loading...</div>;
@@ -39,7 +38,7 @@ function AppRouter() {
                 }
             />
             <Route
-                path="/"
+                path="/auth"
                 element={
                     <PublicRoute>
                         <Suspense fallback={<PageLoader />}>
@@ -91,10 +90,10 @@ function AppRouter() {
                 }
             />
             <Route
-                path="/tariffs"
+                path="/"
                 element={
                     <Suspense fallback={<PageLoader />}>
-                        <TariffsPage />
+                        <LandingPage />
                     </Suspense>
                 }
             />

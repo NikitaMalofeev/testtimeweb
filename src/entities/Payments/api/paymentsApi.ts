@@ -152,6 +152,24 @@ export const getNotSignedTariffDoc = async (
     return data;
 };
 
+export const getAllUserTariffs = async (
+    order__currency: 'RUB',
+    token: string
+) => {
+    const { data } = await axios.post(
+        `${apiPaymentsUrl}get_orders_payments_info_user/`,
+        { order__currency },
+        {
+            headers: {
+                "Accept-Language": "ru",
+                "Content-Type": "application/x-www-form-urlencoded",
+                Authorization: `Token ${token}`,
+            },
+        }
+    );
+    return data;
+};
+
 
 export const signingTariff = async (
     tariff_id: string,

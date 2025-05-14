@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 .page__wrapper {
   height: var(--vh); 
+
   width: 100%;
     display: flex;
     overflow-y: hidden;
@@ -14,6 +15,7 @@
   position: relative;
   overflow-x: hidden;
   height: var(--vh); 
+
   
 }
 
@@ -21,6 +23,7 @@
   flex: 1;      
   overflow-x: hidden;          /* забирает всё оставшееся */
   overflow-y: auto;       /* ← скролл здесь */
+  
 }
 
 html {

@@ -67,6 +67,10 @@ letter-spacing: 0%;
         text-decoration: none;
         margin-bottom: 11px;
         text-decoration: none;
+        &:hover {
+            transition: color 0.3s ease;
+            color: #E1ECFB;
+        }
     }
 
     &__contacts {
@@ -74,10 +78,12 @@ letter-spacing: 0%;
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        padding-bottom: 16px;
     }
 
     &__registry {
         display: flex;
+        flex-direction: column;
         gap: 17px;
         align-items: center;
         margin: 0 auto;
@@ -97,6 +103,7 @@ letter-spacing: 0%;
         border-bottom: 1px solid #FFFFFF1C;
     }
 
+
     &__description__text {
         text-align: center;
         font-weight: 400;
@@ -114,11 +121,42 @@ letter-spacing: 0%;
         margin-bottom: 24px;
     }
 
+    &__social {
+        cursor: pointer;
+    }
+
+    &__end {
+        display: flex;
+        gap: 17px;
+        align-items: center;
+        margin: 0 auto;
+font-weight: 400;
+font-size: 11px;
+line-height: 16.72px;
+letter-spacing: 0%;
+
+    }
+
+    &__faq {
+        cursor: pointer;
+
+        &:hover {
+            transition: color 0.3s ease;
+            color: #E1ECFB;
+        }
+    }
+
     &__docs {
         display: flex;
         align-items: center;
         gap: 7px;
         margin-bottom: 24px;
+        cursor: pointer;
+
+        &:hover {
+            transition: color 0.3s ease;
+            color: #E1ECFB;
+        }
     }
     
 
@@ -138,6 +176,14 @@ letter-spacing: 0%;
         line-height: 16.2px;
         letter-spacing: 0%;
         color: #7287A0;
+        cursor: pointer;
+
+        &:not(:last-child) {
+            &:hover {
+                transition: color 0.3s ease;
+                color: white;
+            }
+        }
     }
 }
 
@@ -175,11 +221,18 @@ letter-spacing: 0%;
     justify-self: center;
     max-width: 168px;
   }
+
+  & > .footer__faq {
+    justify-self: end;
+    max-width: 185px;
+    width: 100%;
+  }
   
         }
 
         &__registry {
             margin: 0;
+            flex-direction: column;
         }
 
         &__description {
@@ -189,6 +242,7 @@ letter-spacing: 0%;
 
         &__description__text {
             text-align: left;
+            width: 100%;
         }
 
         &__footer {

@@ -200,7 +200,7 @@ export const ConfirmDocsModal = memo(
                             dispatch(createOrderThunk({
                                 payload: {
                                     // tariff_id: paymentsTariffId,
-                                    tariff_id: 'fd14cde27e1d4f76a9ed7b9480170bf2',
+                                    tariff_id: paymentsTariffId,
                                     payment_system: 'ROBOKASSA',
                                     payment_type: 'TARIFF_ACTIVATION',
                                     currency: 'RUB'

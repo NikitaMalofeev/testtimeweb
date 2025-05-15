@@ -32,7 +32,7 @@ import {
     postTrustedPersonInfoApi
 } from "entities/RiskProfile/api/riskProfileApi";
 import { setUserId, setUserIsActive, setUserToken, updateUserAllData } from "entities/User/slice/userSlice";
-import { setConfirmationEmailSuccess, setConfirmationPhoneSuccess, setConfirmationStatusSuccess, setConfirmationWhatsappSuccess, setTooltipActive } from "entities/ui/Ui/slice/uiSlice";
+import { setConfirmationEmailSuccess, setConfirmationPhoneSuccess, setConfirmationStatusSuccess, setConfirmationWhatsappSuccess, setTooltipActive, setWarning } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
 import { RootState } from "app/providers/store/config/store";
 import { PasportScanData } from "features/RiskProfile/PassportScanForm/PassportScanForm";
@@ -184,6 +184,21 @@ export const postBrokerApiTokenThunk = createAsyncThunk<
                 onSuccess();
             }
         } catch (error: any) {
+            dispatch(
+                setWarning({
+                    active: true,
+                    description: error.response.data.errorText,
+                    buttonLabel: "Перейти к подключению",
+                    action: () => {
+                        window.location.href = '/payments';
+                        dispatch(setWarning(
+                            {
+                                active: false
+                            }
+                        ))
+                    },
+                }),
+            );
             dispatch(setError(error.response.data.token))
         }
     }

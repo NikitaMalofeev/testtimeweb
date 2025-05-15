@@ -4,25 +4,24 @@ import styles from './styles.module.scss';
 import CoverIcon from 'shared/assets/svg/Cover.svg';
 
 export const Cover = () => {
-    const [isVisible, setIsVisible] = useState(true);
+    const [isMounted, setIsMounted] = useState(true);
 
     useEffect(() => {
-        // Таймер исчезновения через 2.7 секунды
-        const hideTimer = setTimeout(() => {
-            setIsVisible(false);
-        }, 800);
-
+        // 300 мс — время анимации, 500 мс — “жить” на экране
+        const hideTimer = setTimeout(() => setIsMounted(false), 800);
         return () => clearTimeout(hideTimer);
     }, []);
 
+    if (!isMounted) return null;
+
     return (
-        <div className={`${styles.Cover} ${!isVisible ? styles.hidden : ''}`}>
+        <div className={`${styles.Cover} ${!isMounted ? styles.hidden : ''}`}>
             <Icon
                 Svg={CoverIcon}
                 width="100%"
                 height="100%"
-                maxWidth={2000}
-                maxHeight={2000}
+                maxWidth={window.innerWidth}
+                maxHeight={window.innerHeight}
                 objectFit="cover"
             />
         </div>

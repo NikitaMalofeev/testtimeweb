@@ -24,8 +24,8 @@ interface UiState {
 
 export interface WarningPopupState {
     active: boolean;
-    description: string;
-    buttonLabel: string;
+    description?: string;
+    buttonLabel?: string;
     action?: () => void;
 }
 

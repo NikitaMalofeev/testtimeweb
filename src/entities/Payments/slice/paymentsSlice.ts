@@ -24,6 +24,10 @@ import {
     setCurrentSignedDocuments,
     setNotSignedDocumentsHtmls,
 } from 'entities/Documents/slice/documentsSlice';
+import { setStepAdditionalMenuUI, setWarning } from 'entities/ui/Ui/slice/uiSlice';
+import { closeModal, openModal } from 'entities/ui/Modal/slice/modalSlice';
+import { ModalAnimation, ModalSize, ModalType } from 'entities/ui/Modal/model/modalTypes';
+import { useNavigate } from 'react-router-dom';
 
 /* -------------------------------------------------------------------------- */
 /* TYPES */
@@ -147,7 +151,7 @@ export const createOrderThunk = createAsyncThunk<
         onSuccess?.();
         return response;
     } catch (err: any) {
-        const msg = err.response?.data?.info || err.message;
+        const msg = err.response?.data?.info || err.response?.data?.errorText || err.message;
         dispatch(setError(msg));
         return rejectWithValue(msg);
     }
@@ -188,7 +192,7 @@ export const checkConfirmationCodeTariffThunk = createAsyncThunk<
             await checkConfirmationCodeTariff(tariff_id, code, token);
             onSuccess?.();
         } catch (err: any) {
-            const msg = err.response?.data?.error || err.message;
+            const msg = err.response?.data?.errorText || err.message;
             dispatch(setError(msg));
             return rejectWithValue(msg);
         }
@@ -216,7 +220,7 @@ export const getSignedTariffDocThunk = createAsyncThunk<
             if (purpose === 'download') onSuccess?.();
             return pdfBytes;
         } catch (err: any) {
-            const msg = err.response?.data?.error || err.message;
+            const msg = err.response?.data?.errorText || err.message;
             dispatch(setError(msg));
             return rejectWithValue(msg);
         }
@@ -240,7 +244,7 @@ export const getNotSignedTariffDocThunk = createAsyncThunk<
                 }),
             );
         } catch (err: any) {
-            const msg = err.response?.data?.error || err.message;
+            const msg = err.response?.data?.errorText || err.message;
             dispatch(setError(msg));
             return rejectWithValue(msg);
         }
@@ -260,7 +264,7 @@ export const signingTariffThunk = createAsyncThunk<
             await signingTariff(tariff_id, type_message, is_agree, token);
             onSuccess?.();
         } catch (err: any) {
-            const msg = err.response?.data?.error || err.message;
+            const msg = err.response?.data?.errorText || err.message;
             dispatch(setError(msg));
             return rejectWithValue(msg);
         }
@@ -280,7 +284,7 @@ export const getAllTariffsThunk = createAsyncThunk<
             const data = await getAllTariffs(token);
             return data;
         } catch (err: any) {
-            const msg = err.response?.data?.error || err.message;
+            const msg = err.response?.data?.errorText || err.message;
             dispatch(setError(msg));
             return rejectWithValue(msg);
         }
@@ -302,8 +306,23 @@ export const setTariffIdThunk = createAsyncThunk<
             dispatch(setCurrentUserTariff(key));
             onSuccess();
         } catch (err: any) {
-            const msg = err.response?.data?.error || err.message;
-            dispatch(setError(msg));
+            const msg = err.response?.data?.errorText || err.message;
+            dispatch(
+                setWarning({
+                    active: true,
+                    description: msg,
+                    buttonLabel: "Перейти к заполнению",
+                    action: () => {
+                        window.location.href = '/documents';
+                        dispatch(setWarning(
+                            {
+                                active: false
+                            }
+                        ))
+                    },
+                }),
+            );
+            // dispatch(setError(msg));
             return rejectWithValue(msg);
         }
     },
@@ -320,7 +339,7 @@ export const getOrderStatusThunk = createAsyncThunk<
             const data = await getOrderStatus(orderId, token);
             return data;
         } catch (err: any) {
-            const msg = err.response?.data?.error || err.message;
+            const msg = err.response?.data?.errorText || err.message;
             dispatch(setError(msg));
             return rejectWithValue(msg);
         }
@@ -338,7 +357,7 @@ export const robokassaResultThunk = createAsyncThunk<
             const data = await robokassaResult(payload);
             return data;
         } catch (err: any) {
-            const msg = err.response?.data?.error || err.message;
+            const msg = err.response?.data?.errorText || err.message;
             dispatch(setError(msg));
             return rejectWithValue(msg);
         }

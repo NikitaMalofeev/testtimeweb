@@ -121,6 +121,7 @@ export const BrokerConnectionForm: React.FC = () => {
                 <Input
                     placeholder="Токен"
                     name="token"
+                    type='password'
                     value={formik.values.token}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}

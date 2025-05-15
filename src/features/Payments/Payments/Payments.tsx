@@ -125,7 +125,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                 animation: ModalAnimation.LEFT,
                             }),
                         );
-                        setCurrentTimeout(60);
+                        setCurrentTimeout(5);
                     },
                 }),
             );
@@ -141,50 +141,55 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     );
 
     const handleSetTariff = useCallback(() => {
-        if (!filledRiskProfileChapters.is_exist_scan_passport) {
-            dispatch(
-                setWarning({
-                    active: true,
-                    description: "Для подключения тарифа, пожалуйста, предоставьте api-ключ брокера для работы с вашим счетом и заполните паспортные данные",
-                    buttonLabel: "Перейти к заполнению",
-                    action: () => {
-                        dispatch(setStepAdditionalMenuUI(2));
-                        dispatch(
-                            openModal({
-                                type: ModalType.IDENTIFICATION,
-                                animation: ModalAnimation.LEFT,
-                                size: ModalSize.FULL,
-                            }),
-                        );
-                    },
-                }),
-            );
-            return;
-        }
-        if (brokersCount === 0) {
-            dispatch(
-                setWarning({
-                    active: true,
-                    description: "Для подключения тарифа, пожалуйста, предоставьте api-ключ брокера для работы с вашим счетом и заполните паспортные данные",
-                    buttonLabel: "Перейти к заполнению",
-                    action: () => {
-                        dispatch(setStepAdditionalMenuUI(5));
-                        dispatch(
-                            openModal({
-                                type: ModalType.IDENTIFICATION,
-                                animation: ModalAnimation.LEFT,
-                                size: ModalSize.FULL,
-                            }),
-                        );
-                    },
-                }),
-            );
-            return;
-        }
+        // if (!filledRiskProfileChapters.is_exist_scan_passport) {
+        //     dispatch(
+        //         setWarning({
+        //             active: true,
+        //             description: "Для подключения тарифа, пожалуйста, заполните паспортные данные",
+        //             buttonLabel: "Перейти к заполнению",
+        //             action: () => {
+        //                 dispatch(setStepAdditionalMenuUI(2));
+        //                 dispatch(
+        //                     openModal({
+        //                         type: ModalType.IDENTIFICATION,
+        //                         animation: ModalAnimation.LEFT,
+        //                         size: ModalSize.FULL,
+        //                     }),
+        //                 );
+        //                 dispatch(closeModal(ModalType.WARNING))
+        //             },
+        //         }),
+        //     );
+        //     return;
+        // }
+        // if (brokersCount === 0) {
+        //     dispatch(
+        //         setWarning({
+        //             active: true,
+        //             description: "Для подключения тарифа, пожалуйста, предоставьте api-ключ брокера для работы с вашим счетом и заполните паспортные данные",
+        //             buttonLabel: "Перейти к заполнению",
+        //             action: () => {
+        //                 dispatch(setStepAdditionalMenuUI(5));
+        //                 dispatch(
+        //                     openModal({
+        //                         type: ModalType.IDENTIFICATION,
+        //                         animation: ModalAnimation.LEFT,
+        //                         size: ModalSize.FULL,
+        //                     }),
+        //                 );
+        //             },
+        //         }),
+        //     );
+        //     return;
+        // }
 
-        currentOrderId && dispatch(setTariffIdThunk({ tariff_key: currentOrderId, onSuccess: () => { } }));
-        setIsConfirming(true);
-        isPaid(true);
+        currentOrderId && dispatch(setTariffIdThunk({
+            tariff_key: currentOrderId, onSuccess: () => {
+                setIsConfirming(true);
+                isPaid(true);
+            }
+        }));
+
     }, [brokersCount, dispatch, filledRiskProfileChapters, currentOrderId, isPaid]);
 
     useEffect(() => {
@@ -193,9 +198,9 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
 
     /* --- РАННИЙ ВЫХОД, если в url статус success|loading|failed --- */
     if (currentOrderStatus) {
-        return <PaymentsStatus status={currentOrderStatus as any} paymentId={currentOrderId} />; // <== НОВОЕ
+        return <PaymentsStatus status={currentOrderStatus as any} paymentId={currentOrderId} />;
     } else if (statusParam && allowedStatus.includes(statusParam as any)) {
-        return <PaymentsStatus status={statusParam as any} paymentId={currentOrderId} />; // <== НОВОЕ
+        return <PaymentsStatus status={statusParam as any} paymentId={currentOrderId} />;
     }
 
     if (isFetching && !currentOrderStatus && !statusParam) return <Loader />;

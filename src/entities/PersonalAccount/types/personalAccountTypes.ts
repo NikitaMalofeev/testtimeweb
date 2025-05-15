@@ -10,7 +10,8 @@ export interface PersonalAccountItem {
     action?: () => void;
     /** Опциональное количество уведомлений */
     notificationsCount?: number;
-    warningMessage?: ReactElement | null
+    warningMessage?: ReactElement | null;
+    largeWarningMessage?: ReactElement | null;
     iconWidth: number;
     iconHeight: number;
     message?: string | false;

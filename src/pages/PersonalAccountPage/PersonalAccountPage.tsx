@@ -29,7 +29,7 @@ import { RiskProfileModal } from "features/RiskProfile/RiskProfileModal/RiskProf
 import { closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import WarningIcon from 'shared/assets/svg/Warning.svg'
-import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
+import { setStepAdditionalMenuUI, setWarning } from "entities/ui/Ui/slice/uiSlice";
 import { ProblemsCodeModal } from "features/RiskProfile/ProblemsCodeModal/ProblemsCodeModal";
 import { postPasportScanThunk } from "entities/RiskProfile/slice/riskProfileSlice";
 import { Tooltip } from "shared/ui/Tooltip/Tooltip";
@@ -48,7 +48,8 @@ const PersonalAccountMenu: React.FC = () => {
     const { userPersonalAccountInfo, loading } = useSelector((state: RootState) => state.user);
     const { unreadAnswersCount } = useSelector((state: RootState) => state.supportChat);
     const ifFilledRp = filledRiskProfileChapters.is_risk_profile_complete && filledRiskProfileChapters.is_risk_profile_complete_final
-
+    const userPaymentsInfo = useSelector((state: RootState) => state.payments.payments_info);
+    const hasActiveTariff = userPaymentsInfo.some(item => item.user_tariff_is_active === true)
     useEffect(() => {
         dispatch(getUserPersonalAccountInfoThunk());
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -116,23 +117,74 @@ const PersonalAccountMenu: React.FC = () => {
             icon: AccountBrokerIcon,
             title: "Брокер",
             action: () => {
-                if (brokerIds.length !== 0) {
-                    return
-                } else if (isPassportFilled) {
+                const hasBrokerKey = brokerIds.length > 0;
+                const hasPassport =
+                    filledRiskProfileChapters.is_complete_passport &&
+                    filledRiskProfileChapters.is_exist_scan_passport;
+                const hasTariff = hasActiveTariff;
+
+                if (!hasPassport && !hasTariff) {
+                    setWarning({
+                        active: true,
+                        description:
+                            'Для подключения брокера, пожалуйста, заполните паспорт и подключите тариф',
+                        buttonLabel: 'Перейти к заполнению',
+                        action: () => {
+                            dispatch(setStepAdditionalMenuUI(0))
+                            dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
+                            dispatch(setWarning(
+                                {
+                                    active: false
+                                }
+                            ))
+                        },
+                    });
+                } else if (!hasPassport) {
+                    setWarning({
+                        active: true,
+                        description: 'Для подключения брокера, пожалуйста, заполните паспортные данные',
+                        buttonLabel: 'Перейти к заполнению',
+                        action: () => {
+                            dispatch(setStepAdditionalMenuUI(0))
+                            dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
+                            dispatch(setWarning(
+                                {
+                                    active: false
+                                }
+                            ))
+                        },
+                    });
+                } else if (!hasTariff) {
+                    setWarning({
+                        active: true,
+                        description: 'Для подключения брокера, пожалуйста, подключите тариф',
+                        buttonLabel: 'Перейти к тарифам',
+                        action: () => {
+                            navigate('/payments')
+                            dispatch(setWarning(
+                                {
+                                    active: false
+                                }
+                            ))
+                        },
+                    });
+                } else {
                     dispatch(setStepAdditionalMenuUI(5))
                     dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
-                    // Здесь можно сбрасывать уведомления, если это требуется при переходе в чат
                 }
             },
             message: brokersCount > 0 && 'подключен',
             iconWidth: 28,
             iconHeight: 28,
-            warningMessage: (!filledRiskProfileChapters.is_complete_passport || !filledRiskProfileChapters.is_exist_scan_passport) ? (
+            largeWarningMessage: (!hasActiveTariff
+                && (
+                    !filledRiskProfileChapters.is_complete_passport
+                    || !filledRiskProfileChapters.is_exist_scan_passport
+                )
+            ) ? (
                 <div className={styles.warning}>
                     <Icon Svg={WarningIcon} width={16} height={16} />
-                    <div>
-                        Для подключения  подпишите документы
-                    </div>
+                    <div>Для подключения заполните документы и подключите тариф</div>
                 </div>
             ) : null,
         },
@@ -303,6 +355,7 @@ const PersonalAccountMenu: React.FC = () => {
                                 style={{
                                     ...getMenuItemStyle(item),
                                     ...(item.warningMessage && { padding: "18px 0 34px" }),
+                                    ...(item.largeWarningMessage && { padding: "18px 0 54px" }),
                                 }}
                                 onClick={() => {
                                     if (item.route) {
@@ -332,6 +385,7 @@ const PersonalAccountMenu: React.FC = () => {
                                     </div>
                                 )}
                                 {item.warningMessage}
+                                {item.largeWarningMessage}
                             </div>
                         ))}
 

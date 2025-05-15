@@ -6,7 +6,7 @@ import styles from './styles.module.scss';
 import HeaderIcon from 'shared/assets/svg/headerLogo.svg';
 import AccountIcon from 'shared/assets/svg/AccountIcon.svg';
 import { classNames, Mods } from 'shared/lib/helpers/classNames/classNames';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { RootState } from 'app/providers/store/config/store';
 import { useSelector } from 'react-redux';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
@@ -29,6 +29,8 @@ export const Header = ({ currentNotificationsCount, variant }: HeaderProps) => {
             </header>
         );
     }
+
+    const location = useLocation()
 
     const [isActive, setIsActive] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
@@ -64,7 +66,7 @@ export const Header = ({ currentNotificationsCount, variant }: HeaderProps) => {
 
 
     return (
-        <header className={classNames(styles.header, headerMods, [])}>
+        <header className={classNames(styles.header, headerMods, [])} style={location.pathname === '/' ? { maxWidth: '1200px' } : {}}>
             <Icon Svg={HeaderIcon} width={171} height={18.5} onClick={() => navigate('/')} />
             {!haveUser
                 ?

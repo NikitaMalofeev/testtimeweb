@@ -51,6 +51,8 @@ const DocumentsPage: React.FC = () => {
     const currentTariffId = useSelector((state: RootState) => state.payments.currentTariffId);
     const uploadDocs = useSelector((s: RootState) => s.documents.uploadDocs);
     const payments = useSelector((s: RootState) => s.payments.payments_info);
+    const tariff = useSelector((s: RootState) => s.payments.payments_info);
+    const hasTariff = tariff.some(item => item.user_tariff_is_active === true)
 
     useEffect(() => {
         dispatch(getUserDocumentsStateThunk());
@@ -166,7 +168,7 @@ const DocumentsPage: React.FC = () => {
             case "type_doc_broker_api_token": {
                 const isBrokerFilled = brokerIds.length;
 
-                if (isBrokerFilled) {
+                if (isBrokerFilled && hasTariff) {
                     dispatch(setCurrentConfirmableDoc("type_doc_broker_api_token"));
                     dispatch(setStepAdditionalMenuUI(4));
                     dispatch(
@@ -176,7 +178,8 @@ const DocumentsPage: React.FC = () => {
                             animation: ModalAnimation.LEFT,
                         })
                     );
-                } else {
+                }
+                else {
                     dispatch(setStepAdditionalMenuUI(5));
                     dispatch(
                         openModal({
@@ -289,7 +292,7 @@ const DocumentsPage: React.FC = () => {
 
             // 2) Иначе для брокерского токена    
         } else if (doc.id === "type_doc_broker_api_token") {
-            if (brokerIds[0] || filledRiskProfileChapters.is_exist_scan_passport) {
+            if (brokerIds[0] || (filledRiskProfileChapters.is_exist_scan_passport && hasTariff)) {
                 colorClass = styles.button__gray;
             } else {
                 colorClass = styles.button__red;
@@ -472,6 +475,7 @@ const DocumentsPage: React.FC = () => {
                         const isSigned = doc.status === "signed";
                         const isPassport = doc.id === "type_doc_passport";
                         const isBroker = doc.id === "type_doc_broker_api_token";
+                        const isAdvisorAgreement = doc.id === 'type_doc_agreement_investment_advisor_app_1';
 
                         const showSuccess =
                             (isPassport && isSigned && filledRiskProfileChapters.is_exist_scan_passport) ||
@@ -486,20 +490,13 @@ const DocumentsPage: React.FC = () => {
                             buttonText = filledRiskProfileChapters.is_risk_profile_complete_final ? "Подписать" : "Заполнить";
                         }
 
-                        const isDisabled =
-                            doc.id === 'type_doc_agreement_investment_advisor_app_1'
-                                // для app_1: отключаем, если нет паспорта, брокера или тарифа
-                                ? !(
-                                    filledRiskProfileChapters.is_exist_scan_passport &&
-                                    brokerIds[0] &&
-                                    currentTariffId // <- захардкоденный флаг тарифа
-                                )
-                                // иначе — ваша прежняя логика
+                        const isDisabled = isBroker
+                            ? !(filledRiskProfileChapters.is_exist_scan_passport && hasTariff)
+                            : isAdvisorAgreement
+                                ? !(filledRiskProfileChapters.is_exist_scan_passport && brokerIds[0] && currentTariffId)
                                 : (isBroker && filledRiskProfileChapters.is_exist_scan_passport) || isPassport
                                     ? false
                                     : doc.id !== firstNotConfirmed || !filledRiskProfileChapters.is_exist_scan_passport;
-
-
 
 
                         return (

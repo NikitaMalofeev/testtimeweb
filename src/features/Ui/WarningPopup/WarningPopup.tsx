@@ -25,16 +25,20 @@ export const WarningPopup = () => {
         if (warning.active) {
             setVisible(true);
 
-            const hide = setTimeout(() => setVisible(false), 10_000);
+            const hide = setTimeout(() => setVisible(false), 10000);
             const reset = setTimeout(
                 () => dispatch(setWarning({ ...warning, active: false })),
-                10_500,
+                10500,
             );
 
             return () => {
                 clearTimeout(hide);
                 clearTimeout(reset);
             };
+        } else if (
+            !warning.active
+        ) {
+            setVisible(false)
         }
     }, [warning.active]);
 

@@ -209,9 +209,6 @@ export const ConfirmDocsModal = memo(
                                     dispatch(setCurrentOrderStatus('loading'))
                                     navigate('/payments/loading')
                                     dispatch(closeModal(ModalType.CONFIRM_DOCS))
-                                    setTimeout(() => {
-                                        navigate('/payments/success')
-                                    })
                                 }
                             }))
                         }

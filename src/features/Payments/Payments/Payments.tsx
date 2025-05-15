@@ -125,7 +125,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                 animation: ModalAnimation.LEFT,
                             }),
                         );
-                        setCurrentTimeout(60);
+                        setCurrentTimeout(5);
                     },
                 }),
             );
@@ -198,9 +198,9 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
 
     /* --- РАННИЙ ВЫХОД, если в url статус success|loading|failed --- */
     if (currentOrderStatus) {
-        return <PaymentsStatus status={currentOrderStatus as any} paymentId={currentOrderId} />; // <== НОВОЕ
+        return <PaymentsStatus status={currentOrderStatus as any} paymentId={currentOrderId} />;
     } else if (statusParam && allowedStatus.includes(statusParam as any)) {
-        return <PaymentsStatus status={statusParam as any} paymentId={currentOrderId} />; // <== НОВОЕ
+        return <PaymentsStatus status={statusParam as any} paymentId={currentOrderId} />;
     }
 
     if (isFetching && !currentOrderStatus && !statusParam) return <Loader />;

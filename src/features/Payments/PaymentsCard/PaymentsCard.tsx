@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
 import { useScrollShadow } from "shared/hooks/useScrollShadow";
 import styles from "./styles.module.scss";
+import { spawn } from "child_process";
 
 export interface PaymentsCardProps {
     isSelected?: boolean;
@@ -22,6 +23,7 @@ export interface PaymentsCardProps {
     fee: string;
     capital: string;
     imageUrl: string;
+    paidFor: boolean;
     onMore: () => void;
 }
 
@@ -36,6 +38,7 @@ export const PaymentsCard: React.FC<PaymentsCardProps> = ({
     upfront,
     fee,
     capital,
+    paidFor,
     imageUrl,
     onMore,
 }) => {
@@ -107,6 +110,7 @@ export const PaymentsCard: React.FC<PaymentsCardProps> = ({
                 </div>
 
                 <motion.div layout={false} className={styles.right}>
+                    {paidFor && <span className={styles.right__status}>подключен</span>}
                     <img src={imageUrl} alt="" className={styles.icon} />
                 </motion.div>
             </div>

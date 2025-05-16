@@ -307,18 +307,40 @@ export const setTariffIdThunk = createAsyncThunk<
             onSuccess();
         } catch (err: any) {
             const msg = err.response?.data?.errorText || err.message;
+            const riskProfileFilled = getState().documents.filledRiskProfileChapters.is_risk_profile_complete_final
+            const riskProfileFinall = getState().documents.filledRiskProfileChapters.is_risk_profile_complete_final
             dispatch(
                 setWarning({
                     active: true,
                     description: msg,
                     buttonLabel: "Перейти к заполнению",
                     action: () => {
-                        window.location.href = '/documents';
-                        dispatch(setWarning(
-                            {
-                                active: false
-                            }
-                        ))
+                        if (riskProfileFinall) {
+                            window.location.href = '/documents';
+                            dispatch(setWarning(
+                                {
+                                    active: false
+                                }
+                            ))
+                        } else if (!riskProfileFinall && riskProfileFilled) {
+                            dispatch(setStepAdditionalMenuUI(1));
+                            dispatch(
+                                openModal({
+                                    type: ModalType.IDENTIFICATION,
+                                    size: ModalSize.FULL,
+                                    animation: ModalAnimation.LEFT,
+                                })
+                            );
+                        } else {
+                            dispatch(setStepAdditionalMenuUI(0));
+                            dispatch(
+                                openModal({
+                                    type: ModalType.IDENTIFICATION,
+                                    size: ModalSize.FULL,
+                                    animation: ModalAnimation.LEFT,
+                                })
+                            );
+                        }
                     },
                 }),
             );

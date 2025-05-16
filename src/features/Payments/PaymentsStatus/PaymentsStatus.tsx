@@ -18,9 +18,10 @@ import { setCurrentOrderStatus } from 'entities/Payments/slice/paymentsSlice';
 interface PaymentsStatusProps {
     status: PaymentStatus;
     paymentId: string;
+    payAction: () => void;
 }
 
-export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentId }) => {
+export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentId, payAction }) => {
     // достаём список тарифов и текущий заказ
     const tariffs = useSelector((s: RootState) => s.payments.tariffs);
     const navigate = useNavigate()
@@ -140,6 +141,15 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
                     transition={{ duration: 0.5 }}
                 >
                     <div className={styles.status__buttons}>
+                        <Button
+                            theme={ButtonTheme.UNDERLINE}
+                            padding="20px 25px"
+                            onClick={() => {
+                                payAction()
+                            }}
+                        >
+                            Перейти к оплате
+                        </Button>
                         <Button
                             theme={ButtonTheme.BLUE}
                             padding="20px 25px"

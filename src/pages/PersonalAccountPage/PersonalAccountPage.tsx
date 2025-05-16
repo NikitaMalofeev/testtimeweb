@@ -35,6 +35,7 @@ import { postPasportScanThunk } from "entities/RiskProfile/slice/riskProfileSlic
 import { Tooltip } from "shared/ui/Tooltip/Tooltip";
 import { getAllBrokersThunk, getUserDocumentsStateThunk } from "entities/Documents/slice/documentsSlice";
 import { checkPushNotificationsThunk } from "entities/ui/PushNotifications/slice/pushSlice";
+import BlueOk from 'shared/assets/svg/blueOk.svg'
 
 const PersonalAccountMenu: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -99,7 +100,7 @@ const PersonalAccountMenu: React.FC = () => {
             iconWidth: 28,
             iconHeight: 28,
             warningMessage: filledRiskProfileChapters.is_risk_profile_complete_final
-                ? (8 - userDocuments.length !== 0 ? (
+                ? (9 - userDocuments.length !== 0 ? (
                     <div className={styles.warning}>
                         <Icon Svg={WarningIcon} width={16} height={16} />
                         <div>Есть неподписанные документы ({9 - userDocuments.length} шт.)</div>
@@ -200,7 +201,7 @@ const PersonalAccountMenu: React.FC = () => {
             title: "Чат поддержки",
             action: () => {
                 navigate("/support");
-                // Здесь можно сбрасывать уведомления, если это требуется при переходе в чат
+
             },
             iconWidth: 28,
             iconHeight: 28,
@@ -349,45 +350,50 @@ const PersonalAccountMenu: React.FC = () => {
                         </div>
                     </div>
                     <div>
-                        {items.map((item, index) => (
-                            <div
-                                key={index}
-                                style={{
-                                    ...getMenuItemStyle(item),
-                                    ...(item.warningMessage && { padding: "18px 0 34px" }),
-                                    ...(item.largeWarningMessage && { padding: "18px 0 54px" }),
-                                }}
-                                onClick={() => {
-                                    if (item.route) {
-                                        if (item.route === '/documents') {
-                                            filledRiskProfileChapters.is_risk_profile_complete_final && navigate(item.route);
+                        {items.map((item, index) => {
+                            const hasNotifications = (item.notificationsCount ?? 0) > 0;
+                            const isDocumentsWithoutNotifications =
+                                item.title === 'Документы' && !hasNotifications;
+
+                            return (
+                                <div
+                                    key={index}
+                                    style={{
+                                        ...getMenuItemStyle(item),
+                                        ...(item.warningMessage && { padding: '18px 0 34px' }),
+                                        ...(item.largeWarningMessage && { padding: '18px 0 54px' }),
+                                    }}
+                                    onClick={() => {
+                                        if (item.route) {
+                                            if (item.route === '/documents') {
+                                                filledRiskProfileChapters.is_risk_profile_complete_final &&
+                                                    navigate(item.route);
+                                            }
+                                        } else if (item.action) {
+                                            item.action();
                                         }
-                                    } else if (item.action) {
-                                        item.action();
-                                    }
-                                }}
-                                className={styles.menu__item}
-                            >
-                                <Icon
-                                    Svg={item.icon}
-                                    width={item.iconWidth}
-                                    height={item.iconHeight}
-                                />
-                                <span>{item.title}</span>
-                                {item.notificationsCount !== undefined && (
-                                    <div className={styles.page__count}>
-                                        {item.notificationsCount}
-                                    </div>
-                                )}
-                                {item.message && (
-                                    <div className={styles.page__message}>
-                                        {item.message}
-                                    </div>
-                                )}
-                                {item.warningMessage}
-                                {item.largeWarningMessage}
-                            </div>
-                        ))}
+                                    }}
+                                    className={styles.menu__item}
+                                >
+                                    <Icon Svg={item.icon} width={item.iconWidth} height={item.iconHeight} />
+                                    <span>{item.title}</span>
+
+                                    {hasNotifications ? (
+                                        <div className={styles.page__count}>{item.notificationsCount}</div>
+                                    ) : isDocumentsWithoutNotifications ? (
+                                        <div className={styles.warning__documents__filled}>
+                                            <Icon Svg={BlueOk} width={13} height={14} />
+                                            <span>заполнено</span>
+                                        </div>
+                                    ) : null}
+
+                                    {item.message && <div className={styles.page__message}>{item.message}</div>}
+                                    {item.warningMessage}
+                                    {item.largeWarningMessage}
+                                </div>
+                            );
+                        })}
+
 
                     </div>
                 </div>

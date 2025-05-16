@@ -75,7 +75,13 @@ export const Header = ({ currentNotificationsCount, variant }: HeaderProps) => {
                         <Icon Svg={PhoneIcon} width={24} height={24} />
                         <a href="tel:+78432126778">+7 843 212 67 78</a>
                     </div>
-                    <Button theme={ButtonTheme.UNDERLINE} children='Подключиться' padding='10px 22px' className={styles.header__button} onClick={() => navigate('/auth')} />
+                    <Button
+                        theme={ButtonTheme.UNDERLINE}
+                        children='Подключиться'
+                        padding='10px 22px'
+                        className={styles.header__button}
+                    // onClick={() => navigate('/auth')} 
+                    />
                 </div>
                 // <div
                 //     className={classNames(styles.burger__container, burgerMods, [])}

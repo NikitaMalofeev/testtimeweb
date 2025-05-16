@@ -51,6 +51,8 @@ const PersonalAccountMenu: React.FC = () => {
     const ifFilledRp = filledRiskProfileChapters.is_risk_profile_complete && filledRiskProfileChapters.is_risk_profile_complete_final
     const userPaymentsInfo = useSelector((state: RootState) => state.payments.payments_info);
     const hasActiveTariff = userPaymentsInfo.some(item => item.user_tariff_is_active === true)
+
+
     useEffect(() => {
         dispatch(getUserPersonalAccountInfoThunk());
         window.scrollTo({ top: 0, behavior: "smooth" });

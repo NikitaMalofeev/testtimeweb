@@ -158,7 +158,7 @@ const TariffsPage: React.FC = () => {
                         <p>3. О недостатках оказанной услуги можно сообщить в течение срока договора.</p>
                     </div>
                 </div>
-                <div className={styles.certificates}>
+                {/* <div className={styles.certificates}>
                     <h2 className={styles.certificates__title}>Сертификаты и лицензии</h2>
                     <span className={styles.certificates__description}>Система RANKS обладает уникальными запатентованными технологиямии имеет все необходимые лицензии для ведения профессиональной деятельности.</span>
                     <div className={styles.certificates__grid}>
@@ -175,7 +175,7 @@ const TariffsPage: React.FC = () => {
                         <img src={Certificate9} alt="" />
 
                     </div>
-                </div>
+                </div> */}
 
                 {/* правила возврата */}
 

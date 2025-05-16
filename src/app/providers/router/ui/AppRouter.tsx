@@ -38,7 +38,7 @@ function AppRouter() {
                 }
             />
             <Route
-                path="/auth"
+                path="/"
                 element={
                     <PublicRoute>
                         <Suspense fallback={<PageLoader />}>
@@ -90,7 +90,7 @@ function AppRouter() {
                 }
             />
             <Route
-                path="/"
+                path="/robokassa"
                 element={
                     <Suspense fallback={<PageLoader />}>
                         <LandingPage />

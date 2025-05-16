@@ -18,7 +18,7 @@ const RequireAuthRoute: React.FC<RequireAuthRouteProps> = ({ children }) => {
     // }
 
     if (!token && !tokenLS) {
-        return <Navigate to="/auth" replace />;
+        return <Navigate to="/" replace />;
     }
 
     return <>{children}</>;

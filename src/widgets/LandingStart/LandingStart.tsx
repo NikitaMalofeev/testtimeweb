@@ -34,7 +34,7 @@ export const LandingStart = () => {
                                     if (user) {
                                         navigate('/lk')
                                     } else {
-                                        navigate('/auth')
+                                        navigate('/')
                                     }
                                 }}>
                                     <h3 className={styles.button__text}>Начать инвестировать</h3>

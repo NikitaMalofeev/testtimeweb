@@ -184,6 +184,16 @@
     line-height: 16px;
     letter-spacing: 0%;
     color: #0F0E0E;
+
+    &__documents__filled {
+        background-color: #D4E6FF;
+        border-radius: 13.5px;
+        color: black;
+        display: flex;
+        gap: 1px;
+        padding: 1.5px 8px 3.5px;
+        align-items: center;
+    }
 }
 
 .modalContent__tooltip {

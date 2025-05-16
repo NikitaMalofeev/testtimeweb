@@ -1,5 +1,5 @@
 // PaymentsCardList.tsx
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useState, useMemo } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useSelector } from 'react-redux';
@@ -62,6 +62,17 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     const currentOrderStatus = useSelector((s: RootState) => s.payments.currentOrderStatus);
 
     const currentOrderId = useSelector((s: RootState) => s.payments.currentOrderId); // <== НОВОЕ
+    const paymentsInfo = useSelector((s: RootState) => s.payments.payments_info)
+
+    const paidTariffIds = useMemo(
+        () =>
+            new Set(
+                paymentsInfo
+                    .filter((p) => p.order?.paid)
+                    .map((p) => p.user_tariff_id),
+            ),
+        [paymentsInfo],
+    );
 
     /* ---------------- sync url → redux ------------- */
     useEffect(() => {
@@ -71,6 +82,10 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
             currentOrderStatus !== statusParam
         ) {
             dispatch(setCurrentOrderStatus(statusParam as any));
+        }
+
+        if (statusParam === 'success') {
+            dispatch(setCurrentOrderStatus(''))
         }
     }, [statusParam, currentOrderStatus, dispatch]);
 
@@ -95,14 +110,6 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         const t = setTimeout(() => setCurrentTimeout((p) => p - 1), 1000);
         return () => clearTimeout(t);
     }, [currentTimeout]);
-
-    useEffect(() => {
-        if (currentOrderStatus === 'loading') {
-            if (!currentPaymentOrder?.payment_url) return;
-            const newTab = window.open(currentPaymentOrder.payment_url, '_blank', 'noopener,noreferrer');
-            if (newTab) newTab.focus(); 8
-        }
-    }, [currentPaymentOrder?.payment_url]);
 
     /* ---------------- formik ---------------- */
     const formik = useFormik({
@@ -198,9 +205,17 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
 
     /* --- РАННИЙ ВЫХОД, если в url статус success|loading|failed --- */
     if (currentOrderStatus) {
-        return <PaymentsStatus status={currentOrderStatus as any} paymentId={currentOrderId} />;
+        return <PaymentsStatus status={currentOrderStatus as any} paymentId={currentOrderId} payAction={() => {
+            if (!currentPaymentOrder?.payment_url) return;
+            const newTab = window.open(currentPaymentOrder.payment_url, '_blank', 'noopener,noreferrer');
+            if (newTab) newTab.focus(); 8
+        }} />;
     } else if (statusParam && allowedStatus.includes(statusParam as any)) {
-        return <PaymentsStatus status={statusParam as any} paymentId={currentOrderId} />;
+        return <PaymentsStatus status={statusParam as any} paymentId={currentOrderId} payAction={() => {
+            if (!currentPaymentOrder?.payment_url) return;
+            const newTab = window.open(currentPaymentOrder.payment_url, '_blank', 'noopener,noreferrer');
+            if (newTab) newTab.focus(); 8
+        }} />;
     }
 
     if (isFetching && !currentOrderStatus && !statusParam) return <Loader />;
@@ -233,6 +248,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                 capital={`${t.days_service_validity} days`}
                                 imageUrl={t.title === 'Базовый тариф' ? PaymentsBase : PaymentsActive}
                                 onMore={() => handleChooseTariff(t.id)}
+                                paidFor={paidTariffIds.has(t.id)}
                             />
                         </motion.div>
                     ),
@@ -319,6 +335,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                         capital={`${t.days_service_validity} days`}
                                         imageUrl={t.title === 'Долгосрочный инвестор' ? PaymentsBase : PaymentsActive}
                                         onMore={() => handleChooseTariff(t.id)}
+                                        paidFor={paidTariffIds.has(t.id)}
                                     />
                                 </motion.div>
                             ),

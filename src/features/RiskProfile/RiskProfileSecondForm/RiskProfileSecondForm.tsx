@@ -174,7 +174,8 @@ export const RiskProfileSecondForm: React.FC = () => {
     };
 
 
-    if (loading || !thirdRiskProfileResponse) {
+    // if (loading || !thirdRiskProfileResponse) {
+    if (!thirdRiskProfileResponse) {
         return <Loader />;
     } else {
         return (

@@ -68,7 +68,7 @@ export const Header = ({ currentNotificationsCount, variant }: HeaderProps) => {
     return (
         <header className={classNames(styles.header, headerMods, [])} style={location.pathname === '/' ? { maxWidth: '1200px' } : {}}>
             <Icon Svg={HeaderIcon} width={171} height={18.5} onClick={() => navigate('/')} />
-            {!haveUser
+            {!haveUser && window.innerWidth > 750
                 ?
                 <div className={styles.header__entry}>
                     <div className={styles.header__contacts}>

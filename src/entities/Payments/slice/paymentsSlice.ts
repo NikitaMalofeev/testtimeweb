@@ -320,7 +320,7 @@ export const setTariffIdThunk = createAsyncThunk<
                             dispatch(setWarning(
                                 {
                                     active: false
-                                }
+                                }   
                             ))
                         } else if (!riskProfileFinall && riskProfileFilled) {
                             dispatch(setStepAdditionalMenuUI(1));

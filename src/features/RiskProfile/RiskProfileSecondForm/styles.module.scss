@@ -94,7 +94,7 @@
         bottom: 0;
         left: -32px;
         content: '';
-        width: 100dvw;
+        width: calc(100dvw - 5px);
         height: 1px;
         background-color: #EBEBED;
     }

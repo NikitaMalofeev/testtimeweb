@@ -49,7 +49,12 @@ export const PdfViewer: React.FC<MyPdfViewerProps> = ({
 
     return (
         <Worker workerUrl={workerUrl}>
-            <div style={{ width: "100%", height: "100vh", overflowY: "auto" }}>
+            <div style={{
+                width: "100%",
+                height: "100vh",
+                overflowY: "auto",
+                ...(pdfUrl && { paddingLeft: "10px" })
+            }}>
                 <Viewer
                     fileUrl={viewerSource}
                     defaultScale={SpecialZoomLevel.PageWidth}
@@ -57,7 +62,10 @@ export const PdfViewer: React.FC<MyPdfViewerProps> = ({
                         const { canvasLayer, textLayer, annotationLayer } = props;
                         return (
                             <div>
-                                <div className={styles.pdf__page}>
+                                <div
+                                    className={`${styles.pdf__container} ${!pdfUrl ? styles.pdf__page : styles.pdf__page_preview
+                                        }`}
+                                >
                                     <div>{canvasLayer.children}</div>
                                     <div>{textLayer.children}</div>
                                     <div>{annotationLayer.children}</div>
@@ -70,5 +78,4 @@ export const PdfViewer: React.FC<MyPdfViewerProps> = ({
             </div>
         </Worker>
     );
-};
-
+}; 

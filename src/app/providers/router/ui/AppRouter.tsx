@@ -12,6 +12,7 @@ import FAQPage from 'pages/FAQPage/FAQPage.async';
 import PaymentsPage from 'pages/PaymentsPage/PaymentsPage.async';
 import ConfirmCustomDocsPage from 'pages/ConfirmCustomDocsPage/ConfirmCustomDocsPage.async';
 import LandingPage from 'pages/LandingPage/LandingPage.async';
+import RecomendationsPage from 'pages/RecomendationsPage/RecomendationsPage';
 
 
 // const PageLoader = () => <div>Loading...</div>;
@@ -64,6 +65,17 @@ function AppRouter() {
                     <RequireAuthRoute>
                         <Suspense fallback={<PageLoader />}>
                             <DocumentsPage />
+                        </Suspense>
+                    </RequireAuthRoute>
+
+                }
+            />
+            <Route
+                path="/recomendations"
+                element={
+                    <RequireAuthRoute>
+                        <Suspense fallback={<PageLoader />}>
+                            <RecomendationsPage />
                         </Suspense>
                     </RequireAuthRoute>
 

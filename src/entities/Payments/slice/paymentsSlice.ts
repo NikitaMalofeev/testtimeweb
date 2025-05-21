@@ -306,7 +306,7 @@ export const setTariffIdThunk = createAsyncThunk<
             dispatch(setCurrentUserTariff(key));
             onSuccess();
         } catch (err: any) {
-            const msg = err.response?.data?.errorText || err.message;
+            const msg = err.response.data.broker_id ? `Перед подключением тарифа необходимо предоставить api-ключ брокера` : err.response?.data?.errorText;
             const riskProfileFilled = getState().documents.filledRiskProfileChapters.is_risk_profile_complete_final
             const riskProfileFinall = getState().documents.filledRiskProfileChapters.is_risk_profile_complete_final
             dispatch(
@@ -320,7 +320,7 @@ export const setTariffIdThunk = createAsyncThunk<
                             dispatch(setWarning(
                                 {
                                     active: false
-                                }   
+                                }
                             ))
                         } else if (!riskProfileFinall && riskProfileFilled) {
                             dispatch(setStepAdditionalMenuUI(1));

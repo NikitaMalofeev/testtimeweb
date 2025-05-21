@@ -184,21 +184,21 @@ export const postBrokerApiTokenThunk = createAsyncThunk<
                 onSuccess();
             }
         } catch (error: any) {
-            dispatch(
-                setWarning({
-                    active: true,
-                    description: error.response.data.errorText,
-                    buttonLabel: "Перейти к подключению",
-                    action: () => {
-                        window.location.href = '/payments';
-                        dispatch(setWarning(
-                            {
-                                active: false
-                            }
-                        ))
-                    },
-                }),
-            );
+            // dispatch(
+            //     // setWarning({
+            //     //     active: true,
+            //     //     description: error.response.data.errorText,
+            //     //     buttonLabel: "Перейти к подключению",
+            //     //     action: () => {
+            //     //         window.location.href = '/payments';
+            //     //         dispatch(setWarning(
+            //     //             {
+            //     //                 active: false
+            //     //             }
+            //     //         ))
+            //     //     },
+            //     // }),
+            // );
             dispatch(setError(error.response.data.token))
         }
     }

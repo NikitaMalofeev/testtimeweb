@@ -80,11 +80,12 @@ export const robokassaResult = async (
 
 export const paymentsSetTariff = async (
     tariff_key: string,
+    broker_id: string,
     token: string
 ) => {
     const { data } = await axios.post(
         `${apiPaymentsUrl}set_tariff/`,
-        { tariff_key: tariff_key },
+        { tariff_key, broker_id },
         {
             headers: {
                 "Accept-Language": "ru",

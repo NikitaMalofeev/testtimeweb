@@ -294,14 +294,14 @@ export const getAllTariffsThunk = createAsyncThunk<
 // 6. установить тариф пользователю
 export const setTariffIdThunk = createAsyncThunk<
     void,
-    { tariff_key: string; onSuccess: () => void },
+    { tariff_key: string; broker_id: string; onSuccess: () => void },
     { rejectValue: string; state: RootState }
 >(
     'payments/setTariffIdThunk',
-    async ({ tariff_key, onSuccess }, { dispatch, rejectWithValue, getState }) => {
+    async ({ tariff_key, broker_id, onSuccess }, { dispatch, rejectWithValue, getState }) => {
         try {
             const token = getState().user.token;
-            const res = await paymentsSetTariff(tariff_key, token);
+            const res = await paymentsSetTariff(tariff_key, token, broker_id);
             const key = res.tariff.key;
             dispatch(setCurrentUserTariff(key));
             onSuccess();
@@ -309,13 +309,23 @@ export const setTariffIdThunk = createAsyncThunk<
             const msg = err.response.data.broker_id ? `Перед подключением тарифа необходимо предоставить api-ключ брокера` : err.response?.data?.errorText;
             const riskProfileFilled = getState().documents.filledRiskProfileChapters.is_risk_profile_complete_final
             const riskProfileFinall = getState().documents.filledRiskProfileChapters.is_risk_profile_complete_final
+            const hasBroker = getState().documents.brokersCount > 0
             dispatch(
                 setWarning({
                     active: true,
                     description: msg,
                     buttonLabel: "Перейти к заполнению",
                     action: () => {
-                        if (riskProfileFinall) {
+                        if (!hasBroker) {
+                            dispatch(setStepAdditionalMenuUI(5));
+                            dispatch(
+                                openModal({
+                                    type: ModalType.IDENTIFICATION,
+                                    size: ModalSize.FULL,
+                                    animation: ModalAnimation.LEFT,
+                                })
+                            );
+                        } else if (riskProfileFinall) {
                             window.location.href = '/documents';
                             dispatch(setWarning(
                                 {

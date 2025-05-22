@@ -22,7 +22,8 @@ export enum ButtonTheme {
     EMPTYBLUE = 'emptyblue',
     GREEN = "green",
     UNDERLINE = "underline",
-    GREENuNDERLINE = 'green__underline'
+    GREENUNDERLINE = 'green__underline',
+    REDUNDERLINE = 'red__underline',
 }
 
 export const Button = memo((props: ButtonProps) => {

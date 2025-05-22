@@ -250,13 +250,13 @@ const PersonalAccountMenu: React.FC = () => {
         //     iconWidth: 28,
         //     iconHeight: 28,
         // },
-        // {
-        //     icon: AccountIIRIcon,
-        //     title: "Мои ИИР",
-        //     action: () => dispatch(setCurrentTab("analytics")),
-        //     iconWidth: 23,
-        //     iconHeight: 23,
-        // },
+        {
+            icon: AccountIIRIcon,
+            title: "Мои ИИР",
+            action: () => navigate('/recomendations'),
+            iconWidth: 23,
+            iconHeight: 23,
+        },
         // {
         //     icon: AccountBalanceIcon,
         //     title: "Баланс",

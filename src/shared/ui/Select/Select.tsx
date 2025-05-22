@@ -18,6 +18,7 @@ interface CustomSelectProps {
     items: SelectItem[];
     onChange: (val: string) => void;
     error?: string | boolean;
+    noMargin?: boolean;
 }
 
 export const Select: React.FC<CustomSelectProps> = ({
@@ -26,6 +27,7 @@ export const Select: React.FC<CustomSelectProps> = ({
     title,
     needValue,
     items,
+    noMargin,
     onChange,
     error
 }) => {
@@ -56,7 +58,7 @@ export const Select: React.FC<CustomSelectProps> = ({
     const currentLabel = value ? (modifiedItems.find((i) => i.value === value)?.label ?? "") : "";
 
     return (
-        <div className={`${styles.inputWrapper} ${isFocused ? styles.active : ""}`}>
+        <div className={`${styles.inputWrapper} ${isFocused ? styles.active : ""}`} style={noMargin ? { margin: '0' } : {}}>
             <label className={`${styles.label} ${isFocused || value ? styles.active : ""}`}>
                 {label} {needValue && <span style={{ color: '#FF3C53' }}>*</span>}
             </label>

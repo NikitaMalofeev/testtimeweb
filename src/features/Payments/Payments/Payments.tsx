@@ -30,6 +30,8 @@ import { Icon } from 'shared/ui/Icon/Icon';
 import { ConfirmDocsModal } from 'features/RiskProfile/ConfirmDocsModal/ConfirmDocsModal';
 import { setCurrentConfirmationMethod } from 'entities/Documents/slice/documentsSlice';
 import { PaymentsStatus } from '../PaymentsStatus/PaymentsStatus';
+import { SelectModal } from 'features/Ui/SelectModal/SelectModal';
+import { Select } from 'shared/ui/Select/Select';
 
 const messageTypeOptions = { SMS: 'SMS', EMAIL: 'Email', WHATSAPP: 'Whatsapp' } as const;
 type MessageKey = keyof typeof messageTypeOptions;
@@ -100,6 +102,13 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         dispatch(getAllTariffsThunk());
     }, []);
 
+    const brokersItems = [
+        {
+            value: 'tinkoff_brokers',
+            label: 'Тинькофф инвестиции'
+        }
+    ]
+
     /* ---------------- ui state ------------- */
     const [isConfirming, setIsConfirming] = useState(false);
     const [currentTimeout, setCurrentTimeout] = useState(0);
@@ -116,6 +125,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         initialValues: {
             is_agree: false,
             type_message: 'EMAIL' as MessageKey | '',
+            broker: '',
         },
         validationSchema: schema,
         onSubmit: ({ is_agree, type_message }) => {
@@ -123,6 +133,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                 signingTariffThunk({
                     tariff_id: idForPayments,
                     is_agree,
+
                     type_message,
                     onSuccess: () => {
                         dispatch(
@@ -191,7 +202,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         // }
 
         currentOrderId && dispatch(setTariffIdThunk({
-            tariff_key: currentOrderId, onSuccess: () => {
+            tariff_key: currentOrderId, broker_id: formik.values.broker, onSuccess: () => {
                 setIsConfirming(true);
                 isPaid(true);
             }
@@ -224,6 +235,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     const listPart = (
         <>
             <AnimatePresence mode="popLayout">
+
                 {(currentOrderId ? tariffs.filter((t) => t.id === currentOrderId) : tariffs).map(
                     (t, index) => (
                         <motion.div
@@ -264,6 +276,18 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                         exit={{ y: 100, opacity: 0 }}
                         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     >
+                        <Select
+                            items={brokersItems}
+                            value={formik.values.broker}
+                            onChange={(val) => {
+                                formik.setFieldValue('broker', val)
+                            }}
+                            noMargin
+                            needValue
+                            title='Выберите брокера для подключения тарифа'
+                            label='Брокерский счет для подключения тарифа'
+                        // error={formik.touched.broker && formik.errors.broker}
+                        />
                         <Button
                             theme={ButtonTheme.UNDERLINE}
                             padding="10px 25px"
@@ -276,7 +300,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                             Вернуться к выбору тарифов
                         </Button>
 
-                        <Button theme={ButtonTheme.BLUE} padding="10px 25px" onClick={handleSetTariff}>
+                        <Button disabled={!formik.values.broker} theme={ButtonTheme.BLUE} padding="10px 25px" onClick={handleSetTariff}>
                             Подключить
                         </Button>
                     </motion.div>
@@ -390,6 +414,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                         </div>
 
                         <div className={styles.buttons}>
+
                             <Button
                                 type="submit"
                                 theme={ButtonTheme.BLUE}
@@ -411,6 +436,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
 
     return (
         <div className={styles.list}>
+
             {!isConfirming
                 ? listPart
                 : confirmPart}

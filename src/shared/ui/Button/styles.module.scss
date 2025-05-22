@@ -69,6 +69,19 @@
             cursor: not-allowed;
         }
   }
+
+  .red__underline {
+
+      background-color: white;
+        color: #EA3C4E;
+        border: 1.4px solid #EA3C4E;
+    
+        &.disabled {
+            background-color: white;
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+  }
   
 .underline {
     display: flex;

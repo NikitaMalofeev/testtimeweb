@@ -10,12 +10,13 @@ interface InfoModalProps {
     isOpen: boolean;
     onClose: () => void;
     title?: string;
-    buttonText: string;
-    description: string;
-    action: () => void;
+    buttonText?: string;
+    description?: string;
+    action?: () => void;
+    infoComponent?: React.ReactElement
 }
 
-export const InfoModal = memo(({ isOpen, onClose, title, buttonText, description, action }: InfoModalProps) => {
+export const InfoModal = memo(({ isOpen, onClose, title, buttonText, description, infoComponent, action }: InfoModalProps) => {
     const modalState = useSelector((state: RootState) => state.modal);
 
 
@@ -31,14 +32,17 @@ export const InfoModal = memo(({ isOpen, onClose, title, buttonText, description
             withTitle={<span>{title}</span>}
         >
             <div className={styles.modalContent}>
-                <span className={styles.description}>{description}</span>
-                <Button
-                    theme={ButtonTheme.BLUE}
-                    onClick={() => action()}
-                    className={styles.submitButton}
-                >
-                    {buttonText}
-                </Button>
+                {infoComponent ? infoComponent : <>
+                    <span className={styles.description}>{description}</span>
+                    <Button
+                        theme={ButtonTheme.BLUE}
+                        onClick={() => action && action()}
+                        className={styles.submitButton}
+                    >
+                        {buttonText}
+                    </Button>
+                </>}
+
             </div>
         </Modal>
     );

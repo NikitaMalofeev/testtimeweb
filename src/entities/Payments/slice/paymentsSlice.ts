@@ -301,7 +301,7 @@ export const setTariffIdThunk = createAsyncThunk<
     async ({ tariff_key, broker_id, onSuccess }, { dispatch, rejectWithValue, getState }) => {
         try {
             const token = getState().user.token;
-            const res = await paymentsSetTariff(tariff_key, token, broker_id);
+            const res = await paymentsSetTariff(tariff_key, broker_id, token);
             const key = res.tariff.key;
             dispatch(setCurrentUserTariff(key));
             onSuccess();

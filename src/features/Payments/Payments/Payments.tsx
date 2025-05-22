@@ -58,13 +58,15 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     const tariffs = useSelector((s: RootState) => s.payments.tariffs);
     const idForPayments = useSelector((s: RootState) => s.payments.currentUserTariffIdForPayments);
     const isFetching = useSelector((s: RootState) => s.payments.isFetchingTariffs);
-    const { brokersCount, filledRiskProfileChapters } = useSelector((s: RootState) => s.documents);
+    const { brokersCount, filledRiskProfileChapters, brokerIds } = useSelector((s: RootState) => s.documents);
     const modalState = useSelector((s: RootState) => s.modal);
     const currentPaymentOrder = useSelector((s: RootState) => s.payments.currentOrder);
     const currentOrderStatus = useSelector((s: RootState) => s.payments.currentOrderStatus);
 
     const currentOrderId = useSelector((s: RootState) => s.payments.currentOrderId); // <== НОВОЕ
     const paymentsInfo = useSelector((s: RootState) => s.payments.payments_info)
+
+
 
     const paidTariffIds = useMemo(
         () =>
@@ -104,7 +106,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
 
     const brokersItems = [
         {
-            value: 'tinkoff_brokers',
+            value: brokerIds[0],
             label: 'Тинькофф инвестиции'
         }
     ]
@@ -125,7 +127,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         initialValues: {
             is_agree: false,
             type_message: 'EMAIL' as MessageKey | '',
-            broker: '',
+            broker_id: '',
         },
         validationSchema: schema,
         onSubmit: ({ is_agree, type_message }) => {
@@ -149,6 +151,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
             );
         },
     });
+
 
     const handleChooseTariff = useCallback(
         (id: string) => {
@@ -202,13 +205,13 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         // }
 
         currentOrderId && dispatch(setTariffIdThunk({
-            tariff_key: currentOrderId, broker_id: formik.values.broker, onSuccess: () => {
+            tariff_key: currentOrderId, broker_id: formik.values.broker_id, onSuccess: () => {
                 setIsConfirming(true);
                 isPaid(true);
             }
         }));
 
-    }, [brokersCount, dispatch, filledRiskProfileChapters, currentOrderId, isPaid]);
+    }, [brokersCount, dispatch, filledRiskProfileChapters, currentOrderId, isPaid, formik.values.broker_id]);
 
     useEffect(() => {
         document.body.style.overflow = isConfirming ? 'hidden' : '';
@@ -278,9 +281,9 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                     >
                         <Select
                             items={brokersItems}
-                            value={formik.values.broker}
+                            value={formik.values.broker_id}
                             onChange={(val) => {
-                                formik.setFieldValue('broker', val)
+                                formik.setFieldValue('broker_id', val)
                             }}
                             noMargin
                             needValue
@@ -300,7 +303,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                             Вернуться к выбору тарифов
                         </Button>
 
-                        <Button disabled={!formik.values.broker} theme={ButtonTheme.BLUE} padding="10px 25px" onClick={handleSetTariff}>
+                        <Button disabled={!formik.values.broker_id} theme={ButtonTheme.BLUE} padding="10px 25px" onClick={handleSetTariff}>
                             Подключить
                         </Button>
                     </motion.div>

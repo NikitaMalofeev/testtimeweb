@@ -13,6 +13,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from 'app/providers/store/config/store';
 import { PreviewModal } from 'features/RiskProfile/PreviewModal/PreviewModal';
 import { InfoModal } from 'features/RiskProfile/InfoModal/InfoModal';
+import { RecomendationsRejectModal } from 'features/Recomendations/RecomendationsRejectModal/RecomendationsRejectModal';
 
 
 export const Recomendations = () => {
@@ -88,7 +89,7 @@ export const Recomendations = () => {
                 onClose={() => {
                     dispatch(closeModal(ModalType.INFO));
                 }}
-                infoComponent={<>Люблю машулю</>}
+                infoComponent={<RecomendationsRejectModal onCancel={() => dispatch(closeModal(ModalType.INFO))} />}
             />
 
         </div>

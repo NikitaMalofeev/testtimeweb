@@ -1,3 +1,5 @@
+@use '../../app/styles/mixins' as mix;
+
 .auth {
     display: flex;
     align-items: end;
@@ -67,7 +69,6 @@
     &__wrapper {
         display: flex;
         align-items: end;
-        height: 100%;
         width: 100%;
         margin-top: 20px;
     }
@@ -117,4 +118,46 @@ text-align: center;
 color: #045FDD;
 margin-bottom: 39px;
 margin-top: 5px;
+}
+
+
+@include mix.respond-to('desktop') {
+    .auth {
+       align-items: center;
+       justify-content: center;
+       padding: 32px 0;
+        &__container {
+            max-width: 960px;
+            max-height: 662px;
+            height: 100%;
+            border-radius: 15px;
+            justify-content: start;
+            overflow-y: hidden;
+        }
+
+        &__tabs {
+            min-height: 44px;
+            margin: 0 auto 34px;
+        }
+
+        &__tab {
+            min-height: 44px;
+        }
+
+        & > div {
+            max-width: 960px;
+            max-height: 662px;
+        }
+
+            &__wrapper {
+        height: 100%;
+
+    }
+    }
+
+    
+    .button {
+        max-width: 316px;
+        margin: 0 auto;
+    }
 }

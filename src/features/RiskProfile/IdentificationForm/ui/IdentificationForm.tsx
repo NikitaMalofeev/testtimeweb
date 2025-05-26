@@ -28,12 +28,14 @@ import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
 import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/DocumentPreviewModal";
 import PrivacyPdf from 'shared/assets/documents/PersonalPolicy.pdf'
 import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
+import { useScrollShadow } from "shared/hooks/useScrollShadow";
 
 const IdentificationProfileForm: React.FC = () => {
     const dispatch = useAppDispatch();
     const gcaptchaSiteKey = import.meta.env.VITE_RANKS_GRCAPTCHA_SITE_KEY;
-    const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
     const [selectedMethod, setSelectedMethod] = useState<'SMS' | 'WHATSAPP' | ''>('SMS');
+    const formContentRef = useRef<HTMLFormElement>(null);
+    const { isScrolled, isBottom } = useScrollShadow(formContentRef, true);
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
     const recaptchaRef = useRef<ReCAPTCHA | null>(null);
     const [captchaVerified, setCaptchaVerified] = useState(false);
@@ -187,7 +189,13 @@ const IdentificationProfileForm: React.FC = () => {
 
     return (
         <>
-            <form onSubmit={formik.handleSubmit} className={styles.form}>
+            <form onSubmit={formik.handleSubmit} className={`
+            ${styles.form}
+            ${isScrolled && !isBottom ? styles.shadowBoth
+                    : isScrolled ? styles.shadowTop
+                        : !isBottom ? styles.shadowBottom
+                            : ''} 
+          `} ref={formContentRef}>
                 <div>
                     <Input
                         name="lastName"
@@ -309,7 +317,7 @@ const IdentificationProfileForm: React.FC = () => {
                     </div>
                 </div>
 
-                <div style={{ minHeight: '74px' }}>
+                <div style={{ minHeight: '74px' }} className={styles.captcha}>
                     <ReCAPTCHA
                         ref={recaptchaRef}
                         sitekey={`${gcaptchaSiteKey}`}
@@ -320,8 +328,7 @@ const IdentificationProfileForm: React.FC = () => {
                     <div className={styles.error}>{formik.errors.g_recaptcha}</div>
                 )}
 
-                <div className={`${styles.buttons} ${!isBottom ? styles.shadow : ""
-                    }`}>
+                <div className={`${styles.buttons}`}>
                     <Button onClick={handleSubmitForm} theme={ButtonTheme.BLUE} className={styles.button} disabled={isButtonDisabled}>
                         {loading ? <Loader theme={LoaderTheme.WHITE} size={LoaderSize.SMALL} /> : 'Подтвердить данные'}
                     </Button>

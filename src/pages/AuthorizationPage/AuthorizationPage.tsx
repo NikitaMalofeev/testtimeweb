@@ -18,6 +18,7 @@ import { ResetPasswordModal } from "features/Account/ResetPasswordModal/ResetPas
 import { closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { useNavigate } from "react-router-dom";
+import { useDevice } from "shared/hooks/useDevice";
 
 const AuthorizationPage = () => {
     const dispatch = useAppDispatch();
@@ -25,6 +26,7 @@ const AuthorizationPage = () => {
     const [activeTab, setActiveTab] = useState<"login" | "registration">("login");
     const ModalState = useSelector((state: RootState) => state.modal.resetPassword)
     const navigate = useNavigate()
+    const deviceSize = useDevice();
 
     // Форма для авторизации    
     const formik = useFormik({
@@ -83,7 +85,7 @@ const AuthorizationPage = () => {
     return (
         <>
             <div className={styles.auth}>
-                <AnimateHeightWrapper isOpen={activeTab === 'registration'}>
+                <AnimateHeightWrapper isOpen={activeTab === 'registration'} minHeight={deviceSize === 'desktop' ? '662px' : '500px'}>
                     <div className={styles.auth__wrapper}>
                         <div
                             className={`${styles.auth__container} ${activeTab === 'registration' ? styles.auth__container_extended : ''}`}

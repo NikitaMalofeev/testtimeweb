@@ -175,7 +175,7 @@ const PersonalAccountMenu: React.FC = () => {
                 //     dispatch(setStepAdditionalMenuUI(5))
                 //     dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
                 // }
-                if (!hasPassport) {
+                if (!hasPassport && brokersCount < 1) {
                     setWarning({
                         active: true,
                         description: 'Для подключения брокера, пожалуйста, заполните паспортные данные',

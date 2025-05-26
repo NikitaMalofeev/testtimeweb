@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, ReactNode } from 'react';
 import { motion } from 'framer-motion';
+import styles from './styles.module.scss'
 
 type AnimateHeightWrapperProps = {
     isOpen: boolean;
@@ -31,7 +32,7 @@ const AnimateHeightWrapper: React.FC<AnimateHeightWrapperProps> = ({
             transition={{ duration: 0.4, ease: "easeInOut" }}
 
         >
-            <div ref={contentRef}>{children}</div>
+            <div className={styles.container} ref={contentRef}>{children}</div>
 
         </motion.div>
     );

@@ -132,8 +132,10 @@ margin-top: 5px;
             height: 100%;
             border-radius: 15px;
             justify-content: start;
+            padding: 0;
             overflow-y: hidden;
         }
+
 
         &__tabs {
             min-height: 44px;
@@ -150,9 +152,10 @@ margin-top: 5px;
         }
 
             &__wrapper {
-        height: 100%;
+                height: 100%;
+                margin-top: 0;
 
-    }
+            }
     }
 
     

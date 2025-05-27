@@ -3,7 +3,8 @@
 $breakpoints: (
   'mobile': (350px, 679px),
   'tablet': (680px, 1023px),
-  'desktop': (1024px, 4000px)
+  'desktop': (1024px, 4000px),
+  'tablet-desktop': (680px, 4000px)
 );
 
 // Миксин для медиазапросов

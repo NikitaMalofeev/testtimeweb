@@ -1,9 +1,5 @@
-/* shared/ui/Modal/styles.module.scss */
-  
-  /* 
-    Модалка во весь экран без затемнения (например, для FULL)
-    Можно адаптировать по своему UI
-  */
+@use '../../../app/styles/mixins' as mix;
+
   .ModalFull {
     position: fixed;
     top: 50.5px;
@@ -11,9 +7,6 @@
     width: 100vw;
     height: 100dvh;
     z-index: var(--modal-z-index);
-    /* фон не нужен, но если хотите
-     background: rgba(0, 0, 0, 0.3);
-    */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -121,4 +114,21 @@
 
   .header {
     width: 100%;
+  }
+
+  @include mix.respond-to('desktop') {
+    .middle {
+      max-width: 380px;
+      max-height: 690px;
+    }
+
+    .mini {
+      max-width: 380px;
+      bottom: 25%;
+      max-height: 50vh;
+    }
+
+    .content {
+      padding-bottom: 16px;
+    }
   }

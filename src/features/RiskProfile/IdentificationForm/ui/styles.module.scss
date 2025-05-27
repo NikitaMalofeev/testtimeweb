@@ -110,7 +110,7 @@
 }
 
 
-@include mix.respond-to('desktop') {
+@include mix.respond-to('tablet-desktop') {
     .button {
         max-width: 316px;
         margin: 0 auto;

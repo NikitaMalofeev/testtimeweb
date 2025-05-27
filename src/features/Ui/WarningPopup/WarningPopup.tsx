@@ -40,6 +40,7 @@ export const WarningPopup = () => {
         ) {
             setVisible(false)
         }
+
     }, [warning.active]);
 
     /* --- закрыть по крестику --- */

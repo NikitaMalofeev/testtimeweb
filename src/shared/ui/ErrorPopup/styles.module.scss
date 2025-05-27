@@ -67,7 +67,7 @@ text-align: center;
     gap: 10px;
   }
 
-    @include mix.respond-to('desktop') {
+    @include mix.respond-to('tablet-desktop') {
 
       .errorModal {
          position: fixed;

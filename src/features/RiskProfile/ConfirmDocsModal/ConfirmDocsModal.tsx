@@ -55,6 +55,15 @@ export const ConfirmDocsModal = memo(
             }
         }, [isOpen]);
 
+        const handleModalClose = () => {
+            // 1. Сбрасываем код
+            setSmsCodeFirst(Array(codeLength).fill(""));
+            // 2. Сбрасываем статус подтверждения, чтобы borderColor перешёл в исходный
+            dispatch(setConfirmationDocsSuccess("не определено"));
+            // 3. Вызываем переданный коллбэк закрытия
+            onClose();
+        };
+
         useEffect(() => {
             let timer: ReturnType<typeof setInterval>;
             if (phoneTimerActive) {
@@ -256,7 +265,7 @@ export const ConfirmDocsModal = memo(
         return (
             <Modal
                 isOpen={isOpen}
-                onClose={onClose}
+                onClose={handleModalClose}
                 animation={modalState[ModalType.CONFIRM_CODE].animation}
                 size={modalState[ModalType.CONFIRM_CODE].size}
                 withCloseIcon
@@ -285,6 +294,8 @@ export const ConfirmDocsModal = memo(
                                         : digit
                                             ? "#2977E2"
                                             : (hasNoTryPhoneConfirm ? "#D4D4E8" : "#1CC15A");
+
+
                                 return (
                                     <input
                                         key={`first-form-${index}`}

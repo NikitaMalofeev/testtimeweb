@@ -213,6 +213,7 @@ const PersonalAccountMenu: React.FC = () => {
         {
             icon: AccountTarifsIcon,
             title: "Тарифы",
+            message: hasActiveTariff && 'подключен',
             action: () => navigate("/payments"),
             iconWidth: 24.54,
             iconHeight: 24.24,

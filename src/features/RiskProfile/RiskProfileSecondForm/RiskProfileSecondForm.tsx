@@ -21,6 +21,7 @@ import { WarningModal } from "features/Ui/WarningModal/WarningModal";
 import { PreviewModal } from "../PreviewModal/PreviewModal";
 import { riskProfiles } from "shared/static/riskProfiles";
 import { RiskProfileCard } from "../RiskProfileCard/RiskProfileCard";
+import { getUserDocumentsStateThunk } from "entities/Documents/slice/documentsSlice";
 
 interface SwiperParametrValues {
     risk_prof_conservative: string;
@@ -168,6 +169,7 @@ export const RiskProfileSecondForm: React.FC = () => {
                     animation: ModalAnimation.BOTTOM,
                 })
             );
+            dispatch(getUserDocumentsStateThunk())
         } catch (error) {
 
         }

@@ -53,7 +53,8 @@ const persistConfig = getPersistConfig({
         'modal.preview',
         'modal.resetPassword',
         'modal.progress',
-        'modal.info',
+        //скрываю из-за бага в перезагрузке подписания брокера
+        // 'modal.info',
         'modal.success',
         'modal.modalStack',
         'modal.confirmationMethod',

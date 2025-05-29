@@ -10,7 +10,8 @@ import {
     setTariffIdThunk,
     signingTariffThunk,
     setCurrentOrderStatus,
-    setCurrentOrderId,     // <== НОВОЕ
+    setCurrentOrderId,
+    getAllUserTariffsThunk,     // <== НОВОЕ
 } from 'entities/Payments/slice/paymentsSlice';
 import { setStepAdditionalMenuUI, setWarning } from 'entities/ui/Ui/slice/uiSlice';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
@@ -51,7 +52,11 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     const dispatch = useAppDispatch();
 
     /* ---------------- url параметр ---------------- */
-    const { status: statusParam } = useParams<{ status?: string }>();
+
+    const { status: statusParam, uuid: orderIdParam } = useParams<{
+        status?: 'success' | 'loading' | 'failed';
+        uuid?: string;
+    }>();
     const allowedStatus = ['success', 'loading', 'failed'] as const;
 
     /* ---------------- redux ---------------- */
@@ -78,20 +83,28 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         [paymentsInfo],
     );
 
-    /* ---------------- sync url → redux ------------- */
     useEffect(() => {
+        // статус
         if (
             statusParam &&
-            allowedStatus.includes(statusParam as any) &&
+            allowedStatus.includes(statusParam) &&
             currentOrderStatus !== statusParam
         ) {
-            dispatch(setCurrentOrderStatus(statusParam as any));
+            dispatch(setCurrentOrderStatus(statusParam));
         }
 
-        if (statusParam === 'success') {
-            dispatch(setCurrentOrderStatus(''))
+        // id заказа
+        if (orderIdParam && currentOrderId !== orderIdParam) {
+            dispatch(setCurrentOrderId(orderIdParam));
         }
-    }, [statusParam, currentOrderStatus, dispatch]);
+
+        // success-экран можно сразу «сбросить» после показа
+        if (statusParam === 'success') {
+            dispatch(setCurrentOrderStatus(''));
+            dispatch(getAllUserTariffsThunk({ onSuccess: () => { } }))
+        }
+    }, [statusParam, orderIdParam, currentOrderStatus, currentOrderId, dispatch]);
+
 
     useEffect(() => {
         if (tariffs.length < 1) {

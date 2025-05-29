@@ -45,7 +45,7 @@ const DocumentsPage: React.FC = () => {
     const modalState = useSelector((state: RootState) => state.modal);
     const { documentsPreview, documentsPreviewSigned } = modalState;
 
-    const { userDocuments, loading, filledRiskProfileChapters, brokerIds } = useSelector((state: RootState) => state.documents);
+    const { userDocuments, loading, filledRiskProfileChapters, brokerIds, brokersCount } = useSelector((state: RootState) => state.documents);
     const currentDocument = useSelector((state: RootState) => state.documents.currentSugnedDocument.document);
     const currentConfirmableDocument = useSelector((state: RootState) => state.documents.currentConfirmableDoc);
     const currentTariffId = useSelector((state: RootState) => state.payments.currentTariffId);
@@ -235,7 +235,7 @@ const DocumentsPage: React.FC = () => {
         if (type === "type_doc_EDS_agreement" && !filledRiskProfileChapters.is_exist_scan_passport) {
             status = "disabled";
         }
-        if (type === "type_doc_broker_api_token" && brokerIds.length > 0) {
+        if (type === "type_doc_broker_api_token" && brokersCount > 0) {
             status = "signed";
         }
         return {
@@ -284,7 +284,7 @@ const DocumentsPage: React.FC = () => {
                 !tariffs
             ) {
                 colorClass = styles.button__red;
-                additionalMessages = 'Для подписания заполните паспорт, подключите брокера и тариф';
+                additionalMessages = `Для подписания${!filledRiskProfileChapters.is_exist_scan_passport ? ' заполните паспорт,' : ''} ${brokerIds[0] !== null ? 'подключите брокера и' : 'подключите'} ${!hasTariff ? 'тариф' : ''}`;
             } else {
                 colorClass = styles.button__gray;
                 additionalMessages = '';
@@ -292,8 +292,9 @@ const DocumentsPage: React.FC = () => {
 
             // 2) Иначе для брокерского токена    
         } else if (doc.id === "type_doc_broker_api_token") {
-            if (brokerIds[0] || (filledRiskProfileChapters.is_exist_scan_passport && hasTariff)) {
+            if (brokerIds[0] || (filledRiskProfileChapters.is_exist_scan_passport)) {
                 colorClass = styles.button__gray;
+                additionalMessages = 'Для подписания подключите брокерский счет';
             } else {
                 colorClass = styles.button__red;
             }
@@ -571,7 +572,6 @@ const DocumentsPage: React.FC = () => {
                                         ? (
                                             <div className={styles.document__paymentStatus} >Оплачено</div>
                                         )
-
                                         : showSuccess
                                             ? (
                                                 <div className={styles.document__button_success}>

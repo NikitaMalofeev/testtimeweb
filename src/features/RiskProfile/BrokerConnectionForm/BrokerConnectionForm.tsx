@@ -165,6 +165,7 @@ export const BrokerConnectionForm: React.FC = () => {
                 action={() => {
                     navigate('/documents')
                     dispatch(setStepAdditionalMenuUI(4))
+                    dispatch(closeModal(ModalType.INFO));
                     dispatch(setCurrentConfirmableDoc('type_doc_broker_api_token'))
                 }}
                 onClose={() => {

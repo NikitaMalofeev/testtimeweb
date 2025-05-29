@@ -28,3 +28,10 @@ export interface SetHtmlsPayload {
     htmlMap: HtmlMap
     customKey?: string
 }
+
+export interface AvailabilityPersonalAccountMenuItems {
+    broker: boolean;
+    documents: boolean;
+    risk_profile: boolean;
+    tariffs: boolean;
+}

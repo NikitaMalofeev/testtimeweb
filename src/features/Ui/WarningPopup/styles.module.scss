@@ -1,3 +1,5 @@
+@use '../../../app/styles/mixins' as mix;
+
 .warningModal {
     position: fixed;
     max-width: calc(100dvw - 48px);
@@ -61,4 +63,13 @@ text-align: center;
     display: flex;
     flex-direction: column;
     gap: 10px;
+  }
+
+   @include mix.respond-to('tablet-desktop') {
+
+      .warningModal {
+         position: fixed;
+        max-width: 360px;
+        left: calc(50% - 180px);
+      }
   }

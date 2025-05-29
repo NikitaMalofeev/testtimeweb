@@ -6,7 +6,7 @@ import { RefObject, useEffect, useState } from "react";
  * @param active – true → хук активен (например, модалка открыта)
  */
 export const useScrollShadow = (
-    ref: RefObject<HTMLElement>,
+    ref: RefObject<HTMLElement> | RefObject<HTMLFormElement>,
     active: boolean = true
 ) => {
     const [isScrolled, setIsScrolled] = useState(false);
@@ -27,6 +27,10 @@ export const useScrollShadow = (
         el.addEventListener("scroll", handleScroll);
         return () => el.removeEventListener("scroll", handleScroll);
     }, [ref, active]);
+
+    useEffect(() => {
+        console.log('form scrollTop:');
+    }, [isScrolled]);
 
     return { isScrolled, isBottom };
 };

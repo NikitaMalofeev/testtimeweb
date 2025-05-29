@@ -48,6 +48,7 @@ export const ErrorPopup = () => {
     }
 
 
+
     return (
         <motion.div
             initial={{ y: -50, opacity: 0 }}

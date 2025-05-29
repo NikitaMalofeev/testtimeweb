@@ -51,7 +51,7 @@ const PersonalAccountMenu: React.FC = () => {
     const ifFilledRp = filledRiskProfileChapters.is_risk_profile_complete && filledRiskProfileChapters.is_risk_profile_complete_final
     const userPaymentsInfo = useSelector((state: RootState) => state.payments.payments_info);
     const hasActiveTariff = userPaymentsInfo.some(item => item.user_tariff_is_active === true)
-
+    const availableMenuItems = useSelector((state: RootState) => state.documents.availabilityPersonalAccountMenuItems);
 
     useEffect(() => {
         dispatch(getUserPersonalAccountInfoThunk());
@@ -83,10 +83,10 @@ const PersonalAccountMenu: React.FC = () => {
             icon: AccountRPIcon,
             title: "Риск-профиль",
             action: () => {
-                if (!filledRiskProfileChapters.is_risk_profile_complete) {
+                if (!filledRiskProfileChapters.is_risk_profile_complete && availableMenuItems?.risk_profile) {
                     dispatch(setStepAdditionalMenuUI(0))
                     dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
-                } else if (!filledRiskProfileChapters.is_risk_profile_complete_final) {
+                } else if (!filledRiskProfileChapters.is_risk_profile_complete_final && availableMenuItems?.risk_profile) {
                     dispatch(setStepAdditionalMenuUI(1))
                     dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
                 }
@@ -97,7 +97,11 @@ const PersonalAccountMenu: React.FC = () => {
         {
             icon: AccountDocumentIcon,
             title: "Документы",
-            route: "/documents",
+            action: () => {
+                if (availableMenuItems?.documents) {
+                    navigate("/documents")
+                }
+            },
             notificationsCount: 9 - userDocuments.length,
             iconWidth: 28,
             iconHeight: 28,
@@ -120,79 +124,81 @@ const PersonalAccountMenu: React.FC = () => {
             icon: AccountBrokerIcon,
             title: "Брокер",
             action: () => {
-                const hasBrokerKey = brokerIds.length > 0;
-                const hasPassport =
-                    filledRiskProfileChapters.is_complete_passport &&
-                    filledRiskProfileChapters.is_exist_scan_passport;
-                const hasTariff = hasActiveTariff;
+                if (availableMenuItems?.broker) {
+                    const hasBrokerKey = brokerIds.length > 0;
+                    const hasPassport =
+                        filledRiskProfileChapters.is_complete_passport &&
+                        filledRiskProfileChapters.is_exist_scan_passport;
+                    const hasTariff = hasActiveTariff;
 
-                // if (!hasPassport && !hasTariff) {
-                //     setWarning({
-                //         active: true,
-                //         description:
-                //             'Для подключения брокера, пожалуйста, заполните паспорт и подключите тариф',
-                //         buttonLabel: 'Перейти к заполнению',
-                //         action: () => {
-                //             dispatch(setStepAdditionalMenuUI(0))
-                //             dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
-                //             dispatch(setWarning(
-                //                 {
-                //                     active: false
-                //                 }
-                //             ))
-                //         },
-                //     });
-                // } else if (!hasPassport) {
-                //     setWarning({
-                //         active: true,
-                //         description: 'Для подключения брокера, пожалуйста, заполните паспортные данные',
-                //         buttonLabel: 'Перейти к заполнению',
-                //         action: () => {
-                //             dispatch(setStepAdditionalMenuUI(0))
-                //             dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
-                //             dispatch(setWarning(
-                //                 {
-                //                     active: false
-                //                 }
-                //             ))
-                //         },
-                //     });
-                // } else if (!hasTariff) {
-                //     setWarning({
-                //         active: true,
-                //         description: 'Для подключения брокера, пожалуйста, подключите тариф',
-                //         buttonLabel: 'Перейти к тарифам',
-                //         action: () => {
-                //             navigate('/payments')
-                //             dispatch(setWarning(
-                //                 {
-                //                     active: false
-                //                 }
-                //             ))
-                //         },
-                //     });
-                // } else {
-                //     dispatch(setStepAdditionalMenuUI(5))
-                //     dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
-                // }
-                if (!hasPassport && brokersCount < 1) {
-                    setWarning({
-                        active: true,
-                        description: 'Для подключения брокера, пожалуйста, заполните паспортные данные',
-                        buttonLabel: 'Перейти к заполнению',
-                        action: () => {
-                            dispatch(setStepAdditionalMenuUI(0))
-                            dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
-                            dispatch(setWarning(
-                                {
-                                    active: false
-                                }
-                            ))
-                        },
-                    });
-                } else {
-                    dispatch(setStepAdditionalMenuUI(5))
-                    dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
+                    // if (!hasPassport && !hasTariff) {
+                    //     setWarning({
+                    //         active: true,
+                    //         description:
+                    //             'Для подключения брокера, пожалуйста, заполните паспорт и подключите тариф',
+                    //         buttonLabel: 'Перейти к заполнению',
+                    //         action: () => {
+                    //             dispatch(setStepAdditionalMenuUI(0))
+                    //             dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
+                    //             dispatch(setWarning(
+                    //                 {
+                    //                     active: false
+                    //                 }
+                    //             ))
+                    //         },
+                    //     });
+                    // } else if (!hasPassport) {
+                    //     setWarning({
+                    //         active: true,
+                    //         description: 'Для подключения брокера, пожалуйста, заполните паспортные данные',
+                    //         buttonLabel: 'Перейти к заполнению',
+                    //         action: () => {
+                    //             dispatch(setStepAdditionalMenuUI(0))
+                    //             dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
+                    //             dispatch(setWarning(
+                    //                 {
+                    //                     active: false
+                    //                 }
+                    //             ))
+                    //         },
+                    //     });
+                    // } else if (!hasTariff) {
+                    //     setWarning({
+                    //         active: true,
+                    //         description: 'Для подключения брокера, пожалуйста, подключите тариф',
+                    //         buttonLabel: 'Перейти к тарифам',
+                    //         action: () => {
+                    //             navigate('/payments')
+                    //             dispatch(setWarning(
+                    //                 {
+                    //                     active: false
+                    //                 }
+                    //             ))
+                    //         },
+                    //     });
+                    // } else {
+                    //     dispatch(setStepAdditionalMenuUI(5))
+                    //     dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
+                    // }
+                    if (!hasPassport && brokersCount < 1) {
+                        setWarning({
+                            active: true,
+                            description: 'Для подключения брокера, пожалуйста, заполните паспортные данные',
+                            buttonLabel: 'Перейти к заполнению',
+                            action: () => {
+                                dispatch(setStepAdditionalMenuUI(0))
+                                dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
+                                dispatch(setWarning(
+                                    {
+                                        active: false
+                                    }
+                                ))
+                            },
+                        });
+                    } else {
+                        dispatch(setStepAdditionalMenuUI(5))
+                        dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
+                    }
                 }
             },
             message: brokersCount > 0 && 'подключен',
@@ -214,7 +220,7 @@ const PersonalAccountMenu: React.FC = () => {
             icon: AccountTarifsIcon,
             title: "Тарифы",
             message: hasActiveTariff && 'подключен',
-            action: () => navigate("/payments"),
+            action: () => availableMenuItems?.tariffs && navigate("/payments"),
             iconWidth: 24.54,
             iconHeight: 24.24,
         },
@@ -338,8 +344,8 @@ const PersonalAccountMenu: React.FC = () => {
                                 <div className={styles.page__status_inactive}>Не активна</div>
                                 <div className={styles.page__status__tooltip}>
                                     <Tooltip
-                                        positionBox={{ top: "8px", left: '30px' }}
-                                        squerePosition={{ top: "54px", left: "-4px" }}
+                                        positionBox={{ top: "48px", left: '30px' }}
+                                        squerePosition={{ top: "12px", left: "-4px" }}
                                         topForCenteringIcons="24px"
                                         boxWidth={{ maxWidth: '200px' }}
                                         className={styles.modalContent__tooltip}

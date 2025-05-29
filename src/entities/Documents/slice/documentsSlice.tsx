@@ -2,7 +2,7 @@
 
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "app/providers/store/config/store";
-import { ConfirmCustomDocsPayload, ConfirmDocsPayload, FilledRiskProfileChapters, SetHtmlsPayload } from "../types/documentsTypes";
+import { AvailabilityPersonalAccountMenuItems, ConfirmCustomDocsPayload, ConfirmDocsPayload, FilledRiskProfileChapters, SetHtmlsPayload } from "../types/documentsTypes";
 import { confirmBrokerDocsRequest, confirmCustomDocsRequest, confirmDocsRequest, getAllBrokers, getBrokerDocumentsSigned, getCustomDocumentsNotSigned, getCustomDocumentsSigned, getDocumentNotSigned, getDocumentsInfo, getDocumentsNotSigned, getDocumentsSigned, getDocumentsState, postConfirmationCodeCustom } from "../api/documentsApi";
 import { setCurrentConfirmingDoc } from "entities/RiskProfile/slice/riskProfileSlice";
 import { setConfirmationDocsSuccess } from "entities/ui/Ui/slice/uiSlice";
@@ -92,7 +92,7 @@ interface DocumentsState {
     userPassportData: UserPassportData | null;
     customDocumentsData: CustomDocData | null;
     uploadDocs: Record<string, UploadDocState>;
-
+    availabilityPersonalAccountMenuItems: AvailabilityPersonalAccountMenuItems | null;
 }
 
 const initialState: DocumentsState = {
@@ -119,6 +119,7 @@ const initialState: DocumentsState = {
     userPassportData: null,
     customDocumentsData: null,
     uploadDocs: {},
+    availabilityPersonalAccountMenuItems: null
 };
 
 export const openUploadDocWebsocketThunk = createAsyncThunk<
@@ -331,7 +332,7 @@ export const getUserDocumentsStateThunk = createAsyncThunk<
             }
             const response = await getDocumentsState(token);
             const { is_risk_profile_complete, is_risk_profile_complete_final, is_exist_scan_passport, is_complete_passport } = response;
-
+            dispatch(setAvailabilityPersonalAccountMenuItems(response.main_menu_clickable_items))
             dispatch(
                 setIsRiksProfileComplete({
                     is_risk_profile_complete,
@@ -704,6 +705,12 @@ export const documentsSlice = createSlice({
                 if (doc) doc.timeoutPending = 0;
             }
         },
+        setAvailabilityPersonalAccountMenuItems(
+            state,
+            action: PayloadAction<AvailabilityPersonalAccountMenuItems>
+        ) {
+            state.availabilityPersonalAccountMenuItems = action.payload;
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -781,7 +788,8 @@ export const {
     clearDocumentTimeout,
     setCustomDocumentData,
     setUploadDocSocket,
-    setUploadDocStatus
+    setUploadDocStatus,
+    setAvailabilityPersonalAccountMenuItems
 } = documentsSlice.actions;
 
 export default documentsSlice.reducer;

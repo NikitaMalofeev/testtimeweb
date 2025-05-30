@@ -14,5 +14,6 @@ export interface PersonalAccountItem {
     largeWarningMessage?: ReactElement | null;
     iconWidth: number;
     iconHeight: number;
+    disabled?: boolean;
     message?: string | false;
 }

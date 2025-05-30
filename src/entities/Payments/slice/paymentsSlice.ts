@@ -4,6 +4,7 @@ import { setError } from 'entities/Error/slice/errorSlice';
 import {
     checkConfirmationCodeTariff,
     createOrder,
+    getAllActiveTariffs,
     getAllTariffs,
     getAllUserTariffs,
     getNotSignedTariffDoc,
@@ -158,6 +159,7 @@ export const createOrderThunk = createAsyncThunk<
 });
 
 // получить все тарифы пользователя + информацию о платежах
+
 export const getAllUserTariffsThunk = createAsyncThunk<
     PaymentInfo[],                                       // <== НОВОЕ
     { onSuccess?: () => void },
@@ -174,6 +176,25 @@ export const getAllUserTariffsThunk = createAsyncThunk<
         } catch (err: any) {
             const msg = err.response?.data?.info || err.message;
             dispatch(setError(msg));
+            return rejectWithValue(msg);
+        }
+    },
+);
+
+export const getAllActiveTariffsThunk = createAsyncThunk<
+    PaymentInfo[],                                       // <== НОВОЕ
+    { onSuccess?: () => void },
+    { rejectValue: string; state: RootState }
+>('payments/getAllUserTariffsThunk',
+    async ({ onSuccess }, { dispatch, rejectWithValue, getState }) => {
+        try {
+            const token = getState().user.token;
+            const response = token && await getAllActiveTariffs(token);
+            onSuccess?.();
+            return response.payments_info;
+        } catch (err: any) {
+            const msg = err.response?.data?.errorText || err.message;
+            msg !== 'Тарифы для данного пользователя не найдены!' && dispatch(setError(msg));
             return rejectWithValue(msg);
         }
     },

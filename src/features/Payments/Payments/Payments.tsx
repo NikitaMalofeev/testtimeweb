@@ -11,7 +11,8 @@ import {
     signingTariffThunk,
     setCurrentOrderStatus,
     setCurrentOrderId,
-    getAllUserTariffsThunk,     // <== НОВОЕ
+    getAllUserTariffsThunk,
+    getAllActiveTariffsThunk,     // <== НОВОЕ
 } from 'entities/Payments/slice/paymentsSlice';
 import { setStepAdditionalMenuUI, setWarning } from 'entities/ui/Ui/slice/uiSlice';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
@@ -100,6 +101,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
 
         // success-экран можно сразу «сбросить» после показа
         if (statusParam === 'success') {
+            dispatch(getAllActiveTariffsThunk({ onSuccess: () => { } }))
             dispatch(setCurrentOrderStatus(''));
             dispatch(getAllUserTariffsThunk({ onSuccess: () => { } }))
         }
@@ -276,7 +278,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                 capital={`${t.days_service_validity} days`}
                                 imageUrl={t.title === 'Базовый тариф' ? PaymentsBase : PaymentsActive}
                                 onMore={() => handleChooseTariff(t.id)}
-                                paidFor={paidTariffIds.has(t.id)}
+                                paidFor={t.is_active}
                             />
                         </motion.div>
                     ),
@@ -375,7 +377,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                         capital={`${t.days_service_validity} days`}
                                         imageUrl={t.title === 'Долгосрочный инвестор' ? PaymentsBase : PaymentsActive}
                                         onMore={() => handleChooseTariff(t.id)}
-                                        paidFor={paidTariffIds.has(t.id)}
+                                        paidFor={t.is_active}
                                     />
                                 </motion.div>
                             ),

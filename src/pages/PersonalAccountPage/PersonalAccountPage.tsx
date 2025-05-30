@@ -1,5 +1,5 @@
 // entities/PersonalAccount/PersonalAccountMenu.tsx
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
 import { setCurrentTab } from "entities/PersonalAccount/slice/personalAccountSlice";
@@ -36,6 +36,7 @@ import { Tooltip } from "shared/ui/Tooltip/Tooltip";
 import { getAllBrokersThunk, getUserDocumentsStateThunk } from "entities/Documents/slice/documentsSlice";
 import { checkPushNotificationsThunk } from "entities/ui/PushNotifications/slice/pushSlice";
 import BlueOk from 'shared/assets/svg/blueOk.svg'
+import { getAllActiveTariffsThunk } from "entities/Payments/slice/paymentsSlice";
 
 const PersonalAccountMenu: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -50,8 +51,13 @@ const PersonalAccountMenu: React.FC = () => {
     const { unreadAnswersCount } = useSelector((state: RootState) => state.supportChat);
     const ifFilledRp = filledRiskProfileChapters.is_risk_profile_complete && filledRiskProfileChapters.is_risk_profile_complete_final
     const userPaymentsInfo = useSelector((state: RootState) => state.payments.payments_info);
-    const hasActiveTariff = userPaymentsInfo.some(item => item.user_tariff_is_active === true)
     const availableMenuItems = useSelector((state: RootState) => state.documents.availabilityPersonalAccountMenuItems);
+    const tariffs = useSelector((s: RootState) => s.payments.tariffs);
+
+    const hasActiveTariff = useMemo(
+        () => tariffs.some(t => t.is_active),
+        [tariffs]
+    );
 
     useEffect(() => {
         dispatch(getUserPersonalAccountInfoThunk());
@@ -61,6 +67,7 @@ const PersonalAccountMenu: React.FC = () => {
     useEffect(() => {
         dispatch(getAllBrokersThunk({ is_confirmed_type_doc_agreement_transfer_broker: true, onSuccess: () => { } }));
         dispatch(getUserDocumentsStateThunk())
+        dispatch(getAllActiveTariffsThunk({ onSuccess: () => { } }))
     }, []);
 
     useEffect(() => {
@@ -93,6 +100,7 @@ const PersonalAccountMenu: React.FC = () => {
             },
             iconWidth: 28,
             iconHeight: 28,
+            disabled: !availableMenuItems?.risk_profile,
         },
         {
             icon: AccountDocumentIcon,
@@ -118,7 +126,8 @@ const PersonalAccountMenu: React.FC = () => {
                         <Icon Svg={WarningIcon} width={16} height={16} />
                         <div>Заполните анкету риск-профиля</div>
                     </div>
-                )
+                ),
+            disabled: !availableMenuItems?.documents,
         },
         {
             icon: AccountBrokerIcon,
@@ -215,6 +224,7 @@ const PersonalAccountMenu: React.FC = () => {
                     <div>Для подключения заполните документы</div>
                 </div>
             ) : null,
+            disabled: !availableMenuItems?.broker,
         },
         {
             icon: AccountTarifsIcon,
@@ -326,9 +336,9 @@ const PersonalAccountMenu: React.FC = () => {
                 <PushNotification pushNotifications={pushNotifications} activePush={activePush} />
                 <div className={styles.page__container}>
                     <div>
-                        {userPersonalAccountInfo?.tariff_is_active ? (
+                        {hasActiveTariff ? (
                             <div className={styles.page__status}>
-                                <div className={styles.page__status_inactive}>активна</div>
+                                <div className={styles.page__status_active}>активна</div>
                                 <div className={styles.page__status__tooltip}>
                                     <Tooltip
                                         positionBox={{ top: "8px", left: '30px' }}
@@ -390,6 +400,7 @@ const PersonalAccountMenu: React.FC = () => {
                                         ...getMenuItemStyle(item),
                                         ...(item.warningMessage && { padding: '18px 0 34px' }),
                                         ...(item.largeWarningMessage && { padding: '18px 0 54px' }),
+                                        ...(item.disabled && { opacity: '0.5' })
                                     }}
                                     onClick={() => {
                                         if (item.route) {

@@ -1,3 +1,5 @@
+@use '../../../app/styles/mixins' as mix;
+
 .additionalMenu {
   height: 100%;
 }
@@ -67,6 +69,7 @@
     gap: 32px;
     height: calc(100dvh - 50.5px);
     flex-direction: column;
+
     overflow: auto;
   }
 
@@ -106,3 +109,32 @@
     font-size: 16px;
   }
 
+@include mix.respond-to('tablet-desktop') {
+         .additionalMenu {
+          background-color: #E1ECFB;
+          padding: 32px;
+          width: 100vw;
+
+          &__container {
+            position: relative;
+            max-width: 960px;
+            max-height: 662px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 15px;
+            padding: 64px 60px 0;
+          }
+         }
+         .progressBar {
+          max-width: 992px;
+          position: absolute;
+          top: 24px;
+          left: -32px;
+         }
+
+         .header__tooltip {
+          top: 68px;
+          left: 360px;
+         }
+
+}

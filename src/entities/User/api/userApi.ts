@@ -101,3 +101,21 @@ export const getUserId = async (data: { phone?: string; email?: string }) => {
     );
     return response.data;
 };
+
+
+//для тестирования
+export const deleteUserTariffs = async (token: string) => {
+    const response = await axios.post(
+        `${apiUrl}dev/reset_payments_user/`, {},
+        {
+            headers: {
+                "Accept-Language": "ru",
+                "Content-Type": "application/json",
+                "Authorization": `Token ${token}`
+
+            },
+
+        }
+    );
+    return response.data;
+};

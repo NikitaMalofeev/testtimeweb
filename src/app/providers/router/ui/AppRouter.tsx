@@ -110,7 +110,7 @@ function AppRouter() {
                 }
             />
             <Route
-                path="/payments/:status?/:orderId?"
+                path="/payments/:status?/:uuid?"
                 element={
                     <RequireAuthRoute>
                         <Suspense fallback={<PageLoader />}>

@@ -292,7 +292,7 @@ const DocumentsPage: React.FC = () => {
 
             // 2) Иначе для брокерского токена    
         } else if (doc.id === "type_doc_broker_api_token") {
-            if (brokersCount === 0 || (filledRiskProfileChapters.is_exist_scan_passport)) {
+            if (brokersCount === 0) {
                 colorClass = styles.button__gray;
                 additionalMessages = 'Для подписания подключите брокерский счет';
             } else {

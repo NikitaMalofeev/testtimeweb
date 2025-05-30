@@ -5,6 +5,7 @@ import { Tooltip } from "../Tooltip/Tooltip";
 import styles from "./styles.module.scss";
 import { setIsBottom } from "entities/ui/Ui/slice/uiSlice";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
+import { useDevice } from "shared/hooks/useDevice";
 
 const steps = ["Шаг 1 из 6", "Шаг 2 из 6", "Шаг 3 из 6", "Шаг 4 из 6", "Шаг 5 из 6", "Шаг 6 из 6"];
 
@@ -24,6 +25,7 @@ export const AdditionalMenu: React.FC<AdditionalMenuProps> = ({ onClose, title, 
     const currentTypeDoc = useSelector(
         (state: RootState) => state.documents.currentConfirmableDoc
     );
+    const device = useDevice()
 
     useEffect(() => {
         let lastIsAtBottom: boolean | null = null;
@@ -79,16 +81,29 @@ export const AdditionalMenu: React.FC<AdditionalMenuProps> = ({ onClose, title, 
 
     return (
         <div className={styles.additionalMenu}>
-            <div className={styles.progressBar}>
-                {steps.map((_, index) => (
-                    <div
-                        key={index}
-                        className={`${styles.progressStep} ${index <= currentStep ? styles.active : ""}`}
-                    />
-                ))}
-            </div>
+            {device === 'mobile' && (
+                <div className={styles.progressBar}>
+                    {steps.map((_, index) => (
+                        <div
+                            key={index}
+                            className={`${styles.progressStep} ${index <= currentStep ? styles.active : ""}`}
+                        />
+                    ))}
+                </div>
+            )}
+
 
             <div ref={containerRef} className={`${styles.additionalMenu__container} ${hasScrolled ? styles.additionalMenu__container_scrolled : ""}`}>
+                {device !== 'mobile' && (
+                    <div className={styles.progressBar}>
+                        {steps.map((_, index) => (
+                            <div
+                                key={index}
+                                className={`${styles.progressStep} ${index <= currentStep ? styles.active : ""}`}
+                            />
+                        ))}
+                    </div>
+                )}
                 <div className={`${styles.header} ${hasScrolled ? styles.shadow : ""}`}>
                     <h2 className={styles.header__title}>{title}</h2>
                     {description && <Tooltip positionBox={{ top: '26px', left: '-264px' }} bigContentSquerePosition={currentStep === 2 ? { top: '32px', left: '241px' } : { top: '15px', left: '241px' }} topForCenteringIcons='24px' description={description} className={`${styles.header__tooltip} ${hasScrolled ? styles.header__tooltip_scrolled : ""}`} />}

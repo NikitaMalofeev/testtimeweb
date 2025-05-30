@@ -24,6 +24,7 @@ import { useAuthModalsController } from 'shared/hooks/useAuthModalsController';
 import { setScrollToTop } from 'entities/ui/Ui/slice/uiSlice';
 import { WarningPopup } from 'features/Ui/WarningPopup/WarningPopup';
 import { getAllUserTariffsThunk } from 'entities/Payments/slice/paymentsSlice';
+import { deleteUserTariffs } from 'entities/User/api/userApi';
 
 function App() {
   const modalState = useSelector((state: RootState) => state.modal);
@@ -112,11 +113,16 @@ function App() {
     dispatch(getAllUserTariffsThunk({ onSuccess: () => { } }))
   }, []);
 
+  const handleResetTariffs = async () => {
+    const res = await deleteUserTariffs(token)
+  }
+
   return (
     <div className='page__wrapper'>
       <div className='page__content'>
         <Header currentNotificationsCount={unreadAnswersCount} variant='main' />
         <div className="page__scroll">
+          <button onClick={handleResetTariffs}>reset tariffs</button>
           <Cover />
           <AppRouter />
           {isMainPages && <Footer />}

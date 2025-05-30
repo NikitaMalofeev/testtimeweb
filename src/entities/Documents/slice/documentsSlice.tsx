@@ -276,6 +276,7 @@ export const sendDocsConfirmationCode = createAsyncThunk<
                     token
                 );
                 dispatch(getUserDocumentsStateThunk());
+                dispatch(getAllBrokersThunk({ is_confirmed_type_doc_agreement_transfer_broker: true, onSuccess: () => { } }));
                 onSuccess?.(responseDocs);
                 dispatch(setCurrentConfirmableDoc(responseDocs.next_document));
             } else if (codeFirst) {

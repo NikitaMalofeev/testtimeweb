@@ -113,16 +113,15 @@ function App() {
     dispatch(getAllUserTariffsThunk({ onSuccess: () => { } }))
   }, []);
 
-  const handleResetTariffs = async () => {
-    const res = await deleteUserTariffs(token)
-  }
+  // const handleResetTariffs = async () => {
+  //   const res = await deleteUserTariffs(token)
+  // }
 
   return (
     <div className='page__wrapper'>
       <div className='page__content'>
         <Header currentNotificationsCount={unreadAnswersCount} variant='main' />
         <div className="page__scroll">
-          <button onClick={handleResetTariffs}>reset tariffs</button>
           <Cover />
           <AppRouter />
           {isMainPages && <Footer />}

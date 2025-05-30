@@ -53,11 +53,9 @@ const PersonalAccountMenu: React.FC = () => {
     const userPaymentsInfo = useSelector((state: RootState) => state.payments.payments_info);
     const availableMenuItems = useSelector((state: RootState) => state.documents.availabilityPersonalAccountMenuItems);
     const tariffs = useSelector((s: RootState) => s.payments.tariffs);
+    const activeTariffs = useSelector((s: RootState) => s.payments.activeTariffs);
 
-    const hasActiveTariff = useMemo(
-        () => tariffs.some(t => t.is_active),
-        [tariffs]
-    );
+    const hasActiveTariff = activeTariffs.length > 0
 
     useEffect(() => {
         dispatch(getUserPersonalAccountInfoThunk());
@@ -230,7 +228,8 @@ const PersonalAccountMenu: React.FC = () => {
             icon: AccountTarifsIcon,
             title: "Тарифы",
             message: hasActiveTariff && 'подключен',
-            action: () => availableMenuItems?.tariffs && navigate("/payments"),
+            // action: () => availableMenuItems?.tariffs && navigate("/payments"),
+            action: () => navigate("/payments"),
             iconWidth: 24.54,
             iconHeight: 24.24,
         },

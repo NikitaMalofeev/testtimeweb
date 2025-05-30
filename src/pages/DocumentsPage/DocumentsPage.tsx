@@ -57,6 +57,7 @@ const DocumentsPage: React.FC = () => {
     useEffect(() => {
         dispatch(getUserDocumentsStateThunk());
         dispatch(getAllUserInfoThunk());
+        dispatch(getAllBrokersThunk({ is_confirmed_type_doc_agreement_transfer_broker: true, onSuccess: () => { } }));
     }, []);
 
     useEffect(() => {
@@ -166,7 +167,7 @@ const DocumentsPage: React.FC = () => {
                 break;
             }
             case "type_doc_broker_api_token": {
-                const isBrokerFilled = brokerIds.length;
+                const isBrokerFilled = brokersCount > 0;
 
                 if (isBrokerFilled && hasTariff) {
                     dispatch(setCurrentConfirmableDoc("type_doc_broker_api_token"));
@@ -446,11 +447,6 @@ const DocumentsPage: React.FC = () => {
     }, [userDocuments, dispatch]);
 
 
-    useEffect(() => {
-        dispatch(getAllBrokersThunk({ is_confirmed_type_doc_agreement_transfer_broker: true, onSuccess: () => { } }));
-    }, []);
-
-
     const handleClosePreview = () => {
         setSelectedDocId(null);
         setTimeout(() => {
@@ -483,7 +479,7 @@ const DocumentsPage: React.FC = () => {
                             (!isPassport && isSigned);
 
                         let buttonText = "Подписать";
-                        if (isBroker) {
+                        if (isBroker && brokersCount === 0) {
                             buttonText = brokerIds && brokerIds.length ? "Подписать" : "Заполнить";
                         } else if (isPassport) {
                             buttonText = filledRiskProfileChapters.is_exist_scan_passport ? "Подписать" : "Заполнить";
@@ -492,7 +488,7 @@ const DocumentsPage: React.FC = () => {
                         }
 
                         const isDisabled = isBroker
-                            ? !(filledRiskProfileChapters.is_exist_scan_passport && hasTariff)
+                            ? !(filledRiskProfileChapters.is_exist_scan_passport)
                             : isAdvisorAgreement
                                 ? !(filledRiskProfileChapters.is_exist_scan_passport && brokerIds[0] && currentTariffId)
                                 : (isBroker && filledRiskProfileChapters.is_exist_scan_passport) || isPassport

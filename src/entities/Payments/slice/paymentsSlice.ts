@@ -72,6 +72,7 @@ export interface PaymentInfo {
 interface PaymentsState {
     isFetchingTariffs: boolean;
     tariffs: Tariff[];
+    activeTariffs: Tariff[];
 
     isFetchingStatus: boolean;
     orderStatus: OrderStatusResponse | null;
@@ -91,7 +92,7 @@ interface PaymentsState {
 const initialState: PaymentsState = {
     isFetchingTariffs: false,
     tariffs: [],
-
+    activeTariffs: [],
     isFetchingStatus: false,
     orderStatus: null,
 
@@ -158,10 +159,8 @@ export const createOrderThunk = createAsyncThunk<
     }
 });
 
-// получить все тарифы пользователя + информацию о платежах
-
 export const getAllUserTariffsThunk = createAsyncThunk<
-    PaymentInfo[],                                       // <== НОВОЕ
+    PaymentInfo[],
     { onSuccess?: () => void },
     { rejectValue: string; state: RootState }
 >('payments/getAllUserTariffsThunk',
@@ -190,6 +189,7 @@ export const getAllActiveTariffsThunk = createAsyncThunk<
         try {
             const token = getState().user.token;
             const response = token && await getAllActiveTariffs(token);
+            dispatch(setActiveTariffs(response.tariffs))
             onSuccess?.();
             return response.payments_info;
         } catch (err: any) {
@@ -451,6 +451,9 @@ export const paymentsSlice = createSlice({
         setPaymentsInfo: (state, action: PayloadAction<PaymentInfo[]>) => { // <== НОВОЕ
             state.payments_info = action.payload;
         },
+        setActiveTariffs: (state, action: PayloadAction<Tariff[]>) => {
+            state.activeTariffs = action.payload;
+        },
         resetPaymentsState: () => initialState,
     },
     extraReducers: (builder) => {
@@ -490,7 +493,8 @@ export const {
     setCurrentOrder,
     setCurrentOrderId,
     setCurrentOrderStatus,
-    setPaymentsInfo,            // <== НОВОЕ
+    setPaymentsInfo,
+    setActiveTariffs          // <== НОВОЕ
 } = paymentsSlice.actions;
 
 export default paymentsSlice.reducer;

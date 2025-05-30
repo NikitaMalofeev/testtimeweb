@@ -1,6 +1,9 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
+import type { Middleware, Dispatch, AnyAction } from 'redux';
 import {
-    persistReducer, persistStore, FLUSH,
+    persistReducer,
+    persistStore,
+    FLUSH,
     REHYDRATE,
     PAUSE,
     PERSIST,
@@ -14,14 +17,13 @@ import uiReducer from 'entities/ui/Ui/slice/uiSlice';
 import modalReducer from 'entities/ui/Modal/slice/modalSlice';
 import userReducer from 'entities/User/slice/userSlice';
 import errorReducer from 'entities/Error/slice/errorSlice';
-import documentsReducer, { setCurrentSignedDocuments } from 'entities/Documents/slice/documentsSlice';
+import documentsReducer from 'entities/Documents/slice/documentsSlice';
 import riskProfileReducer from 'entities/RiskProfile/slice/riskProfileSlice';
 import personalAccountReducer from 'entities/PersonalAccount/slice/personalAccountSlice';
 import supportChatReducer from 'entities/SupportChat/slice/supportChatSlice';
 import pushReducer from 'entities/ui/PushNotifications/slice/pushSlice';
-import paymentsReducer from 'entities/Payments/slice/paymentsSlice'
-import createTransform from 'redux-persist/es/createTransform';
-import { ModalState, ModalType } from 'entities/ui/Modal/model/modalTypes';
+import paymentsReducer from 'entities/Payments/slice/paymentsSlice';
+import { initBroadcastListener, broadcastSyncMiddleware } from 'shared/lib/middleware/broadcastChannelSyncMiddleware';
 
 const rootReducer = combineReducers({
     ui: uiReducer,
@@ -36,10 +38,9 @@ const rootReducer = combineReducers({
     payments: paymentsReducer,
 });
 
-// Получаем конфигурацию с помощью redux-deep-persist
 const persistConfig = getPersistConfig({
     key: 'root',
-    storage, // используем localStorage
+    storage,
     whitelist: [
         'ui.additionalMenu.currentStep',
         'ui.isPushNotificationActive.purpose',
@@ -53,8 +54,6 @@ const persistConfig = getPersistConfig({
         'modal.preview',
         'modal.resetPassword',
         'modal.progress',
-        //скрываю из-за бага в перезагрузке подписания брокера
-        // 'modal.info',
         'modal.success',
         'modal.modalStack',
         'modal.confirmationMethod',
@@ -75,11 +74,12 @@ const persistConfig = getPersistConfig({
         'riskProfile.currentConfirmingDoc',
         'riskProfile.passportFormData',
 
-        'payments',
+        'payments.tariffs',
+        'payments.currentUserTariffIdForPayments',
+        'payments.currentOrder',
+        'payments.currentOrderStatus',
+        'payments.payments_info',
     ],
-
-
-    // blacklist: ['modal.documentsPreview', 'modal.documentsPreviewSigned'],
     rootReducer,
 });
 
@@ -87,22 +87,25 @@ const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 export const store = configureStore({
     reducer: persistedReducer,
-    middleware: (getDefaultMiddleware) =>
+    middleware: getDefaultMiddleware =>
         getDefaultMiddleware({
-            //отключил сериализацию для бинарных pdf файлов
             serializableCheck: {
-                ignoredActions: ['modal/openModal', 'documents/setCurrentSignedDocuments',
-                    // чтобы сериализатор не ругался импортирую и игнорирую
+                ignoredActions: [
+                    'modal/openModal',
+                    'documents/setCurrentSignedDocuments',
                     FLUSH,
                     REHYDRATE,
                     PAUSE,
                     PERSIST,
                     PURGE,
-                    REGISTER,],
+                    REGISTER,
+                ],
                 ignoredPaths: ['documents.currentSugnedDocument.document', "ui.warningPopup.action"],
             },
-        }),
+        }).concat(broadcastSyncMiddleware),
 });
+
+initBroadcastListener(store.dispatch);
 
 export const persistor = persistStore(store);
 

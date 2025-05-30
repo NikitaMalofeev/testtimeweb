@@ -29,7 +29,7 @@ import { ModalAnimation, ModalSize, ModalType } from 'entities/ui/Modal/model/mo
 import BackIcon from 'shared/assets/svg/ArrowBack.svg';
 import { Icon } from 'shared/ui/Icon/Icon';
 import { ConfirmDocsModal } from 'features/RiskProfile/ConfirmDocsModal/ConfirmDocsModal';
-import { setCurrentConfirmationMethod } from 'entities/Documents/slice/documentsSlice';
+import { getAllBrokersThunk, setCurrentConfirmationMethod } from 'entities/Documents/slice/documentsSlice';
 import { PaymentsStatus } from '../PaymentsStatus/PaymentsStatus';
 import { SelectModal } from 'features/Ui/SelectModal/SelectModal';
 import { Select } from 'shared/ui/Select/Select';
@@ -68,7 +68,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     const currentPaymentOrder = useSelector((s: RootState) => s.payments.currentOrder);
     const currentOrderStatus = useSelector((s: RootState) => s.payments.currentOrderStatus);
 
-    const currentOrderId = useSelector((s: RootState) => s.payments.currentOrderId); // <== НОВОЕ
+    const currentOrderId = useSelector((s: RootState) => s.payments.currentOrderId);
     const paymentsInfo = useSelector((s: RootState) => s.payments.payments_info)
 
 
@@ -113,7 +113,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     }, [tariffs, dispatch]);
 
     useEffect(() => {
-        //
+        dispatch(getAllBrokersThunk({ is_confirmed_type_doc_agreement_transfer_broker: true, onSuccess: () => { } }));
         dispatch(getAllTariffsThunk());
     }, []);
 

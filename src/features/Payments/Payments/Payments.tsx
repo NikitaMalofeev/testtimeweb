@@ -82,22 +82,23 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         () => new Set(activeTariffs.map(t => t.id)),
         [activeTariffs],
     );
-
     useEffect(() => {
-        // статус
         if (
             statusParam &&
             allowedStatus.includes(statusParam) &&
-            currentOrderStatus !== statusParam
+            currentOrderStatus === ''
         ) {
             dispatch(setCurrentOrderStatus(statusParam));
         }
+    }, [statusParam, currentOrderStatus, dispatch]);
 
-        if (statusParam === 'success') {
-            dispatch(getAllActiveTariffsThunk({ onSuccess: () => { } }))
-            dispatch(getAllUserTariffsThunk({ onSuccess: () => { } }))
+    // 2. Когда статус в сторе стал SUCCESS – грузим тарифы
+    useEffect(() => {
+        if (currentOrderStatus === 'success') {
+            dispatch(getAllActiveTariffsThunk({ onSuccess() { } }));
+            dispatch(getAllUserTariffsThunk({ onSuccess() { } }));
         }
-    }, [statusParam, currentOrderStatus]);
+    }, [currentOrderStatus, dispatch]);
 
     /* сброс статуса при уходе со страницы */
     useEffect(() => {

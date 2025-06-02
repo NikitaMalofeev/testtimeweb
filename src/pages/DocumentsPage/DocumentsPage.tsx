@@ -167,9 +167,9 @@ const DocumentsPage: React.FC = () => {
                 break;
             }
             case "type_doc_broker_api_token": {
-                const isBrokerFilled = brokersCount > 0;
+                const isBrokerFilled = brokerIds[0] !== null;
 
-                if (isBrokerFilled && hasTariff) {
+                if (isBrokerFilled) {
                     dispatch(setCurrentConfirmableDoc("type_doc_broker_api_token"));
                     dispatch(setStepAdditionalMenuUI(4));
                     dispatch(

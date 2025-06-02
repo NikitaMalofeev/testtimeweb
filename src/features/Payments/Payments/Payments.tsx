@@ -77,13 +77,14 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     const paidTariffKeys = useSelector(
         (s: RootState) => s.payments.paidTariffKeys
     );
-
-    // 2. Превращаем его в Set, чтобы удобно проверять
-    const paidTariffIds = useMemo(
-        () => new Set(Object.keys(paidTariffKeys)),   //  ← ключи = id тарифов
-        [paidTariffKeys]
+    const activeUserKeys = useMemo(
+        () => new Set(activeTariffs.map(t => t.id)),
+        [activeTariffs]
     );
-
+    const isTariffPaidAndActive = (catalogId: string) => {
+        const key = paidTariffKeys[catalogId];
+        return key ? activeUserKeys.has(key) : false;
+    };
 
     useEffect(() => {
         if (statusParam && allowedStatus.includes(statusParam as any)) {
@@ -280,7 +281,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                 capital={`${t.days_service_validity} days`}
                                 imageUrl={t.title === 'Базовый тариф' ? PaymentsBase : PaymentsActive}
                                 onMore={() => handleChooseTariff(t.id)}
-                                paidFor={paidTariffIds.has(t.id)}
+                                paidFor={isTariffPaidAndActive(t.id)}
                             />
                         </motion.div>
                     ),
@@ -379,7 +380,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                         capital={`${t.days_service_validity} days`}
                                         imageUrl={t.title === 'Долгосрочный инвестор' ? PaymentsBase : PaymentsActive}
                                         onMore={() => handleChooseTariff(t.id)}
-                                        paidFor={paidTariffIds.has(t.id)}
+                                        paidFor={isTariffPaidAndActive(t.id)}
                                     />
                                 </motion.div>
                             ),

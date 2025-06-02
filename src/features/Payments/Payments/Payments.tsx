@@ -69,6 +69,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     const currentOrderStatus = useSelector((s: RootState) => s.payments.currentOrderStatus);
     const activeTariffs = useSelector((s: RootState) => s.payments.activeTariffs);
     const currentOrderId = useSelector((s: RootState) => s.payments.currentOrderId);
+    const currentUserTariffIdForPayments = useSelector((s: RootState) => s.payments.currentUserTariffIdForPayments);
     const paymentsInfo = useSelector((s: RootState) => s.payments.payments_info);
     const tariffsRequestedRef = useRef(false);
     const paidTariffKeys = useSelector(
@@ -237,13 +238,13 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
 
     /* --- РАННИЙ ВЫХОД, если в url статус success|loading|failed --- */
     if (currentOrderStatus) {
-        return <PaymentsStatus status={currentOrderStatus as any} paymentId={currentOrderId} payAction={() => {
+        return <PaymentsStatus status={currentOrderStatus as any} paymentId={currentUserTariffIdForPayments || currentOrderId} payAction={() => {
             if (!currentPaymentOrder?.payment_url) return;
             const newTab = window.open(currentPaymentOrder.payment_url, '_blank', 'noopener,noreferrer');
             if (newTab) newTab.focus(); 8
         }} />;
     } else if (statusParam && allowedStatus.includes(statusParam as any)) {
-        return <PaymentsStatus status={statusParam as any} paymentId={currentOrderId} payAction={() => {
+        return <PaymentsStatus status={statusParam as any} paymentId={currentUserTariffIdForPayments || currentOrderId} payAction={() => {
             if (!currentPaymentOrder?.payment_url) return;
             const newTab = window.open(currentPaymentOrder.payment_url, '_blank', 'noopener,noreferrer');
             if (newTab) newTab.focus(); 8

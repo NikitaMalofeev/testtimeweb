@@ -23,10 +23,18 @@ interface PaymentsStatusProps {
 
 export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentId, payAction }) => {
     // достаём список тарифов и текущий заказ
-    const tariffs = useSelector((s: RootState) => s.payments.tariffs);
     const activeTariffs = useSelector((s: RootState) => s.payments.activeTariffs);
+    const paidTariffKeys = useSelector((s: RootState) => s.payments.paidTariffKeys);
     const navigate = useNavigate()
     const dispatch = useAppDispatch()
+    const paidUserKeys = useMemo(
+        () => new Set(Object.values(paidTariffKeys)),
+        [paidTariffKeys]
+    );
+    const activePaidTariffs = useMemo(
+        () => activeTariffs.filter(t => paidUserKeys.has(t.id)),
+        [activeTariffs, paidUserKeys]
+    );
 
     const { title, subtitle, subtitleColor, statusColor, statusName, icon } = useMemo(() => {
         switch (status) {
@@ -83,7 +91,7 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
                 </div>
             </div>
 
-            {activeTariffs
+            {activePaidTariffs
                 .map((t) => (
                     <div key={t.id} className={styles.status__details}>
                         <Icon

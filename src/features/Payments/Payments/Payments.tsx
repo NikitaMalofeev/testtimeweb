@@ -63,7 +63,6 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     /* ---------------- redux ---------------- */
     const tariffs = useSelector((s: RootState) => s.payments.tariffs);
     const idForPayments = useSelector((s: RootState) => s.payments.currentUserTariffIdForPayments);
-    const isFetching = useSelector((s: RootState) => s.payments.isFetchingTariffs);
     const { brokersCount, filledRiskProfileChapters, brokerIds } = useSelector((s: RootState) => s.documents);
     const modalState = useSelector((s: RootState) => s.modal);
     const currentPaymentOrder = useSelector((s: RootState) => s.payments.currentOrder);
@@ -250,7 +249,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         }} />;
     }
 
-    if (isFetching && !currentOrderStatus && !statusParam) return <Loader />;
+    // if (isFetching && !currentOrderStatus && !statusParam) return <Loader />;
 
     /* Cards, списки отображаем только пока не в confirm-step */
     const listPart = (

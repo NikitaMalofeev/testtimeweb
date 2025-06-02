@@ -72,18 +72,18 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     const currentOrderId = useSelector((s: RootState) => s.payments.currentOrderId);
     const paymentsInfo = useSelector((s: RootState) => s.payments.payments_info);
     const tariffsRequestedRef = useRef(false);
+    const paidTariffKeys = useSelector((s: RootState) => s.payments.paidTariffKeys);
 
-
-    const paidTariffKeys = useSelector(
-        (s: RootState) => s.payments.paidTariffKeys
-    );
+    // Set для O(1)-проверки userKey
     const activeUserKeys = useMemo(
         () => new Set(activeTariffs.map(t => t.id)),
         [activeTariffs]
     );
-    const isTariffPaidAndActive = (catalogId: string) => {
-        const key = paidTariffKeys[catalogId];
-        return key ? activeUserKeys.has(key) : false;
+
+    // helper
+    const isPaidAndActive = (catalogId: string) => {
+        const userKey = paidTariffKeys[catalogId];   // string | undefined
+        return !!userKey && activeUserKeys.has(userKey);
     };
 
     useEffect(() => {
@@ -281,7 +281,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                 capital={`${t.days_service_validity} days`}
                                 imageUrl={t.title === 'Базовый тариф' ? PaymentsBase : PaymentsActive}
                                 onMore={() => handleChooseTariff(t.id)}
-                                paidFor={isTariffPaidAndActive(t.id)}
+                                paidFor={isPaidAndActive(t.id)}
                             />
                         </motion.div>
                     ),
@@ -380,7 +380,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                         capital={`${t.days_service_validity} days`}
                                         imageUrl={t.title === 'Долгосрочный инвестор' ? PaymentsBase : PaymentsActive}
                                         onMore={() => handleChooseTariff(t.id)}
-                                        paidFor={isTariffPaidAndActive(t.id)}
+                                        paidFor={isPaidAndActive(t.id)}
                                     />
                                 </motion.div>
                             ),

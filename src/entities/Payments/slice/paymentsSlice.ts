@@ -464,7 +464,7 @@ export const paymentsSlice = createSlice({
             state,
             { payload: { id, key } }: PayloadAction<{ id: string; key: string }>
         ) => {
-            state.paidTariffKeys[id] = key;
+            state.paidTariffKeys = { ...state.paidTariffKeys, [id]: key };
         },
         resetPaymentsState: () => initialState,
     },

@@ -79,6 +79,8 @@ const persistConfig = getPersistConfig({
         'payments.currentOrder',
         'payments.currentOrderStatus',
         'payments.payments_info',
+        'payments.activeTariffs',
+        'payments.paidTariffKeys'
     ],
     rootReducer,
 });

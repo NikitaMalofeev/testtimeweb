@@ -325,10 +325,10 @@ export const setTariffIdThunk = createAsyncThunk<
             const res = await paymentsSetTariff(tariff_key, broker_id, token);
             const key = res.tariff.key;
             /* ← добавляем key в “каталоговый” тариф */
-            dispatch(updateTariffKey({ id: tariff_key, key: res.tariff.key }));
+            dispatch(updateTariffKey({ id: tariff_key, key }));
 
             /* а это — id уже «юзер-тарифа» */
-            dispatch(setCurrentUserTariff(res.tariff.key));
+            dispatch(setCurrentUserTariff(key));
             onSuccess();
         } catch (err: any) {
             const msg = err.response.data.broker_id ? `Перед подключением тарифа необходимо предоставить api-ключ брокера` : err.response?.data?.errorText;
@@ -460,10 +460,16 @@ export const paymentsSlice = createSlice({
         },
         updateTariffKey: (
             state,
-            action: PayloadAction<{ id: string; key: string }>
+            { payload: { id, key } }: PayloadAction<{ id: string; key: string }>
         ) => {
-            const t = state.tariffs.find(t => t.id === action.payload.id);
-            if (t) t.key = action.payload.key;
+            const t = state.tariffs.find(t => t.id === id);
+            if (t) {
+                console.log('[updateTariffKey] found', id, '→ key =', key);
+                console.log(t + 'ttttt' + t.key)
+                t.key = key;
+            } else {
+                console.warn('[updateTariffKey] NOT found', id);
+            }
         },
         resetPaymentsState: () => initialState,
     },

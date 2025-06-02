@@ -73,6 +73,7 @@ interface PaymentsState {
     isFetchingTariffs: boolean;
     tariffs: Tariff[];
     activeTariffs: Tariff[];
+    paidTariffKeys: Record<string, string>;
 
     isFetchingStatus: boolean;
     orderStatus: OrderStatusResponse | null;
@@ -93,6 +94,7 @@ const initialState: PaymentsState = {
     isFetchingTariffs: false,
     tariffs: [],
     activeTariffs: [],
+    paidTariffKeys: {},
     isFetchingStatus: false,
     orderStatus: null,
 
@@ -462,14 +464,7 @@ export const paymentsSlice = createSlice({
             state,
             { payload: { id, key } }: PayloadAction<{ id: string; key: string }>
         ) => {
-            const t = state.tariffs.find(t => t.id === id);
-            if (t) {
-                console.log('[updateTariffKey] found', id, '→ key =', key);
-                console.log(t + 'ttttt' + t.key)
-                t.key = key;
-            } else {
-                console.warn('[updateTariffKey] NOT found', id);
-            }
+            state.paidTariffKeys[id] = key;
         },
         resetPaymentsState: () => initialState,
     },

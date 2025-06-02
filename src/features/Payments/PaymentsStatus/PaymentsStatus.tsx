@@ -24,6 +24,7 @@ interface PaymentsStatusProps {
 export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentId, payAction }) => {
     // достаём список тарифов и текущий заказ
     const tariffs = useSelector((s: RootState) => s.payments.tariffs);
+    const activeTariffs = useSelector((s: RootState) => s.payments.activeTariffs);
     const navigate = useNavigate()
     const dispatch = useAppDispatch()
 
@@ -82,8 +83,7 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
                 </div>
             </div>
 
-            {tariffs
-                .filter((t) => t.id === paymentId)
+            {activeTariffs
                 .map((t) => (
                     <div key={t.id} className={styles.status__details}>
                         <Icon

@@ -81,12 +81,6 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         [paidTariffKeys]
     );
 
-    // ③ оставляем только те activeTariffs, чей id (user-key) есть в Set
-    const activePaidTariffs = useMemo(
-        () => activeTariffs.filter(t => paidUserKeys.has(t.id)),
-        [activeTariffs, paidUserKeys]
-    );
-
     const isPaidAndActive = (catalogId: string) => {
         const userKey = paidTariffKeys[catalogId];
         return !!userKey && paidUserKeys.has(userKey);

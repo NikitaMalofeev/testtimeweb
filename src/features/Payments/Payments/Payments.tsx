@@ -71,17 +71,17 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     const activeTariffs = useSelector((s: RootState) => s.payments.activeTariffs);
     const currentOrderId = useSelector((s: RootState) => s.payments.currentOrderId);
     const paymentsInfo = useSelector((s: RootState) => s.payments.payments_info);
-    const paidTariffKeys = useMemo(
-        () => new Set(activeTariffs.map(t => t.id)),
-        [activeTariffs],
-    );
     const tariffsRequestedRef = useRef(false);
 
 
+    const paidTariffKeys = useSelector(
+        (s: RootState) => s.payments.paidTariffKeys
+    );
 
+    // 2. Превращаем его в Set, чтобы удобно проверять
     const paidTariffIds = useMemo(
-        () => new Set(activeTariffs.map(t => t.id)),
-        [activeTariffs],
+        () => new Set(Object.keys(paidTariffKeys)),   //  ← ключи = id тарифов
+        [paidTariffKeys]
     );
 
 
@@ -280,7 +280,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                 capital={`${t.days_service_validity} days`}
                                 imageUrl={t.title === 'Базовый тариф' ? PaymentsBase : PaymentsActive}
                                 onMore={() => handleChooseTariff(t.id)}
-                                paidFor={t.key ? paidTariffKeys.has(t.key) : false}
+                                paidFor={paidTariffIds.has(t.id)}
                             />
                         </motion.div>
                     ),
@@ -379,7 +379,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                         capital={`${t.days_service_validity} days`}
                                         imageUrl={t.title === 'Долгосрочный инвестор' ? PaymentsBase : PaymentsActive}
                                         onMore={() => handleChooseTariff(t.id)}
-                                        paidFor={t.key ? paidTariffKeys.has(t.key) : false}
+                                        paidFor={paidTariffIds.has(t.id)}
                                     />
                                 </motion.div>
                             ),

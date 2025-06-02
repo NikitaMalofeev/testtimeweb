@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import styles from './styles.module.scss';
 import { PaymentStatus } from 'entities/Payments/types/paymentsTypes';
@@ -35,6 +35,12 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
             ),
         [activeTariffs, currentUserTariffIdForPayments]
     );
+
+    useEffect(() => {
+        console.log(activePaidTariffs)
+        console.log(activeTariffs)
+        console.log(currentUserTariffIdForPayments)
+    }, [])
 
 
     const { title, subtitle, subtitleColor, statusColor, statusName, icon } = useMemo(() => {

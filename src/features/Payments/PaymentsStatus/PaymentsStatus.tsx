@@ -24,17 +24,16 @@ interface PaymentsStatusProps {
 export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentId, payAction }) => {
     // достаём список тарифов и текущий заказ
     const activeTariffs = useSelector((s: RootState) => s.payments.activeTariffs);
-    const paidTariffKeys = useSelector((s: RootState) => s.payments.paidTariffKeys);
+    const currentUserTariffIdForPayments = useSelector((s: RootState) => s.payments.currentUserTariffIdForPayments);
     const navigate = useNavigate()
     const dispatch = useAppDispatch()
-    const paidUserKeys = useMemo(
-        () => new Set(Object.values(paidTariffKeys)),  
-        [paidTariffKeys],
-    );
 
     const activePaidTariffs = useMemo(
-        () => activeTariffs.filter(t => paidUserKeys.has(t.id)),
-        [activeTariffs, paidUserKeys],
+        () =>
+            activeTariffs.filter(
+                t => t.id === currentUserTariffIdForPayments
+            ),
+        [activeTariffs, currentUserTariffIdForPayments]
     );
 
 

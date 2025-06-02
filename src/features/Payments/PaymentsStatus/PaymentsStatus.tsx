@@ -29,8 +29,10 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
     const dispatch = useAppDispatch()
     const targetTariffId = paymentId || currentUserTariffIdForPayments || '';
 
+    const normalize = (id: string) => id.replace(/-/g, '');
+
     const activePaidTariffs = useMemo(
-        () => activeTariffs.filter(t => t.id === targetTariffId),
+        () => activeTariffs.filter(t => normalize(t.id) === normalize(targetTariffId)),
         [activeTariffs, targetTariffId]
     );
 

@@ -95,7 +95,6 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
 
         if (statusParam === 'success') {
             dispatch(getAllActiveTariffsThunk({ onSuccess: () => { } }))
-            dispatch(setCurrentOrderStatus(''));
             dispatch(getAllUserTariffsThunk({ onSuccess: () => { } }))
         }
     }, [statusParam, currentOrderStatus]);
@@ -226,7 +225,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
             }
         }));
 
-    }, [brokersCount, dispatch, filledRiskProfileChapters, currentOrderId, isPaid, formik.values.broker_id]);
+    }, [brokersCount, filledRiskProfileChapters, currentOrderId, isPaid, formik.values.broker_id]);
 
     useEffect(() => {
         document.body.style.overflow = isConfirming ? 'hidden' : '';

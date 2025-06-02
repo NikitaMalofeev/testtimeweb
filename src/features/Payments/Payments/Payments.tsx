@@ -1,5 +1,5 @@
 // PaymentsCardList.tsx
-import React, { useEffect, useCallback, useState, useMemo } from 'react';
+import React, { useEffect, useCallback, useState, useMemo, useRef } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useSelector } from 'react-redux';
@@ -75,6 +75,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         () => new Set(activeTariffs.map(t => t.id)),
         [activeTariffs],
     );
+    const tariffsRequestedRef = useRef(false);
 
 
 
@@ -82,23 +83,24 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         () => new Set(activeTariffs.map(t => t.id)),
         [activeTariffs],
     );
+
+
     useEffect(() => {
-        if (
-            statusParam &&
-            allowedStatus.includes(statusParam) &&
-            currentOrderStatus === ''
-        ) {
-            dispatch(setCurrentOrderStatus(statusParam));
+        if (statusParam && allowedStatus.includes(statusParam as any)) {
+            dispatch(setCurrentOrderStatus(statusParam as any));
         }
-    }, [statusParam, currentOrderStatus, dispatch]);
+    }, [statusParam, dispatch]);
+
 
     // 2. Когда статус в сторе стал SUCCESS – грузим тарифы
     useEffect(() => {
-        if (currentOrderStatus === 'success') {
+        if (currentOrderStatus === 'success' && !tariffsRequestedRef.current) {
             dispatch(getAllActiveTariffsThunk({ onSuccess() { } }));
             dispatch(getAllUserTariffsThunk({ onSuccess() { } }));
+            tariffsRequestedRef.current = true;       // блокируем повтор
         }
     }, [currentOrderStatus, dispatch]);
+
 
     /* сброс статуса при уходе со страницы */
     useEffect(() => {

@@ -71,18 +71,25 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     const currentOrderId = useSelector((s: RootState) => s.payments.currentOrderId);
     const paymentsInfo = useSelector((s: RootState) => s.payments.payments_info);
     const tariffsRequestedRef = useRef(false);
-    const paidTariffKeys = useSelector((s: RootState) => s.payments.paidTariffKeys);
-
-    // Set для O(1)-проверки userKey
-    const activeUserKeys = useMemo(
-        () => new Set(activeTariffs.map(t => t.id)),
-        [activeTariffs]
+    const paidTariffKeys = useSelector(
+        (s: RootState) => s.payments.paidTariffKeys
     );
 
-    // helper
+    // ② преобразуем его В ЗНАЧЕНИЯ (user-keys) и кладём в Set
+    const paidUserKeys = useMemo(
+        () => new Set(Object.values(paidTariffKeys)),   // ← values, не keys!
+        [paidTariffKeys]
+    );
+
+    // ③ оставляем только те activeTariffs, чей id (user-key) есть в Set
+    const activePaidTariffs = useMemo(
+        () => activeTariffs.filter(t => paidUserKeys.has(t.id)),
+        [activeTariffs, paidUserKeys]
+    );
+
     const isPaidAndActive = (catalogId: string) => {
-        const userKey = paidTariffKeys[catalogId];   // string | undefined
-        return !!userKey && activeUserKeys.has(userKey);
+        const userKey = paidTariffKeys[catalogId];
+        return !!userKey && paidUserKeys.has(userKey);
     };
 
     useEffect(() => {

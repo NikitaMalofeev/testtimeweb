@@ -74,13 +74,15 @@ const persistConfig = getPersistConfig({
         'riskProfile.currentConfirmingDoc',
         'riskProfile.passportFormData',
 
-        'payments.tariffs',
-        'payments.currentUserTariffIdForPayments',
-        'payments.currentOrder',
-        'payments.currentOrderStatus',
-        'payments.payments_info',
-        'payments.activeTariffs',
-        'payments.paidTariffKeys'
+        // 'payments.tariffs',
+        // 'payments.currentUserTariffIdForPayments',
+        // 'payments.currentOrder',
+        // 'payments.currentOrderStatus',
+        // 'payments.payments_info',
+        // 'payments.activeTariffs',
+        // 'payments.paidTariffKeys'
+        //проблема с paidTariffsKeys поэтому сохраняю полностью 
+        'payments'
     ],
     rootReducer,
 });

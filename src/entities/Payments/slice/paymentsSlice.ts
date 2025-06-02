@@ -70,15 +70,10 @@ export interface PaymentInfo {
 /* -------------------------------------------------------------------------- */
 
 interface PaymentsState {
-    isFetchingTariffs: boolean;
     tariffs: Tariff[];
     activeTariffs: Tariff[];
     paidTariffKeys: Record<string, string>;
-
-    isFetchingStatus: boolean;
     orderStatus: OrderStatusResponse | null;
-
-    isPostingRobokassa: boolean;
     robokassaData: RobokassaResultResponse | null;
 
     currentTariffId: string;                 // выбранный тариф (back-id, нужен для API)
@@ -91,14 +86,11 @@ interface PaymentsState {
 }
 
 const initialState: PaymentsState = {
-    isFetchingTariffs: false,
     tariffs: [],
     activeTariffs: [],
     paidTariffKeys: {},
-    isFetchingStatus: false,
     orderStatus: null,
 
-    isPostingRobokassa: false,
     robokassaData: null,
 
     currentTariffId: '',
@@ -470,17 +462,6 @@ export const paymentsSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            .addCase(getAllTariffsThunk.pending, (state) => {
-                state.isFetchingTariffs = true;
-                state.error = null;
-            })
-            .addCase(getAllTariffsThunk.fulfilled, (state, { payload }) => {
-                state.isFetchingTariffs = false;
-                state.tariffs = payload;
-            })
-            .addCase(getAllTariffsThunk.rejected, (state) => {
-                state.isFetchingTariffs = false;
-            })
     },
 });
 

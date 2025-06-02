@@ -29,7 +29,8 @@ export type PaymentStatus = 'success' | 'loading' | 'failed';
 /* -------------------------------------------------------------------------- */
 
 export interface Tariff {
-    id: string;
+    id: string; // “каталоговый” id тарифа
+    key: string;  // ← user-tariff key, отдаёт setTariff
     is_active: boolean;
     title: string;
     title_additional: string;

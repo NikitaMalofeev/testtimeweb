@@ -324,7 +324,11 @@ export const setTariffIdThunk = createAsyncThunk<
             const token = getState().user.token;
             const res = await paymentsSetTariff(tariff_key, broker_id, token);
             const key = res.tariff.key;
-            dispatch(setCurrentUserTariff(key));
+            /* ← добавляем key в “каталоговый” тариф */
+            dispatch(updateTariffKey({ id: tariff_key, key: res.tariff.key }));
+
+            /* а это — id уже «юзер-тарифа» */
+            dispatch(setCurrentUserTariff(res.tariff.key));
             onSuccess();
         } catch (err: any) {
             const msg = err.response.data.broker_id ? `Перед подключением тарифа необходимо предоставить api-ключ брокера` : err.response?.data?.errorText;
@@ -454,11 +458,17 @@ export const paymentsSlice = createSlice({
         setActiveTariffs: (state, action: PayloadAction<Tariff[]>) => {
             state.activeTariffs = action.payload;
         },
+        updateTariffKey: (
+            state,
+            action: PayloadAction<{ id: string; key: string }>
+        ) => {
+            const t = state.tariffs.find(t => t.id === action.payload.id);
+            if (t) t.key = action.payload.key;
+        },
         resetPaymentsState: () => initialState,
     },
     extraReducers: (builder) => {
         builder
-            /* getAllTariffs */
             .addCase(getAllTariffsThunk.pending, (state) => {
                 state.isFetchingTariffs = true;
                 state.error = null;
@@ -470,20 +480,9 @@ export const paymentsSlice = createSlice({
             .addCase(getAllTariffsThunk.rejected, (state) => {
                 state.isFetchingTariffs = false;
             })
-
-            /* getAllUserTariffs */
-            // .addCase(getAllUserTariffsThunk.fulfilled, (state, { payload }) => {
-            //     // payload уже массив PaymentInfo
-            //     state.payments_info = payload;
-            // })
-
-            /* -------- остальные cases оставлены без изменений -------- */;
     },
 });
 
-/* -------------------------------------------------------------------------- */
-/* EXPORTS */
-/* -------------------------------------------------------------------------- */
 
 export const {
     clearPaymentsError,
@@ -494,7 +493,8 @@ export const {
     setCurrentOrderId,
     setCurrentOrderStatus,
     setPaymentsInfo,
-    setActiveTariffs          // <== НОВОЕ
+    setActiveTariffs,
+    updateTariffKey
 } = paymentsSlice.actions;
 
 export default paymentsSlice.reducer;

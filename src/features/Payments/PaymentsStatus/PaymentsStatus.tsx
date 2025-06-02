@@ -27,7 +27,7 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
     const currentUserTariffIdForPayments = useSelector((s: RootState) => s.payments.currentUserTariffIdForPayments);
     const navigate = useNavigate()
     const dispatch = useAppDispatch()
-    const targetTariffId = currentUserTariffIdForPayments || paymentId || '';
+    const targetTariffId = paymentId || currentUserTariffIdForPayments || '';
 
     const activePaidTariffs = useMemo(
         () => activeTariffs.filter(t => t.id === targetTariffId),

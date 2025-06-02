@@ -70,7 +70,11 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     const currentOrderStatus = useSelector((s: RootState) => s.payments.currentOrderStatus);
     const activeTariffs = useSelector((s: RootState) => s.payments.activeTariffs);
     const currentOrderId = useSelector((s: RootState) => s.payments.currentOrderId);
-    const paymentsInfo = useSelector((s: RootState) => s.payments.payments_info)
+    const paymentsInfo = useSelector((s: RootState) => s.payments.payments_info);
+    const paidTariffKeys = useMemo(
+        () => new Set(activeTariffs.map(t => t.id)),
+        [activeTariffs],
+    );
 
 
 
@@ -89,25 +93,26 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
             dispatch(setCurrentOrderStatus(statusParam));
         }
 
-        // id заказа
-        if (orderIdParam && currentOrderId !== orderIdParam) {
-            dispatch(setCurrentOrderId(orderIdParam));
-        }
-
-        // success-экран можно сразу «сбросить» после показа
         if (statusParam === 'success') {
             dispatch(getAllActiveTariffsThunk({ onSuccess: () => { } }))
             dispatch(setCurrentOrderStatus(''));
             dispatch(getAllUserTariffsThunk({ onSuccess: () => { } }))
         }
-    }, [statusParam, orderIdParam, currentOrderStatus, currentOrderId, dispatch]);
+    }, [statusParam, currentOrderStatus]);
+
+    /* сброс статуса при уходе со страницы */
+    useEffect(() => {
+        return () => {
+            dispatch(setCurrentOrderStatus(''));
+        };
+    }, [dispatch]);
 
 
     useEffect(() => {
         if (tariffs.length < 1) {
             dispatch(getAllTariffsThunk());
         }
-    }, [tariffs, dispatch]);
+    }, [tariffs]);
 
     useEffect(() => {
         dispatch(getAllBrokersThunk({ is_confirmed_type_doc_agreement_transfer_broker: true, onSuccess: () => { } }));
@@ -273,7 +278,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                 capital={`${t.days_service_validity} days`}
                                 imageUrl={t.title === 'Базовый тариф' ? PaymentsBase : PaymentsActive}
                                 onMore={() => handleChooseTariff(t.id)}
-                                paidFor={paidTariffIds.has(t.id)}
+                                paidFor={t.key ? paidTariffKeys.has(t.key) : false}
                             />
                         </motion.div>
                     ),
@@ -372,7 +377,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                         capital={`${t.days_service_validity} days`}
                                         imageUrl={t.title === 'Долгосрочный инвестор' ? PaymentsBase : PaymentsActive}
                                         onMore={() => handleChooseTariff(t.id)}
-                                        paidFor={paidTariffIds.has(t.id)}
+                                        paidFor={t.key ? paidTariffKeys.has(t.key) : false}
                                     />
                                 </motion.div>
                             ),

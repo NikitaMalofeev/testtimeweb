@@ -292,11 +292,12 @@ export const getAllTariffsThunk = createAsyncThunk<
     void,
     { rejectValue: string; state: RootState }
 >(
-    'payments/getAllTariffs',
+    'payments/getAllTariffsThunk',
     async (_, { dispatch, rejectWithValue, getState }) => {
         try {
             const token = getState().user.token;
             const data = await getAllTariffs(token);
+            dispatch(setAllTariffs(data))
             return data;
         } catch (err: any) {
             const msg = err.response?.data?.errorText || err.message;
@@ -426,6 +427,9 @@ export const paymentsSlice = createSlice({
         clearPaymentsError: (state) => {
             state.error = null;
         },
+        setAllTariffs: (state, action: PayloadAction<Tariff[]>) => {
+            state.tariffs = action.payload;
+        },
         setCurrentTariff: (state, action: PayloadAction<string>) => {
             state.currentTariffId = action.payload;
         },
@@ -476,7 +480,8 @@ export const {
     setCurrentOrderStatus,
     setPaymentsInfo,
     setActiveTariffs,
-    updateTariffKey
+    updateTariffKey,
+    setAllTariffs
 } = paymentsSlice.actions;
 
 export default paymentsSlice.reducer;

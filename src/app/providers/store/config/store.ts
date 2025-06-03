@@ -53,7 +53,7 @@ const persistConfig = getPersistConfig({
         'modal.problem',
         'modal.preview',
         'modal.resetPassword',
-        'modal.progress',t
+        'modal.progress',
         'modal.success',
         'modal.modalStack',
         'modal.confirmationMethod',

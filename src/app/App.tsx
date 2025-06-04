@@ -122,7 +122,7 @@ function App() {
       <div className='page__content'>
         <Header currentNotificationsCount={unreadAnswersCount} variant='main' />
         <div className="page__scroll">
-          {/* <button onClick={handleResetTariffs}>reset</button> */}
+          <button onClick={handleResetTariffs}>reset</button>
           <Cover />
           <AppRouter />
           {isMainPages && <Footer />}

@@ -4,6 +4,8 @@ import styles from "./styles.module.scss";
 import { Icon } from "../Icon/Icon";
 import ErrorIcon from 'shared/assets/svg/errorCircle.svg';
 import SelectArrow from 'shared/assets/svg/selectArrow.svg'
+import { SelectWidget } from "features/Ui/SelectWidget/SelectWidget";
+import { useDevice } from "shared/hooks/useDevice";
 
 interface SelectItem {
     value: string;
@@ -32,18 +34,27 @@ export const Select: React.FC<CustomSelectProps> = ({
     error
 }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isWidgetOpen, setisWidgetOpen] = useState(false)
     const [isFocused, setIsFocused] = useState(false);
+    const device = useDevice()
 
     // Добавляем опцию по умолчанию, если её нет в начале массива
     const modifiedItems = items[0]?.value === '' ? items : [{ value: '', label: 'не выбрано' }, ...items];
 
     const handleOpenModal = () => {
-        setIsModalOpen(true);
-        setIsFocused(true);
+        if (device !== 'desktop') {
+            setIsModalOpen(true);
+            setIsFocused(true);
+        } else {
+            setisWidgetOpen(true)
+            setIsFocused(true);
+        }
+
     };
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
+        setisWidgetOpen(false)
     };
 
     const handleChooseItem = (chosenValue: string) => {
@@ -84,6 +95,14 @@ export const Select: React.FC<CustomSelectProps> = ({
                     <span>{error}</span>
                 </div>
             )}
+            <SelectWidget
+                title={title}
+                withCloseIcon
+                items={modifiedItems}
+                isOpen={isWidgetOpen}
+                onClose={handleCloseModal}
+                onChoose={handleChooseItem}
+            />
             <SelectModal
                 title={title}
                 withCloseIcon

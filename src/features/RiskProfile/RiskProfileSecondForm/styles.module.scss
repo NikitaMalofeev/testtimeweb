@@ -1,3 +1,5 @@
+@use '../../../app/styles/mixins' as mix;
+
 .buttons {
     position: fixed;
     background-color: white;
@@ -292,3 +294,119 @@
         color: #131313;
     }
 }
+
+
+
+@include mix.respond-to('tablet-desktop') {
+    .adaptiv__wrapper {
+        display: grid;
+        grid-template-columns: repeat(2,1fr);
+        gap: 10px;
+    }
+    .adaptiv__container {
+        padding: 24px 32px 0 32px;
+        max-height: 420px;
+        height: 100%;
+        border: 1px solid #DCDCDC;
+        border-radius: 8px 8px 15px 15px;
+
+        &:nth-child(2) {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+ 
+    }
+
+    .form__item__input {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: start;
+        width: 100%;
+        max-height: 300px;
+        flex-grow: 1;
+        margin-bottom: 32px;
+        max-height: 72px;
+    }
+
+    .form__item_potintial {
+        height: max-content;
+    }
+
+    .form__container__first {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            align-items: start;
+            max-height: 215px;
+
+            &:not(:first-child) {
+                height: 106px;
+            }
+
+    &::after {
+        position: absolute;
+        bottom: 0;
+        left: -32px;
+        content: '';
+        width: calc(100dvw - 5px);
+        height: 1px;
+        background-color: #EBEBED;
+    }
+
+        &::after {
+            max-width: calc(100% + 64px);
+        }
+
+        &:last-child {
+                
+                &::after {
+                    display: none;
+                }
+            }
+        &:nth-child(1) {
+            gap: 10px;
+        }
+        &:nth-child(2) {
+                    padding-bottom: 0;
+        }
+    }
+
+    .form__final {
+        gap: 32px;
+    }
+
+    .form__form {
+        position: relative;
+    }
+
+    .buttons {
+        position: absolute;
+        justify-content: space-between;
+        bottom: -53px;
+        left: 0;
+        padding: 0;
+    }
+
+    .button {
+        max-width: max-content;
+    }
+
+    .button_back {
+        padding: 0;
+        max-width: max-content;
+    }
+
+    .report__container {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .form__item__tooltip_report {
+        top: 22px;
+        right: 200px;
+    }
+    
+ }

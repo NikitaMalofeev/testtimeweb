@@ -25,6 +25,18 @@
     justify-content: center;
     align-items: flex-end; // чтобы "снизу" при BOTTOM
   }
+
+  .ModalOverlayOpacity {
+        position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100dvh;
+    z-index: var(--modal-z-index);
+    display: flex;
+    justify-content: center;
+    align-items: flex-end; // чтобы "снизу" при BOTTOM
+  }
   
   /* Контейнер контента внутри */
   .content {
@@ -130,5 +142,11 @@
 
     .content {
       padding-bottom: 16px;
+    }
+
+    .mc {
+      max-width: 350px;
+      width: 100%;
+      top: 10%;
     }
   }

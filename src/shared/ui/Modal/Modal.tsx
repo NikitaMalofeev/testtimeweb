@@ -10,6 +10,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { selectIsAnyModalOpen, selectModalState, } from 'entities/ui/Modal/selectors/selectorsModals';
 import { setModalScrolled } from 'entities/ui/Modal/slice/modalSlice';
 import { RootState } from 'app/providers/store/config/store';
+import { useDevice } from 'shared/hooks/useDevice';
 
 interface ModalProps {
     className?: string;
@@ -39,9 +40,12 @@ export const Modal = memo(({
     const modalRef = useRef<HTMLDivElement>(null);
 
     const dispatch = useDispatch();
+    const device = useDevice()
+    const isDesktop = device !== 'mobile';
 
     const isAnyModalOpen = useSelector(selectIsAnyModalOpen);
     const isScrolled = useSelector((state: RootState) => selectModalState(state, type)?.isScrolled);
+    const additionalOverlayVisibility = useSelector((state: RootState) => state.modal.additionalOverlayVisibility);
 
     useEffect(() => {
         // console.log("Modal state changed:", { isOpen, isAnyModalOpen });
@@ -99,7 +103,8 @@ export const Modal = memo(({
     // Если size !== FULL, используем затемняющий фон (Overlay).
     const wrapperMods: Mods = {
         [styles.ModalFull]: size === ModalSize.FULL,
-        [styles.ModalOverlay]: size !== ModalSize.FULL,
+        [styles.ModalOverlay]: size !== ModalSize.FULL && additionalOverlayVisibility,
+        [styles.ModalOverlayOpacity]: size !== ModalSize.FULL && !additionalOverlayVisibility,
     };
 
     const mods: Mods = {

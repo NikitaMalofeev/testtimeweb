@@ -14,7 +14,7 @@ import { SecondRiskProfilePayload } from "entities/RiskProfile/model/types";
 import { Select } from "shared/ui/Select/Select";
 import { Loader } from "shared/ui/Loader/Loader";
 import { SuccessModal } from "../SuccessModal/SuccessModal";
-import { closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
+import { closeModal, openModal, setAdditionalOverlayVisibility } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { useNavigate } from "react-router-dom";
 import { WarningModal } from "features/Ui/WarningModal/WarningModal";
@@ -22,6 +22,7 @@ import { PreviewModal } from "../PreviewModal/PreviewModal";
 import { riskProfiles } from "shared/static/riskProfiles";
 import { RiskProfileCard } from "../RiskProfileCard/RiskProfileCard";
 import { getUserDocumentsStateThunk } from "entities/Documents/slice/documentsSlice";
+import { useDevice } from "shared/hooks/useDevice";
 
 interface SwiperParametrValues {
     risk_prof_conservative: string;
@@ -50,6 +51,7 @@ const RISK_PROFILE_DESCRIPTIONS: { [key: string]: string } = {
 
 export const RiskProfileSecondForm: React.FC = () => {
     const dispatch = useAppDispatch();
+    const device = useDevice();
     const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
     const secondRiskProfileData = useSelector((state: RootState) => state.riskProfile.secondRiskProfileData);
     const { loading } = useSelector((state: RootState) => state.riskProfile);
@@ -183,165 +185,340 @@ export const RiskProfileSecondForm: React.FC = () => {
         return (
             <div className={styles.form}>
                 <form onSubmit={formik.handleSubmit} className={styles.form__form}>
-                    <div className={styles.form__container}>
-                        <div className={styles.form__item}>
-                            <div className={styles.form__item__balans}>
-                                <span className={styles.balans}>Баланс портфеля</span>
-                                <Tooltip
-                                    className={styles.form__item__tooltip}
-                                    description="Средства на счете"
-                                    topForCenteringIcons="24px"
-                                    direction='top'
-                                    squerePosition={{ bottom: '-4px' }}
-                                />
-                            </div>
-                            <span>0 ₽</span>
-                        </div>
 
-                        <div className={styles.form__item}>
-                            <Input
-                                name="amount_expected_replenishment"
-                                type="swiper"
-                                placeholder="Деньги"
-                                // Пределы для ползунка:
-                                min={secondRiskProfileData?.min_amount_expected_replenishment}
-                                max={100000000}
-                                step={secondRiskProfileData?.step_scroll_amount_expected_replenishment}
-                                // Передаём уже ОТФОРМАТИРОВАННУЮ строку,
-                                // чтобы пользователь видел "3 000 000 ₽"
-                                value={formatMoney(
-                                    formik.values.amount_expected_replenishment || 200000
-                                )}
-                                needShowInput
-                                onChange={(e) => {
-                                    // Парсим обратно в число,
-                                    // кладём это число в Formik
-                                    const numeric = parseMoneyStringToNumber(e.target.value);
-                                    formik.setFieldValue(
-                                        "amount_expected_replenishment",
-                                        numeric
-                                    );
-                                }}
-                                onBlur={formik.handleBlur}
-                            />
-                            <div className={styles.form__item__tooltip}>
-                                <Tooltip
-                                    className={styles.form__item__tooltip_specified}
-                                    description='Сумма предполагаемого пополнения счета'
-                                    topForCenteringIcons="24px"
-                                    direction='left'
-                                    positionBox={{ top: '12px', right: '32px' }}
-                                    squerePosition={{ right: '-4px' }}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    <div className={styles.form__container}>
-                        <div className={styles.form__item}>
-                            <span className={styles.parametrs}>Параметры портфеля</span>
-                            <span className={styles.parametrs__value}>
-                                {SWIPER_PARAM_VALUES[formik.values.portfolio_parameters as keyof SwiperParametrValues]}
-                            </span>
-                        </div>
-
-                        <div className={styles.form__item}>
-                            <Input
-                                swiperDiscreteSubtitles={['меньше риск', 'меньше доход', 'больше риск', 'больше доход']}
-                                type="swiperDiscrete"
-                                theme="gradient"                // чтобы ползунок был с градиентной обводкой
-                                name="portfolio_parameters"
-                                discreteValues={[
-                                    "risk_prof_conservative",
-                                    "risk_prof_conservative_moderately",
-                                    "risk_prof_balanced",
-                                    "risk_prof_aggressive_moderately",
-                                    "risk_prof_aggressive",
-                                    "risk_prof_aggressive_super"
-                                ]}
-                                extraDescreteValue={recommendedKeys[recommendedKeys.length - 1]}
-                                customSliderDivisions={5}
-                                value={formik.values.portfolio_parameters}
-                                onChange={(e) => {
-                                    // e.target.value здесь будет строка из массива discreteValues
-                                    formik.setFieldValue("portfolio_parameters", e.target.value);
-                                }}
-                                onBlur={formik.handleBlur}
-                            />
-                        </div>
-                        <div className={styles.information}>
-                            <div className={styles.information__marker}></div>
-                            <span className={styles.information__description}>Маркер рекомендуемого риск-профиля согласно Вашим ответам на вопросы</span>
-                        </div>
-                    </div>
-                    <div className={styles.form__container} style={{ minHeight: '74px' }}>
-                        <div className={styles.form__item_potintial}>
-                            <div className={styles.form__item_potintial__container} >
-                                <span className={styles.form__item__potintial__title}>Потенциальный доход</span>
-                                <Tooltip
-                                    className={styles.form__item__tooltip}
-                                    description="Потенциальный доход. Складывается из потенциального роста цены бумаг, входящих в портфель, прогнозных дивидендов и купонного дохода от облигаций"
-                                    topForCenteringIcons="24px"
-                                    direction='top'
-                                    squerePosition={{ bottom: '-4px' }}
-                                />
-                            </div>
-                            <span className={styles.form__item__potintial__title_green}>{thirdRiskProfileResponse ? thirdRiskProfileResponse.risk_profiling_potential_income_percent : secondRiskProfileData?.risk_profiling_potential_income_percent}%</span>
-                        </div>
-                        <div className={styles.potential__capital__change}>
-                            {thirdRiskProfileResponse ? thirdRiskProfileResponse.potential_income : secondRiskProfileData?.potential_income} ₽
-                        </div>
-                    </div>
-                    <div className={styles.form__container} style={{ minHeight: '74px' }}>
-                        <div className={styles.form__item_potintial}>
-                            <div className={styles.form__item_potintial__container} >
-                                <span className={styles.form__item__potintial__title}>Возможный убыток</span>
-                                <Tooltip
-                                    className={styles.form__item__tooltip}
-                                    description="Возможное снижение цены портфеля в моменте с учетом действующих на рынке факторов"
-                                    topForCenteringIcons="24px"
-                                    direction='top'
-                                    squerePosition={{ bottom: '-4px' }}
-                                />
-                            </div>
-                            <span className={styles.form__item__potintial__title_red}>{thirdRiskProfileResponse ? thirdRiskProfileResponse.risk_profiling_possible_loss_percent : secondRiskProfileData?.risk_profiling_possible_loss_percent}%</span>
-                        </div>
-                        <div className={styles.potential__capital__change}>
-                            {thirdRiskProfileResponse ? thirdRiskProfileResponse.possible_loss : secondRiskProfileData?.possible_loss} ₽
-                        </div>
-                    </div>
-                    {/* <h4 className={styles.title}>Завершение настроек риск профиля</h4> */}
-                    <div className={styles.form__container} style={{ minHeight: '180px' }}>
-
-                        {secondRiskProfileData && (
-                            <div className={styles.form__final}>
-
-                                <Tooltip
-                                    className={styles.form__item__tooltip_report}
-                                    description={
-                                        RISK_PROFILE_DESCRIPTIONS[
-                                        Object.keys(secondRiskProfileData.recommended_risk_profiles)[Object.keys(secondRiskProfileData.recommended_risk_profiles).length - 1]
-                                        ]
-                                    }
-                                    topForCenteringIcons="24px"
-                                    direction='left'
-                                    positionBox={{ top: '12px', right: '32px' }}
-                                    squerePosition={{ right: '-4px' }}
-                                />
-                                <div className={styles.report__container}>
-                                    <p className={styles.report}>Рекомендуемый риск-профиль по результатам риск-профилирования </p>
-                                    <b className={styles.report__value}>{Object.values(secondRiskProfileData.recommended_risk_profiles)[Object.keys(secondRiskProfileData.recommended_risk_profiles).length - 1]}</b>
+                    {device === 'mobile' && (
+                        <>
+                            <div className={styles.form__container}>
+                                <div className={styles.form__item}>
+                                    <div className={styles.form__item__balans}>
+                                        <span className={styles.balans}>Баланс портфеля</span>
+                                        <Tooltip
+                                            className={styles.form__item__tooltip}
+                                            description="Средства на счете"
+                                            topForCenteringIcons="24px"
+                                            direction='top'
+                                            squerePosition={{ bottom: '-4px' }}
+                                        />
+                                    </div>
+                                    <span>0 ₽</span>
                                 </div>
-                                <Select
-                                    label="Подтвердить выбор риск профиля"
-                                    needValue
-                                    value={formik.values.risk_profiling_final || ""}
-                                    title="Выберите риск профиль"
-                                    items={finalRiskProfileOptions}
-                                    onChange={handleFinalProfileChange}
-                                />
+
+                                <div className={styles.form__item}>
+                                    <Input
+                                        name="amount_expected_replenishment"
+                                        type="swiper"
+                                        placeholder="Деньги"
+                                        // Пределы для ползунка:
+                                        min={secondRiskProfileData?.min_amount_expected_replenishment}
+                                        max={100000000}
+                                        step={secondRiskProfileData?.step_scroll_amount_expected_replenishment}
+                                        // Передаём уже ОТФОРМАТИРОВАННУЮ строку,
+                                        // чтобы пользователь видел "3 000 000 ₽"
+                                        value={formatMoney(
+                                            formik.values.amount_expected_replenishment || 200000
+                                        )}
+                                        needShowInput
+                                        onChange={(e) => {
+                                            // Парсим обратно в число,
+                                            // кладём это число в Formik
+                                            const numeric = parseMoneyStringToNumber(e.target.value);
+                                            formik.setFieldValue(
+                                                "amount_expected_replenishment",
+                                                numeric
+                                            );
+                                        }}
+                                        onBlur={formik.handleBlur}
+                                    />
+                                    <div className={styles.form__item__tooltip}>
+                                        <Tooltip
+                                            className={styles.form__item__tooltip_specified}
+                                            description='Сумма предполагаемого пополнения счета'
+                                            topForCenteringIcons="24px"
+                                            direction='left'
+                                            positionBox={{ top: '12px', right: '32px' }}
+                                            squerePosition={{ right: '-4px' }}
+                                        />
+                                    </div>
+                                </div>
                             </div>
-                        )}
-                    </div>
+                            <div className={styles.form__container}>
+                                <div className={styles.form__item}>
+                                    <span className={styles.parametrs}>Параметры портфеля</span>
+                                    <span className={styles.parametrs__value}>
+                                        {SWIPER_PARAM_VALUES[formik.values.portfolio_parameters as keyof SwiperParametrValues]}
+                                    </span>
+                                </div>
+
+                                <div className={styles.form__item}>
+                                    <Input
+                                        swiperDiscreteSubtitles={['меньше риск', 'меньше доход', 'больше риск', 'больше доход']}
+                                        type="swiperDiscrete"
+                                        theme="gradient"                // чтобы ползунок был с градиентной обводкой
+                                        name="portfolio_parameters"
+                                        discreteValues={[
+                                            "risk_prof_conservative",
+                                            "risk_prof_conservative_moderately",
+                                            "risk_prof_balanced",
+                                            "risk_prof_aggressive_moderately",
+                                            "risk_prof_aggressive",
+                                            "risk_prof_aggressive_super"
+                                        ]}
+                                        extraDescreteValue={recommendedKeys[recommendedKeys.length - 1]}
+                                        customSliderDivisions={5}
+                                        value={formik.values.portfolio_parameters}
+                                        onChange={(e) => {
+                                            // e.target.value здесь будет строка из массива discreteValues
+                                            formik.setFieldValue("portfolio_parameters", e.target.value);
+                                        }}
+                                        onBlur={formik.handleBlur}
+                                    />
+                                </div>
+                                <div className={styles.information}>
+                                    <div className={styles.information__marker}></div>
+                                    <span className={styles.information__description}>Маркер рекомендуемого риск-профиля согласно Вашим ответам на вопросы</span>
+                                </div>
+                            </div>
+                            <div className={styles.form__container} style={{ minHeight: '74px' }}>
+                                <div className={styles.form__item_potintial}>
+                                    <div className={styles.form__item_potintial__container} >
+                                        <span className={styles.form__item__potintial__title}>Потенциальный доход</span>
+                                        <Tooltip
+                                            className={styles.form__item__tooltip}
+                                            description="Потенциальный доход. Складывается из потенциального роста цены бумаг, входящих в портфель, прогнозных дивидендов и купонного дохода от облигаций"
+                                            topForCenteringIcons="24px"
+                                            direction='top'
+                                            squerePosition={{ bottom: '-4px' }}
+                                        />
+                                    </div>
+                                    <span className={styles.form__item__potintial__title_green}>{thirdRiskProfileResponse ? thirdRiskProfileResponse.risk_profiling_potential_income_percent : secondRiskProfileData?.risk_profiling_potential_income_percent}%</span>
+                                </div>
+                                <div className={styles.potential__capital__change}>
+                                    {thirdRiskProfileResponse ? thirdRiskProfileResponse.potential_income : secondRiskProfileData?.potential_income} ₽
+                                </div>
+                            </div>
+                            <div className={styles.form__container} style={{ minHeight: '74px' }}>
+                                <div className={styles.form__item_potintial}>
+                                    <div className={styles.form__item_potintial__container} >
+                                        <span className={styles.form__item__potintial__title}>Возможный убыток</span>
+                                        <Tooltip
+                                            className={styles.form__item__tooltip}
+                                            description="Возможное снижение цены портфеля в моменте с учетом действующих на рынке факторов"
+                                            topForCenteringIcons="24px"
+                                            direction='top'
+                                            squerePosition={{ bottom: '-4px' }}
+                                        />
+                                    </div>
+                                    <span className={styles.form__item__potintial__title_red}>{thirdRiskProfileResponse ? thirdRiskProfileResponse.risk_profiling_possible_loss_percent : secondRiskProfileData?.risk_profiling_possible_loss_percent}%</span>
+                                </div>
+                                <div className={styles.potential__capital__change}>
+                                    {thirdRiskProfileResponse ? thirdRiskProfileResponse.possible_loss : secondRiskProfileData?.possible_loss} ₽
+                                </div>
+                            </div>
+                            {/* <h4 className={styles.title}>Завершение настроек риск профиля</h4> */}
+                            <div className={styles.form__container} style={{ minHeight: '180px' }}>
+
+                                {secondRiskProfileData && (
+                                    <div className={styles.form__final}>
+
+                                        <Tooltip
+                                            className={styles.form__item__tooltip_report}
+                                            description={
+                                                RISK_PROFILE_DESCRIPTIONS[
+                                                Object.keys(secondRiskProfileData.recommended_risk_profiles)[Object.keys(secondRiskProfileData.recommended_risk_profiles).length - 1]
+                                                ]
+                                            }
+                                            topForCenteringIcons="24px"
+                                            direction='left'
+                                            positionBox={{ top: '12px', right: '32px' }}
+                                            squerePosition={{ right: '-4px' }}
+                                        />
+                                        <div className={styles.report__container}>
+                                            <p className={styles.report}>Рекомендуемый риск-профиль по результатам риск-профилирования </p>
+                                            <b className={styles.report__value}>{Object.values(secondRiskProfileData.recommended_risk_profiles)[Object.keys(secondRiskProfileData.recommended_risk_profiles).length - 1]}</b>
+                                        </div>
+                                        <Select
+                                            label="Подтвердить выбор риск профиля"
+                                            needValue
+                                            value={formik.values.risk_profiling_final || ""}
+                                            title="Выберите риск профиль"
+                                            items={finalRiskProfileOptions}
+                                            onChange={handleFinalProfileChange}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    )}
+                    {device !== 'mobile' && (
+                        <div className={styles.adaptiv__wrapper}>
+                            <div className={styles.adaptiv__container}>
+                                <div className={styles.form__container__first}>
+                                    <div className={styles.form__item}>
+                                        <div className={styles.form__item__balans}>
+                                            <span className={styles.balans}>Баланс портфеля</span>
+                                            <Tooltip
+                                                className={styles.form__item__tooltip}
+                                                description="Средства на счете"
+                                                topForCenteringIcons="24px"
+                                                direction='top'
+                                                squerePosition={{ bottom: '-4px' }}
+                                            />
+                                        </div>
+                                        <span>0 ₽</span>
+                                    </div>
+
+                                    <div className={styles.form__item__input}>
+                                        <Input
+                                            name="amount_expected_replenishment"
+                                            type="swiper"
+                                            placeholder="Деньги"
+                                            // Пределы для ползунка:
+                                            min={secondRiskProfileData?.min_amount_expected_replenishment}
+                                            max={100000000}
+                                            step={secondRiskProfileData?.step_scroll_amount_expected_replenishment}
+                                            // Передаём уже ОТФОРМАТИРОВАННУЮ строку,
+                                            // чтобы пользователь видел "3 000 000 ₽"
+                                            value={formatMoney(
+                                                formik.values.amount_expected_replenishment || 200000
+                                            )}
+                                            needShowInput
+                                            onChange={(e) => {
+                                                // Парсим обратно в число,
+                                                // кладём это число в Formik
+                                                const numeric = parseMoneyStringToNumber(e.target.value);
+                                                formik.setFieldValue(
+                                                    "amount_expected_replenishment",
+                                                    numeric
+                                                );
+                                            }}
+                                            onBlur={formik.handleBlur}
+                                        />
+                                        <div className={styles.form__item__tooltip}>
+                                            <Tooltip
+                                                className={styles.form__item__tooltip_specified}
+                                                description='Сумма предполагаемого пополнения счета'
+                                                topForCenteringIcons="24px"
+                                                direction='left'
+                                                positionBox={{ top: '12px', right: '32px' }}
+                                                squerePosition={{ right: '-4px' }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className={styles.form__container__first} style={{ minHeight: '74px' }}>
+                                    <div className={styles.form__item_potintial}>
+                                        <div className={styles.form__item_potintial__container} >
+                                            <span className={styles.form__item__potintial__title}>Потенциальный доход</span>
+                                            <Tooltip
+                                                className={styles.form__item__tooltip}
+                                                description="Потенциальный доход. Складывается из потенциального роста цены бумаг, входящих в портфель, прогнозных дивидендов и купонного дохода от облигаций"
+                                                topForCenteringIcons="24px"
+                                                direction='top'
+                                                squerePosition={{ bottom: '-4px' }}
+                                            />
+                                        </div>
+                                        <span className={styles.form__item__potintial__title_green}>{thirdRiskProfileResponse ? thirdRiskProfileResponse.risk_profiling_potential_income_percent : secondRiskProfileData?.risk_profiling_potential_income_percent}%</span>
+                                    </div>
+                                    <div className={styles.potential__capital__change}>
+                                        {thirdRiskProfileResponse ? thirdRiskProfileResponse.potential_income : secondRiskProfileData?.potential_income} ₽
+                                    </div>
+                                </div>
+                                <div className={styles.form__container__first} style={{ minHeight: '74px' }}>
+                                    <div className={styles.form__item_potintial}>
+                                        <div className={styles.form__item_potintial__container} >
+                                            <span className={styles.form__item__potintial__title}>Возможный убыток</span>
+                                            <Tooltip
+                                                className={styles.form__item__tooltip}
+                                                description="Возможное снижение цены портфеля в моменте с учетом действующих на рынке факторов"
+                                                topForCenteringIcons="24px"
+                                                direction='top'
+                                                squerePosition={{ bottom: '-4px' }}
+                                            />
+                                        </div>
+                                        <span className={styles.form__item__potintial__title_red}>{thirdRiskProfileResponse ? thirdRiskProfileResponse.risk_profiling_possible_loss_percent : secondRiskProfileData?.risk_profiling_possible_loss_percent}%</span>
+                                    </div>
+                                    <div className={styles.potential__capital__change}>
+                                        {thirdRiskProfileResponse ? thirdRiskProfileResponse.possible_loss : secondRiskProfileData?.possible_loss} ₽
+                                    </div>
+                                </div>
+                            </div>
+                            <div className={styles.adaptiv__container}>
+                                <div className={styles.form__container__second}>
+                                    <div className={styles.form__item}>
+                                        <span className={styles.parametrs}>Параметры портфеля</span>
+                                        <span className={styles.parametrs__value}>
+                                            {SWIPER_PARAM_VALUES[formik.values.portfolio_parameters as keyof SwiperParametrValues]}
+                                        </span>
+                                    </div>
+
+                                    <div className={styles.form__item}>
+                                        <Input
+                                            swiperDiscreteSubtitles={['меньше риск', 'меньше доход', 'больше риск', 'больше доход']}
+                                            type="swiperDiscrete"
+                                            theme="gradient"                // чтобы ползунок был с градиентной обводкой
+                                            name="portfolio_parameters"
+                                            discreteValues={[
+                                                "risk_prof_conservative",
+                                                "risk_prof_conservative_moderately",
+                                                "risk_prof_balanced",
+                                                "risk_prof_aggressive_moderately",
+                                                "risk_prof_aggressive",
+                                                "risk_prof_aggressive_super"
+                                            ]}
+                                            extraDescreteValue={recommendedKeys[recommendedKeys.length - 1]}
+                                            customSliderDivisions={5}
+                                            value={formik.values.portfolio_parameters}
+                                            onChange={(e) => {
+                                                // e.target.value здесь будет строка из массива discreteValues
+                                                formik.setFieldValue("portfolio_parameters", e.target.value);
+                                            }}
+                                            onBlur={formik.handleBlur}
+                                        />
+                                    </div>
+                                    <div className={styles.information}>
+                                        <div className={styles.information__marker}></div>
+                                        <span className={styles.information__description}>Маркер рекомендуемого риск-профиля согласно Вашим ответам на вопросы</span>
+                                    </div>
+                                </div>
+
+
+                                {/* <h4 className={styles.title}>Завершение настроек риск профиля</h4> */}
+                                <div className={styles.form__container__second} style={{ minHeight: '180px' }}>
+
+                                    {secondRiskProfileData && (
+                                        <div className={styles.form__final}>
+
+                                            <Tooltip
+                                                className={styles.form__item__tooltip_report}
+                                                description={
+                                                    RISK_PROFILE_DESCRIPTIONS[
+                                                    Object.keys(secondRiskProfileData.recommended_risk_profiles)[Object.keys(secondRiskProfileData.recommended_risk_profiles).length - 1]
+                                                    ]
+                                                }
+                                                topForCenteringIcons="24px"
+                                                direction='left'
+                                                positionBox={{ top: '12px', right: '32px' }}
+                                                squerePosition={{ right: '-4px' }}
+                                            />
+                                            <div className={styles.report__container}>
+                                                <p className={styles.report}>Рекомендуемый риск-профиль по результатам риск-профилирования </p>
+                                                <b className={styles.report__value}>{Object.values(secondRiskProfileData.recommended_risk_profiles)[Object.keys(secondRiskProfileData.recommended_risk_profiles).length - 1]}</b>
+                                            </div>
+                                            <Select
+                                                label="Подтвердить выбор риск профиля"
+                                                needValue
+                                                value={formik.values.risk_profiling_final || ""}
+                                                title="Выберите риск профиль"
+                                                items={finalRiskProfileOptions}
+                                                onChange={handleFinalProfileChange}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                        </div>
+                    )}
 
                     <div className={`${styles.buttons} ${isBottom ? "" : styles.shadow}`}>
                         <Button
@@ -389,6 +566,7 @@ export const RiskProfileSecondForm: React.FC = () => {
                     }}
                     title="Рекомендуемый риск-профиль"
                     action={() => {
+                        dispatch(setAdditionalOverlayVisibility(false))
                         dispatch(openModal({
                             type: ModalType.PREVIEW,
                             animation: ModalAnimation.LEFT,
@@ -396,9 +574,8 @@ export const RiskProfileSecondForm: React.FC = () => {
                         }));
                     }}
                     actionText="Подробное описание риск-профилей"
-
                 />
-                <PreviewModal title="Подробное описание риск-профилей" content={<>
+                <PreviewModal contentPurpose="riskProfiles" title="Подробное описание риск-профилей" content={<>
                     {riskProfiles.map(profile => (
                         <RiskProfileCard key={profile.id} {...profile} />
                     ))}

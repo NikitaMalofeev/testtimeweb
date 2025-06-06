@@ -48,6 +48,17 @@ export const getAllTariffs = async (token: string) => {
     return data;
 };
 
+export const getChecksUser = async (token: string) => {
+    const { data } = await axios.get(`${apiPaymentsUrl}get_checks_user/`, {
+        headers: {
+            "Accept-Language": "ru",
+            Authorization: `Token ${token}`,
+        },
+    });
+    return data;
+};
+
+
 export const getAllActiveTariffs = async (token: string) => {
     const { data } = await axios.post(`${apiPaymentsUrl}get_tariffs_user/`, {}, {
         headers: {

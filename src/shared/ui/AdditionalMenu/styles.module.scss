@@ -113,7 +113,10 @@
          .additionalMenu {
           background-color: #E1ECFB;
           padding: 32px;
-          width: 100vw;
+          width: 100dvw;
+          height: calc(100dvh - 56px);
+          display: flex;
+          align-items: center;
 
           &__container {
             position: relative;
@@ -135,6 +138,10 @@
          .header__tooltip {
           top: 68px;
           left: 360px;
+         }
+
+         .header__title {
+          max-width: none;
          }
 
 }

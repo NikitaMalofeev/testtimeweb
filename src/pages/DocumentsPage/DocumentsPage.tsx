@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
@@ -38,6 +38,7 @@ import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/D
 import { selectIsAnyModalOpen } from "entities/ui/Modal/selectors/selectorsModals";
 import { getAllUserInfoThunk, getUserPersonalAccountInfoThunk } from "entities/User/slice/userSlice";
 import WarningIcon from 'shared/assets/svg/Warning.svg'
+import { getAllUserChecksThunk } from "entities/Payments/slice/paymentsSlice";
 
 const DocumentsPage: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -51,12 +52,23 @@ const DocumentsPage: React.FC = () => {
     const currentTariffId = useSelector((state: RootState) => state.payments.currentTariffId);
     const uploadDocs = useSelector((s: RootState) => s.documents.uploadDocs);
     const payments = useSelector((s: RootState) => s.payments.payments_info);
+    const userChecks = useSelector((s: RootState) => s.payments.checks);
     const tariff = useSelector((s: RootState) => s.payments.payments_info);
-    const hasTariff = tariff.some(item => item.user_tariff_is_active === true)
+    const activeTariffs = useSelector((s: RootState) => s.payments.activeTariffs);
+    const currentUserTariffIdForPayments = useSelector((s: RootState) => s.payments.currentUserTariffIdForPayments);
+    const targetTariffId = currentUserTariffIdForPayments || '';
+
+    const normalize = (id: string) => id.replace(/-/g, '');
+
+    const activePaidTariffs = useMemo(
+        () => activeTariffs.filter(t => normalize(t.id) === normalize(targetTariffId)),
+        [activeTariffs, targetTariffId]
+    );
 
     useEffect(() => {
         dispatch(getUserDocumentsStateThunk());
         dispatch(getAllUserInfoThunk());
+        dispatch(getAllUserChecksThunk({ onSuccess: () => { } }))
         dispatch(getAllBrokersThunk({ is_confirmed_type_doc_agreement_transfer_broker: true, onSuccess: () => { } }));
     }, []);
 
@@ -95,9 +107,9 @@ const DocumentsPage: React.FC = () => {
         type_doc_risk_declarations: "5. Декларация о рисках",
         type_doc_agreement_personal_data_policy: "6. Политика перс. данных",
         type_doc_investment_profile_certificate: "7. Справка ИП",
-        type_doc_agreement_account_maintenance: "8. Доверенность на управление счетом",
         type_doc_broker_api_token: "9. Согласие на передачу API ключа к брокерскому счету",
         type_doc_agreement_investment_advisor_app_1: '10. Договор ИС: Приложение 1',
+        type_doc_agreement_account_maintenance: "8. Доверенность на управление счетом",
     };
 
     // Порядок документов
@@ -192,14 +204,26 @@ const DocumentsPage: React.FC = () => {
                 }
                 break;
             }
+            case "type_doc_agreement_account_maintenance": {
+                if (activePaidTariffs.length > 0) {
+                    dispatch(setCurrentConfirmableDoc(docId));
+                    dispatch(setStepAdditionalMenuUI(4));
+                    dispatch(
+                        openModal({
+                            type: ModalType.IDENTIFICATION,
+                            size: ModalSize.FULL,
+                            animation: ModalAnimation.LEFT,
+                        })
+                    );
+                }
+            }
             case "type_doc_EDS_agreement":
             case 'type_doc_agreement_investment_advisor_app_1':
             case "type_doc_agreement_investment_advisor":
             case "type_doc_risk_declarations":
             case "type_doc_agreement_personal_data_policy":
             case "type_doc_investment_profile_certificate":
-            case "type_doc_agreement_account_maintenance":
-                // Для type_doc_EDS_agreement проверяем наличие заполненного паспорта
+
                 if (docId === "type_doc_EDS_agreement" && !filledRiskProfileChapters.is_exist_scan_passport) {
                     // Если паспорт не существует, не даём подписывать документ
                     return;
@@ -249,12 +273,12 @@ const DocumentsPage: React.FC = () => {
         };
     });
 
-    const paymentDocuments = payments
-        .map(p => ({
-            id: `payment_${p.user_tariff_id}`,
-            title: `Чек #${p.user_tariff_id[0]}`,
-            date: p.updated ?? null,
-            status: p.order.paid ? "signed" : "signable",
+    const paymentDocuments = userChecks
+        .map((p, idx) => ({
+            id: `payment_${idx}`,
+            title: `Чек #${idx + 1}`,
+            date: p.date_time_check ?? null,
+            status: "signed",
             timeoutPending: 0,
             isPayment: true,
         }))
@@ -285,7 +309,7 @@ const DocumentsPage: React.FC = () => {
                 !tariffs
             ) {
                 colorClass = styles.button__red;
-                additionalMessages = `Для подписания${!filledRiskProfileChapters.is_exist_scan_passport ? ' заполните паспорт,' : ''} ${brokerIds[0] !== null ? 'подключите брокера и' : 'подключите'} ${!hasTariff ? 'тариф' : ''}`;
+                additionalMessages = `Для подписания${!filledRiskProfileChapters.is_exist_scan_passport ? ' заполните паспорт,' : ''} ${brokerIds[0] !== null ? 'подключите брокера и' : 'подключите'} ${activePaidTariffs.length === 0 ? 'тариф' : ''}`;
             } else {
                 colorClass = styles.button__gray;
                 additionalMessages = '';
@@ -301,6 +325,13 @@ const DocumentsPage: React.FC = () => {
             }
 
             // 3) Иначе общий случай    
+        } else if (doc.id === 'type_doc_agreement_account_maintenance') {
+            if (activePaidTariffs.length > 0) {
+                colorClass = styles.button__gray;
+                additionalMessages = 'Для подписания подключите брокерский счет';
+            } else {
+                colorClass = styles.button__red;
+            }
         } else {
             if (doc.status === "signable") {
                 if (doc.id === firstNotConfirmed) {

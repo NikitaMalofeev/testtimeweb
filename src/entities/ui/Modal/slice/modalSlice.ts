@@ -13,6 +13,7 @@ export interface ExtendedModalState extends ModalState {
     modalStack: ModalType[];
     confirmationMethod: 'SMS' | 'WHATSAPP' | 'EMAIL';
     selectedCountry: string;
+    additionalOverlayVisibility: boolean;
     currentProblemScreen: string | undefined;
 }
 
@@ -113,6 +114,7 @@ const initialState: ExtendedModalState = {
     },
 
     // auxiliary fields
+    additionalOverlayVisibility: true,
     modalStack: [],
     confirmationMethod: 'SMS',
     selectedCountry: '',
@@ -210,6 +212,12 @@ const modalSlice = createSlice({
         ) => {
             state.currentProblemScreen = action.payload;
         },
+        setAdditionalOverlayVisibility: (
+            state,
+            action: PayloadAction<boolean>
+        ) => {
+            state.additionalOverlayVisibility = action.payload;
+        },
 
         closeAllModals: (state) => {
             Object.values(ModalType).forEach((type) => {
@@ -240,6 +248,7 @@ export const {
     setSelectedCountry,
     setCurrentProblemScreen,
     closeAllModals,
+    setAdditionalOverlayVisibility
 } = modalSlice.actions;
 
 export default modalSlice.reducer;

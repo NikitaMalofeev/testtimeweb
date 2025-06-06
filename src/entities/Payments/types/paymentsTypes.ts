@@ -64,3 +64,12 @@ export interface RobokassaResultResponse {
     SignatureValue: string;
     IsTest?: string;
 }
+
+export interface UserCheck {
+    fn: string;
+    fd: string;
+    fpd_or_fp: string;
+    date_time_check: string; // ISO
+    url_check: string;
+    check_html: string;
+}

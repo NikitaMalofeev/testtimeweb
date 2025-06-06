@@ -1,7 +1,7 @@
 
 .container {
-        position: fixed;
-    top: 32px;
+    position: fixed;
+    top: calc(50dvh - 331px);
     left: calc(50dvw - 480px);
     display: flex;
     flex-direction: column;

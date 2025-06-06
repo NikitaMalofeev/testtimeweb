@@ -7,6 +7,7 @@ import {
     getAllActiveTariffs,
     getAllTariffs,
     getAllUserTariffs,
+    getChecksUser,
     getNotSignedTariffDoc,
     getOrderStatus,
     getSignedTariffDoc,
@@ -20,6 +21,7 @@ import {
     PaymentsCreateOrderPayload,
     RobokassaResultResponse,
     Tariff,
+    UserCheck,
 } from '../types/paymentsTypes';
 import {
     setCurrentSignedDocuments,
@@ -72,6 +74,7 @@ export interface PaymentInfo {
 interface PaymentsState {
     tariffs: Tariff[];
     activeTariffs: Tariff[];
+    checks: UserCheck[];
     paidTariffKeys: Record<string, string>;
     orderStatus: OrderStatusResponse | null;
     robokassaData: RobokassaResultResponse | null;
@@ -89,6 +92,7 @@ const initialState: PaymentsState = {
     tariffs: [],
     activeTariffs: [],
     paidTariffKeys: {},
+    checks: [],
     orderStatus: null,
 
     robokassaData: null,
@@ -174,6 +178,26 @@ export const getAllUserTariffsThunk = createAsyncThunk<
     },
 );
 
+export const getAllUserChecksThunk = createAsyncThunk<
+    UserCheck[],
+    { onSuccess?: () => void },
+    { rejectValue: string; state: RootState }
+>(
+    'payments/getAllUserChecksThunk',
+    async ({ onSuccess }, { dispatch, rejectWithValue, getState }) => {
+        try {
+            const token = getState().user.token;
+            const response = token && await getChecksUser(token);   
+            dispatch(setUserChecks(response));                     
+            onSuccess?.();
+            return response;
+        } catch (err: any) {
+            const msg = err.response?.data?.info || err.message;
+            dispatch(setError(msg));
+            return rejectWithValue(msg);
+        }
+    },
+);
 export const getAllActiveTariffsThunk = createAsyncThunk<
     PaymentInfo[],                                       // <== НОВОЕ
     { onSuccess?: () => void },
@@ -450,6 +474,9 @@ export const paymentsSlice = createSlice({
                 state.currentOrderStatus = action.payload;
             }
         },
+        setUserChecks: (state, action: PayloadAction<UserCheck[]>) => {
+            state.checks = action.payload;
+        },
         setPaymentsInfo: (state, action: PayloadAction<PaymentInfo[]>) => { // <== НОВОЕ
             state.payments_info = action.payload;
         },
@@ -481,6 +508,7 @@ export const {
     setPaymentsInfo,
     setActiveTariffs,
     updateTariffKey,
+    setUserChecks,
     setAllTariffs
 } = paymentsSlice.actions;
 

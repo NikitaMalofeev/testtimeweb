@@ -1,3 +1,5 @@
+@use '../../app/styles/mixins' as mix;
+
 .page {
     display: flex;
     flex-direction: column;
@@ -168,4 +170,95 @@ text-align: center;
 
 }
 
+@include mix.respond-to('tablet-desktop') {
+
+     .page {
+         max-width: 950px;
+         height: 100%;
+         margin: 0 auto;
+
+    }
+    .page__title {
+        padding-left: 42px;
+
+        & h2 {
+            padding-left: 0;
+        }
+    }
+
+    .page__container {
+        display: flex;
+        justify-content: space-between;
+        flex-direction: column;
+        max-width: 950px;
+
+        max-height: 662px;
+        padding: 42px 0;
+                 background-color: white;
+                 border-radius: 25px;
+    }
+
+    .documents__list {
+        overflow-y: auto;
+        padding: 0 42px;
+
+         & .document__item {
+             &:first-child {
+           & .document__info__flex {
+                    
+            & .document__status {
+                display: flex;
+                justify-content: start;
+                min-width: 158px;
+            }
+                }
+        }
+                
+            }
+
+       
+    }
+
+    .document__info {
+
+        & > span {
+            max-width: 400px;
+        }
+    }
+
+    .document__item {
+
+
+        &::after {
+            max-width: 866px;
+        }
+    }
+
+    .document__status {
+        display: flex;
+        flex-direction: row;
+        justify-content: end;
+        max-width: max-content;
+        width: 100%;
+        min-width: 183px;
+        gap: 47px;
+
+    }
+
+    .document__date {
+        text-align: left;
+    }
+
+    .button {
+        max-height: 35px;
+    }
+
+    .documents__warning {
+
+        & span {
+            max-width: max-content;
+            text-align: right;
+        }
+    }
+}
 

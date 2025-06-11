@@ -1,4 +1,7 @@
+@use './mixins' as mix;
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+
 .page__wrapper {
   height: var(--vh); 
 
@@ -38,6 +41,25 @@ body {
     position: fixed;
     height: 100%;
     color: #0F0E0E;
+}
+
+@include mix.respond-to('tablet-desktop') {
+ 
+  .page__content{
+     background-color: #E1ECFB;
+  }
+
+  .page__scroll {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    & > div {
+      min-height: calc(100dvh - 52px);
+      justify-content: center;
+      max-height: none;
+    }
+  }
 }
 
 /* Если хотите гарантированно применить везде, можно дублировать: */

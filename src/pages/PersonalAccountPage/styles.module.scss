@@ -1,3 +1,5 @@
+@use '../../app/styles/mixins' as mix;
+
 .page {
     display: flex;
     flex-direction: column;
@@ -131,6 +133,12 @@
     }
 }
 
+.desktop__container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 .menu__item {
     position: relative;
     align-items: center;
@@ -198,4 +206,59 @@
 
 .modalContent__tooltip {
     max-width: 200px;
+}
+
+@include mix.respond-to('tablet-desktop') {
+
+    .page {
+         max-width: 950px;
+         height: 100%;
+         margin: 0 auto;
+
+    }
+    .page__info {
+        border: 1px solid #EBEBED;
+        border-radius: 15px;
+        padding: 28px 32px;
+        width: 100%;
+    }
+    .page__container {
+        display: flex;
+        justify-content: space-between;
+        flex-direction: row;
+        max-width: 950px;
+        max-height: 662px;
+                 background-color: white;
+                 border-radius: 25px;
+    }
+
+    .desktop__container {
+        max-width: 476px;
+        width: 100%;
+    }
+
+    .documents {
+        max-width: 394px;
+        width: 100%;
+        height: 662px;
+        margin-top: -16px;
+        border-left: 1px solid #EBEBED;
+    }
+
+    .menu__item {
+        padding-left: 32px !important;
+        min-height: 68px;
+        &::after {
+            left: 0;
+        }
+
+        &:first-child::before {
+            display: none;
+        }
+    }
+
+    .warning {
+        left: 70px;
+    }
+
 }

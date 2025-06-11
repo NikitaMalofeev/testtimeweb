@@ -83,7 +83,7 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
     return (
         <div className={styles.status__wrapper}>
             {/* Иконка и заголовок */}
-            <div className={styles.status__header}>
+            <div className={styles.status__header} style={status === 'success' ? { marginBottom: '55px' } : { marginBottom: '75px' }}>
                 <div className={styles.status__status}>
                     {icon === 'loader' ? (
                         <Loader />
@@ -131,7 +131,9 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
                             padding="20px 25px"
                             onClick={() => {
                                 navigate('/documents')
-                                dispatch(setCurrentOrderStatus(''))
+                                setTimeout(() => {
+                                    dispatch(setCurrentOrderStatus(''))
+                                }, 1000)
                             }}
                         >
                             Перейти в документы
@@ -141,7 +143,9 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
                             padding="20px 25px"
                             onClick={() => {
                                 navigate('/lk')
-                                dispatch(setCurrentOrderStatus(''))
+                                setTimeout(() => {
+                                    dispatch(setCurrentOrderStatus(''))
+                                }, 1000)
                             }}
                         >
                             Вернуться в учётную запись
@@ -164,6 +168,7 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
                             onClick={() => {
                                 payAction()
                             }}
+                            className={styles.button}
                         >
                             Перейти к оплате
                         </Button>
@@ -173,6 +178,7 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
                             onClick={() => {
                                 navigate('/lk')
                             }}
+                            className={styles.button}
                         >
                             Вернуться в учётную запись
                         </Button>

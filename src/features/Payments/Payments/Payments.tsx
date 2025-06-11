@@ -237,7 +237,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         document.body.style.overflow = isConfirming ? 'hidden' : '';
     }, [isConfirming]);
 
-    /* --- РАННИЙ ВЫХОД, если в url статус success|loading|failed --- */
+
     if (currentOrderStatus) {
         return <PaymentsStatus status={currentOrderStatus as any} paymentId={currentUserTariffIdForPayments || currentOrderId} payAction={() => {
             if (!currentPaymentOrder?.payment_url) return;

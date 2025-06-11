@@ -24,6 +24,7 @@ interface CheckboxGroupProps {
      * Передаём в него (name, значение выбранного варианта).
      */
     onChange: (name: string, clickedValue: string) => void;
+    greedOrFlex?: 'grid' | 'flex';
     error?: string | boolean;
 }
 
@@ -35,6 +36,7 @@ export const CheckboxGroup: React.FC<CheckboxGroupProps> = ({
     value = "",
     error,
     needValue,
+    greedOrFlex,
     onChange,
 }) => {
     // Обрабатываем клик по "радио"-чекбоксу
@@ -46,7 +48,12 @@ export const CheckboxGroup: React.FC<CheckboxGroupProps> = ({
     return (
         <div className={styles.checkboxGroup__container}>
             {label && <span className={styles.checkboxGroup__label}>{label} {needValue && !value && <span style={{ color: 'red', marginLeft: '2px' }}>*</span>}</span>}
-            <div className={styles.checkboxGroup} style={direction === 'row' ? { flexDirection: 'row', maxWidth: 'max-content', marginBottom: '10px' } : {}}>
+            <div className={styles.checkboxGroup} style={{
+                display: greedOrFlex === 'flex' ? 'flex' : 'grid',
+                flexDirection: direction === 'row' ? 'row' : undefined,
+                maxWidth: direction === 'row' ? 'max-content' : undefined,
+                marginBottom: direction === 'row' ? '10px' : undefined,
+            }}>
 
                 {options.map((option) => (
                     <CheckboxRadio

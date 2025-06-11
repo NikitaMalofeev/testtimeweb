@@ -1,7 +1,8 @@
+// PasportDataForm.tsx
 import React, { useEffect, useRef, useState } from "react";
 import { useFormik } from "formik";
 import ReCAPTCHA from "react-google-recaptcha";
-import { postPasportInfo, updateFieldValue, updatePassportFormData } from "entities/RiskProfile/slice/riskProfileSlice";
+import { postPasportInfo, updatePassportFormData } from "entities/RiskProfile/slice/riskProfileSlice";
 import { Input } from "shared/ui/Input/Input";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
 import styles from "./styles.module.scss";
@@ -16,123 +17,52 @@ import { ConfirmDocsModal } from "../ConfirmDocsModal/ConfirmDocsModal";
 import * as Yup from "yup";
 import { Datepicker } from "shared/ui/DatePicker/DatePicker";
 import { format } from "date-fns";
-import { getAllUserInfoThunk, getUserPersonalAccountInfoThunk } from "entities/User/slice/userSlice";
 import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
 import { setError } from "entities/Error/slice/errorSlice";
 import { getUserDocumentsInfoThunk, getUserDocumentsStateThunk, setCurrentConfirmationMethod } from "entities/Documents/slice/documentsSlice";
+import { useDevice } from "shared/hooks/useDevice";
+import { useScrollShadow } from "shared/hooks/useScrollShadow";
 
 export const PasportDataForm: React.FC = () => {
     const dispatch = useAppDispatch();
     const recaptchaRef = useRef<ReCAPTCHA | null>(null);
+    const formRef = useRef<HTMLFormElement>(null);
+    const { isScrolled, isBottom } = useScrollShadow(formRef, true);
     const gcaptchaSiteKey = import.meta.env.VITE_RANKS_GRCAPTCHA_SITE_KEY;
     const [captchaVerified, setCaptchaVerified] = useState(false);
     const { loading, userPersonalAccountInfo } = useSelector((state: RootState) => state.user);
-    const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
     const modalState = useSelector((state: RootState) => state.modal);
     const token = useSelector((state: RootState) => state.user.token);
     const { confirmationMethod } = useSelector((state: RootState) => state.documents);
     const NAME_REGEX = /^[А-Яа-яЁё\s-]+$/;
     const { passportFormData } = useSelector((state: RootState) => state.riskProfile);
+    const device = useDevice();
+    const isBottomState = useSelector((state: RootState) => state.ui.isScrollToBottom);
 
-    // Yup-схема валидации
     const passportValidationSchema = Yup.object().shape({
-        last_name: Yup.string()
-            .matches(NAME_REGEX, "Только буквы, пробел и дефис")
-            .min(2, "Минимум 2 символа")
-            .required("Фамилия обязательна"),
-        first_name: Yup.string()
-            .matches(NAME_REGEX, "Только буквы, пробел и дефис")
-            .min(2, "Минимум 2 символа")
-            .required("Имя обязательно"),
-        birth_date: Yup.date()
-            .typeError("Некорректная дата")
-            .required("Дата рождения обязательна"),
-        gender: Yup.string()
-            .required("Пол обязательно"),
-        birth_place: Yup.string()
-            .min(2, "Минимум 2 символа")
-            .required("Место рождения обязательно"),
-        passport_series: Yup.string()
-            .matches(/^\d{4}$/, "Серия паспорта должна содержать 4 цифры")
-            .required("Серия паспорта обязательна"),
-        passport_number: Yup.string()
-            .matches(/^\d{6}$/, "Номер паспорта должен содержать 6 цифр")
-            .required("Номер паспорта обязателен"),
-        department_code: Yup.string()
-            .matches(/^\d{6}$/, "Код подразделения должен содержать 6 цифр")
-            .required("Код подразделения обязателен"),
-        issue_date: Yup.date()
-            .typeError("Некорректная дата")
-            .required("Дата выдачи паспорта обязательна"),
-        issue_whom: Yup.string()
-            .min(3, "Минимум 3 символа")
-            .required("Кем выдан паспорт обязательно"),
-        inn: Yup.string()
-            .matches(/^\d{12}$/, "ИНН должен содержать 12 цифр")
-            .required("ИНН обязателен"),
-        region: Yup.string()
-            .min(2, "Минимум 2 символа")
-            .required("Регион/район обязателен"),
-        city: Yup.string()
-            .min(2, "Минимум 2 символа")
-            .required("Город/населенный пункт обязателен"),
-        street: Yup.string()
-            .min(2, "Минимум 2 символа")
-            .required("Улица обязательна"),
-        house: Yup.string()
-            .min(1, "Минимум 1 символ")
-            .required("Дом обязателен"),
-        address_residential_region: Yup.string()
-            .min(2, "Минимум 2 символа")
-            .when(
-                ["is_live_this_address", "is_receive_mail_this_address"],
-                ([isLive, isReceive], schema) =>
-                    !(isLive && isReceive)
-                        ? schema.required("Регион/район обязателен")
-                        : schema
-            ),
-        address_residential_city: Yup.string()
-            .min(2, "Минимум 2 символа")
-            .when(
-                ["is_live_this_address", "is_receive_mail_this_address"],
-                ([isLive, isReceive], schema) =>
-                    !(isLive && isReceive)
-                        ? schema.required("Город/населенный пункт обязателен")
-                        : schema
-            ),
-        address_residential_street: Yup.string()
-            .min(2, "Минимум 2 символа")
-            .when(
-                ["is_live_this_address", "is_receive_mail_this_address"],
-                ([isLive, isReceive], schema) =>
-                    !(isLive && isReceive)
-                        ? schema.required("Улица обязательна")
-                        : schema
-            ),
-        address_residential_house: Yup.string()
-            .min(1, "Минимум 1 символа")
-            .when(
-                ["is_live_this_address", "is_receive_mail_this_address"],
-                ([isLive, isReceive], schema) =>
-                    !(isLive && isReceive)
-                        ? schema.required("Дом обязателен")
-                        : schema
-            ),
-        type_message: Yup.string()
-            .oneOf(["SMS", "EMAIL", "WHATSAPP"], "Выберите способ отправки кода")
-            .required("Способ отправки кода обязателен"),
+        last_name: Yup.string().matches(NAME_REGEX, "Только буквы, пробел и дефис").min(2, "Минимум 2 символа").required("Фамилия обязательна"),
+        first_name: Yup.string().matches(NAME_REGEX, "Только буквы, пробел и дефис").min(2, "Минимум 2 символа").required("Имя обязательно"),
+        birth_date: Yup.date().typeError("Некорректная дата").required("Дата рождения обязательна"),
+        gender: Yup.string().required("Пол обязательно"),
+        birth_place: Yup.string().min(2, "Минимум 2 символа").required("Место рождения обязательно"),
+        passport_series: Yup.string().matches(/^\d{4}$/, "Серия паспорта должна содержать 4 цифры").required("Серия паспорта обязательна"),
+        passport_number: Yup.string().matches(/^\d{6}$/, "Номер паспорта должен содержать 6 цифр").required("Номер паспорта обязателен"),
+        department_code: Yup.string().matches(/^\d{6}$/, "Код подразделения должен содержать 6 цифр").required("Код подразделения обязателен"),
+        issue_date: Yup.date().typeError("Некорректная дата").required("Дата выдачи паспорта обязательна"),
+        issue_whom: Yup.string().min(3, "Минимум 3 символа").required("Кем выдан паспорт обязательно"),
+        inn: Yup.string().matches(/^\d{12}$/, "ИНН должен содержать 12 цифр").required("ИНН обязателен"),
+        region: Yup.string().min(2, "Минимум 2 символа").required("Регион/район обязателен"),
+        city: Yup.string().min(2, "Минимум 2 символа").required("Город/населенный пункт обязателен"),
+        street: Yup.string().min(2, "Минимум 2 символа").required("Улица обязательна"),
+        house: Yup.string().min(1, "Минимум 1 символ").required("Дом обязателен"),
+        address_residential_region: Yup.string().min(2, "Минимум 2 символа").when(["is_live_this_address", "is_receive_mail_this_address"], ([isLive, isReceive], schema) => !(isLive && isReceive) ? schema.required("Регион/район обязателен") : schema),
+        address_residential_city: Yup.string().min(2, "Минимум 2 символа").when(["is_live_this_address", "is_receive_mail_this_address"], ([isLive, isReceive], schema) => !(isLive && isReceive) ? schema.required("Город/населенный пункт обязателен") : schema),
+        address_residential_street: Yup.string().min(2, "Минимум 2 символа").when(["is_live_this_address", "is_receive_mail_this_address"], ([isLive, isReceive], schema) => !(isLive && isReceive) ? schema.required("Улица обязательна") : schema),
+        address_residential_house: Yup.string().min(1, "Минимум 1 символа").when(["is_live_this_address", "is_receive_mail_this_address"], ([isLive, isReceive], schema) => !(isLive && isReceive) ? schema.required("Дом обязателен") : schema),
+        type_message: Yup.string().oneOf(["SMS", "EMAIL", "WHATSAPP"], "Выберите способ отправки кода").required("Способ отправки кода обязателен"),
         is_live_this_address: Yup.boolean(),
-        is_receive_mail_this_address: Yup.boolean().when(
-            ["is_live_this_address"],
-            ([is_live], schema: Yup.BooleanSchema<boolean | undefined>) =>
-                !is_live
-                    ? schema.oneOf([true], "Этот пункт обязателен к соглашению")
-                    : schema
-        ),
-        // is_receive_mail_this_address: Yup.boolean()
-        //     .oneOf([true], "Этот пункт обязателен к соглашению"),
-        g_recaptcha: Yup.string()
-            .required("Пройдите проверку reCAPTCHA"),
+        is_receive_mail_this_address: Yup.boolean().when(["is_live_this_address"], ([is_live], schema) => !is_live ? schema.oneOf([true], "Этот пункт обязателен к соглашению") : schema),
+        g_recaptcha: Yup.string().required("Пройдите проверку reCAPTCHA"),
     });
 
     const formik = useFormik({
@@ -140,10 +70,6 @@ export const PasportDataForm: React.FC = () => {
             g_recaptcha: "",
             ...passportFormData,
             type_message: confirmationMethod,
-            // first_name: savedPassportData.first_name && savedPassportData.first_name,
-            // last_name: savedPassportData.last_name && savedPassportData.last_name,
-            // patronymic: savedPassportData.patronymic && savedPassportData.patronymic,
-
         },
         enableReinitialize: true,
         validationSchema: passportValidationSchema,
@@ -161,39 +87,17 @@ export const PasportDataForm: React.FC = () => {
         },
     });
 
-    useEffect(() => {
-        console.log(confirmationMethod)
-        console.log(formik.values.type_message)
-    }, [confirmationMethod, formik.values])
-
-    const messageTypeOptions = {
-        "SMS": 'SMS',
-        "EMAIL": 'Email',
-        "WHATSAPP": 'Whatsapp'
-    };
-
-    const GenderOptions = {
-        "gender_male": 'Мужчина',
-        "gender_female": 'Женщина',
-    };
-
-    // Функция, которая вызывается, если валидация не прошла
     const handleValidationFailure = () => {
-        dispatch(setError('Не все поля заполнены корректно'))
+        dispatch(setError("Не все поля заполнены корректно"));
         setCaptchaVerified(false);
         formik.setFieldValue("g_recaptcha", "");
         recaptchaRef.current?.reset();
     };
 
-    // Обёртка для сабмита формы: если валидация не проходит, вызываем handleValidationFailure,
-    // иначе передаём данные в onSubmit.
     const handleSubmitWrapper = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-
         const errors = await formik.validateForm();
-        formik.setTouched(
-            Object.keys(formik.values).reduce((acc, key) => ({ ...acc, [key]: true }), {})
-        );
+        formik.setTouched(Object.keys(formik.values).reduce((acc, key) => ({ ...acc, [key]: true }), {}));
         if (Object.keys(errors).length > 0) {
             handleValidationFailure();
         } else {
@@ -202,8 +106,7 @@ export const PasportDataForm: React.FC = () => {
     };
 
     const handleNameChange = (fieldName: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const rawValue = e.target.value;
-        const sanitizedValue = rawValue.replace(/[^А-Яа-яЁё\s-]/g, "");
+        const sanitizedValue = e.target.value.replace(/[^А-Яа-яЁё\s-]/g, "");
         formik.setFieldValue(fieldName, sanitizedValue);
     };
 
@@ -212,24 +115,15 @@ export const PasportDataForm: React.FC = () => {
         formik.setFieldValue(name, value);
     };
 
-    /**
-     * Возвращает строку в формате 'XXX-XXX'.
-     * Если цифр меньше 3, возвращается как есть.
-     */
     const maskDepartmentCode = (value: string) => {
         if (!value) return "";
-        if (value.length <= 3) {
-            return value;
-        }
+        if (value.length <= 3) return value;
         return value.slice(0, 3) + "-" + value.slice(3);
     };
 
-
     const handleDepartmentCodeChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         let rawValue = e.target.value.replace(/\D/g, "");
-        if (rawValue.length > 6) {
-            rawValue = rawValue.slice(0, 6);
-        }
+        if (rawValue.length > 6) rawValue = rawValue.slice(0, 6);
         formik.setFieldValue("department_code", rawValue);
     };
 
@@ -241,41 +135,35 @@ export const PasportDataForm: React.FC = () => {
         formik.setFieldValue(name, value);
     };
 
-
-
-
     const handleCaptchaChange = (value: string | null) => {
         formik.setFieldValue("g_recaptcha", value || "");
         setCaptchaVerified(!!value);
     };
 
-    const handleMethodChange = (method: 'SMS' | 'EMAIL' | 'WHATSAPP') => {
+    const handleMethodChange = (method: "SMS" | "EMAIL" | "WHATSAPP") => {
         formik.setFieldValue("type_message", method);
-        //убрать этот страх когда оставлю один метод
         dispatch(setCurrentConfirmationMethod(method));
-
         setCaptchaVerified(false);
         formik.setFieldValue("g_recaptcha", "");
         recaptchaRef.current?.reset();
     };
 
-
     useEffect(() => {
         if (formik.values.is_live_this_address && formik.values.is_receive_mail_this_address) {
-            formik.setFieldValue('address_residential_region', '')
-            formik.setFieldValue('address_residential_city', '')
-            formik.setFieldValue('address_residential_street', '')
-            formik.setFieldValue('address_residential_house', '')
-            formik.setFieldValue('address_residential_apartment', '')
+            formik.setFieldValue("address_residential_region", "");
+            formik.setFieldValue("address_residential_city", "");
+            formik.setFieldValue("address_residential_street", "");
+            formik.setFieldValue("address_residential_house", "");
+            formik.setFieldValue("address_residential_apartment", "");
         }
         dispatch(updatePassportFormData(formik.values));
-    }, [formik.values.is_live_this_address, formik.values.is_receive_mail_this_address])
+    }, [formik.values.is_live_this_address, formik.values.is_receive_mail_this_address]);
 
     useEffect(() => {
-        userPersonalAccountInfo?.first_name && formik.setFieldValue('first_name', userPersonalAccountInfo?.first_name)
-        userPersonalAccountInfo?.last_name && formik.setFieldValue('last_name', userPersonalAccountInfo?.last_name)
-        userPersonalAccountInfo?.patronymic && formik.setFieldValue('patronymic', userPersonalAccountInfo?.patronymic)
-    }, [userPersonalAccountInfo])
+        userPersonalAccountInfo?.first_name && formik.setFieldValue("first_name", userPersonalAccountInfo.first_name);
+        userPersonalAccountInfo?.last_name && formik.setFieldValue("last_name", userPersonalAccountInfo.last_name);
+        userPersonalAccountInfo?.patronymic && formik.setFieldValue("patronymic", userPersonalAccountInfo.patronymic);
+    }, [userPersonalAccountInfo]);
 
     useEffect(() => {
         if (!modalState.confirmDocsModal.isOpen) {
@@ -283,389 +171,91 @@ export const PasportDataForm: React.FC = () => {
             formik.setFieldValue("g_recaptcha", "");
             recaptchaRef.current?.reset();
         }
-    }, [modalState.confirmDocsModal])
+    }, [modalState.confirmDocsModal]);
 
     if (loading) {
         return <Loader />;
-    } else {
-        return (
-            <>
-                {/* Форма использует onSubmit={handleSubmitWrapper} */}
-                <form className={styles.form} onSubmit={handleSubmitWrapper}>
-                    <Input
-                        placeholder="Фамилия"
-                        name="last_name"
-                        type="text"
-                        value={formik.values.last_name || ''}
-                        onChange={handleNameChange("last_name")}
-                        onBlur={formik.handleBlur}
-                        needValue
-                        error={formik.touched.last_name && formik.errors.last_name}
-                    />
+    }
 
-                    <Input
-                        placeholder="Имя"
-                        name="first_name"
-                        type="text"
-                        value={formik.values.first_name || ''}
-                        onChange={handleNameChange("first_name")}
-                        onBlur={formik.handleBlur}
-                        needValue
-                        error={formik.touched.first_name && formik.errors.first_name}
-                    />
+    const messageTypeOptions = { SMS: "SMS", EMAIL: "Email", WHATSAPP: "Whatsapp" };
+    const GenderOptions = { gender_male: "Мужчина", gender_female: "Женщина" };
 
-                    <Input
-                        placeholder="Отчество (при наличии)"
-                        name="patronymic"
-                        type="text"
-                        value={formik.values.patronymic || ''}
-                        onChange={handleNameChange("patronymic")}
-                        onBlur={formik.handleBlur}
-                        error={formik.touched.patronymic && formik.errors.patronymic}
-                    />
-
-                    <CheckboxGroup
-                        name="gender"
-                        label="Пол"
-                        direction="row"
-                        options={Object.entries(GenderOptions).map(([value, label]) => ({
-                            label,
-                            value,
-                        }))}
-                        value={formik.values.gender}
-                        onChange={(name, selectedValue) => {
-                            formik.setFieldValue(name, selectedValue);
-
-                        }}
-                        needValue
-                        error={formik.values.birth_date && formik.errors.gender}
-                    />
-
-                    <Datepicker
-                        value={formik.values.birth_date ? new Date(formik.values.birth_date) : null}
-                        onChange={(date) =>
-                            date && formik.setFieldValue("birth_date", format(date, "yyyy-MM-dd"))
-                        }
-                        placeholder="Дата рождения"
-                        maxDate={new Date()}
-                        needValue={true}
-                        error={formik.touched.birth_date && formik.errors.birth_date}
-                        majority
-                    />
-
-                    <Input
-                        placeholder="Место рождения"
-                        name="birth_place"
-                        type="text"
-                        value={formik.values.birth_place}
-                        onChange={handleTextInputChange}
-                        onBlur={formik.handleBlur}
-                        needValue
-                        error={formik.touched.birth_place && formik.errors.birth_place}
-                    />
-
-                    <Input
-                        placeholder="Серия паспорта"
-                        type="number"
-                        inputMode="numeric"
-                        min={0}
-                        max={9999}
-                        maxLength={4}
-                        name="passport_series"
-                        value={formik.values.passport_series}
-                        onChange={handleTextInputChange}
-                        onBlur={formik.handleBlur}
-                        needValue
-                        error={formik.touched.passport_series && formik.errors.passport_series}
-                    />
-
-                    <Input
-                        placeholder="Номер паспорта"
-                        type="number"
-                        inputMode="numeric"
-                        maxLength={6}
-                        min={0}
-                        max={999999}
-                        name="passport_number"
-                        value={formik.values.passport_number}
-                        onChange={handleTextInputChange}
-                        onBlur={formik.handleBlur}
-                        needValue
-                        error={formik.touched.passport_number && formik.errors.passport_number}
-                    />
-
-                    <Input
-                        placeholder="Код подразделения"
-                        name="department_code"
-                        type="text"
-                        inputMode="numeric"
-                        value={maskDepartmentCode(formik.values.department_code)}
-                        onChange={handleDepartmentCodeChange}
-                        onBlur={formik.handleBlur}
-                        needValue
-                        error={formik.touched.department_code && formik.errors.department_code}
-                    />
-
-                    <Input
-                        placeholder="Кем выдан"
-                        name="issue_whom"
-                        type="text"
-                        value={formik.values.issue_whom}
-                        onChange={handleTextInputChange}
-                        onBlur={formik.handleBlur}
-                        needValue
-                        error={formik.touched.issue_whom && formik.errors.issue_whom}
-                    />
-                    <Datepicker
-                        value={formik.values.issue_date ? new Date(formik.values.issue_date) : null}
-                        onChange={(date) =>
-                            date && formik.setFieldValue("issue_date", format(date, "yyyy-MM-dd"))
-                        }
-                        placeholder="Дата выдачи"
-                        maxDate={new Date()}
-                        needValue={true}
-                        error={formik.touched.issue_date && formik.errors.issue_date}
-                    />
-
-                    <Input
-                        placeholder="ИНН"
-                        name="inn"
-                        type="number"
-                        inputMode="numeric"
-                        min={0}
-                        max={999999999999}
-                        maxLength={12}
-                        value={formik.values.inn}
-                        onChange={handleTextInputChange}
-                        onBlur={formik.handleBlur}
-                        needValue
-                        error={formik.touched.inn && formik.errors.inn}
-                    />
-
-
-                    <div>
-                        <h2 className={styles.form__subtitle}>Адрес регистрации</h2>
-
-                        <Input
-                            placeholder="Регион/район"
-                            name="region"
-                            type="text"
-                            value={formik.values.region}
-                            onChange={handleTextInputChange}
-                            onBlur={formik.handleBlur}
-                            needValue
-                            error={formik.touched.region && formik.errors.region}
-                        />
-                        <Input
-                            placeholder="Город/населенный пункт"
-                            name="city"
-                            type="text"
-                            value={formik.values.city}
-                            onChange={handleTextInputChange}
-                            onBlur={formik.handleBlur}
-                            needValue
-                            error={formik.touched.city && formik.errors.city}
-                        />
-                        <Input
-                            placeholder="Улица"
-                            name="street"
-                            type="text"
-                            value={formik.values.street}
-                            onChange={handleTextInputChange}
-                            onBlur={formik.handleBlur}
-                            needValue
-                            error={formik.touched.street && formik.errors.street}
-                        />
+    return (
+        <>
+            <form ref={formRef} className={`${styles.form}`} onSubmit={handleSubmitWrapper}>
+                <div className={`${styles.desktop__shadow} ${isScrolled ? styles.shadowTop : ""}`}></div>
+                <Input placeholder="Фамилия" name="last_name" type="text" value={formik.values.last_name || ""} onChange={handleNameChange("last_name")} onBlur={formik.handleBlur} needValue error={formik.touched.last_name && formik.errors.last_name} />
+                <Input placeholder="Имя" name="first_name" type="text" value={formik.values.first_name || ""} onChange={handleNameChange("first_name")} onBlur={formik.handleBlur} needValue error={formik.touched.first_name && formik.errors.first_name} />
+                <Input placeholder="Отчество (при наличии)" name="patronymic" type="text" value={formik.values.patronymic || ""} onChange={handleNameChange("patronymic")} onBlur={formik.handleBlur} error={formik.touched.patronymic && formik.errors.patronymic} />
+                <CheckboxGroup name="gender" label="Пол" direction="row" options={Object.entries(GenderOptions).map(([value, label]) => ({ label, value }))} value={formik.values.gender} onChange={(name, selectedValue) => formik.setFieldValue(name, selectedValue)} needValue error={formik.values.birth_date && formik.errors.gender} />
+                <Datepicker value={formik.values.birth_date ? new Date(formik.values.birth_date) : null} onChange={(date) => date && formik.setFieldValue("birth_date", format(date, "yyyy-MM-dd"))} placeholder="Дата рождения" maxDate={new Date()} needValue error={formik.touched.birth_date && formik.errors.birth_date} majority />
+                <Input placeholder="Место рождения" name="birth_place" type="text" value={formik.values.birth_place} onChange={handleTextInputChange} onBlur={formik.handleBlur} needValue error={formik.touched.birth_place && formik.errors.birth_place} />
+                <Input placeholder="Серия паспорта" type="number" inputMode="numeric" min={0} max={9999} maxLength={4} name="passport_series" value={formik.values.passport_series} onChange={handleTextInputChange} onBlur={formik.handleBlur} needValue error={formik.touched.passport_series && formik.errors.passport_series} />
+                <Input placeholder="Номер паспорта" type="number" inputMode="numeric" maxLength={6} min={0} max={999999} name="passport_number" value={formik.values.passport_number} onChange={handleTextInputChange} onBlur={formik.handleBlur} needValue error={formik.touched.passport_number && formik.errors.passport_number} />
+                <Input placeholder="Код подразделения" name="department_code" type="text" inputMode="numeric" value={maskDepartmentCode(formik.values.department_code)} onChange={handleDepartmentCodeChange} onBlur={formik.handleBlur} needValue error={formik.touched.department_code && formik.errors.department_code} />
+                <Input placeholder="Кем выдан" name="issue_whom" type="text" value={formik.values.issue_whom} onChange={handleTextInputChange} onBlur={formik.handleBlur} needValue error={formik.touched.issue_whom && formik.errors.issue_whom} />
+                <Datepicker value={formik.values.issue_date ? new Date(formik.values.issue_date) : null} onChange={(date) => date && formik.setFieldValue("issue_date", format(date, "yyyy-MM-dd"))} placeholder="Дата выдачи" maxDate={new Date()} needValue error={formik.touched.issue_date && formik.errors.issue_date} />
+                <Input placeholder="ИНН" name="inn" type="number" inputMode="numeric" min={0} max={999999999999} maxLength={12} value={formik.values.inn} onChange={handleTextInputChange} onBlur={formik.handleBlur} needValue error={formik.touched.inn && formik.errors.inn} />
+                <div className={styles.desktop__container}>
+                    <h2 className={styles.form__subtitle}>Адрес регистрации</h2>
+                    <Input placeholder="Регион/район" name="region" type="text" value={formik.values.region} onChange={handleTextInputChange} onBlur={formik.handleBlur} needValue error={formik.touched.region && formik.errors.region} />
+                    <Input placeholder="Город/населенный пункт" name="city" type="text" value={formik.values.city} onChange={handleTextInputChange} onBlur={formik.handleBlur} needValue error={formik.touched.city && formik.errors.city} />
+                    <Input placeholder="Улица" name="street" type="text" value={formik.values.street} onChange={handleTextInputChange} onBlur={formik.handleBlur} needValue error={formik.touched.street && formik.errors.street} />
+                    <div className={styles.form__duoInputs}>
+                        <Input placeholder="Дом/корпус" name="house" type="text" value={formik.values.house} onChange={handleTextInputChange} onBlur={formik.handleBlur} needValue error={formik.touched.house && formik.errors.house} />
+                        <Input placeholder="Квартира" name="apartment" type="text" value={formik.values.apartment} onChange={handleTextInputChange} onBlur={formik.handleBlur} error={formik.touched.apartment && formik.errors.apartment} />
+                    </div>
+                </div>
+                <Checkbox name="is_live_this_address" value={formik.values.is_live_this_address} onChange={formik.handleChange} onBlur={formik.handleBlur} label={<span className={styles.checkbox__text}>Живу по этому адресу</span>} error={formik.touched.is_live_this_address && formik.errors.is_live_this_address} />
+                <Checkbox name="is_receive_mail_this_address" value={formik.values.is_receive_mail_this_address} onChange={formik.handleChange} onBlur={formik.handleBlur} label={<span className={styles.checkbox__text}>Получать почту по этому адресу {!formik.values.is_live_this_address && <span style={{ color: "red" }}>*</span>}</span>} error={formik.touched.is_receive_mail_this_address && formik.errors.is_receive_mail_this_address} />
+                {!formik.values.is_live_this_address && (
+                    <div className={styles.desktop__container}>
+                        <h2 className={styles.form__subtitle}>Адрес проживания</h2>
+                        <Input placeholder="Регион/район" name="address_residential_region" type="text" value={formik.values.address_residential_region} onChange={handleTextInputChange} onBlur={formik.handleBlur} needValue error={formik.touched.address_residential_region && formik.errors.address_residential_region} />
+                        <Input placeholder="Город/населенный пункт" name="address_residential_city" type="text" value={formik.values.address_residential_city} onChange={handleTextInputChange} onBlur={formik.handleBlur} needValue error={formik.touched.address_residential_city && formik.errors.address_residential_city} />
+                        <Input placeholder="Улица" name="address_residential_street" type="text" value={formik.values.address_residential_street} onChange={handleTextInputChange} onBlur={formik.handleBlur} needValue error={formik.touched.address_residential_street && formik.errors.address_residential_street} />
                         <div className={styles.form__duoInputs}>
-                            <Input
-                                placeholder="Дом/корпус"
-                                name="house"
-                                type="text"
-                                value={formik.values.house}
-                                onChange={handleTextInputChange}
-                                onBlur={formik.handleBlur}
-                                needValue
-                                error={formik.touched.house && formik.errors.house}
-                            />
-                            <Input
-                                placeholder="Квартира"
-                                name="apartment"
-                                type="text"
-                                value={formik.values.apartment}
-                                onChange={handleTextInputChange}
-                                onBlur={formik.handleBlur}
-                                error={formik.touched.apartment && formik.errors.apartment}
-                            />
+                            <Input placeholder="Дом/корпус" name="address_residential_house" type="text" value={formik.values.address_residential_house} onChange={handleTextInputChange} onBlur={formik.handleBlur} needValue error={formik.touched.address_residential_house && formik.errors.address_residential_house} />
+                            <Input placeholder="Квартира" name="address_residential_apartment" type="text" value={formik.values.address_residential_apartment} onChange={handleTextInputChange} onBlur={formik.handleBlur} error={formik.touched.address_residential_apartment && formik.errors.address_residential_apartment} />
                         </div>
                     </div>
-
-                    <Checkbox
-                        name="is_live_this_address"
-                        value={formik.values.is_live_this_address}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        label={<span className={styles.checkbox__text}>Живу по этому адресу</span>}
-                        error={formik.touched.is_live_this_address && formik.errors.is_live_this_address}
-                    />
-                    <Checkbox
-                        name="is_receive_mail_this_address"
-                        value={formik.values.is_receive_mail_this_address}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        label={<span className={styles.checkbox__text}>Получать почту по этому адресу {!formik.values.is_live_this_address && <span style={{ color: 'red' }}>*</span>}</span>}
-                        error={formik.touched.is_receive_mail_this_address && formik.errors.is_receive_mail_this_address}
-                    />
-
-                    {!formik.values.is_live_this_address && (
+                )}
+                {formik.values.is_live_this_address && !formik.values.is_receive_mail_this_address && (
+                    <div className={styles.desktop__container}>
+                        <h2 className={styles.form__subtitle}>Почтовый адрес</h2>
                         <div>
-                            <h2 className={styles.form__subtitle}>Адрес проживания</h2>
-                            <Input
-                                placeholder="Регион/район"
-                                name="address_residential_region"
-                                type="text"
-                                value={formik.values.address_residential_region}
-                                onChange={handleTextInputChange}
-                                onBlur={formik.handleBlur}
-                                needValue
-                                error={formik.touched.address_residential_region && formik.errors.address_residential_region}
-                            />
-                            <Input
-                                placeholder="Город/населенный пункт"
-                                name="address_residential_city"
-                                type="text"
-                                value={formik.values.address_residential_city}
-                                onChange={handleTextInputChange}
-                                onBlur={formik.handleBlur}
-                                needValue
-                                error={formik.touched.address_residential_city && formik.errors.address_residential_city}
-                            />
-                            <Input
-                                placeholder="Улица"
-                                name="address_residential_street"
-                                type="text"
-                                value={formik.values.address_residential_street}
-                                onChange={handleTextInputChange}
-                                onBlur={formik.handleBlur}
-                                needValue
-                                error={formik.touched.address_residential_street && formik.errors.address_residential_street}
-                            />
+                            <Input placeholder="Регион/район" name="address_residential_region" type="text" value={formik.values.address_residential_region} onChange={handleTextInputChange} onBlur={formik.handleBlur} needValue error={formik.touched.address_residential_region && formik.errors.address_residential_region} />
+                            <Input placeholder="Город/населенный пункт" name="address_residential_city" type="text" value={formik.values.address_residential_city} onChange={handleTextInputChange} onBlur={formik.handleBlur} needValue error={formik.touched.address_residential_city && formik.errors.address_residential_city} />
+                            <Input placeholder="Улица" name="address_residential_street" type="text" value={formik.values.address_residential_street} onChange={handleTextInputChange} onBlur={formik.handleBlur} needValue error={formik.touched.address_residential_street && formik.errors.address_residential_street} />
                             <div className={styles.form__duoInputs}>
-                                <Input
-                                    placeholder="Дом/корпус"
-                                    name="address_residential_house"
-                                    type="text"
-                                    value={formik.values.address_residential_house}
-                                    onChange={handleTextInputChange}
-                                    onBlur={formik.handleBlur}
-                                    needValue
-                                    error={formik.touched.address_residential_house && formik.errors.address_residential_house}
-                                />
-                                <Input
-                                    placeholder="Квартира"
-                                    name="address_residential_apartment"
-                                    type="text"
-                                    value={formik.values.address_residential_apartment}
-                                    onChange={handleTextInputChange}
-                                    onBlur={formik.handleBlur}
-                                    error={formik.touched.address_residential_apartment && formik.errors.address_residential_apartment}
-                                />
+                                <Input placeholder="Дом/корпус" name="address_residential_house" type="text" value={formik.values.address_residential_house} onChange={handleTextInputChange} onBlur={formik.handleBlur} needValue error={formik.touched.address_residential_house && formik.errors.address_residential_house} />
+                                <Input placeholder="Квартира" name="address_residential_apartment" type="text" value={formik.values.address_residential_apartment} onChange={handleTextInputChange} onBlur={formik.handleBlur} error={formik.touched.address_residential_apartment && formik.errors.address_residential_apartment} />
                             </div>
                         </div>
-                    )}
-
-                    {formik.values.is_live_this_address && !formik.values.is_receive_mail_this_address && (
-                        <div >
-                            <h2 className={styles.form__subtitle}>Почтовый адрес</h2>
-                            <Input
-                                placeholder="Регион/район"
-                                name="address_residential_region"
-                                type="text"
-                                value={formik.values.address_residential_region}
-                                onChange={handleTextInputChange}
-                                onBlur={formik.handleBlur}
-                                needValue
-                                error={formik.touched.address_residential_region && formik.errors.address_residential_region}
-                            />
-                            <Input
-                                placeholder="Город/населенный пункт"
-                                name="address_residential_city"
-                                type="text"
-                                value={formik.values.address_residential_city}
-                                onChange={handleTextInputChange}
-                                onBlur={formik.handleBlur}
-                                needValue
-                                error={formik.touched.address_residential_city && formik.errors.address_residential_city}
-                            />
-                            <Input
-                                placeholder="Улица"
-                                name="address_residential_street"
-                                type="text"
-                                value={formik.values.address_residential_street}
-                                onChange={handleTextInputChange}
-                                onBlur={formik.handleBlur}
-                                needValue
-                                error={formik.touched.address_residential_street && formik.errors.address_residential_street}
-                            />
-                            <div className={styles.form__duoInputs}>
-                                <Input
-                                    placeholder="Дом/корпус"
-                                    name="address_residential_house"
-                                    type="text"
-                                    value={formik.values.address_residential_house}
-                                    onChange={handleTextInputChange}
-                                    onBlur={formik.handleBlur}
-                                    needValue
-                                    error={formik.touched.address_residential_house && formik.errors.address_residential_house}
-                                />
-                                <Input
-                                    placeholder="Квартира"
-                                    name="address_residential_apartment"
-                                    type="text"
-                                    value={formik.values.address_residential_apartment}
-                                    onChange={handleTextInputChange}
-                                    onBlur={formik.handleBlur}
-                                    error={formik.touched.address_residential_apartment && formik.errors.address_residential_apartment}
-                                />
-                            </div>
-                        </div>
-                    )}
-
-                    <span className={styles.method__title}>Куда отправить код</span>
-                    <div className={styles.method}>
-                        <CheckboxGroup
-                            name="type_message"
-                            label=""
-                            direction="row"
-                            options={Object.entries(messageTypeOptions).map(([value, label]) => ({
-                                label,
-                                value,
-                            }))}
-                            value={formik.values.type_message}
-                            onChange={(name, selectedValue) => {
-                                handleMethodChange(selectedValue as 'SMS' | 'EMAIL' | 'WHATSAPP');
-                            }}
-                        />
                     </div>
-
-                    <div style={{ minHeight: "74px", marginTop: '20px' }}>
-                        <ReCAPTCHA ref={recaptchaRef} sitekey={gcaptchaSiteKey} onChange={handleCaptchaChange} />
-                    </div>
-
-                    <div className={`${styles.buttons} ${!isBottom ? styles.shadow : ""}`}>
+                )}
+                <span className={styles.method__title}>Куда отправить код</span>
+                <div className={styles.method}>
+                    <CheckboxGroup greedOrFlex="flex" name="type_message" label="" direction="row" options={Object.entries(messageTypeOptions).map(([value, label]) => ({ label, value }))} value={formik.values.type_message} onChange={(name, selectedValue) => handleMethodChange(selectedValue as "SMS" | "EMAIL" | "WHATSAPP")} />
+                </div>
+                <div className={styles.captcha}>
+                    <ReCAPTCHA ref={recaptchaRef} sitekey={gcaptchaSiteKey} onChange={handleCaptchaChange} />
+                </div>
+                {device === "mobile" ? (
+                    <div className={`${styles.buttons} ${!isBottomState ? styles.shadow : ""}`}>
                         <Button type="submit" theme={ButtonTheme.BLUE} className={styles.button} disabled={!captchaVerified}>
-                            {loading ? <Loader theme={LoaderTheme.WHITE} size={LoaderSize.SMALL} /> : 'Подтвердить данные'}
+                            {loading ? <Loader theme={LoaderTheme.WHITE} size={LoaderSize.SMALL} /> : "Подтвердить данные"}
                         </Button>
                     </div>
-                </form>
-                <ConfirmDocsModal
-                    lastData={{ type_message: formik.values.type_message, type_document: 'type_doc_passport', is_agree: formik.values.g_recaptcha.length > 0 }}
-                    isOpen={modalState.confirmDocsModal.isOpen}
-                    onClose={() => {
-                        dispatch(closeModal(ModalType.CONFIRM_DOCS));
-                    }}
-                    docsType="type_doc_passport"
-                />
-            </>
-        );
-    }
+                ) : (
+                    <div className={`${styles.buttons__desktop} ${!isBottom ? styles.shadow : ""}`}>
+                        <Button type="submit" theme={ButtonTheme.BLUE} className={styles.button} disabled={!captchaVerified}>
+                            {loading ? <Loader theme={LoaderTheme.WHITE} size={LoaderSize.SMALL} /> : "Подтвердить данные"}
+                        </Button>
+                    </div>
+                )}
+            </form>
+            <ConfirmDocsModal lastData={{ type_message: formik.values.type_message, type_document: "type_doc_passport", is_agree: formik.values.g_recaptcha.length > 0 }} isOpen={modalState.confirmDocsModal.isOpen} onClose={() => dispatch(closeModal(ModalType.CONFIRM_DOCS))} docsType="type_doc_passport" />
+        </>
+    );
 };

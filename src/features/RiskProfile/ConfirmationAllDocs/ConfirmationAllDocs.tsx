@@ -35,6 +35,7 @@ import { useNavigate } from "react-router-dom";
 import ArrowBack from 'shared/assets/svg/ArrowBack.svg';
 import { SuccessModal } from "../SuccessModal/SuccessModal";
 import { getNotSignedTariffDocThunk } from "entities/Payments/slice/paymentsSlice";
+import { useDevice } from "shared/hooks/useDevice";
 
 export const ConfirmAllDocs: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -50,6 +51,7 @@ export const ConfirmAllDocs: React.FC = () => {
     const messageTypeOptions = { SMS: "SMS", EMAIL: "Email", WHATSAPP: "Whatsapp" };
     const successModalOpen = useSelector((state: RootState) => state.modal.success.isOpen)
     const currentTariffId = useSelector((state: RootState) => state.payments.currentTariffId)
+    const device = useDevice()
 
     // Состояние для хранения последнего подписанного документа (для описания в successModal)
     const [lastConfirmedDoc, setLastConfirmedDoc] = useState<string>("");
@@ -264,40 +266,45 @@ export const ConfirmAllDocs: React.FC = () => {
                         </Button>
                     </div>
                 </div>
-                <div className={styles.page__container}>
-                    <div className={styles.page__checkbox}>
-                        <Checkbox
-                            name="is_agree"
-                            value={formik.values.is_agree}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            label={<span className={styles.checkbox__text}>Я ознакомился с вышеизложенным документом и его содержанием</span>}
-                            error={formik.touched.is_agree && formik.errors.is_agree ? formik.errors.is_agree : ""}
-                        />
+                <div className={styles.desktop__container}>
+                    <div className={styles.page__container}>
+                        <div className={styles.page__checkbox}>
+                            <Checkbox
+                                name="is_agree"
+                                value={formik.values.is_agree}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                label={<span className={styles.checkbox__text}>Я ознакомился с вышеизложенным документом и его содержанием</span>}
+                                error={formik.touched.is_agree && formik.errors.is_agree ? formik.errors.is_agree : ""}
+                            />
+                        </div>
                     </div>
-                </div>
-                <span className={styles.method__title}>Куда отправить код</span>
-                <div className={styles.method}>
-                    <CheckboxGroup
-                        name="type_message"
-                        label=""
-                        direction="row"
-                        options={Object.entries(messageTypeOptions).map(([value, label]) => ({ label, value }))}
-                        value={formik.values.type_message}
-                        onChange={(name, selectedValue) => {
-                            handleMethodChange(selectedValue as keyof typeof messageTypeOptions);
-                        }}
-                    />
-                </div>
-                <div className={`${styles.buttons} ${!isBottom ? styles.shadow : ""}`}>
-                    <Button
-                        onClick={() => formik.handleSubmit()}
-                        theme={ButtonTheme.BLUE}
-                        className={styles.button}
-                        disabled={!formik.values.is_agree || currentTimeout > 0}
-                    >
-                        {!currentTimeout ? "Подтвердить" : `(${currentTimeout})`}
-                    </Button>
+                    <div className={styles.desktop__container__code}>
+                        <span className={styles.method__title}>Куда отправить код</span>
+                        <div className={styles.method}>
+                            <CheckboxGroup
+                                name="type_message"
+                                label=""
+                                greedOrFlex="flex"
+                                direction="row"
+                                options={Object.entries(messageTypeOptions).map(([value, label]) => ({ label, value }))}
+                                value={formik.values.type_message}
+                                onChange={(name, selectedValue) => {
+                                    handleMethodChange(selectedValue as keyof typeof messageTypeOptions);
+                                }}
+                            />
+                        </div>
+                    </div>
+                    <div className={`${styles.buttons} ${!isBottom ? styles.shadow : ""}`}>
+                        <Button
+                            onClick={() => formik.handleSubmit()}
+                            theme={ButtonTheme.BLUE}
+                            className={styles.button}
+                            disabled={!formik.values.is_agree || currentTimeout > 0}
+                        >
+                            {!currentTimeout ? "Подтвердить" : `(${currentTimeout})`}
+                        </Button>
+                    </div>
                 </div>
             </div>
             <ConfirmDocsModal

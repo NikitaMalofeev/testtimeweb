@@ -1,3 +1,5 @@
+@use '../../../app/styles/mixins' as mix;
+
 .page {
     padding-bottom: 88px;
     &__container{
@@ -151,3 +153,68 @@ position: relative;
     align-items: center;
     justify-content: space-between;
 }
+
+  @include mix.respond-to('tablet-desktop') {
+
+    .page {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding-bottom: 0px;
+        height: 100%;
+    }
+
+    .desktop__container__code {
+        order: -1;
+        margin-right: 100px;
+    }
+    .page__image {
+        max-height: 360px;
+    }
+
+    .page__checkbox {
+        margin-bottom: 0;
+    }
+
+    .page {
+        overflow-y: hidden;
+    }
+
+    .page__container::after {
+        max-width: 840px;
+        left: 0;
+    }
+
+
+    .page__container:first-child::after {
+        display: none;
+    }
+
+    .buttons {
+        display: flex;
+        justify-content: end;
+        position: relative;
+        bottom: 0;
+        padding: 0;
+        width: 20%;
+    }
+
+    .shadow {
+        box-shadow: none;
+    }
+
+    .button {
+        max-width: max-content;
+    }
+
+    .method {
+        margin-bottom: -10px;
+    }
+
+    .desktop__container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 4px;
+    }
+  }

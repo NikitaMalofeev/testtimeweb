@@ -107,9 +107,9 @@ const DocumentsPage: React.FC = () => {
         type_doc_risk_declarations: "5. Декларация о рисках",
         type_doc_agreement_personal_data_policy: "6. Политика перс. данных",
         type_doc_investment_profile_certificate: "7. Справка ИП",
-        type_doc_broker_api_token: "9. Согласие на передачу API ключа к брокерскому счету",
-        type_doc_agreement_investment_advisor_app_1: '10. Договор ИС: Приложение 1',
-        type_doc_agreement_account_maintenance: "8. Доверенность на управление счетом",
+        type_doc_broker_api_token: "8. Согласие на передачу API ключа к брокерскому счету",
+        type_doc_agreement_investment_advisor_app_1: '9. Договор ИС: Приложение 1',
+        type_doc_agreement_account_maintenance: "10. Доверенность на управление счетом",
     };
 
     // Порядок документов
@@ -121,9 +121,9 @@ const DocumentsPage: React.FC = () => {
         "type_doc_risk_declarations",
         "type_doc_agreement_personal_data_policy",
         "type_doc_investment_profile_certificate",
-        "type_doc_agreement_account_maintenance",
         "type_doc_broker_api_token",
         'type_doc_agreement_investment_advisor_app_1',
+        "type_doc_agreement_account_maintenance",
     ];
 
     // Метод для подписания конкретного документа
@@ -179,7 +179,8 @@ const DocumentsPage: React.FC = () => {
                 break;
             }
             case "type_doc_broker_api_token": {
-                const isBrokerFilled = brokerIds[0] !== null;
+                const firstBroker = brokerIds[0];
+                const isBrokerFilled = firstBroker !== null && firstBroker !== undefined;
 
                 if (isBrokerFilled) {
                     dispatch(setCurrentConfirmableDoc("type_doc_broker_api_token"));

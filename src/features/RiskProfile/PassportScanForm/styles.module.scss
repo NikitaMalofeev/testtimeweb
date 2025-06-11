@@ -1,3 +1,5 @@
+@use '../../../app/styles/mixins' as mix;
+
 .form {
     padding-bottom: 68px;
     &__title {
@@ -181,3 +183,27 @@
     cursor: inherit; // чтобы можно было закрывать кликнув и на картинку
   }
   
+
+  @include mix.respond-to('tablet-desktop') {
+
+
+    .uploadBlock {
+        max-width: 311px;
+        margin-bottom: 24px;
+    }
+    .form__list__item {
+        margin-bottom: 16px;
+    }
+
+    .buttons {
+        display: flex;
+        justify-content: end;
+        position: absolute;
+        bottom: 0;
+        padding-right: 60px;
+    }
+
+    .button {
+        max-width: max-content;
+    }
+  }

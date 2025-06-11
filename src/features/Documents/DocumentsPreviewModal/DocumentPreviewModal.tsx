@@ -163,11 +163,16 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                     ) : (isSignedDoc && hasCurrentSighedDocument &&
                         hasCurrentSighedDocument.document &&
                         Object.keys(hasCurrentSighedDocument.document).length > 0) ? (
-                        <PdfViewer pdfBinary={hasCurrentSighedDocument.document} />
+
+                        <div className={styles.htmlContainer}>
+                            <PdfViewer pdfBinary={hasCurrentSighedDocument.document} />
+                        </div>
                     ) : justPreview ? (
                         <PdfViewer pdfUrl={justPreview} />
                     ) : docId === "type_doc_passport" ? (
-                        <RiskProfileAllData />
+                        <div className={styles.htmlContainer}>
+                            <RiskProfileAllData />
+                        </div>
                     ) : !isSignedDoc && docId && (allDocumentsHtml && allDocumentsHtml.hasOwnProperty(docId)) ? (
                         <div
                             className={styles.htmlContainer}

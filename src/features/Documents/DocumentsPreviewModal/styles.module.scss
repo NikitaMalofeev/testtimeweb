@@ -1,3 +1,5 @@
+@use '../../../app/styles/mixins' as mix;
+
 .overlay {
     position: fixed;
     top: 0;
@@ -84,3 +86,21 @@
       padding: 10px 16px;
     }
   }
+
+    @include mix.respond-to('tablet-desktop') {
+      .modal {
+        max-width: none;
+      }
+
+      .modalContent {
+        display: flex;
+        justify-content: center;
+      }
+
+      .htmlContainer {
+        max-width: 50%;
+        width: 100%;
+        font-size: 12px;
+        height: max-content;
+      }
+    }

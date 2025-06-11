@@ -1,3 +1,5 @@
+@use '../../app/styles/mixins' as mix;
+
 .page {
     background-color: #E1ECFB;
     display: flex;
@@ -18,5 +20,25 @@
         font-size: 24px;
         line-height: 28.8px;
         letter-spacing: 0%;
+    }
+}
+
+@include mix.respond-to('tablet-desktop') {
+
+    .page {
+        padding: 0;
+        & > div:last-child {
+            position: relative;
+            background-color: white;
+            border-radius: 15px;
+                    padding: 60px;
+                    max-width: 960px;
+                    width: 100%;
+            max-height: 662px;
+            margin: 0 auto;
+            height: 100%;
+        }
+
+        
     }
 }

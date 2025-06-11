@@ -653,7 +653,7 @@ const DocumentsPage: React.FC = () => {
                                         </div>
 
                                         <div className={styles.document__info__flex} style={doc.status !== 'signed' ? { flexDirection: 'column', alignItems: 'end', justifyContent: 'end' } : {}}>
-                                            <div className={styles.document__status} style={doc.status !== 'signed' ? { justifyContent: 'end' } : {}}>
+                                            <div className={styles.document__status} style={{ display: 'flex' }}>
 
                                                 {doc.isPayment && (
                                                     <Button

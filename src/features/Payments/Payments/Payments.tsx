@@ -313,6 +313,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                         <Button
                             theme={ButtonTheme.UNDERLINE}
                             padding="10px 25px"
+                            className={styles.button}
                             onClick={() => {
                                 dispatch(setCurrentOrderId(''));
                                 setIsConfirming(false);
@@ -322,7 +323,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                             Вернуться к выбору тарифов
                         </Button>
 
-                        <Button disabled={!formik.values.broker_id} theme={ButtonTheme.BLUE} padding="10px 25px" onClick={handleSetTariff}>
+                        <Button disabled={!formik.values.broker_id} theme={ButtonTheme.BLUE} className={styles.button} padding="10px 25px" onClick={handleSetTariff}>
                             Подключить
                         </Button>
                     </motion.div>

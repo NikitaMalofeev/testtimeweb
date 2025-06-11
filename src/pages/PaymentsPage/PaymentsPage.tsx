@@ -10,12 +10,14 @@ import { useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
 import { closeModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalType } from "entities/ui/Modal/model/modalTypes";
+import { useDevice } from "shared/hooks/useDevice";
 
 
 const PaymentsPage: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const documentPreview = useSelector((state: RootState) => state.modal.documentsPreview)
+    const device = useDevice()
     const [isPaid, setIsPaid] = useState<boolean>(false)
     const paymentStatus = useSelector((state: RootState) => state.payments.currentOrderStatus)
 
@@ -27,13 +29,19 @@ const PaymentsPage: React.FC = () => {
     // );
     return (
         <div className={styles.page}>
-            {!isPaid && !paymentStatus && (
+            {device === 'mobile' && !isPaid && !paymentStatus && (
                 <div className={styles.page__title}>
                     <Icon Svg={BackIcon} width={24} height={24} onClick={() => navigate("/lk")} />
                     <h2 className={styles.page__title}>Тарифы</h2>
                 </div>
             )}
             <div>
+                {device !== 'mobile' && !isPaid && !paymentStatus && (
+                    <div className={styles.page__title}>
+                        <Icon Svg={BackIcon} width={24} height={24} onClick={() => navigate("/lk")} />
+                        <h2 className={styles.page__title}>Тарифы</h2>
+                    </div>
+                )}
                 <Payments isPaid={(value) => setIsPaid(value)} />
             </div>
             <DocumentPreviewModal

@@ -94,6 +94,7 @@ const FAQPage: React.FC = () => {
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
                         placeholder="Поиск"
+                        autoComplete="new-password"
                         className={styles.searchInput}
                     />
                 </div>

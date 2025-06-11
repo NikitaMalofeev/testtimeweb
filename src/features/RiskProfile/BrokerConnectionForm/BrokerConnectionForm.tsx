@@ -31,12 +31,14 @@ import { setCurrentConfirmableDoc } from 'entities/Documents/slice/documentsSlic
 import { setStepAdditionalMenuUI } from 'entities/ui/Ui/slice/uiSlice';
 import { useNavigate } from 'react-router-dom';
 import brokerInstructionPDF from 'shared/assets/documents/brokerInstruction.pdf'
+import { useDevice } from 'shared/hooks/useDevice';
 
 export const BrokerConnectionForm: React.FC = () => {
     const dispatch = useAppDispatch();
     const modalState = useSelector((state: RootState) => state.modal)
     const navigate = useNavigate()
     const { brokerIds } = useSelector((state: RootState) => state.documents)
+    const device = useDevice()
 
     const brokersItems = [
         {
@@ -92,64 +94,94 @@ export const BrokerConnectionForm: React.FC = () => {
                 onChange={(name, value) => formik.setFieldValue(name, value)}
             /> */}
 
-            <Select
-                items={brokersItems}
-                value={formik.values.broker}
-                onChange={(val) => {
-                    formik.setFieldValue('broker', val)
-                }}
-                needValue
-                title='Выберите бокера'
-                label='Выбор брокера'
-                error={formik.touched.broker && formik.errors.broker}
-            />
+            {device !== 'desktop' && (
+                <Select
+                    items={brokersItems}
+                    value={formik.values.broker}
+                    onChange={(val) => {
+                        formik.setFieldValue('broker', val)
+                    }}
+                    needValue
+                    title='Выберите бокера'
+                    label='Выбор брокера'
+                    error={formik.touched.broker && formik.errors.broker}
+                />
+            )}
 
-            <p className={styles.broker__description}>Создайте брокерский счет и получите в личном кабинете ключи, которые позволят подключить ваш торговый счет. Подробнее в PDF.</p>
-            <div className={styles.broker__instruction}>
-                <Icon Svg={PdfIcon} width={37} height={37} /> <span className={styles.broker__instruction__text} onClick={() => dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))}>Инструкция подключения к брокеру</span>
+
+            <div className={styles.desktop__container}>
+                <div className={styles.desktop__item}>
+                    <p className={styles.broker__description}>Создайте брокерский счет и получите в личном кабинете ключи, которые позволят подключить ваш торговый счет. Подробнее в PDF.</p>
+                    <div className={styles.broker__instruction}>
+                        <Icon Svg={PdfIcon} width={37} height={37} /> <span className={styles.broker__instruction__text} onClick={() => dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))}>Инструкция подключения к брокеру</span>
+                    </div>
+                </div>
+                <div className={styles.desktop__item}>
+                    {device === 'desktop' && (
+                        <Select
+                            items={brokersItems}
+                            value={formik.values.broker}
+                            onChange={(val) => {
+                                formik.setFieldValue('broker', val)
+                            }}
+                            needValue
+                            title='Выберите бокера'
+                            label='Выбор брокера'
+                            error={formik.touched.broker && formik.errors.broker}
+                        />
+                    )}
+                    <div className={styles.broker__site}>
+                        <span className={styles.broker__site__title}> Личный кабинет на сайте брокера</span>
+                        <Button onClick={() => window.open(tinkoffExternalLink, '_blank')} className={styles.broker__site__button} children='Перейти на сайт брокера' theme={ButtonTheme.UNDERLINE} padding='19px 42px' />
+                    </div>
+                </div>
             </div>
 
-            <div className={styles.broker__site}>
-                <span className={styles.broker__site__title}> Личный кабинет на сайте брокера</span>
-                <Button onClick={() => window.open(tinkoffExternalLink, '_blank')} className={styles.broker__site__button} children='Перейти на сайт брокера' theme={ButtonTheme.UNDERLINE} padding='19px 42px' />
+            <div className={styles.desktop__container}>
+                <div className={styles.broker__container}>
+                    <div>
+                        <h2 className={styles.broker__title}>Реквизиты для подключения</h2>
+
+                        <Input
+                            placeholder="Токен"
+                            name="token"
+                            type='password'
+                            value={formik.values.token}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            error={formik.touched.token && formik.errors.token}
+                            needValue
+                        />
+                    </div>
+
+                    {/* Кнопка подтверждения */}
+                    <div className={styles.desktop__broker__item}>
+                        <Button
+                            theme={ButtonTheme.BLUE}
+                            className={styles.submitButton}
+                            padding='19px 70px'
+                            disabled={!(formik.isValid && formik.dirty)}
+                            onClick={handleSubmit}
+
+                        >
+                            Подтвердить токен
+                        </Button>
+
+                        <Button
+                            type="button"
+                            theme={ButtonTheme.EMPTYBLUE}
+                            className={styles.problemButton}
+                            onClick={() => dispatch(openModal({ type: ModalType.PROBLEM, animation: ModalAnimation.BOTTOM, size: ModalSize.MINI }))}
+                        >
+                            Проблемы с подключением?
+                        </Button>
+                    </div>
+                </div>
             </div>
+
 
             {/* Реквизиты для подключения */}
-            <div className={styles.broker__container}>
-                <h2 className={styles.broker__title}>Реквизиты для подключения</h2>
 
-                <Input
-                    placeholder="Токен"
-                    name="token"
-                    type='password'
-                    value={formik.values.token}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    error={formik.touched.token && formik.errors.token}
-                    needValue
-                />
-
-                {/* Кнопка подтверждения */}
-                <Button
-                    theme={ButtonTheme.BLUE}
-                    className={styles.submitButton}
-                    padding='19px 70px'
-                    disabled={!(formik.isValid && formik.dirty)}
-                    onClick={handleSubmit}
-
-                >
-                    Подтвердить токен
-                </Button>
-
-                <Button
-                    type="button"
-                    theme={ButtonTheme.EMPTYBLUE}
-                    className={styles.submitButton}
-                    onClick={() => dispatch(openModal({ type: ModalType.PROBLEM, animation: ModalAnimation.BOTTOM, size: ModalSize.MINI }))}
-                >
-                    Проблемы с подключением?
-                </Button>
-            </div>
             <DocumentPreviewModal title={!brokerIds[0] ? 'Инструкция подключения к брокеру' : 'Согласие на передачу API ключа к брокерскому счету'} isOpen={modalState.documentsPreview.isOpen} onClose={() => {
                 dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW))
             }} docId='type_doc_broker_api_token' justPreview={!brokerIds[0] ? `${brokerInstructionPDF}` : ''} />
@@ -174,3 +206,4 @@ export const BrokerConnectionForm: React.FC = () => {
         </form>
     );
 };
+

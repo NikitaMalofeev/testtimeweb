@@ -19,6 +19,7 @@ import {
 } from 'entities/Recomendations/slice/recomendationsSlice';
 import { RecomendationsCard } from 'features/Recomendations/RecomendationsCard/RecomendationsCard';
 import { RecomendationsRejectModal } from 'features/Recomendations/RecomendationsRejectModal/RecomendationsRejectModal';
+import { RecomendationsPreviewModal } from 'features/Recomendations/RecomendationsPreviewModal/RecomendationsPreviewModal';
 
 export const Recomendations = () => {
     const navigate = useNavigate();
@@ -26,8 +27,9 @@ export const Recomendations = () => {
 
     /** выбранный документ для предпросмотра */
     const [selectedId, setSelectedId] = useState<string | undefined>();
+    const [isSignedRecomendation, setIsSignedRecomendation] = useState(false)
 
-    const { isOpen: isPreviewModalOpen } = useSelector((s: RootState) => s.modal.documentsPreview);
+    const { isOpen: isPreviewModalOpen } = useSelector((s: RootState) => s.modal.recomendationsPreview);
     const { isOpen: isInfoModalOpen } = useSelector((s: RootState) => s.modal.info);
 
     /** список IIR из стора */
@@ -44,18 +46,25 @@ export const Recomendations = () => {
     const handlePreview = async (uuid: string, status: string) => {
         await setSelectedId(uuid);
 
-        if (status === 'IIR_SIGNED' || 'IIR_AUTO_AGREED') {
+        if (status === 'IIR_SIGNED' && 'IIR_AUTO_AGREED') {
             dispatch(getSignedIirDocumentThunk({ payload: { uuid } }))
+            setIsSignedRecomendation(true)
+        } else if (status === 'IIR_REJECTED') {
+            setIsSignedRecomendation(false)
+            dispatch(getUserNotSignedIirHtmlThunk({ uuid }));
         } else {
+            setIsSignedRecomendation(false)
             dispatch(getUserNotSignedIirHtmlThunk({ uuid }));
         }
+
+        console.log(status)
 
 
         // dispatch(getSignedIirDocumentThunk({ payload: { uuid } }));
 
         dispatch(
             openModal({
-                type: ModalType.DOCUMENTS_PREVIEW,
+                type: ModalType.RECOMENDATIONS_PREVIEW,
                 animation: ModalAnimation.LEFT,
                 size: ModalSize.FULL,
                 docId: uuid,
@@ -70,12 +79,13 @@ export const Recomendations = () => {
                 type: ModalType.INFO,
                 animation: ModalAnimation.LEFT,
                 size: ModalSize.MC,
+                docId: uuid
             }),
         );
     };
 
     const handleClosePreview = () => {
-        dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW));
+        dispatch(closeModal(ModalType.RECOMENDATIONS_PREVIEW));
     };
 
     /* ----------------- render ----------------- */
@@ -118,13 +128,12 @@ export const Recomendations = () => {
                 ))}
             </div>
 
-            {/* ---------- модалки ---------- */}
-            <DocumentPreviewModal
+
+            <RecomendationsPreviewModal
                 isOpen={isPreviewModalOpen}
                 onClose={handleClosePreview}
-                isSignedDoc={false}
-                docId={`iir_${selectedId}`}
-                title="Индивидуальная инвестиционная рекомендация"
+                uuid={selectedId}
+                isSigned={isSignedRecomendation}
             />
 
             <InfoModal

@@ -68,6 +68,14 @@ const initialState: ExtendedModalState = {
         // extra field for preview
         docId: undefined,
     } as ModalStateItem & { docId?: string },
+    [ModalType.RECOMENDATIONS_PREVIEW]: {
+        isOpen: false,
+        size: ModalSize.FULL,
+        animation: ModalAnimation.LEFT,
+        isScrolled: false,
+        // extra field for preview
+        docId: undefined,
+    } as ModalStateItem & { docId?: string },
     [ModalType.DOCUMENTS_PREVIEW_SIGNED]: {
         isOpen: false,
         size: ModalSize.FULL,

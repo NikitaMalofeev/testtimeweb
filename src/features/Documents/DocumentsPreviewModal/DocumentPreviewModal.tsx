@@ -54,11 +54,17 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
 
     useEffect(() => {
         console.log(justPreview)
-    }, [justPreview])
+        console.log(docId)
+        console.log(isContentReady)
+    }, [docId, isContentReady])
 
     useEffect(() => {
         if (loading) {
             setIsContentReady(false);
+            return;
+        }
+        if (docId?.startsWith('iir')) {
+            setIsContentReady(true);
             return;
         }
         if (justPreview) {
@@ -66,7 +72,6 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
             return;
         }
         if (docId) {
-            // Для паспорта отображаем данные из компонента RiskProfileAllData
             if (docId === "type_doc_passport") {
                 setIsContentReady(true);
                 return;

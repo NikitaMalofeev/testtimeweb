@@ -23,7 +23,9 @@ import personalAccountReducer from 'entities/PersonalAccount/slice/personalAccou
 import supportChatReducer from 'entities/SupportChat/slice/supportChatSlice';
 import pushReducer from 'entities/ui/PushNotifications/slice/pushSlice';
 import paymentsReducer from 'entities/Payments/slice/paymentsSlice';
+import recomendationsReducer from 'entities/Recomendations/slice/recomendationsSlice';
 import { initBroadcastListener, broadcastSyncMiddleware } from 'shared/lib/middleware/broadcastChannelSyncMiddleware';
+import { Recomendations } from 'widgets/Recomendations/Recomendations';
 
 const rootReducer = combineReducers({
     ui: uiReducer,
@@ -36,6 +38,7 @@ const rootReducer = combineReducers({
     supportChat: supportChatReducer,
     push: pushReducer,
     payments: paymentsReducer,
+    recomendations: recomendationsReducer
 });
 
 const persistConfig = getPersistConfig({

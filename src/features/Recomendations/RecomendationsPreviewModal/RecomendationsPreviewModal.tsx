@@ -134,12 +134,12 @@ export const RecomendationsPreviewModal: React.FC<RecomendationsPreviewModalProp
                                 )}
                             </div>
 
-                            {!ready && !loading && (
+                            {/* {!ready && !loading && (
                                 <div className={styles.error}>
                                     <Icon width={36} height={36} Svg={ErrorIcon} />
                                     Документ не найден
                                 </div>
-                            )}
+                            )} */}
                         </>
                     )}
 

@@ -5,22 +5,22 @@
         position: absolute;
         content: '';
         bottom: 0;
-        left: -22px;
+        left: 0;
         background-color:  #E1ECFB;
-        width: calc(100dvw - 24px);
-        height: 8px;
+        width: calc(100dvw) ;
+        height: 8px; 
     }
 
-    &::before {
-        position: absolute;
-        content: '';
-        top: 0;
-        right: -18px;
-        background-color:  #E1ECFB;
-        height: 100%;
-        width: 18px;
-        z-index: 1000000;
-    }
+    // &::before {
+    //     position: absolute;
+    //     content: '';
+    //     top: 0;
+    //     right: ;
+    //     background-color:  #E1ECFB;
+    //     height: 100%;
+    //     width: 18px;
+    //     z-index: 1000000;
+    // }
 }
 
 @include mix.respond-to('tablet-desktop') {

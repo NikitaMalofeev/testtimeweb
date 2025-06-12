@@ -5,7 +5,7 @@
 /** Возможные статусы документа IIR (дополним по мере появления новых) */
 export type IirStatus =
     | 'IIR_WAITING'
-    | 'IIR_SIGNED'
+    | 'IIR_AGREE'
     | 'IIR_REJECTED'
     | 'IIR_AUTO_AGREED'
     | string;               // запасной вариант, пока бэк не стабилизирован

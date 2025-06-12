@@ -46,7 +46,7 @@ export const Recomendations = () => {
     const handlePreview = async (uuid: string, status: string) => {
         await setSelectedId(uuid);
 
-        if (status === 'IIR_SIGNED' && 'IIR_AUTO_AGREED') {
+        if (status === 'IIR_AGREE' && 'IIR_AUTO_AGREED') {
             dispatch(getSignedIirDocumentThunk({ payload: { uuid } }))
             setIsSignedRecomendation(true)
         } else if (status === 'IIR_REJECTED') {

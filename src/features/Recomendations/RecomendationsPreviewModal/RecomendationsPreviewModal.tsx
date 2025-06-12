@@ -38,8 +38,11 @@ export const RecomendationsPreviewModal: React.FC<RecomendationsPreviewModalProp
 
 
 
+
     const htmlKey = uuid ? `iir_${uuid}` : '';
     const pdfKey = htmlKey;
+
+
 
     const [ready, setReady] = useState(false);
 

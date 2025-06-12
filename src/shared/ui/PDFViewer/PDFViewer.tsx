@@ -1,8 +1,13 @@
-import React from "react";
-import { Viewer, Worker, SpecialZoomLevel, RenderPageProps } from "@react-pdf-viewer/core";
+import React, { useMemo } from "react";
+import {
+    Viewer,
+    Worker,
+    SpecialZoomLevel,
+    RenderPageProps,
+} from "@react-pdf-viewer/core";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import workerUrl from "pdfjs-dist/build/pdf.worker.min.js?url";
-import styles from './styles.module.scss'
+import styles from "./styles.module.scss";
 
 interface MyPdfViewerProps {
     /** Если есть ссылка на PDF */
@@ -30,31 +35,48 @@ export const PdfViewer: React.FC<MyPdfViewerProps> = ({
     pdfBase64,
     pdfBinary,
 }) => {
-    // Определяем итоговый source для Viewer
-    // Приоритет можно выставлять любой, в зависимости от логики
-    let viewerSource: string | Uint8Array | null = null;
+    /**
+     * Готовим «безопасный» source.
+     * 1.  pdfBinary → создаём ПОЛНУЮ копию (new Uint8Array),
+     *     чтобы исходный буфер в Redux НЕ детачился.
+     * 2.  pdfBase64 → обычное преобразование.
+     * 3.  pdfUrl    → передаём как есть.
+     */
+    const viewerSource: string | Uint8Array | null = useMemo(() => {
+        if (pdfBinary) {
+            try {
+                // ⚠️ Полная копия данных
+                return new Uint8Array(pdfBinary);
+            } catch (e) {
+                // Если буфер уже оторван (маловероятно после фикса) —
+                // просто покажем ошибку ниже.
+                console.error("Detached ArrayBuffer", e);
+                return null;
+            }
+        }
+        if (pdfBase64) {
+            return base64ToUint8Array(pdfBase64);
+        }
+        if (pdfUrl) {
+            return pdfUrl;
+        }
+        return null;
+    }, [pdfUrl, pdfBase64, pdfBinary]);
 
-    if (pdfBinary) {
-        viewerSource = pdfBinary;
-    } else if (pdfBase64) {
-        viewerSource = base64ToUint8Array(pdfBase64);
-    } else if (pdfUrl) {
-        viewerSource = pdfUrl;
-    }
-
-    // Если вообще ничего нет
     if (!viewerSource) {
         return <div>Нет данных для PDF</div>;
     }
 
     return (
         <Worker workerUrl={workerUrl}>
-            <div style={{
-                width: "100%",
-                height: "100vh",
-                overflowY: "auto",
-                ...(pdfUrl && { paddingLeft: "10px" })
-            }}>
+            <div
+                style={{
+                    width: "100%",
+                    height: "100vh",
+                    overflowY: "auto",
+                    ...(pdfUrl && { paddingLeft: "10px" }),
+                }}
+            >
                 <Viewer
                     fileUrl={viewerSource}
                     defaultScale={SpecialZoomLevel.PageWidth}
@@ -63,7 +85,9 @@ export const PdfViewer: React.FC<MyPdfViewerProps> = ({
                         return (
                             <div>
                                 <div
-                                    className={`${styles.pdf__container} ${!pdfUrl ? styles.pdf__page : styles.pdf__page_preview
+                                    className={`${styles.pdf__container} ${!pdfUrl
+                                            ? styles.pdf__page
+                                            : styles.pdf__page_preview
                                         }`}
                                 >
                                     <div>{canvasLayer.children}</div>
@@ -78,4 +102,4 @@ export const PdfViewer: React.FC<MyPdfViewerProps> = ({
             </div>
         </Worker>
     );
-}; 
+};

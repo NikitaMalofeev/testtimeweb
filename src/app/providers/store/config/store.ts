@@ -100,8 +100,8 @@ export const store = configureStore({
                 ignoredActions: [
                     'modal/openModal',
                     'documents/setCurrentSignedDocuments',
-                    'recomendations/getSignedIirDocumentThunk',
-                    'recomendations/getUserNotSignedIirHtmlThunk',
+                    'recomendations/getSignedIirDocumentThunk/fulfilled',
+                    'recomendations/getUserNotSignedIirHtmlThunk/fulfilled',
                     FLUSH,
                     REHYDRATE,
                     PAUSE,
@@ -109,7 +109,11 @@ export const store = configureStore({
                     PURGE,
                     REGISTER,
                 ],
-                ignoredPaths: ['documents.currentSugnedDocument.document', "ui.warningPopup.action", "recomendations/signedDocs", 'recomendations/notSignedHtmls'],
+                ignoredPaths: ['documents.currentSugnedDocument.document', "ui.warningPopup.action", "recomendations.signedDocs", 'recomendations.notSignedHtmls'],
+            },
+            immutableCheck: {
+                // говорим middleware не ходить в этот путь
+                ignoredPaths: ['recomendations.signedDocs', 'recomendations.notSignedHtmls'],
             },
         }).concat(broadcastSyncMiddleware),
 });

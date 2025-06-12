@@ -51,7 +51,7 @@ export const getUserIirsThunk = createAsyncThunk<
     GetIirsUserResponse,
     { onSuccess?: () => void },
     { rejectValue: string; state: RootState }
->('iir/getUserIirsThunk', async ({ onSuccess }, { getState, dispatch, rejectWithValue }) => {
+>('recomendations/getUserIirsThunk', async ({ onSuccess }, { getState, dispatch, rejectWithValue }) => {
     try {
         const token = getState().user.token;
         const data = await getUserIirs(token);
@@ -70,7 +70,7 @@ export const getUserNotSignedIirHtmlThunk = createAsyncThunk<
     GetIirHtmlPayload,
     { rejectValue: string; state: RootState }
 >(
-    'iir/getUserNotSignedIirHtmlThunk',
+    'recomendations/getUserNotSignedIirHtmlThunk',
     async (payload, { getState, rejectWithValue }) => {
         try {
             const token = getState().user.token;
@@ -91,7 +91,7 @@ export const rejectIirDocumentThunk = createAsyncThunk<
     void,
     { payload: RejectIirPayload; onSuccess?: () => void },
     { rejectValue: string; state: RootState }
->('iir/rejectIirDocumentThunk', async ({ payload, onSuccess }, { getState, dispatch, rejectWithValue }) => {
+>('recomendations/rejectIirDocumentThunk', async ({ payload, onSuccess }, { getState, dispatch, rejectWithValue }) => {
     try {
         const token = getState().user.token;
         await rejectIirDocument(payload, token);
@@ -110,7 +110,7 @@ export const getSignedIirDocumentThunk = createAsyncThunk<
     { payload: GetSignedIirPayload; purpose?: 'download' | 'preview'; onSuccess?: () => void },
     { rejectValue: string; state: RootState }
 >(
-    'iir/getSignedIirDocumentThunk',
+    'recomendations/getSignedIirDocumentThunk',
     async ({ payload, purpose = 'preview', onSuccess }, { getState, rejectWithValue }) => {
         try {
             const token = getState().user.token;
@@ -155,14 +155,22 @@ export const recomendationsSlice = createSlice({
                 state.error = action.payload || 'Ошибка получения IIR';
                 state.loading = false;
             })
+            .addCase(getUserNotSignedIirHtmlThunk.pending, (state) => {
+                state.loading = true;
+            })
             .addCase(getUserNotSignedIirHtmlThunk.fulfilled, (state, action) => {
                 const requestUuid = action.meta.arg.uuid;
                 const html = action.payload.not_signed_document_html;
                 state.notSignedHtmls[`iir_${requestUuid}`] = html;
+                state.loading = false;
+            })
+            .addCase(getSignedIirDocumentThunk.pending, (state) => {
+                state.loading = true;
             })
             .addCase(getSignedIirDocumentThunk.fulfilled, (state, action) => {
                 const { uuid, document } = action.payload;
-                state.signedDocs[`iir_${uuid}`] = document;          // 👉 
+                state.signedDocs[`iir_${uuid}`] = document;
+                state.loading = false;
             });
     },
 });

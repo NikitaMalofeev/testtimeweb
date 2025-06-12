@@ -27,7 +27,7 @@ export const RecomendationsPreviewModal: React.FC<RecomendationsPreviewModalProp
     onClose,
     uuid,
     title = 'Индивидуальная инвестиционная рекомендация',
-    isSigned = false,
+    isSigned,
 }) => {
     const dispatch = useAppDispatch();
 
@@ -36,13 +36,8 @@ export const RecomendationsPreviewModal: React.FC<RecomendationsPreviewModalProp
         (s: RootState) => s.recomendations,
     );
 
-
-
-
     const htmlKey = uuid ? `iir_${uuid}` : '';
     const pdfKey = htmlKey;
-
-
 
     const [ready, setReady] = useState(false);
 
@@ -76,7 +71,7 @@ export const RecomendationsPreviewModal: React.FC<RecomendationsPreviewModalProp
         }
 
         setReady(false);
-    }, [uuid, isSigned, loading, signedDocs, notSignedHtmls]);
+    }, [uuid, isSigned, loading, signedDocs, notSignedHtmls, onClose, isOpen]);
 
     /* ───────── блокируем скролл, если открыто ───────── */
     const isAnyModalOpen = useSelector(selectIsAnyModalOpen);
@@ -123,25 +118,32 @@ export const RecomendationsPreviewModal: React.FC<RecomendationsPreviewModalProp
                     <Icon Svg={CloseIcon} width={20} height={20} onClick={handleClose} />
                 </div>
 
-                <div className={styles.modalContent}>
-                    {!ready ? (
-                        <Loader />
-                    ) : isSigned ? (
-                        <PdfViewer pdfBinary={signedDocs[pdfKey]} />
-                    ) : (
-                        <div
-                            className={styles.htmlContainer}
-                            dangerouslySetInnerHTML={{ __html: notSignedHtmls[htmlKey] }}
-                        />
-                    )}
-                </div>
+                <>
+                    {loading && !ready ? <Loader /> : (
+                        <>
+                            <div className={styles.modalContent}>
+                                {!ready ? (
+                                    <Loader />
+                                ) : isSigned ? (
+                                    <PdfViewer pdfBinary={signedDocs[pdfKey]} />
+                                ) : (
+                                    <div
+                                        className={styles.htmlContainer}
+                                        dangerouslySetInnerHTML={{ __html: notSignedHtmls[htmlKey] }}
+                                    />
+                                )}
+                            </div>
 
-                {!ready && !loading && (
-                    <div className={styles.error}>
-                        <Icon width={36} height={36} Svg={ErrorIcon} />
-                        Документ не найден
-                    </div>
-                )}
+                            {!ready && !loading && (
+                                <div className={styles.error}>
+                                    <Icon width={36} height={36} Svg={ErrorIcon} />
+                                    Документ не найден
+                                </div>
+                            )}
+                        </>
+                    )}
+
+                </>
             </motion.div>
         </div>,
         modalRoot,

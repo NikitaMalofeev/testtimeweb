@@ -47,10 +47,9 @@
   
   .modalContent {
     position: relative;
-    overflow-y: auto;
     height: 100%;
     max-width: 100dvw;
-    padding: 10px 6px 0 10px;
+    padding: 10px;
     flex: 1;
     background-color: #E1ECFB;
   
@@ -60,7 +59,7 @@
       bottom: -60px;
       left: 20px;
       background-color: #E1ECFB;
-      width: calc(100dvw - 24px);
+      width: calc(100dvw - 16px);
       height: 19px;
       display: var(--after-display, block);
     }

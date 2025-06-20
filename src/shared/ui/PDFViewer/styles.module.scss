@@ -1,13 +1,14 @@
 @use '../../../app/styles/mixins' as mix;
 
 .pdf__page {
+    overflow-x: hidden;
     &::after {
         position: absolute;
         content: '';
         bottom: 0;
         left: 0;
         background-color:  #E1ECFB;
-        width: calc(100dvw) ;
+        width: calc(100dvw - 28px) ;
         height: 8px; 
     }
 
@@ -15,7 +16,7 @@
     //     position: absolute;
     //     content: '';
     //     top: 0;
-    //     right: ;
+    //     right: -40px;
     //     background-color:  #E1ECFB;
     //     height: 100%;
     //     width: 18px;

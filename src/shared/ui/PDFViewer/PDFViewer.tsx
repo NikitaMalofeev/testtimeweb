@@ -86,8 +86,8 @@ export const PdfViewer: React.FC<MyPdfViewerProps> = ({
                             <div>
                                 <div
                                     className={`${styles.pdf__container} ${!pdfUrl
-                                            ? styles.pdf__page
-                                            : styles.pdf__page_preview
+                                        ? styles.pdf__page
+                                        : styles.pdf__page_preview
                                         }`}
                                 >
                                     <div>{canvasLayer.children}</div>

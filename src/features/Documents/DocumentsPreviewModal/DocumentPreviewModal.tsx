@@ -53,9 +53,10 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
     const [isContentReady, setIsContentReady] = useState(false);
 
     useEffect(() => {
-        console.log(justPreview)
-        console.log(docId)
-        console.log(isContentReady)
+        // console.log(justPreview)
+        // console.log(docId)
+        // console.log(isContentReady)
+        console.log(isSignedDoc)
     }, [docId, isContentReady])
 
     useEffect(() => {
@@ -182,6 +183,7 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                     ) : !isSignedDoc && docId && (allDocumentsHtml && allDocumentsHtml.hasOwnProperty(docId)) ? (
                         <div
                             className={styles.htmlContainer}
+                            style={{ padding: '10px' }}
                             dangerouslySetInnerHTML={{ __html: allDocumentsHtml[docId] }}
                         />
                     ) : (

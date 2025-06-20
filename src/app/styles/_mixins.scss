@@ -1,10 +1,9 @@
 // _mixins.scss
 
 $breakpoints: (
-  'mobile': (350px, 767px),
-  'tablet': (768px, 1023px),
+  'mobile': (350px, 1023px),
   'desktop': (1024px, 4000px),
-  'tablet-desktop': (768px, 4000px)
+  'tablet-desktop': (1024px, 4000px)
 );
 
 // Миксин для медиазапросов

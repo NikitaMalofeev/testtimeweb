@@ -1,4 +1,6 @@
 
+@use '../../../app/styles/mixins' as mix;
+
 .container {
     position: fixed;
     top: calc(50dvh - 331px);
@@ -75,4 +77,12 @@
     padding: 10px;
     border-radius: 15px;
     background-color: #E1ECFB;
+}
+
+@include mix.respond-to('tablet-desktop') {
+
+    .container {
+            top: calc(50dvh - 303px);
+            border-radius: 15px;
+    }
 }

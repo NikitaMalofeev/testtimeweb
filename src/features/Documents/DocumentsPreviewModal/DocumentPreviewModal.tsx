@@ -53,12 +53,19 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
     const [isContentReady, setIsContentReady] = useState(false);
 
     useEffect(() => {
-        console.log(justPreview)
-    }, [justPreview])
+        // console.log(justPreview)
+        // console.log(docId)
+        // console.log(isContentReady)
+        console.log(isSignedDoc)
+    }, [docId, isContentReady])
 
     useEffect(() => {
         if (loading) {
             setIsContentReady(false);
+            return;
+        }
+        if (docId?.startsWith('iir')) {
+            setIsContentReady(true);
             return;
         }
         if (justPreview) {
@@ -66,7 +73,6 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
             return;
         }
         if (docId) {
-            // Для паспорта отображаем данные из компонента RiskProfileAllData
             if (docId === "type_doc_passport") {
                 setIsContentReady(true);
                 return;
@@ -153,24 +159,31 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                     <span className={styles.modalTitle}>{title || "Документ"}</span>
                     <Icon Svg={CloseIcon} width={20} height={20} onClick={handleClose} />
                 </div>
-                <div className={styles.modalContent} style={
+                <div className={styles.modalContent} >
+                    {/* style={
                     isSignedDoc
                         ? ({ padding: '8px 0 8px 22px', '--after-display': 'block' } as React.CSSProperties)
                         : ({ padding: '8px 16px', '--after-display': 'none' } as React.CSSProperties)
-                }>
+                } */}
                     {!isContentReady && !loading ? (
                         <Loader />
                     ) : (isSignedDoc && hasCurrentSighedDocument &&
                         hasCurrentSighedDocument.document &&
                         Object.keys(hasCurrentSighedDocument.document).length > 0) ? (
-                        <PdfViewer pdfBinary={hasCurrentSighedDocument.document} />
+
+                        <div className={styles.htmlContainer}>
+                            <PdfViewer pdfBinary={hasCurrentSighedDocument.document} />
+                        </div>
                     ) : justPreview ? (
                         <PdfViewer pdfUrl={justPreview} />
                     ) : docId === "type_doc_passport" ? (
-                        <RiskProfileAllData />
+                        <div className={styles.htmlContainer}>
+                            <RiskProfileAllData />
+                        </div>
                     ) : !isSignedDoc && docId && (allDocumentsHtml && allDocumentsHtml.hasOwnProperty(docId)) ? (
                         <div
                             className={styles.htmlContainer}
+                            style={{ padding: '10px' }}
                             dangerouslySetInnerHTML={{ __html: allDocumentsHtml[docId] }}
                         />
                     ) : (

@@ -34,6 +34,7 @@ import { getAllBrokersThunk, setCurrentConfirmationMethod } from 'entities/Docum
 import { PaymentsStatus } from '../PaymentsStatus/PaymentsStatus';
 import { SelectModal } from 'features/Ui/SelectModal/SelectModal';
 import { Select } from 'shared/ui/Select/Select';
+import { useDevice } from 'shared/hooks/useDevice';
 
 const messageTypeOptions = { SMS: 'SMS', EMAIL: 'Email', WHATSAPP: 'Whatsapp' } as const;
 type MessageKey = keyof typeof messageTypeOptions;
@@ -53,7 +54,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     const dispatch = useAppDispatch();
 
     /* ---------------- url параметр ---------------- */
-
+    const device = useDevice()
     const { status: statusParam, uuid: orderIdParam } = useParams<{
         status?: 'success' | 'loading' | 'failed';
         uuid?: string;
@@ -236,7 +237,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         document.body.style.overflow = isConfirming ? 'hidden' : '';
     }, [isConfirming]);
 
-    /* --- РАННИЙ ВЫХОД, если в url статус success|loading|failed --- */
+
     if (currentOrderStatus) {
         return <PaymentsStatus status={currentOrderStatus as any} paymentId={currentUserTariffIdForPayments || currentOrderId} payAction={() => {
             if (!currentPaymentOrder?.payment_url) return;
@@ -313,6 +314,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                         <Button
                             theme={ButtonTheme.UNDERLINE}
                             padding="10px 25px"
+                            className={styles.button}
                             onClick={() => {
                                 dispatch(setCurrentOrderId(''));
                                 setIsConfirming(false);
@@ -322,7 +324,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                             Вернуться к выбору тарифов
                         </Button>
 
-                        <Button disabled={!formik.values.broker_id} theme={ButtonTheme.BLUE} padding="10px 25px" onClick={handleSetTariff}>
+                        <Button disabled={!formik.values.broker_id} theme={ButtonTheme.BLUE} className={styles.button} padding="10px 25px" onClick={handleSetTariff}>
                             Подключить
                         </Button>
                     </motion.div>
@@ -402,6 +404,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                 value={formik.values.is_agree}
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
+
                                 label={
                                     <span className={styles.checkbox__text}>
                                         Я ознакомился с тарифом и его содержанием
@@ -415,24 +418,27 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                             />
                         </div>
 
-                        <span className={styles.method__title}>Куда прислать код</span>
+                        <div>
+                            <span className={styles.method__title}>Куда прислать код</span>
 
-                        <div className={styles.checkbox}>
-                            <CheckboxGroup
-                                name="type_message"
-                                label=""
-                                direction="row"
-                                options={Object.entries(messageTypeOptions).map(([value, label]) => ({
-                                    value,
-                                    label,
-                                }))}
-                                value={formik.values.type_message}
-                                onChange={(_, v) => {
-                                    const key = v as MessageKey;
-                                    formik.setFieldValue('type_message', v);
-                                    dispatch(setCurrentConfirmationMethod(key));
-                                }}
-                            />
+                            <div className={styles.checkbox}>
+                                <CheckboxGroup
+                                    name="type_message"
+                                    label=""
+                                    direction="row"
+                                    greedOrFlex={device === 'mobile' ? 'grid' : 'flex'}
+                                    options={Object.entries(messageTypeOptions).map(([value, label]) => ({
+                                        value,
+                                        label,
+                                    }))}
+                                    value={formik.values.type_message}
+                                    onChange={(_, v) => {
+                                        const key = v as MessageKey;
+                                        formik.setFieldValue('type_message', v);
+                                        dispatch(setCurrentConfirmationMethod(key));
+                                    }}
+                                />
+                            </div>
                         </div>
 
                         <div className={styles.buttons}>
@@ -450,6 +456,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                 {!currentTimeout ? 'Подтвердить' : `(${currentTimeout})`}
                             </Button>
                         </div>
+
                     </motion.form>
                 </div>
             )}

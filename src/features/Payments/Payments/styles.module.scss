@@ -1,3 +1,5 @@
+@use '../../../app/styles/mixins' as mix;
+
 .list {
     display: flex;
     flex-direction: column;
@@ -141,3 +143,74 @@ box-shadow: 0px 4px 13.4px -4px rgba(0, 0, 0, 0.16);
     max-height: calc(100dvh - 382px);
     overflow-y: auto;
   }
+
+  @include mix.respond-to('tablet-desktop') {
+
+    .page {
+
+    }
+
+    .list {
+      display: flex;
+      width: 100%;
+      margin-top: 30px;
+      justify-content: space-between;
+      flex-direction: row;
+    }
+
+        .confirm__container {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+    }
+
+    .confirm__title {
+      display: none;
+    }
+
+    .confirm__card {
+      max-width: 875px;
+      width: 100%;
+      top: 104px;
+      left: 42px
+
+    }
+
+    .page__container {
+      display: flex;
+      align-items: center;
+      position: absolute;
+      width: 100%;
+      justify-content: space-between;
+
+      & > div:nth-child(2) {
+        order: -1;
+      }
+
+      & > div:nth-child(1) {
+        margin-right: -180px;
+      }
+
+      &::after {
+        top: 0;
+        width: 100%;
+      }
+    }
+
+    .detailed__actions {
+      position: absolute;
+      max-height: 100px;
+      bottom: 0;
+      flex-direction: row;
+      border-radius: 0 0 15px 15px;
+    }
+
+    .button {
+      max-width: max-content;
+    }
+
+    .buttons {
+      padding: 0;
+      max-width: max-content;
+    }
+}

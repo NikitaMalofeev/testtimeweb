@@ -334,59 +334,61 @@ const PersonalAccountMenu: React.FC = () => {
             <div className={styles.page}>
                 <PushNotification pushNotifications={pushNotifications} activePush={activePush} />
                 <div className={styles.page__container}>
-                    <div>
-                        {hasActiveTariff ? (
-                            <div className={styles.page__status}>
-                                <div className={styles.page__status_active}>активна</div>
-                                <div className={styles.page__status__tooltip}>
-                                    <Tooltip
-                                        positionBox={{ top: "8px", left: '30px' }}
-                                        squerePosition={{ top: "15px", left: "-4px" }}
-                                        topForCenteringIcons="24px"
-                                        className={styles.modalContent__tooltip}
-                                        description="Текущий статус вашего счета"
-                                    />
+                    <div className={styles.desktop__container}>
+                        <div>
+                            {hasActiveTariff ? (
+                                <div className={styles.page__status}>
+                                    <div className={styles.page__status_active}>активна</div>
+                                    <div className={styles.page__status__tooltip}>
+                                        <Tooltip
+                                            positionBox={{ top: "8px", left: '30px' }}
+                                            squerePosition={{ top: "15px", left: "-4px" }}
+                                            topForCenteringIcons="24px"
+                                            className={styles.modalContent__tooltip}
+                                            description="Текущий статус вашего счета"
+                                        />
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className={styles.page__status}>
+                                    <div className={styles.page__status_inactive}>Не активна</div>
+                                    <div className={styles.page__status__tooltip}>
+                                        <Tooltip
+                                            positionBox={{ top: "48px", left: '30px' }}
+                                            squerePosition={{ top: "12px", left: "-4px" }}
+                                            topForCenteringIcons="24px"
+                                            boxWidth={{ maxWidth: '200px' }}
+                                            className={styles.modalContent__tooltip}
+                                            description="Текущий статус работы с Вашим счетом. Чтобы активировать, заполните документы и выберите тариф"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        <h2 className={styles.page__title}>Учетная запись</h2>
+                        <div className={styles.page__info}>
+                            <div className={styles.page__avatar}>
+                                {userPersonalAccountInfo?.last_name[0]}
+                                {userPersonalAccountInfo?.first_name[0]}
+                            </div>
+                            <div className={styles.page__personalInfo}>
+                                <div className={styles.page__fio}>
+                                    <span>{userPersonalAccountInfo?.last_name}</span>
+                                    <span>{userPersonalAccountInfo?.first_name}</span>
+                                    <span>{userPersonalAccountInfo?.patronymic}</span>
+                                </div>
+                                <div className={styles.page__contacts}>
+                                    <Icon Svg={AccountPhoneIcon} width={16} height={16} />
+                                    {userPersonalAccountInfo?.phone}
+                                </div>
+                                <div className={styles.page__contacts}>
+                                    <Icon Svg={AccountMailIcon} width={16} height={16} />
+                                    {userPersonalAccountInfo?.email}
                                 </div>
                             </div>
-                        ) : (
-                            <div className={styles.page__status}>
-                                <div className={styles.page__status_inactive}>Не активна</div>
-                                <div className={styles.page__status__tooltip}>
-                                    <Tooltip
-                                        positionBox={{ top: "48px", left: '30px' }}
-                                        squerePosition={{ top: "12px", left: "-4px" }}
-                                        topForCenteringIcons="24px"
-                                        boxWidth={{ maxWidth: '200px' }}
-                                        className={styles.modalContent__tooltip}
-                                        description="Текущий статус работы с Вашим счетом. Чтобы активировать, заполните документы и выберите тариф"
-                                    />
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                    <h2 className={styles.page__title}>Учетная запись</h2>
-                    <div className={styles.page__info}>
-                        <div className={styles.page__avatar}>
-                            {userPersonalAccountInfo?.last_name[0]}
-                            {userPersonalAccountInfo?.first_name[0]}
-                        </div>
-                        <div className={styles.page__personalInfo}>
-                            <div className={styles.page__fio}>
-                                <span>{userPersonalAccountInfo?.last_name}</span>
-                                <span>{userPersonalAccountInfo?.first_name}</span>
-                                <span>{userPersonalAccountInfo?.patronymic}</span>
-                            </div>
-                            <div className={styles.page__contacts}>
-                                <Icon Svg={AccountPhoneIcon} width={16} height={16} />
-                                {userPersonalAccountInfo?.phone}
-                            </div>
-                            <div className={styles.page__contacts}>
-                                <Icon Svg={AccountMailIcon} width={16} height={16} />
-                                {userPersonalAccountInfo?.email}
-                            </div>
                         </div>
                     </div>
-                    <div>
+                    <div className={styles.documents}>
                         {items.map((item, index) => {
                             const hasNotifications = (item.notificationsCount ?? 0) > 0;
                             const isDocumentsWithoutNotifications =

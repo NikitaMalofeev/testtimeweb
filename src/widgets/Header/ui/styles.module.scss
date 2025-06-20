@@ -13,6 +13,7 @@
   margin: 0 auto;
   position: relative; /* Для абсолютного позиционирования бургера */
   border-bottom: 1px solid #EBEBED;
+  background-color: white;
 
   @include respond-to('350-500') {
     font-size: 18px;

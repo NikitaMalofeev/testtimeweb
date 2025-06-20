@@ -26,6 +26,7 @@ export enum ModalType {
     PREVIEW = 'preview',
     DOCUMENTS_PREVIEW_SIGNED = 'documentsPreviewSigned',
     DOCUMENTS_PREVIEW = 'documentsPreview',
+    RECOMENDATIONS_PREVIEW = 'recomendationsPreview',
     RESET_PASSWORD = 'resetPassword',
     PROGRESS = 'progress',
     INFO = 'info',

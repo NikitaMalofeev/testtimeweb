@@ -6,20 +6,29 @@ import SupportIcon from 'shared/assets/svg/supportChatBlue.svg';
 import { Button, ButtonTheme } from 'shared/ui/Button/Button';
 import styles from './styles.module.scss';
 import { useScrollShadow } from 'shared/hooks/useScrollShadow';
+import { useAppDispatch } from 'shared/hooks/useAppDispatch';
+import { rejectIirDocumentThunk } from 'entities/Recomendations/slice/recomendationsSlice';
 
 
 interface RecomendationsRejectModalProps {
+    uuid: string;
     onCancel: () => void;
+    onReject: (uuid: string) => void;
 }
 
 export const RecomendationsRejectModal: React.FC<RecomendationsRejectModalProps> = ({
+    onReject,
+    uuid,
     onCancel,
 }) => {
     const modalRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
+    const dispatch = useAppDispatch()
     const { isScrolled, isBottom } = useScrollShadow(modalRef, true);
 
-    const handleRejectRecomendation = (): void => {
+
+    const handleRejectRecomendation = () => {
+        onReject(uuid);
     };
 
     return (

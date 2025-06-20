@@ -196,7 +196,7 @@ const IdentificationProfileForm: React.FC = () => {
                         : !isBottom ? styles.shadowBottom
                             : ''} 
           `} ref={formContentRef}>
-                <div>
+                <div style={{ paddingTop: '8px' }}>
                     <Input
                         name="lastName"
                         value={formik.values.lastName}
@@ -304,6 +304,7 @@ const IdentificationProfileForm: React.FC = () => {
                         <CheckboxGroup
                             name="type_sms_message"
                             label=""
+                            greedOrFlex="flex"
                             direction="row"
                             options={Object.entries(messageTypeOptions).map(([value, label]) => ({
                                 label,

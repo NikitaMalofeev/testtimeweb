@@ -1,3 +1,5 @@
+@use '../../../app/styles/mixins' as mix; 
+
 .card {
     background: #fff;
     border-radius: 15px;
@@ -180,4 +182,13 @@
   
   .cardContent__shadow_bottom {
     box-shadow: inset 0 -6px 6px -4px rgba(0, 0, 0, 0.1);
+  }
+
+
+  @include mix.respond-to('tablet-desktop') {
+
+    .card {
+      padding: 40px 50px;
+      border: 1px solid #E2E2E2;
+    }
   }

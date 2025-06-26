@@ -33,9 +33,16 @@ export const CheckPreviewModal: React.FC<Props> = ({
     const html = useSelector(
         (s: RootState) => checkId && s.payments.checks[checkId]?.check_html
     );
-
     /* загрузка */
     const loading = useSelector((s: RootState) => s.payments.error === null && !html);
+
+    useEffect(() => {
+        console.log('html' + html)
+        console.log('checkid' + checkId)
+        console.log(loading)
+    }, [html, checkId, loading])
+
+
 
     /* блокировка скролла */
     useEffect(() => {

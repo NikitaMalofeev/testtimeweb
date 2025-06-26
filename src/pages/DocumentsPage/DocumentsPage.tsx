@@ -278,19 +278,28 @@ const DocumentsPage: React.FC = () => {
         };
     });
 
-    const paymentDocuments = userChecks
-        .map((p, idx) => ({
-            id: `payment_${idx}`,
-            title: `Чек #${idx + 1}`,
-            date: p.date_time_check ?? null,
-            status: "signed",
-            timeoutPending: 0,
-            isPayment: true,
-        }))
-        .filter(d => !documents.some(doc => doc.id === d.id));
+    const checksArray = Object.values(userChecks)        // ← UserCheck[]
+        .sort((a, b) =>
+            (b.date_time_check ?? '').localeCompare(a.date_time_check ?? ''),
+        );
 
+    // 2. Формируем массив “документов-чеков”
+    const paymentDocuments = checksArray.map((check, idx) => ({
+        id: `payment_${check.id}`,              // id берём из самого чека
+        title: `Чек #${idx + 1}`,
+        date: check.date_time_check ?? null,
+        status: 'signed',
+        timeoutPending: 0,
+        isPayment: true,
+    }));
 
-    const allDocuments = [...paymentDocuments, ...documents];
+    // 3. Исключаем дубликаты с documents
+    const uniquePaymentDocs = paymentDocuments.filter(
+        (d) => !documents.some((doc) => doc.id === d.id),
+    );
+
+    // 4. Итоговый список
+    const allDocuments = [...uniquePaymentDocs, ...documents];
 
     // Ищем первый документ, у которого status === "signable" (то есть не подписан)
     const firstNotConfirmed = documents.find((doc) => doc.status === "signable")?.id;

@@ -66,10 +66,11 @@ export interface RobokassaResultResponse {
 }
 
 export interface UserCheck {
+    id: string;                // ← добавили явное поле id (берём из backend)
     fn: string;
     fd: string;
     fpd_or_fp: string;
-    date_time_check: string; // ISO
+    date_time_check: string;   // ISO
     url_check: string;
     check_html: string;
 }

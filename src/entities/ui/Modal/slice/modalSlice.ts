@@ -67,6 +67,14 @@ const initialState: ExtendedModalState = {
         isScrolled: false,
         // extra field for preview
         docId: undefined,
+    } as ModalStateItem & { checkId?: string },
+    [ModalType.CHECKS_PREVIEW]: {
+        isOpen: false,
+        size: ModalSize.FULL,
+        animation: ModalAnimation.LEFT,
+        isScrolled: false,
+        // extra field for preview
+        docId: undefined,
     } as ModalStateItem & { docId?: string },
     [ModalType.RECOMENDATIONS_PREVIEW]: {
         isOpen: false,

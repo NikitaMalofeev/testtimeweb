@@ -42,8 +42,6 @@ export const CheckPreviewModal: React.FC<Props> = ({
         console.log(loading)
     }, [html, checkId, loading])
 
-
-
     /* блокировка скролла */
     useEffect(() => {
         if (isOpen) {

@@ -774,9 +774,9 @@ const DocumentsPage: React.FC = () => {
                         : 'Документ'
                 }
             />
-            <CheckPreviewModal                     // ← новый компонент
+            <CheckPreviewModal
                 isOpen={modalState.checksPreview.isOpen}
-                checkId={modalState.checksPreview.checkId}
+                checkId={modalState.checksPreview.docId}
                 onClose={() => dispatch(closeModal(ModalType.CHECKS_PREVIEW))}
             />
         </div>

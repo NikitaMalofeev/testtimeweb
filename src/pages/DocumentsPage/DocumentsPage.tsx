@@ -286,7 +286,7 @@ const DocumentsPage: React.FC = () => {
     // 2. Формируем массив “документов-чеков”
     const paymentDocuments = checksArray.map((check, idx) => ({
         id: `payment_${check.id}`,              // id берём из самого чека
-        title: `Чек #${idx + 1}`,
+        title: `Чек #${check.fd}`,
         date: check.date_time_check ?? null,
         status: 'signed',
         timeoutPending: 0,

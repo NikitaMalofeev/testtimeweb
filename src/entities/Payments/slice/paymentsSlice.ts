@@ -74,7 +74,7 @@ export interface PaymentInfo {
 interface PaymentsState {
     tariffs: Tariff[];
     activeTariffs: Tariff[];
-    checks: UserCheck[];
+    checks: Record<string, UserCheck>;
     paidTariffKeys: Record<string, string>;
     orderStatus: OrderStatusResponse | null;
     robokassaData: RobokassaResultResponse | null;
@@ -92,7 +92,7 @@ const initialState: PaymentsState = {
     tariffs: [],
     activeTariffs: [],
     paidTariffKeys: {},
-    checks: [],
+    checks: {},
     orderStatus: null,
 
     robokassaData: null,
@@ -187,10 +187,10 @@ export const getAllUserChecksThunk = createAsyncThunk<
     async ({ onSuccess }, { dispatch, rejectWithValue, getState }) => {
         try {
             const token = getState().user.token;
-            const response = token && await getChecksUser(token);   
-            dispatch(setUserChecks(response));                     
+            const data = token && await getChecksUser(token);
+            dispatch(setUserChecks(data));
             onSuccess?.();
-            return response;
+            return data;
         } catch (err: any) {
             const msg = err.response?.data?.info || err.message;
             dispatch(setError(msg));
@@ -198,6 +198,7 @@ export const getAllUserChecksThunk = createAsyncThunk<
         }
     },
 );
+
 export const getAllActiveTariffsThunk = createAsyncThunk<
     PaymentInfo[],                                       // <== НОВОЕ
     { onSuccess?: () => void },
@@ -475,7 +476,10 @@ export const paymentsSlice = createSlice({
             }
         },
         setUserChecks: (state, action: PayloadAction<UserCheck[]>) => {
-            state.checks = action.payload;
+            state.checks = action.payload.reduce<Record<string, UserCheck>>((acc, c) => {
+                acc[c.id] = c;
+                return acc;
+            }, {});
         },
         setPaymentsInfo: (state, action: PayloadAction<PaymentInfo[]>) => { // <== НОВОЕ
             state.payments_info = action.payload;

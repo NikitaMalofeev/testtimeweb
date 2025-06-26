@@ -31,7 +31,8 @@ export enum ModalType {
     PROGRESS = 'progress',
     INFO = 'info',
     SUCCESS = 'success',
-    WARNING = 'warning'
+    WARNING = 'warning',
+    CHECKS_PREVIEW = 'checksPreview'
 }
 
 /** Состояние одной конкретной модалки */
@@ -42,6 +43,7 @@ export interface ModalStateItem {
     isScrolled: boolean;
     title?: string;
     docId?: string;
+    checkId?: string;
 }
 
 /** Полное состояние для всех модалок */

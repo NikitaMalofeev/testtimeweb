@@ -40,6 +40,7 @@ import { getAllUserInfoThunk, getUserPersonalAccountInfoThunk } from "entities/U
 import WarningIcon from 'shared/assets/svg/Warning.svg'
 import { getAllUserChecksThunk } from "entities/Payments/slice/paymentsSlice";
 import { useDevice } from "shared/hooks/useDevice";
+import { CheckPreviewModal } from "features/Payments/CheckPreviewModal/CheckPreviewModal";
 
 const DocumentsPage: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -385,6 +386,17 @@ const DocumentsPage: React.FC = () => {
             const tariffId = docId.split('_')[1];          // "payment_123" → 123
             const isPaid = payments.find(p => p.user_tariff_id === tariffId)?.order.paid;
 
+            const checkId = docId.split('_')[1];       // "payment_42" → "42"
+            setSelectedDocId(docId);
+            dispatch(
+                openModal({
+                    type: ModalType.CHECKS_PREVIEW,         // новый тип
+                    size: ModalSize.FULL,
+                    animation: ModalAnimation.LEFT,
+                    docId,                               // сохраним ID в state.modal
+                })
+            );
+
             // подгружаем PDF чека (подписанный — или черновик, если ещё не оплачен)
             // await dispatch(
             //     (isPaid ? getSignedTariffDoc : getNotSignedTariffDoc)({
@@ -664,7 +676,7 @@ const DocumentsPage: React.FC = () => {
                                                         Просмотр
                                                     </Button>
                                                 )}
-                                                {doc.status === "signed" && (
+                                                {doc.status === "signed" && !doc.isPayment && (
                                                     <>
                                                         {doc.timeoutPending && doc.timeoutPending > 0 ? (
                                                             <span className={styles.documents__timer}>
@@ -752,6 +764,11 @@ const DocumentsPage: React.FC = () => {
                         ]
                         : 'Документ'
                 }
+            />
+            <CheckPreviewModal                     // ← новый компонент
+                isOpen={modalState.checksPreview.isOpen}
+                checkId={modalState.checksPreview.checkId}
+                onClose={() => dispatch(closeModal(ModalType.CHECKS_PREVIEW))}
             />
         </div>
     );

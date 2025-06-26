@@ -106,7 +106,8 @@ export const AdditionalMenu: React.FC<AdditionalMenuProps> = ({ onClose, title, 
                 )}
                 <div className={`${styles.header} ${hasScrolled ? styles.shadow : ""}`}>
                     <h2 className={styles.header__title}>{title}</h2>
-                    {description && <Tooltip positionBox={{ top: '26px', left: '-264px' }} bigContentSquerePosition={currentStep === 2 ? { top: '32px', left: '241px' } : { top: '15px', left: '241px' }} topForCenteringIcons='24px' description={description} className={`${styles.header__tooltip} ${hasScrolled ? styles.header__tooltip_scrolled : ""}`} />}
+                    {device === 'mobile' && description && <Tooltip positionBox={{ top: '26px', left: '-264px' }} bigContentSquerePosition={currentStep === 2 ? { top: '32px', left: '241px' } : { top: '15px', left: '241px' }} topForCenteringIcons='24px' description={description} className={`${styles.header__tooltip} ${hasScrolled ? styles.header__tooltip_scrolled : ""}`} />}
+                    {device !== 'mobile' && description && <Tooltip positionBox={{ top: '40px', left: '30px' }} bigContentSquerePosition={currentStep === 2 ? { top: '10px', left: '-5px' } : { top: '12px', left: '-5px' }} topForCenteringIcons='24px' description={description} className={`${styles.header__tooltip} ${hasScrolled ? styles.header__tooltip_scrolled : ""}`} />}
                 </div>
 
                 {content}

@@ -46,7 +46,7 @@ export const PushNotification = ({ pushNotifications, activePush }: PushNotifica
             transition={{ duration: 0.5, ease: "easeInOut" }}
             className={styles.pushNotification}
             onClick={() => {
-                activePush.route && navigate(activePush.route)
+                setTimeout(() => { activePush.route && navigate(activePush.route) }, 1000)
                 if (activePush.uiStep !== undefined && activePush.uiStep !== null) {
                     dispatch(setStepAdditionalMenuUI(activePush.uiStep));
                     dispatch(openModal({

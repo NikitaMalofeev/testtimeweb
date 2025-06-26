@@ -25,6 +25,7 @@ import { getUserPersonalAccountInfoThunk, setUserToken } from "entities/User/sli
 import { useNavigate } from "react-router-dom";
 import { Loader } from "shared/ui/Loader/Loader";
 import { PushNotification } from "features/PushNotifications/PushNotification/PushNotification";
+import VIPCoverCrown from 'shared/assets/svg/VIPCoverCrown.svg';
 import { RiskProfileModal } from "features/RiskProfile/RiskProfileModal/RiskProfileModal";
 import { closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
@@ -54,7 +55,7 @@ const PersonalAccountMenu: React.FC = () => {
     const availableMenuItems = useSelector((state: RootState) => state.documents.availabilityPersonalAccountMenuItems);
     const tariffs = useSelector((s: RootState) => s.payments.tariffs);
     const activeTariffs = useSelector((s: RootState) => s.payments.activeTariffs);
-
+    const isUserVip = useSelector((s: RootState) => s.user.is_vip)
     const hasActiveTariff = activeTariffs.length > 0
 
     useEffect(() => {
@@ -365,7 +366,10 @@ const PersonalAccountMenu: React.FC = () => {
                                 </div>
                             )}
                         </div>
-                        <h2 className={styles.page__title}>Учетная запись</h2>
+                        <div style={{ display: 'flex', gap: '16px' }}>
+                            <h2 className={styles.page__title}>Учетная запись</h2>
+                            {isUserVip && <Icon Svg={VIPCoverCrown} width={32} height={32} objectFit="cover" />}
+                        </div>
                         <div className={styles.page__info}>
                             <div className={styles.page__avatar}>
                                 {userPersonalAccountInfo?.last_name[0]}

@@ -402,7 +402,7 @@ const DocumentsPage: React.FC = () => {
                     type: ModalType.CHECKS_PREVIEW,         // новый тип
                     size: ModalSize.FULL,
                     animation: ModalAnimation.LEFT,
-                    docId,                               // сохраним ID в state.modal
+                    docId: checkId,                               // сохраним ID в state.modal
                 })
             );
 

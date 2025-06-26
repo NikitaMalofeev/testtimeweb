@@ -164,7 +164,8 @@ const modalSlice = createSlice({
             // only store docId for preview modals
             if (
                 type === ModalType.DOCUMENTS_PREVIEW ||
-                type === ModalType.DOCUMENTS_PREVIEW_SIGNED
+                type === ModalType.DOCUMENTS_PREVIEW_SIGNED ||
+                type === ModalType.CHECKS_PREVIEW
             ) {
                 // @ts-ignore
                 state[type].docId = docId;
@@ -180,7 +181,8 @@ const modalSlice = createSlice({
             // only clear docId for preview modals
             if (
                 type === ModalType.DOCUMENTS_PREVIEW ||
-                type === ModalType.DOCUMENTS_PREVIEW_SIGNED
+                type === ModalType.DOCUMENTS_PREVIEW_SIGNED ||
+                type === ModalType.CHECKS_PREVIEW
             ) {
                 // @ts-ignore
                 state[type].docId = undefined;
@@ -195,7 +197,8 @@ const modalSlice = createSlice({
                 state[last].isOpen = false;
                 if (
                     last === ModalType.DOCUMENTS_PREVIEW ||
-                    last === ModalType.DOCUMENTS_PREVIEW_SIGNED
+                    last === ModalType.DOCUMENTS_PREVIEW_SIGNED ||
+                    last === ModalType.CHECKS_PREVIEW
                 ) {
                     // @ts-ignore
                     state[last].docId = undefined;

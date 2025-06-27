@@ -9,6 +9,7 @@ export interface IdentificationProfileData {
     is_agreement: boolean;
     g_recaptcha: string;
     type_sms_message?: string
+    type_person?: string
 }
 
 export interface ConfirmationCodeData {

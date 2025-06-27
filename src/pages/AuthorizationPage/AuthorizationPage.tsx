@@ -19,6 +19,7 @@ import { closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { useNavigate } from "react-router-dom";
 import { useDevice } from "shared/hooks/useDevice";
+import BooleanTabs from "shared/ui/BooleanTabs/BooleanTabs";
 
 const AuthorizationPage = () => {
     const dispatch = useAppDispatch();
@@ -85,34 +86,20 @@ const AuthorizationPage = () => {
     return (
         <>
             <div className={styles.auth}>
-                <AnimateHeightWrapper isOpen={activeTab === 'registration'} minHeight={deviceSize === 'desktop' ? '662px' : '500px'}>
+                <AnimateHeightWrapper isOpen={activeTab === 'registration'} minHeight={deviceSize === 'desktop' ? '100%' : '500px'}>
                     <div className={styles.auth__wrapper}>
                         <div
                             className={`${styles.auth__container} ${activeTab === 'registration' ? styles.auth__container_extended : ''}`}
                         >
                             <Icon Svg={WhiteLogo} width={73} height={73} className={styles.auth__icon} />
                             {/* Вкладки */}
-                            <div className={styles.auth__tabs}>
-                                {/* Анимированный «хайлайт» (чёрный фон) */}
-                                <motion.div
-                                    className={styles.auth__activeBg}
-                                    animate={{ x: activeTab === "login" ? "0%" : "100%" }}
-                                    transition={{ duration: 0.4 }}
-                                />
-                                <div
-                                    className={`${styles.auth__tab} ${activeTab === 'login' ? styles.auth__tab_active : ""}`}
-                                    onClick={() => setActiveTab('login')}
-                                >
-                                    Авторизация
-                                </div>
-                                <div
-                                    className={`${styles.auth__tab} ${activeTab === 'registration' ? styles.auth__tab_active : ""}`}
-                                    onClick={() => setActiveTab('registration')}
-                                >
-                                    Регистрация
-                                </div>
-
-                            </div>
+                            <BooleanTabs
+                                leftTitle="Авторизация"
+                                rightTitle="Регистрация"
+                                active={activeTab === "login" ? "left" : "right"}
+                                onLeftClick={() => setActiveTab("login")}
+                                onRightClick={() => setActiveTab("registration")}
+                            />
 
                             {/* Контент в зависимости от вкладки */}
                             {activeTab === 'login' && (

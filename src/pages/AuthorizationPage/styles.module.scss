@@ -122,6 +122,10 @@ margin-top: 5px;
 
 
 @include mix.respond-to('tablet-desktop') {
+
+    .form__grid {
+        justify-items: start;
+    }
     .auth {
        align-items: center;
                                max-width: 960px;
@@ -136,7 +140,7 @@ margin-top: 5px;
             }
         &__container {
             max-width: 960px;
-            max-height: 662px;
+            
             height: 100%;
             border-radius: 15px;
             justify-content: start;
@@ -167,7 +171,7 @@ margin-top: 5px;
 
         & > div {
             max-width: 960px;
-            max-height: 662px;
+            max-height: 100%;
         }
 
 

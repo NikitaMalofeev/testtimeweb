@@ -14,7 +14,8 @@ import {
     SendCodeDocsConfirmPayload,
     SecondRiskProfileFinalPayload,
     BrokerSetTokenPayload,
-    PassportFormData
+    PassportFormData,
+    RiskProfileFormValues
 } from "../model/types";
 import {
     getAllSelects,
@@ -48,7 +49,7 @@ interface RiskProfileFormState {
     secondRiskProfileData: SecondRiskProfileResponse | null;
     thirdRiskProfileResponse: ThirdRiskProfileResponse | null;
     riskProfileSelectors: RiskProfileSelectors | null;
-    formValues: Record<string, string>;
+    formValues: RiskProfileFormValues;
     stepsFirstForm: {
         currentStep: number;
     };
@@ -67,7 +68,9 @@ const initialState: RiskProfileFormState = {
     IdentificationFromData: null,
     riskProfileSelectors: null,
     thirdRiskProfileResponse: null,
-    formValues: {},
+    formValues: {
+        person_type: "",
+    } as RiskProfileFormValues,
     stepsFirstForm: {
         currentStep: 0
     },
@@ -224,7 +227,7 @@ export const postSecondRiskProfileFormFinal = createAsyncThunk<
 
 export const postFirstRiskProfileForm = createAsyncThunk<
     void,
-    Record<string, string>,
+    RiskProfileFormValues,
     { state: RootState; rejectValue: string }
 >(
     "riskProfile/postFirstRiskProfileForm",
@@ -545,8 +548,11 @@ const riskProfileSlice = createSlice({
             }
             state.formValues[action.payload.name] = action.payload.value;
         },
-        updateRiskProfileForm: (state, action: PayloadAction<Record<string, string>>) => {
-            state.formValues = action.payload;
+        updateRiskProfileForm: (
+            state,
+            action: PayloadAction<Partial<RiskProfileFormValues>>
+        ) => {
+            state.formValues = { ...state.formValues, ...action.payload };
         },
         nextRiskProfileStep(state) {
             state.stepsFirstForm.currentStep += 1;

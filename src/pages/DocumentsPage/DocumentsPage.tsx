@@ -309,6 +309,11 @@ const DocumentsPage: React.FC = () => {
     // - Если документ подписан => зелёная плашка "Подписано"
     // - Если не подписан, но это именно "первый" не подписанный => серый
     // - Если не подписан, но не первый => красный
+    //условия для проверки Договора ИС
+    const hasPassport = filledRiskProfileChapters.is_exist_scan_passport;
+    const hasBroker = brokersCount > 0;             // или !!brokerIds.length
+    const hasTariff = activePaidTariffs.length > 0
+
     const renderedDocuments = allDocuments.map((doc) => {
         let colorClass = styles.button__gray;
         let additionalMessages = '';
@@ -316,20 +321,18 @@ const DocumentsPage: React.FC = () => {
 
         // 1) Специально для app_1
         if (doc.id === 'type_doc_agreement_investment_advisor_app_1') {
-            // если хоть один из трёх флагов не выполняется — красим в red
-            if (
-                !filledRiskProfileChapters.is_exist_scan_passport ||
-                brokersCount < 0 ||
-                !tariffs
-            ) {
+            if (!hasPassport || !hasBroker || !hasTariff) {
                 colorClass = styles.button__red;
-                additionalMessages = `Для подписания${!filledRiskProfileChapters.is_exist_scan_passport ? ' заполните паспорт,' : ''} ${brokersCount < 0 ? 'подключите брокера' : ''} ${activePaidTariffs.length === 0 ? 'и подключите тариф' : ''}`;
+
+                additionalMessages =
+                    `Для подписания${!hasPassport ? ' заполните паспорт,' : ''
+                        }${!hasBroker ? ' подключите брокера,' : ''
+                        }${!hasTariff ? ' подключите тариф' : ''
+                        }`.replace(/,\s*$/, '');
             } else {
                 colorClass = styles.button__gray;
                 additionalMessages = '';
             }
-
-            // 2) Иначе для брокерского токена    
         } else if (doc.id === "type_doc_broker_api_token") {
             if (brokersCount === 0) {
                 colorClass = styles.button__gray;
@@ -545,13 +548,13 @@ const DocumentsPage: React.FC = () => {
                             buttonText = filledRiskProfileChapters.is_risk_profile_complete_final ? "Подписать" : "Заполнить";
                         }
 
-                        const isDisabled = isBroker
-                            ? !(filledRiskProfileChapters.is_exist_scan_passport)
-                            : isAdvisorAgreement
-                                ? !(filledRiskProfileChapters.is_exist_scan_passport && brokerIds[0] && currentTariffId)
-                                : (isBroker && filledRiskProfileChapters.is_exist_scan_passport) || isPassport
+                        const isDisabled = isAdvisorAgreement
+                            ? !(hasPassport && hasBroker && hasTariff)
+                            : isBroker
+                                ? !hasPassport
+                                : isPassport
                                     ? false
-                                    : doc.id !== firstNotConfirmed || !filledRiskProfileChapters.is_exist_scan_passport;
+                                    : doc.id !== firstNotConfirmed || !hasPassport;
 
 
                         return (

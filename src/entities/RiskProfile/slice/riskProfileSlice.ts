@@ -290,38 +290,61 @@ export const postFirstRiskProfileForm = createAsyncThunk<
     async (data, { getState, dispatch, rejectWithValue }) => {
         try {
             const token = getState().user.token;
-            if (!token) {
-                return rejectWithValue("Отсутствует токен авторизации");
+            if (!token) return rejectWithValue("Отсутствует токен авторизации");
+
+            /* ─────────────────────── физ. лицо ─────────────────────── */
+            if (data.person_type !== "legal") {
+                const filteredData = omit(data, [
+                    "trusted_person_fio",
+                    "trusted_person_phone",
+                    "trusted_person_other_contact",
+                    "address_residential_apartment",
+                    "address_residential_city",
+                    "address_residential_house",
+                    "address_residential_street",
+                    "issue_whom",
+                    "passport_series",
+                    "region",
+                    "city",
+                    "apartment",
+                    "street",
+                    "passport_number",
+                    "house",
+                    "inn",
+                    "birth_place",
+                ]);
+
+                const transformedData = {
+                    ...filteredData,
+                    is_qualified_investor_status:
+                        filteredData.is_qualified_investor_status === "true",
+                };
+
+                const response = await postFirstRiskProfile(
+                    transformedData as RiskProfileFormValues,
+                    token,
+                );
+                dispatch(setFirstRiskProfileData(response));
+                return;
             }
-            const filteredData = omit(data, [
-                "trusted_person_fio",
-                "trusted_person_phone",
-                "trusted_person_other_contact",
-                "address_residential_apartment",
-                "address_residential_city",
-                "address_residential_house",
-                "address_residential_street",
-                'issue_whom', 'passport_series',
-                'region',
-                'city',
-                'apartment',
-                'street',
-                'passport_number',
-                'house',
-                'inn',
-                'birth_place'
-            ]);
-            const transformedData = {
-                ...filteredData,
-                is_qualified_investor_status: filteredData.is_qualified_investor_status === "true"
-            };
-            const response = await postFirstRiskProfile(transformedData, token);
+
+            /* ─────────────────────── юр. лицо ─────────────────────── */
+            const legalData = Object.fromEntries(
+                Object.entries(data).filter(
+                    ([key]) => key === "person_type" || key.startsWith("legal_"),
+                ),
+            ) as RiskProfileFormValues;
+
+            const response = await postFirstRiskProfile(legalData, token);
             dispatch(setFirstRiskProfileData(response));
         } catch (error: any) {
-
+            return rejectWithValue(
+                error.response?.data?.errorText || "Ошибка при отправке формы",
+            );
         }
-    }
+    },
 );
+
 
 export const postTrustedPersonInfo = createAsyncThunk<
     void,

@@ -79,3 +79,8 @@ input[type="radio"] {
     border: 0;
   }
 }
+
+input[type="text"] {
+  /* делает каретку прозрачной */
+  caret-color: transparent;
+}

@@ -306,28 +306,24 @@ export const RiskProfileFirstForm: React.FC = () => {
     const currentQuestion = questions[currentStep];
 
 
+    /* ──────────────────────────── навигация ──────────────────────────── */
     const goNext = () => {
         const { person_type } = formik.values;
+        const isLegal = person_type === "legal";
 
         if (isLastStep) {
-            /* -------------------- формируем payload -------------------- */
-            const payload: Partial<RiskProfileFormValues> =
-                person_type === "legal"
-                    ? Object.fromEntries(
-                        Object.entries(formik.values).filter(([k]) =>
-                            LEGAL_FIELD_NAMES.includes(k as LegalKey),
-                        ),
-                    )
-                    : formik.values;
-
-            /* -------------------- отправляем -------------------- */
-            dispatch(postFirstRiskProfileForm(payload as RiskProfileFormValues));
-
-            if (person_type !== "legal") {
-                // gender нужен только физ. лицу
-                dispatch(updateUserAllData({ gender: String(formik.values.gender) }));
+            if (isLegal) {
+                /* ------------- ЮР. ЛИЦО: ничего не шлём ------------- */
+                dispatch(updateRiskProfileForm(formik.values)); // чтобы не потерять введённое
+                dispatch(setStepAdditionalMenuUI(1));
+                return;                                         // <--- ранний выход
             }
 
+            /* ------------- ФИЗ. ЛИЦО: всё по-старому ------------- */
+            const payload = formik.values as RiskProfileFormValues;
+
+            dispatch(postFirstRiskProfileForm(payload));
+            dispatch(updateUserAllData({ gender: String(formik.values.gender) }));
             dispatch(setStepAdditionalMenuUI(1));
             return;
         }
@@ -336,6 +332,7 @@ export const RiskProfileFirstForm: React.FC = () => {
         dispatch(updateRiskProfileForm(formik.values));
         dispatch(nextRiskProfileStep());
     };
+
 
 
 

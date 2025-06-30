@@ -307,31 +307,69 @@ export const RiskProfileFirstForm: React.FC = () => {
 
 
     /* ──────────────────────────── навигация ──────────────────────────── */
+    /* ──────────────────────────── навигация ──────────────────────────── */
     const goNext = () => {
         const { person_type } = formik.values;
         const isLegal = person_type === "legal";
 
+        /* ---------------- последний вопрос ---------------- */
         if (isLastStep) {
+            /* промежуточное сохранение в Redux/LS */
+            dispatch(updateRiskProfileForm(formik.values));
+
+            /* --------- ЮР. ЛИЦО: запросов пока нет --------- */
             if (isLegal) {
-                /* ------------- ЮР. ЛИЦО: ничего не шлём ------------- */
-                dispatch(updateRiskProfileForm(formik.values)); // чтобы не потерять введённое
                 dispatch(setStepAdditionalMenuUI(1));
-                return;                                         // <--- ранний выход
+                return;
             }
 
-            /* ------------- ФИЗ. ЛИЦО: всё по-старому ------------- */
-            const payload = formik.values as RiskProfileFormValues;
+            /* --------- ФИЗ. ЛИЦО: очищаем payload --------- */
+            const filteredPayload = Object.fromEntries(
+                Object.entries(formik.values).filter(([key]) =>
+                    /* всё, что НЕ начинается на 'legal_' и НЕ входит в «чёрный список» */
+                    !key.startsWith("legal_") &&
+                    ![
+                        // поля, которые бэкенду не нужны
+                        "address_residential_apartment",
+                        "address_residential_city",
+                        "address_residential_house",
+                        "address_residential_street",
+                        "issue_whom",
+                        "passport_series",
+                        "region",
+                        "city",
+                        "apartment",
+                        "street",
+                        "passport_number",
+                        "house",
+                        "inn",
+                        "birth_place",
+                    ].includes(key)
+                )
+            ) as RiskProfileFormValues;
 
-            dispatch(postFirstRiskProfileForm(payload));
+            /* по-прежнему конвертируем статус инвестора в boolean */
+            const cleanedPayload: RiskProfileFormValues = {
+                ...filteredPayload,
+                // гарантируем boolean-тип
+                is_qualified_investor_status: !!filteredPayload.is_qualified_investor_status,
+            };
+
+            /* старый thunk остаётся */
+            dispatch(postFirstRiskProfileForm(cleanedPayload));
+
+            /* gender идёт отдельным PATCH’ем, как и было */
             dispatch(updateUserAllData({ gender: String(formik.values.gender) }));
+
             dispatch(setStepAdditionalMenuUI(1));
             return;
         }
 
-        /* промежуточный шаг */
+        /* ---------------- не последний вопрос ---------------- */
         dispatch(updateRiskProfileForm(formik.values));
         dispatch(nextRiskProfileStep());
     };
+
 
 
 

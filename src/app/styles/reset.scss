@@ -67,3 +67,15 @@ progress {
     height: 0;
     overflow: hidden;
 }
+
+input[type="radio"] {
+  /* сбрасываем обводку по фокусу */
+  &:focus {
+    outline: none;
+    box-shadow: none;
+  }
+  /* для Firefox убираем внутреннюю рамку */
+  &::-moz-focus-inner {
+    border: 0;
+  }
+}

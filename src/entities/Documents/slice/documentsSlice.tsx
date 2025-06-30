@@ -3,7 +3,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "app/providers/store/config/store";
 import { AvailabilityPersonalAccountMenuItems, ConfirmCustomDocsPayload, ConfirmDocsPayload, FilledRiskProfileChapters, SetHtmlsPayload } from "../types/documentsTypes";
-import { confirmBrokerDocsRequest, confirmCustomDocsRequest, confirmDocsRequest, getAllBrokers, getBrokerDocumentsSigned, getCustomDocumentsNotSigned, getCustomDocumentsSigned, getDocumentNotSigned, getDocumentsInfo, getDocumentsNotSigned, getDocumentsSigned, getDocumentsState, postConfirmationCodeCustom } from "../api/documentsApi";
+import { confirmBrokerDocsRequest, confirmCustomDocsRequest, confirmDocsRequest, confirmTariffDocs, getAllBrokers, getBrokerDocumentsSigned, getCustomDocumentsNotSigned, getCustomDocumentsSigned, getDocumentNotSigned, getDocumentsInfo, getDocumentsNotSigned, getDocumentsSigned, getDocumentsState, postConfirmationCodeCustom } from "../api/documentsApi";
 import { setCurrentConfirmingDoc } from "entities/RiskProfile/slice/riskProfileSlice";
 import { setConfirmationDocsSuccess } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
@@ -166,6 +166,39 @@ export const openUploadDocWebsocketThunk = createAsyncThunk<
     }
 );
 
+export const confirmTariffRequestThunk = createAsyncThunk<
+    void,
+    { data: ConfirmDocsPayload; onSuccess: () => void },
+    { rejectValue: string; state: RootState }
+>(
+    "documents/confirmTariffRequestThunk",
+    async (
+        { data: { type_message, type_document, is_agree }, onSuccess },
+        { getState, dispatch, rejectWithValue }
+    ) => {
+        try {
+            const token = getState().user.token;
+            const currentConfirmableDoc = getState().documents.currentConfirmableDoc
+            if (currentConfirmableDoc === 'type_doc_agreement_investment_advisor_app_1') {
+                const responseDocs = await confirmTariffDocs(
+                    { type_message, is_agree, type_document: currentConfirmableDoc },
+                    token
+                );
+                onSuccess?.();
+                return responseDocs;
+            }
+
+
+
+        } catch (error: any) {
+            dispatch(setConfirmationDocsSuccess("не пройдено"));
+            console.log(error);
+            const msg =
+                error.response?.data?.errorText
+            dispatch(setError(msg));
+        }
+    }
+);
 
 export const confirmDocsRequestThunk = createAsyncThunk<
     void,

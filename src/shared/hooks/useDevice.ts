@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 const BREAKPOINTS = {
-    mobile: [350, 679],
+    mobile: [350, 1023],
     tablet: [680, 1023],
     desktop: [1024, 4000],
 } as const;

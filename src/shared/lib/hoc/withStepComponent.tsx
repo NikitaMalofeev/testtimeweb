@@ -26,8 +26,8 @@ const stepTitles = [
 ];
 
 const stepContents = [
-    // <RiskProfileFirstForm />,
-    <LegalDataForm />,
+    <RiskProfileFirstForm />,
+    // <LegalDataForm />,
     <RiskProfileSecondForm />,
     <PasportDataForm />,
     <PasportScanForm />,

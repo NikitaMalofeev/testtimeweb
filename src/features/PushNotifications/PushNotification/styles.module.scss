@@ -43,7 +43,7 @@ letter-spacing: -0.27px;
     }
   }
 
-  @include mix.respond-to('desktop') {
+  @include mix.respond-to('tablet-desktop') {
     .pushNotification {
       margin-top: 48px;
     }

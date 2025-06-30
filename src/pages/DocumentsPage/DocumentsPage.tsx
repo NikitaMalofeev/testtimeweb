@@ -41,6 +41,7 @@ import WarningIcon from 'shared/assets/svg/Warning.svg'
 import { getAllUserChecksThunk } from "entities/Payments/slice/paymentsSlice";
 import { useDevice } from "shared/hooks/useDevice";
 import { CheckPreviewModal } from "features/Payments/CheckPreviewModal/CheckPreviewModal";
+import { PasportScanForm } from "features/RiskProfile/PassportScanForm/PassportScanForm";
 
 const DocumentsPage: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -79,7 +80,7 @@ const DocumentsPage: React.FC = () => {
     useEffect(() => {
         dispatch(getUserDocumentsStateThunk());
         dispatch(getUserDocumentsNotSignedThunk())
-    }, [currentConfirmableDocument]);
+    }, [currentConfirmableDocument, PasportScanForm, brokersCount]);
 
     const isAnyModalOpen = useSelector(selectIsAnyModalOpen);
 

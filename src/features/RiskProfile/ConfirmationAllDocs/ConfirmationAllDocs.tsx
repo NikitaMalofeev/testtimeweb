@@ -16,6 +16,7 @@ import { ConfirmDocsModal } from "../ConfirmDocsModal/ConfirmDocsModal";
 import styles from "./styles.module.scss";
 import {
     confirmDocsRequestThunk,
+    confirmTariffRequestThunk,
     docTypeLabels,
     docTypes,
     getAllBrokersThunk,
@@ -128,6 +129,19 @@ export const ConfirmAllDocs: React.FC = () => {
                 } else {
                     dispatch(setStepAdditionalMenuUI(4));
                 }
+            } else if (currentTypeDoc === "type_doc_agreement_investment_advisor_app_1") {
+                confirmTariffRequestThunk({
+                    data: formik.values,
+                    onSuccess: () => {
+                        dispatch(
+                            openModal({
+                                type: ModalType.CONFIRM_DOCS,
+                                size: ModalSize.MIDDLE,
+                                animation: ModalAnimation.LEFT,
+                            })
+                        );
+                    },
+                })
             } else {
                 // При успешном запросе открываем ConfirmDocsModal
                 dispatch(

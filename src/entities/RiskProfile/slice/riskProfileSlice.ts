@@ -333,8 +333,9 @@ export const postFirstRiskProfileForm = createAsyncThunk<
                 Object.entries(data).filter(
                     ([key]) => key === "person_type" || key.startsWith("legal_"),
                 ),
-            ) as RiskProfileFormValues;
+            );
 
+            //@ts-ignore
             const response = await postFirstRiskProfile(legalData, token);
             dispatch(setFirstRiskProfileData(response));
         } catch (error: any) {

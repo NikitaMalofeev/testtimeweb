@@ -319,11 +319,11 @@ const DocumentsPage: React.FC = () => {
             // если хоть один из трёх флагов не выполняется — красим в red
             if (
                 !filledRiskProfileChapters.is_exist_scan_passport ||
-                !brokerIds[0] ||
+                brokersCount < 0 ||
                 !tariffs
             ) {
                 colorClass = styles.button__red;
-                additionalMessages = `Для подписания${!filledRiskProfileChapters.is_exist_scan_passport ? ' заполните паспорт,' : ''} ${brokerIds[0] !== null ? 'подключите брокера' : ''} ${activePaidTariffs.length === 0 ? 'и подключите тариф' : ''}`;
+                additionalMessages = `Для подписания${!filledRiskProfileChapters.is_exist_scan_passport ? ' заполните паспорт,' : ''} ${brokersCount < 0 ? 'подключите брокера' : ''} ${activePaidTariffs.length === 0 ? 'и подключите тариф' : ''}`;
             } else {
                 colorClass = styles.button__gray;
                 additionalMessages = '';
@@ -341,6 +341,8 @@ const DocumentsPage: React.FC = () => {
             // 3) Иначе общий случай    
         } else if (doc.id === 'type_doc_agreement_account_maintenance') {
             if (activePaidTariffs.length > 0) {
+                colorClass = styles.button__gray;
+            } else if (activePaidTariffs.length > 0 && brokersCount < 0) {
                 colorClass = styles.button__gray;
                 additionalMessages = 'Для подписания подключите брокерский счет';
             } else {

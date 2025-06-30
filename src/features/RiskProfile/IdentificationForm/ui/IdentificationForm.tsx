@@ -9,42 +9,49 @@ import { IdentificationProfileData } from "entities/RiskProfile/model/types";
 import { Input } from "shared/ui/Input/Input";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { Checkbox } from "shared/ui/Checkbox/Checkbox";
-import { Button, ButtonForm, ButtonTheme } from "shared/ui/Button/Button";
+import { Button, ButtonTheme } from "shared/ui/Button/Button";
 import {
     closeModal,
     openModal,
-    setCurrentConfirmModalType
+    setCurrentConfirmModalType,
 } from "entities/ui/Modal/slice/modalSlice";
 import {
     ModalAnimation,
     ModalSize,
-    ModalType
+    ModalType,
 } from "entities/ui/Modal/model/modalTypes";
 import { useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
 import { userType } from "entities/User/types/userTypes";
-import { setUserAllData, setUserData, updateUserAllData } from "entities/User/slice/userSlice";
+import { setUserData } from "entities/User/slice/userSlice";
 import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
 import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/DocumentPreviewModal";
-import PrivacyPdf from 'shared/assets/documents/PersonalPolicy.pdf'
+import PrivacyPdf from "shared/assets/documents/PersonalPolicy.pdf";
 import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { useScrollShadow } from "shared/hooks/useScrollShadow";
+import BooleanTabs from "shared/ui/BooleanTabs/BooleanTabs";
 
 const IdentificationProfileForm: React.FC = () => {
     const dispatch = useAppDispatch();
     const gcaptchaSiteKey = import.meta.env.VITE_RANKS_GRCAPTCHA_SITE_KEY;
-    const [selectedMethod, setSelectedMethod] = useState<'SMS' | 'WHATSAPP' | ''>('SMS');
-    const formContentRef = useRef<HTMLFormElement>(null);
-    const { isScrolled, isBottom } = useScrollShadow(formContentRef, true);
-    const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+
+    /* ───────────── вкладка «Физ/Юр лицо» ───────────── */
+    const [personTab, setPersonTab] = useState<"natural" | "legal">("natural");
+
+    /* ───────────── капча ───────────── */
     const recaptchaRef = useRef<ReCAPTCHA | null>(null);
     const [captchaVerified, setCaptchaVerified] = useState(false);
-    const { loading } = useSelector((state: RootState) => state.riskProfile)
-    const modalState = useSelector((state: RootState) => state.modal.documentsPreview)
-    const systemError = useSelector((state: RootState) => state.error.error)
-    const modalConfirmOpen = useSelector((state: RootState) => state.modal.confirmCodeModal.isOpen)
 
-    const checkConfirmmationSuccess = useSelector((state: RootState) => state.ui.confirmationStatusSuccess);
+    /* ───────────── скролл-тень формы ───────────── */
+    const formContentRef = useRef<HTMLFormElement>(null);
+    const { isScrolled, isBottom } = useScrollShadow(formContentRef, true);
+
+    const { loading } = useSelector((s: RootState) => s.riskProfile);
+    const modalState = useSelector((s: RootState) => s.modal.documentsPreview);
+    const systemError = useSelector((s: RootState) => s.error.error);
+    const modalConfirmOpen = useSelector(
+        (s: RootState) => s.modal.confirmCodeModal.isOpen
+    );
 
     const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@([A-Za-z0-9-]+\.)+[A-Za-z]{2,}$/;
     const NAME_REGEX = /^[А-Яа-яЁё\s-]+$/;
@@ -73,10 +80,8 @@ const IdentificationProfileForm: React.FC = () => {
                 .required("Имя обязательно"),
             patronymic: Yup.string()
                 .matches(NAME_REGEX, "Допустимы только буквы, пробел и дефис")
-                // patronymic может быть необязательным, но если хотите – можно добавить:
                 .min(2, "Минимум 2 символа")
-                .nullable(), // или .notRequired()
-            // Остальные поля по вашему усмотрению...
+                .nullable(),
             email: Yup.string()
                 .required("E-mail обязательно")
                 .matches(EMAIL_REGEX, "Некорректный email"),
@@ -95,60 +100,69 @@ const IdentificationProfileForm: React.FC = () => {
         onSubmit: () => { },
     });
 
+    /* ───────────── разблокировка кнопки ───────────── */
+    const [isButtonDisabled, setIsButtonDisabled] = useState(true);
     useEffect(() => {
-        setIsButtonDisabled(!(formik.isValid && formik.dirty && captchaVerified && formik.values.is_agreement));
+        setIsButtonDisabled(
+            !(
+                formik.isValid &&
+                formik.dirty &&
+                captchaVerified &&
+                formik.values.is_agreement
+            )
+        );
     }, [formik.isValid, formik.dirty, formik.values, captchaVerified]);
 
+    /* ───────────── смена капчи ───────────── */
     const handleCaptchaChange = (value: string | null) => {
         formik.setFieldValue("g_recaptcha", value || "");
         setCaptchaVerified(!!value);
     };
 
+    /* ───────────── тип получения кода ───────────── */
     const messageTypeOptions = {
-        "SMS": 'SMS',
-        "WHATSAPP": 'Whatsapp'
-    }
+        SMS: "SMS",
+        WHATSAPP: "Whatsapp",
+    };
 
-    /**
-     * Устанавливаем локальное состояние выбранного метода (whatsapp, phone, email).
-     * Одновременно диспатчим экшен setCurrentConfirmModalType для записи
-     * в Redux, чтобы ConfirmInfoModal знал, какой тип показывать.
-     */
-    const handleMethodChange = (method: 'SMS' | 'WHATSAPP') => {
-        setSelectedMethod(method);
+    const handleMethodChange = (method: "SMS" | "WHATSAPP") => {
         dispatch(setCurrentConfirmModalType(method));
-        formik.setFieldValue("type_sms_message", method === 'WHATSAPP' ? "WHATSAPP" : "SMS");
-
-        // Сбрасываем капчу и статус верификации
+        formik.setFieldValue("type_sms_message", method);
         setCaptchaVerified(false);
         formik.setFieldValue("g_recaptcha", "");
         recaptchaRef.current?.reset();
     };
 
-    const handleNameChange = (fieldName: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const rawValue = e.target.value;
-        const sanitizedValue = rawValue.replace(/[^А-Яа-яЁё\s-]/g, "");
-        formik.setFieldValue(fieldName, sanitizedValue);
+    /* ───────────── ввод ФИО только кириллицей ───────────── */
+    const handleNameChange =
+        (field: string) =>
+            (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+                const sanitized = e.target.value.replace(/[^А-Яа-яЁё\s-]/g, "");
+                formik.setFieldValue(field, sanitized);
+            };
+
+    /* ───────────── открыть политику конфиденциальности ───────────── */
+    const handleOpenPrivacy = (e: React.MouseEvent) => {
+        e.preventDefault();
+        dispatch(
+            openModal({
+                type: ModalType.DOCUMENTS_PREVIEW,
+                animation: ModalAnimation.LEFT,
+                size: ModalSize.FULL,
+            })
+        );
     };
 
-    const handleOpenPrivacy = (e: any) => {
-        e.preventDefault()
-        // dispatch(closeModal(ModalType.IDENTIFICATION))
-        dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
-    }
-
+    /* ───────────── обновление капчи при ошибке ───────────── */
     useEffect(() => {
-        if (systemError === "Ошибка сервера. Пожалуйста, повторите попытку") {
-
-        }
         if (!modalConfirmOpen) {
             formik.setFieldValue("g_recaptcha", "");
             recaptchaRef.current?.reset();
         }
-    }, [systemError, modalConfirmOpen])
+    }, [systemError, modalConfirmOpen]);
 
+    /* ───────────── отправка формы ───────────── */
     const handleSubmitForm = () => {
-
         const payload: IdentificationProfileData = {
             phone: formik.values.phone,
             email: formik.values.email,
@@ -159,7 +173,7 @@ const IdentificationProfileForm: React.FC = () => {
             password2: formik.values.password2,
             is_agreement: formik.values.is_agreement,
             g_recaptcha: formik.values.g_recaptcha,
-            type_sms_message: formik.values.type_sms_message || undefined,
+            type_sms_message: formik.values.type_sms_message,
         };
 
         const userForRedux: userType = {
@@ -169,34 +183,54 @@ const IdentificationProfileForm: React.FC = () => {
             patronymic: formik.values.patronymic,
             last_name: formik.values.lastName,
             is_agreement: formik.values.is_agreement,
-        }
+        };
 
-        dispatch(setUserData(userForRedux))
-        dispatch(createRiskProfile({
-            data: payload, onError: () => {
-                setCaptchaVerified(false)
-                formik.setFieldValue("g_recaptcha", "");
-                recaptchaRef.current?.reset();
-            }, onSuccess: () => {
-                dispatch(openModal({
-                    type: ModalType.CONFIRM_CODE,
-                    size: ModalSize.MIDDLE,
-                    animation: ModalAnimation.BOTTOM
-                }));
-            }
-        }))
+        dispatch(setUserData(userForRedux));
+        dispatch(
+            createRiskProfile({
+                data: payload,
+                onError: () => {
+                    setCaptchaVerified(false);
+                    formik.setFieldValue("g_recaptcha", "");
+                    recaptchaRef.current?.reset();
+                },
+                onSuccess: () => {
+                    dispatch(
+                        openModal({
+                            type: ModalType.CONFIRM_CODE,
+                            size: ModalSize.MIDDLE,
+                            animation: ModalAnimation.BOTTOM,
+                        })
+                    );
+                },
+            })
+        );
+    };
+
+    /* ───────────── обработка клика по вкладкам ───────────── */
+    const handlePersonTabChange = (tab: "natural" | "legal") => {
+        setPersonTab(tab);
+        const mappedValue =
+            tab === "natural" ? "type_person_natural" : "type_person_legal";
+        formik.setFieldValue("type_person", mappedValue);
     };
 
     return (
         <>
-            <form onSubmit={formik.handleSubmit} className={`
-            ${styles.form}
-            ${isScrolled && !isBottom ? styles.shadowBoth
-                    : isScrolled ? styles.shadowTop
-                        : !isBottom ? styles.shadowBottom
-                            : ''} 
-          `} ref={formContentRef}>
-                <div style={{ paddingTop: '8px' }}>
+            <form
+                onSubmit={formik.handleSubmit}
+                ref={formContentRef}
+                className={`
+          ${styles.form}
+          ${isScrolled && !isBottom ? styles.shadowBoth
+                        : isScrolled ? styles.shadowTop
+                            : !isBottom ? styles.shadowBottom
+                                : ""}
+        `}
+            >
+                {/* ───────────── ФИЗ / ЮР лицо ───────────── */}
+                <div style={{ paddingTop: "8px" }} className={styles.form__grid}>
+                    {/* ───────────── поля формы ───────────── */}
                     <Input
                         name="lastName"
                         value={formik.values.lastName}
@@ -225,18 +259,13 @@ const IdentificationProfileForm: React.FC = () => {
                         placeholder="Отчество (при наличии)"
                         type="text"
                         error={formik.touched.patronymic && formik.errors.patronymic}
-
                     />
                     <Input
                         name="phone"
                         value={formik.values.phone}
                         onChange={(e) => {
-                            let value = e.target.value.replace(/[^\d+]/g, ""); // Убираем все символы, кроме цифр и "+"
-
-                            if (!value.startsWith("+")) {
-                                value = "+" + value; // Добавляем "+" в начало, если его нет
-                            }
-
+                            let value = e.target.value.replace(/[^\d+]/g, "");
+                            if (!value.startsWith("+")) value = "+" + value;
                             formik.setFieldValue("phone", value);
                         }}
                         onBlur={formik.handleBlur}
@@ -288,7 +317,7 @@ const IdentificationProfileForm: React.FC = () => {
                                 <a
                                     className={styles.checkbox__link}
                                     href="#"
-                                    onClick={(e) => handleOpenPrivacy(e)}
+                                    onClick={handleOpenPrivacy}
                                 >
                                     Условиями использования и Политикой конфиденциальности
                                 </a>
@@ -298,27 +327,31 @@ const IdentificationProfileForm: React.FC = () => {
                     />
                 </div>
 
+                {/* ───────────── выбор метода подтверждения ───────────── */}
                 <div>
-                    <span className={styles.buttons__method__title}>Отправить код подтверждения на:</span>
+                    <span className={styles.buttons__method__title}>
+                        Отправить код подтверждения на:
+                    </span>
                     <div className={styles.buttons__method}>
                         <CheckboxGroup
                             name="type_sms_message"
                             label=""
                             greedOrFlex="flex"
                             direction="row"
-                            options={Object.entries(messageTypeOptions).map(([value, label]) => ({
-                                label,
-                                value,
-                            }))}
-                            value={selectedMethod}
-                            onChange={(name, selectedValue) => {
-                                handleMethodChange(selectedValue as 'SMS' | 'WHATSAPP');
-                            }}
+                            options={Object.entries(messageTypeOptions).map(
+                                ([value, label]) => ({
+                                    label,
+                                    value,
+                                })
+                            )}
+                            value={formik.values.type_sms_message}
+                            onChange={(_, v) => handleMethodChange(v as "SMS" | "WHATSAPP")}
                         />
                     </div>
                 </div>
 
-                <div style={{ minHeight: '74px' }} className={styles.captcha}>
+                {/* ───────────── капча ───────────── */}
+                <div style={{ minHeight: "74px" }} className={styles.captcha}>
                     <ReCAPTCHA
                         ref={recaptchaRef}
                         sitekey={`${gcaptchaSiteKey}`}
@@ -329,15 +362,41 @@ const IdentificationProfileForm: React.FC = () => {
                     <div className={styles.error}>{formik.errors.g_recaptcha}</div>
                 )}
 
-                <div className={`${styles.buttons}`}>
-                    <Button onClick={handleSubmitForm} theme={ButtonTheme.BLUE} className={styles.button} disabled={isButtonDisabled}>
-                        {loading ? <Loader theme={LoaderTheme.WHITE} size={LoaderSize.SMALL} /> : 'Подтвердить данные'}
+                {/* ───────────── кнопка ───────────── */}
+                <div className={styles.buttons}>
+                    <Button
+                        onClick={handleSubmitForm}
+                        theme={ButtonTheme.BLUE}
+                        className={styles.button}
+                        disabled={isButtonDisabled}
+                    >
+                        {loading ? (
+                            <Loader theme={LoaderTheme.WHITE} size={LoaderSize.SMALL} />
+                        ) : (
+                            "Подтвердить данные"
+                        )}
                     </Button>
                 </div>
             </form>
-            <DocumentPreviewModal justPreview={PrivacyPdf} isOpen={modalState.isOpen} onClose={() => dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW))} docId={'type_doc_agreement_personal_data_policy'} />
+
+            {/* ───────────── модалка превью документов ───────────── */}
+            <DocumentPreviewModal
+                justPreview={PrivacyPdf}
+                isOpen={modalState.isOpen}
+                onClose={() => dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW))}
+                docId="type_doc_agreement_personal_data_policy"
+            />
         </>
     );
 };
 
 export default IdentificationProfileForm;
+
+
+// <BooleanTabs
+//     leftTitle="Физ.лицо"
+//     rightTitle="Юр.лицо"
+//     active={personTab === "natural" ? "left" : "right"}
+//     onLeftClick={() => handlePersonTabChange("natural")}
+//     onRightClick={() => handlePersonTabChange("legal")}
+// />

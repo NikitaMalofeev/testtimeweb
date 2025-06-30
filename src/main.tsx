@@ -18,8 +18,9 @@ root.render(
   <React.StrictMode>
 
     <BrowserRouter basename="/">
-      <PersistGate loading={<Cover />} persistor={persistor}>
-        <StoreProvider>
+      <StoreProvider>
+        <PersistGate loading={<Cover />} persistor={persistor}>
+
           <ErrorBoundary
             fallbackRender={(error, errorInfo, resetErrorBoundary) => (
               <ErrorPage
@@ -31,8 +32,9 @@ root.render(
           >
             <App />
           </ErrorBoundary>
-        </StoreProvider>
-      </PersistGate>
+
+        </PersistGate>
+      </StoreProvider>
     </BrowserRouter>
-  </React.StrictMode>
+  </React.StrictMode >
 );

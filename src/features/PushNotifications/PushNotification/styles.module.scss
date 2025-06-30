@@ -1,3 +1,5 @@
+@use '../../../app/styles/mixins' as mix;
+
 .pushNotification {
     background-color: #EDEDED;
     border-radius: 13px;
@@ -38,5 +40,11 @@ letter-spacing: -0.27px;
     }
     90% {
       transform: scale(0.95);
+    }
+  }
+
+  @include mix.respond-to('desktop') {
+    .pushNotification {
+      margin-top: 48px;
     }
   }

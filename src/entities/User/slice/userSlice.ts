@@ -8,6 +8,7 @@ import { RootState } from "app/providers/store/config/store";
 interface UserState {
     is_active: boolean;
     loading: boolean;
+    is_vip: boolean;
     error: string | null;
     success: boolean;
     userId: string | null;
@@ -22,6 +23,7 @@ const initialState: UserState = {
     is_active: false,
     loading: false,
     error: '',
+    is_vip: false,
     success: false,
     userId: null,
     token: "",
@@ -88,7 +90,6 @@ export const userLoginThunk = createAsyncThunk<
 
             if (response.token) {
                 dispatch(setUserToken(response.token));
-                console.log("Токен сохранен в Redux:", response.token);
                 dispatch(setUserData({
                     phone: response.phone ?? "",
                     email: response.email ?? "",

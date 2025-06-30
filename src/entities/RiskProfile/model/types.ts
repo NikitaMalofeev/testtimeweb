@@ -9,6 +9,7 @@ export interface IdentificationProfileData {
     is_agreement: boolean;
     g_recaptcha: string;
     type_sms_message?: string
+    type_person?: string
 }
 
 export interface ConfirmationCodeData {
@@ -45,6 +46,7 @@ export interface TrustedPersonInfo {
 }
 
 export interface RiskProfileFormData {
+    person_type?: "natural" | "legal" | "";
     citizenship?: string;
     residence_permit?: string;
     trusted_person_fio?: string;
@@ -54,6 +56,13 @@ export interface RiskProfileFormData {
     expected_return_investment?: number;
     max_allowable_drawdown?: number;
     [key: string]: string | number | boolean | string[] | undefined; // Поддержка динамических полей
+}
+
+export interface RiskProfileFormValues extends RiskProfileFormData {
+    /** делаем person_type строго обязательным,
+        чтобы Formik.values.person_type всегда существовал */
+    person_type: "natural" | "legal" | "";
+    [key: string]: string | number | boolean | string[] | undefined;
 }
 
 export interface SecondRiskProfileResponse {
@@ -180,4 +189,34 @@ export interface BrokerSetTokenPayload {
     market?: string;
     broker: string;
     token: string;
+}
+
+export interface LegalFormData {
+    /* реквизиты */
+    organization_name: string;
+    general_director: string;
+    inn: string;
+    kpp: string;
+    ogrn: string;
+    bank_name: string;
+    checking_account: string;
+    correspondent_account: string;
+    bik: string;
+    work_email: string;
+    work_phone: string;
+
+    /* юридический адрес */
+    legal_region: string;
+    legal_city: string;
+    legal_street: string;
+    legal_house: string;
+    legal_apartment: string;
+
+    /* почтовый адрес */
+    is_receive_mail_this_address: boolean;
+    postal_region: string;
+    postal_city: string;
+    postal_street: string;
+    postal_house: string;
+    postal_apartment: string;
 }

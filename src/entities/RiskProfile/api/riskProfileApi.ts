@@ -1,5 +1,5 @@
 import axios from "axios";
-import { IdentificationProfileData, ConfirmationCodeData, NeedHelpData, TrustedPersonInfo, SecondRiskProfilePayload, PasportFormData, ConfirmationDocsData, BrokerSetTokenPayload } from "entities/RiskProfile/model/types";
+import { IdentificationProfileData, ConfirmationCodeData, NeedHelpData, TrustedPersonInfo, SecondRiskProfilePayload, PasportFormData, ConfirmationDocsData, BrokerSetTokenPayload, LegalFormData } from "entities/RiskProfile/model/types";
 import { PasportScanData } from "features/RiskProfile/PassportScanForm/PassportScanForm";
 
 
@@ -221,3 +221,10 @@ export const postBrokerApiToken = async (data: BrokerSetTokenPayload, token: str
 //     );
 //     return response.data;
 // };
+
+export const postLegalInfo = async (data: LegalFormData, token: string) => {
+    const response = await axios.post("/api/v1/risk-profile/legal/", data, {
+        headers: { Authorization: `Token ${token}` },
+    });
+    return response.data; // { group_name_upload_scans_progress?: string, ... }
+};

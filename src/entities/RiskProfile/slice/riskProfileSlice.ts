@@ -318,6 +318,8 @@ export const postFirstRiskProfileForm = createAsyncThunk<
                 "legal_net_assets_ratio",
                 "legal_risk_tolerance",
                 "legal_additional_conditions",
+                "person_type",
+                "gender"
             ]);
             const transformedData = {
                 ...filteredData,

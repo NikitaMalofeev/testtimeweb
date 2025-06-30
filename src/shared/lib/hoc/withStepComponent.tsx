@@ -9,6 +9,7 @@ import { PasportDataForm } from "features/RiskProfile/PasportDataFrom/PasportDat
 import { PasportScanForm } from "features/RiskProfile/PassportScanForm/PassportScanForm";
 import { ConfirmAllDocs } from "features/RiskProfile/ConfirmationAllDocs/ConfirmationAllDocs";
 import { BrokerConnectionForm } from "features/RiskProfile/BrokerConnectionForm/BrokerConnectionForm";
+import { LegalDataForm } from "features/RiskProfile/LegalDataForm/LegalDataForm";
 
 interface WithStepContentProps {
     onClose: () => void;
@@ -25,7 +26,8 @@ const stepTitles = [
 ];
 
 const stepContents = [
-    <RiskProfileFirstForm />,
+    // <RiskProfileFirstForm />,
+    <LegalDataForm />,
     <RiskProfileSecondForm />,
     <PasportDataForm />,
     <PasportScanForm />,

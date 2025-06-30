@@ -323,7 +323,7 @@ const DocumentsPage: React.FC = () => {
                 !tariffs
             ) {
                 colorClass = styles.button__red;
-                additionalMessages = `Для подписания${!filledRiskProfileChapters.is_exist_scan_passport ? ' заполните паспорт,' : ''} ${brokerIds[0] !== null ? 'подключите брокера' : ' и подключите'} ${activePaidTariffs.length === 0 ? 'тариф' : ''}`;
+                additionalMessages = `Для подписания${!filledRiskProfileChapters.is_exist_scan_passport ? ' заполните паспорт,' : ''} ${brokerIds[0] !== null ? 'подключите брокера' : ''} ${activePaidTariffs.length === 0 ? 'и подключите тариф' : ''}`;
             } else {
                 colorClass = styles.button__gray;
                 additionalMessages = '';

@@ -190,3 +190,33 @@ export interface BrokerSetTokenPayload {
     broker: string;
     token: string;
 }
+
+export interface LegalFormData {
+    /* реквизиты */
+    organization_name: string;
+    general_director: string;
+    inn: string;
+    kpp: string;
+    ogrn: string;
+    bank_name: string;
+    checking_account: string;
+    correspondent_account: string;
+    bik: string;
+    work_email: string;
+    work_phone: string;
+
+    /* юридический адрес */
+    legal_region: string;
+    legal_city: string;
+    legal_street: string;
+    legal_house: string;
+    legal_apartment: string;
+
+    /* почтовый адрес */
+    is_receive_mail_this_address: boolean;
+    postal_region: string;
+    postal_city: string;
+    postal_street: string;
+    postal_house: string;
+    postal_apartment: string;
+}

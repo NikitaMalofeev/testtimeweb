@@ -321,7 +321,7 @@ export const postFirstRiskProfileForm = createAsyncThunk<
                 };
 
                 const response = await postFirstRiskProfile(
-                    transformedData as RiskProfileFormValues,
+                    transformedData,
                     token,
                 );
                 dispatch(setFirstRiskProfileData(response));

@@ -309,7 +309,15 @@ export const postFirstRiskProfileForm = createAsyncThunk<
                 'passport_number',
                 'house',
                 'inn',
-                'birth_place'
+                'birth_place',
+                "legal_invest_target",
+                "legal_investment_period",
+                "legal_specialist_qualification",
+                "legal_operations_volume",
+                "legal_assets_size",
+                "legal_net_assets_ratio",
+                "legal_risk_tolerance",
+                "legal_additional_conditions",
             ]);
             const transformedData = {
                 ...filteredData,

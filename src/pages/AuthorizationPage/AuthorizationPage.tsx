@@ -10,7 +10,7 @@ import { Icon } from "shared/ui/Icon/Icon";
 import WhiteLogo from 'shared/assets/svg/WhiteLogo.svg';
 import { RootState } from "app/providers/store/config/store";
 import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
-import { userLoginThunk } from "entities/User/slice/userSlice";
+import { setPersonTypeThunk, userLoginThunk } from "entities/User/slice/userSlice";
 import IdentificationProfileForm from "features/RiskProfile/IdentificationForm/ui/IdentificationForm";
 import { motion } from "framer-motion";
 import AnimateHeightWrapper from "shared/lib/helpers/animation/AnimateHeightWrapper";
@@ -83,6 +83,8 @@ const AuthorizationPage = () => {
         }
     }, [activeTab]);
 
+
+
     return (
         <>
             <div className={styles.auth}>
@@ -106,6 +108,7 @@ const AuthorizationPage = () => {
                                 <form onSubmit={formik.handleSubmit} className={styles.auth__form}>
                                     <div className={styles.auth__form__container}>
                                         <div>
+
                                             <Input
                                                 autoComplete="new-password"
                                                 placeholder="Email/телефон +7"

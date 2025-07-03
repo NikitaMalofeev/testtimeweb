@@ -107,15 +107,7 @@ const initialState: PushState = {
             route: '/documents',
             uiStep: 4
         },
-        {
-            id: "type_doc_agreement_account_maintenance",
-            title: "Подписать договор на обслуживание аккаунта",
-            description: "Подпишите договор на обслуживание аккаунта в разделе \n\"Документы\"\n Личного Кабинета",
-            active: false,
-            hasOpened: false,
-            route: '/documents',
-            uiStep: 4
-        },
+
         {
             id: "type_doc_broker_api_token_fill",
             title: "Подключить брокера",
@@ -145,6 +137,15 @@ const initialState: PushState = {
             id: "contractExpiresSoon",
             title: "Заканчивается срок действия договора",
             description: "Обратите внимание, срок действия вашего договора скоро истечет",
+            active: false,
+            hasOpened: false,
+            route: '/documents',
+            uiStep: 4
+        },
+        {
+            id: "type_doc_agreement_account_maintenance",
+            title: "Подписать договор на обслуживание аккаунта",
+            description: "Подпишите договор на обслуживание аккаунта в разделе \n\"Документы\"\n Личного Кабинета",
             active: false,
             hasOpened: false,
             route: '/documents',
@@ -189,8 +190,8 @@ export const checkPushNotificationsThunk = createAsyncThunk<void, void, { state:
             'type_doc_risk_declarations',
             'type_doc_agreement_personal_data_policy',
             'type_doc_investment_profile_certificate',
-            'type_doc_agreement_account_maintenance',
             'type_doc_agreement_investment_advisor_app_1',
+            'type_doc_agreement_account_maintenance',
         ] as const;
 
         const firstDocToSign = confirmableDocs.find(docId =>

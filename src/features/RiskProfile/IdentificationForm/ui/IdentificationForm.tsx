@@ -65,6 +65,7 @@ const IdentificationProfileForm: React.FC = () => {
             email: "",
             password: "",
             password2: "",
+            type_person: '',
             is_agreement: false,
             g_recaptcha: "",
             type_sms_message: "SMS",
@@ -173,6 +174,7 @@ const IdentificationProfileForm: React.FC = () => {
             password2: formik.values.password2,
             is_agreement: formik.values.is_agreement,
             g_recaptcha: formik.values.g_recaptcha,
+            type_person: formik.values.type_person,
             type_sms_message: formik.values.type_sms_message,
         };
 
@@ -182,6 +184,7 @@ const IdentificationProfileForm: React.FC = () => {
             first_name: formik.values.firstName,
             patronymic: formik.values.patronymic,
             last_name: formik.values.lastName,
+            type_person: formik.values.type_person,
             is_agreement: formik.values.is_agreement,
         };
 
@@ -211,7 +214,7 @@ const IdentificationProfileForm: React.FC = () => {
     const handlePersonTabChange = (tab: "natural" | "legal") => {
         setPersonTab(tab);
         const mappedValue =
-            tab === "natural" ? "type_person_natural" : "type_person_legal";
+            tab === "natural" ? "type_doc_person_natural" : "type_doc_person_legal";
         formik.setFieldValue("type_person", mappedValue);
     };
 
@@ -231,6 +234,14 @@ const IdentificationProfileForm: React.FC = () => {
                 {/* ───────────── ФИЗ / ЮР лицо ───────────── */}
                 <div style={{ paddingTop: "8px" }} className={styles.form__grid}>
                     {/* ───────────── поля формы ───────────── */}
+
+                    <BooleanTabs
+                        leftTitle="Физ.лицо"
+                        rightTitle="Юр.лицо"
+                        active={personTab === "natural" ? "left" : "right"}
+                        onLeftClick={() => handlePersonTabChange("natural")}
+                        onRightClick={() => handlePersonTabChange("legal")}
+                    />
                     <Input
                         name="lastName"
                         value={formik.values.lastName}
@@ -392,11 +403,3 @@ const IdentificationProfileForm: React.FC = () => {
 
 export default IdentificationProfileForm;
 
-
-// <BooleanTabs
-//     leftTitle="Физ.лицо"
-//     rightTitle="Юр.лицо"
-//     active={personTab === "natural" ? "left" : "right"}
-//     onLeftClick={() => handlePersonTabChange("natural")}
-//     onRightClick={() => handlePersonTabChange("legal")}
-// />

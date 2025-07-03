@@ -80,7 +80,7 @@ const DocumentsPage: React.FC = () => {
     useEffect(() => {
         dispatch(getUserDocumentsStateThunk());
         dispatch(getUserDocumentsNotSignedThunk())
-    }, [currentConfirmableDocument, PasportScanForm, brokersCount]);
+    }, [currentConfirmableDocument, PasportScanForm, brokersCount, filledRiskProfileChapters.is_exist_scan_passport]);
 
     const isAnyModalOpen = useSelector(selectIsAnyModalOpen);
 

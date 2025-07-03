@@ -48,6 +48,9 @@ export const RiskProfileFirstForm: React.FC = () => {
         formValues,
         stepsFirstForm: { currentStep },
     } = useSelector((state: RootState) => state.riskProfile);
+    const {
+        type_person,
+    } = useSelector((state: RootState) => state.user.user);
     const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
 
     /* ──────────────────────────── flags ──────────────────────────── */

@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { AllUserInfo, ProblemsRequestData, userAllData, UserLogin, UserPersonalAccount, userType } from "../types/userTypes";
-import { sendProblemsRequest, sendProblemsRequestNotAuth } from "entities/User/api/userApi";
+import { sendProblemsRequest, sendProblemsRequestNotAuth, setPersonType } from "entities/User/api/userApi";
 import { getAllUserInfo, getUserPersonalAccountInfo, userLogin } from "../api/userApi";
 import { setError } from "entities/Error/slice/errorSlice";
 import { RootState } from "app/providers/store/config/store";
@@ -9,6 +9,7 @@ interface UserState {
     is_active: boolean;
     loading: boolean;
     is_vip: boolean;
+    person_type: string;
     error: string | null;
     success: boolean;
     userId: string | null;
@@ -24,6 +25,7 @@ const initialState: UserState = {
     loading: false,
     error: '',
     is_vip: false,
+    person_type: '',
     success: false,
     userId: null,
     token: "",
@@ -67,6 +69,25 @@ export const sendProblemsNotAuthThunk = createAsyncThunk<
     async ({ data, onSuccess }, { rejectWithValue, getState }) => {
         try {
             const response = await sendProblemsRequestNotAuth(data);
+
+            response && onSuccess()
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message || "Ошибка при отправке данных"
+            );
+        }
+    }
+);
+
+export const setPersonTypeThunk = createAsyncThunk<
+    void,
+    { person_type: string, onSuccess: () => void },
+    { rejectValue: string, state: RootState }
+>(
+    "user/setPersonTypeThunk",
+    async ({ person_type, onSuccess }, { rejectWithValue, getState }) => {
+        try {
+            const response = await setPersonType(person_type);
 
             response && onSuccess()
         } catch (error: any) {

@@ -52,6 +52,17 @@ export const userLogin = async (data: UserLogin) => {
     return response.data;
 };
 
+export const setPersonType = async (type_person: string) => {
+    const response = await axios.post(`${apiUrl}create_doc_user/set_type_person/`, { type_person }, {
+        headers: {
+            "Accept-Language": "ru",
+            "Content-Type": "application/json",
+        },
+    });
+    return response.data;
+};
+
+
 
 export const sendProblemsRequest = async (data: ProblemsRequestData, token: string) => {
     const response = await axios.post(`${apiUrl}create_doc_user/need_help/`, data, {

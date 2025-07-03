@@ -183,6 +183,43 @@ export interface PassportFormData {
     address_residential_apartment: string;
 }
 
+// entities/RiskProfile/model/types.ts
+/** Поля, которые API действительно принимает */
+export interface LegalDataFormRequest {
+    /* company block */
+    company_name: string;
+    first_name: string;
+    last_name: string;
+    patronymic: string;
+    type_message: "SMS" | "EMAIL" | "WHATSAPP";
+
+    company_inn: string;
+    company_kpp: string;
+    company_ogrn: string;
+
+    company_payment_account: string;
+    company_bank_payment_account: string;
+    company_bank_bik: string;
+    company_bank_correspondent_account: string;
+
+    phone: string;
+    email: string;
+
+    /* legal address */
+    company_region: string;
+    company_city: string;
+    company_street: string;
+    company_house: string;
+    company_apartment: string;
+    is_receive_mail_this_address?: string;
+    company_mailing_region: string;
+    company_mailing_city: string;
+    company_mailing_street: string;
+    company_mailing_house: string;
+    company_mailing_apartment: string;
+}
+
+
 
 
 export interface BrokerSetTokenPayload {
@@ -192,7 +229,7 @@ export interface BrokerSetTokenPayload {
 }
 
 export interface LegalFormData {
-    /* реквизиты */
+    /* реквизиты (вариант #1) */
     organization_name: string;
     general_director: string;
     inn: string;
@@ -205,18 +242,52 @@ export interface LegalFormData {
     work_email: string;
     work_phone: string;
 
-    /* юридический адрес */
+    /* company-block (вариант #2) */
+    company_name: string;
+    first_name: string;
+    last_name: string;
+    patronymic: string;
+    type_message: "SMS" | "EMAIL" | "WHATSAPP";
+
+    company_inn: string;
+    company_kpp: string;
+    company_ogrn: string;
+
+    company_payment_account: string;
+    company_bank_payment_account: string;
+    company_bank_bik: string;
+    company_bank_correspondent_account: string;
+
+    phone: string;
+    email: string;
+
+    /* юридический адрес (оба варианта) */
     legal_region: string;
     legal_city: string;
     legal_street: string;
     legal_house: string;
     legal_apartment: string;
 
-    /* почтовый адрес */
+    company_region: string;
+    company_city: string;
+    company_street: string;
+    company_house: string;
+    company_apartment: string;
+
+    /* флаг совпадения адресов */
     is_receive_mail_this_address: boolean;
+
+    /* почтовый адрес (оба варианта) */
     postal_region: string;
     postal_city: string;
     postal_street: string;
     postal_house: string;
     postal_apartment: string;
+
+    company_mailing_region: string;
+    company_mailing_city: string;
+    company_mailing_street: string;
+    company_mailing_house: string;
+    company_mailing_apartment: string;
+    g_recaptcha: string
 }

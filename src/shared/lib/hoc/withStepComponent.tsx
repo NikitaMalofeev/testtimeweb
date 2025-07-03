@@ -25,15 +25,7 @@ const stepTitles = [
     "Отправка документов"
 ];
 
-const stepContents = [
-    <RiskProfileFirstForm />,
-    // <LegalDataForm />,
-    <RiskProfileSecondForm />,
-    <PasportDataForm />,
-    <PasportScanForm />,
-    <ConfirmAllDocs />,
-    <BrokerConnectionForm />
-];
+
 
 const withStepContent = (
     Component: React.FC<{
@@ -45,6 +37,16 @@ const withStepContent = (
 ) => {
     // Возвращаем компонент-функцию, внутри которого можно безопасно использовать хуки
     return ({ onClose }: WithStepContentProps) => {
+        const type_person = useSelector((s: RootState) => s.user.user.type_person)
+        const stepContents = [
+            <RiskProfileFirstForm />,
+            <RiskProfileSecondForm />,
+            type_person === 'type_doc_person_legal' ? <LegalDataForm /> : <PasportDataForm />,
+
+            <PasportScanForm />,
+            <ConfirmAllDocs />,
+            <BrokerConnectionForm />
+        ];
         // Теперь хуки вызываются внутри тела функционального компонента
         const maxRiskProfile = useSelector((state: RootState) => {
             const profiles = state.riskProfile.secondRiskProfileData?.recommended_risk_profiles;

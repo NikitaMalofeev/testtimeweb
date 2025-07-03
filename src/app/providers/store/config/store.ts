@@ -76,6 +76,7 @@ const persistConfig = getPersistConfig({
 
         'riskProfile.currentConfirmingDoc',
         'riskProfile.passportFormData',
+        'riskProfile.legalFormData',
 
         // 'payments.tariffs',
         // 'payments.currentUserTariffIdForPayments',

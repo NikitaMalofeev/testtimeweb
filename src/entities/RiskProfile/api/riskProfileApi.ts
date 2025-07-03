@@ -1,5 +1,5 @@
 import axios from "axios";
-import { IdentificationProfileData, ConfirmationCodeData, NeedHelpData, TrustedPersonInfo, SecondRiskProfilePayload, PasportFormData, ConfirmationDocsData, BrokerSetTokenPayload, LegalFormData } from "entities/RiskProfile/model/types";
+import { IdentificationProfileData, ConfirmationCodeData, NeedHelpData, TrustedPersonInfo, SecondRiskProfilePayload, PasportFormData, ConfirmationDocsData, BrokerSetTokenPayload, LegalFormData, LegalDataFormRequest } from "entities/RiskProfile/model/types";
 import { PasportScanData } from "features/RiskProfile/PassportScanForm/PassportScanForm";
 
 
@@ -54,8 +54,19 @@ export const postConfirmationCode = async (data: ConfirmationCodeData) => {
     return response.data;
 };
 
-export const postConfirmationDocsCode = async (data: ConfirmationDocsData, token: string) => {
+export const postConfirmationDocsCode = async (data: ConfirmationCodeData, token: string) => {
     const response = await axios.post(`${apiUrl}create_doc_user/check_confirmation_code/`, data, {
+        headers: {
+            "Accept-Language": "ru",
+            "Content-Type": "application/json",
+            "Authorization": `Token ${token}`,
+        },
+    });
+    return response.data;
+};
+
+export const postConfirmationCodeLegal = async (data: ConfirmationDocsData, token: string) => {
+    const response = await axios.post(`${apiUrl}create_doc_user/check_confirmation_code_legal/`, data, {
         headers: {
             "Accept-Language": "ru",
             "Content-Type": "application/json",
@@ -168,6 +179,14 @@ export const postFirstRiskProfileLegal = async (data: Record<string, string | bo
 };
 
 
+export const postLegalInfoForm = async (data: LegalDataFormRequest, token: string) => {
+    const response = await axios.post(`${apiUrl}create_doc_user/fourth_person_legal/`, data, {
+        headers: { Authorization: `Token ${token}` },
+    });
+    return response.data; // { group_name_upload_scans_progress?: string, ... }
+};
+
+
 export const postSecondRiskProfile = async (data: SecondRiskProfilePayload, token: string) => {
     const response = await axios.post(
         `${apiUrl}create_doc_user/third_risk_profiling_add_more_info/`,
@@ -237,10 +256,3 @@ export const postBrokerApiToken = async (data: BrokerSetTokenPayload, token: str
 //     );
 //     return response.data;
 // };
-
-export const postLegalInfo = async (data: LegalFormData, token: string) => {
-    const response = await axios.post("/api/v1/risk-profile/legal/", data, {
-        headers: { Authorization: `Token ${token}` },
-    });
-    return response.data; // { group_name_upload_scans_progress?: string, ... }
-};

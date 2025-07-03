@@ -16,17 +16,19 @@ import {
     BrokerSetTokenPayload,
     PassportFormData,
     RiskProfileFormValues,
-    LegalFormData
+    LegalFormData,
+    LegalDataFormRequest,
 } from "../model/types";
 import {
     getAllSelects,
     postBrokerApiToken,
     postConfirmationCode,
+    postConfirmationCodeLegal,
     postConfirmationDocsCode,
     postFirstRiskProfile,
     postFirstRiskProfileLegal,
     postIdentificationData,
-    postLegalInfo,
+    postLegalInfoForm,
     postNeedHelpRequest,
     postPasportData,
     postPasportScanData,
@@ -62,6 +64,67 @@ interface RiskProfileFormState {
     pasportScanSocketId: string;
     pasportScanProgress: number
 }
+
+export const initialLegalFormData: LegalFormData = {
+    /* вариант 1 */
+    organization_name: "",
+    general_director: "",
+    inn: "",
+    kpp: "",
+    ogrn: "",
+    bank_name: "",
+    checking_account: "",
+    correspondent_account: "",
+    bik: "",
+    work_email: "",
+    work_phone: "",
+    legal_region: "",
+    legal_city: "",
+    legal_street: "",
+    legal_house: "",
+    legal_apartment: "",
+
+    /* вариант 2 */
+    company_name: "",
+    first_name: "",
+    last_name: "",
+    patronymic: "",
+    type_message: "SMS",
+
+    company_inn: "",
+    company_kpp: "",
+    company_ogrn: "",
+
+    company_payment_account: "",
+    company_bank_payment_account: "",
+    company_bank_bik: "",
+    company_bank_correspondent_account: "",
+
+    phone: "",
+    email: "",
+
+    company_region: "",
+    company_city: "",
+    company_street: "",
+    company_house: "",
+    company_apartment: "",
+
+    /* переключатель + почтовый адрес */
+    is_receive_mail_this_address: false,
+    company_mailing_region: "",
+    company_mailing_city: "",
+    company_mailing_street: "",
+    company_mailing_house: "",
+    company_mailing_apartment: "",
+
+    postal_region: "",
+    postal_city: "",
+    postal_street: "",
+    postal_house: "",
+    postal_apartment: "",
+    g_recaptcha: ''
+};
+
 
 const initialState: RiskProfileFormState = {
     loading: false,
@@ -104,30 +167,7 @@ const initialState: RiskProfileFormState = {
         address_residential_house: "",
         address_residential_apartment: ""
     },
-    legalFormData: {
-        organization_name: "",
-        general_director: "",
-        inn: "",
-        kpp: "",
-        ogrn: "",
-        bank_name: "",
-        checking_account: "",
-        correspondent_account: "",
-        bik: "",
-        work_email: "",
-        work_phone: "",
-        legal_region: "",
-        legal_city: "",
-        legal_street: "",
-        legal_house: "",
-        legal_apartment: "",
-        is_receive_mail_this_address: false,
-        postal_region: "",
-        postal_city: "",
-        postal_street: "",
-        postal_house: "",
-        postal_apartment: "",
-    },
+    legalFormData: initialLegalFormData,
     currentConfirmingDoc: 'type_doc_passport',
     pasportScanSocketId: '',
     pasportScanProgress: 0
@@ -135,7 +175,7 @@ const initialState: RiskProfileFormState = {
 
 export const postLegalInfoThunk = createAsyncThunk<
     void,
-    { data: LegalFormData; onSuccess: () => void },
+    { data: LegalDataFormRequest; onSuccess: () => void },
     { state: RootState; rejectValue: string }
 >(
     "riskProfile/postLegalInfo",
@@ -144,14 +184,16 @@ export const postLegalInfoThunk = createAsyncThunk<
             const token = getState().user.token;
             if (!token) return rejectWithValue("Отсутствует токен авторизации");
 
-            const response = await postLegalInfo(data, token);
-            /* если бек возвращает socket-id для отслеживания загрузки сканов */
+            /* ───── убираем чекбокс ───── */
+            const { is_receive_mail_this_address, ...payload } = data;
+
+            const response = await postLegalInfoForm(
+                payload as Omit<LegalDataFormRequest, "is_receive_mail_this_address">,
+                token,
+            );
+
             if (response.group_name_upload_scans_progress) {
-                dispatch(
-                    setPasportScanSocketId(
-                        response.group_name_upload_scans_progress,
-                    ),
-                );
+                dispatch(setPasportScanSocketId(response.group_name_upload_scans_progress));
             }
             onSuccess();
         } catch (error: any) {
@@ -160,6 +202,7 @@ export const postLegalInfoThunk = createAsyncThunk<
         }
     },
 );
+
 
 
 export const createRiskProfile = createAsyncThunk<
@@ -585,8 +628,10 @@ export const sendEmailConfirmationCode = createAsyncThunk<
         { user_id, codeSecond, onSuccess, onError },
         { getState, dispatch }
     ) => {
+        const person_type = getState().user.user.type_person
+        const token = getState().user.token
         try {
-            const responseEmail = await postConfirmationCode({ user_id, code: codeSecond, type: "email" });
+            const responseEmail = person_type === 'type_doc_person_legal' ? await postConfirmationCodeLegal({ user_id, code: codeSecond, type: "email" }, token) : await postConfirmationCode({ user_id, code: codeSecond, type: "email" })
             if (responseEmail.status === "success") {
                 onSuccess?.(responseEmail);
             } else if (responseEmail.code !== 200) {

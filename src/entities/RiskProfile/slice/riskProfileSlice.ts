@@ -23,7 +23,6 @@ import {
     getAllSelects,
     postBrokerApiToken,
     postConfirmationCode,
-    postConfirmationCodeLegal,
     postConfirmationDocsCode,
     postFirstRiskProfile,
     postFirstRiskProfileLegal,
@@ -628,10 +627,8 @@ export const sendEmailConfirmationCode = createAsyncThunk<
         { user_id, codeSecond, onSuccess, onError },
         { getState, dispatch }
     ) => {
-        const person_type = getState().user.user.type_person
-        const token = getState().user.token
         try {
-            const responseEmail = person_type === 'type_doc_person_legal' ? await postConfirmationCodeLegal({ user_id, code: codeSecond, type: "email" }, token) : await postConfirmationCode({ user_id, code: codeSecond, type: "email" })
+            const responseEmail = await postConfirmationCode({ user_id, code: codeSecond, type: "email" });
             if (responseEmail.status === "success") {
                 onSuccess?.(responseEmail);
             } else if (responseEmail.code !== 200) {

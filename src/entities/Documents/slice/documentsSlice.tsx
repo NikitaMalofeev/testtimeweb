@@ -8,7 +8,7 @@ import { setCurrentConfirmingDoc } from "entities/RiskProfile/slice/riskProfileS
 import { setConfirmationDocsSuccess } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
 import { SendCodeCustomDocsConfirmPayload, SendCodeDocsConfirmPayload } from "entities/RiskProfile/model/types";
-import { postBrokerConfirmationDocsCode, postConfirmationDocsCode } from "entities/RiskProfile/api/riskProfileApi";
+import { postBrokerConfirmationDocsCode, postConfirmationCodeLegal, postConfirmationDocsCode } from "entities/RiskProfile/api/riskProfileApi";
 
 // Новый тип, соответствующий элементам из "confirmed_documents"
 export interface DocumentConfirmationInfo {
@@ -299,6 +299,7 @@ export const sendDocsConfirmationCode = createAsyncThunk<
         try {
             const token = getState().user.token;
             const currentConfirmableDoc = getState().documents.currentConfirmableDoc
+            const person_type = getState().user.user.type_person
             const broker_id = getState().documents.brokerIds[0]
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");
@@ -313,10 +314,14 @@ export const sendDocsConfirmationCode = createAsyncThunk<
                 onSuccess?.(responseDocs);
                 dispatch(setCurrentConfirmableDoc(responseDocs.next_document));
             } else if (codeFirst) {
-                const responseDocs = await postConfirmationDocsCode(
+                console.log('попытка отправить код легально' + person_type)
+                const responseDocs = person_type !== 'type_doc_person_legal' ? await postConfirmationDocsCode(
                     { code: codeFirst, type_document: docs },
                     token
-                );
+                ) : await postConfirmationCodeLegal(
+                    { code: codeFirst, type_document: docs },
+                    token
+                )
                 onSuccess?.(responseDocs);
                 dispatch(setCurrentConfirmableDoc(responseDocs.next_document));
             }

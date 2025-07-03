@@ -54,7 +54,7 @@ export const postConfirmationCode = async (data: ConfirmationCodeData) => {
     return response.data;
 };
 
-export const postConfirmationDocsCode = async (data: ConfirmationCodeData, token: string) => {
+export const postConfirmationDocsCode = async (data: ConfirmationDocsData, token: string) => {
     const response = await axios.post(`${apiUrl}create_doc_user/check_confirmation_code/`, data, {
         headers: {
             "Accept-Language": "ru",

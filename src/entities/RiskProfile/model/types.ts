@@ -46,7 +46,7 @@ export interface TrustedPersonInfo {
 }
 
 export interface RiskProfileFormData {
-    person_type?: "natural" | "legal" | "";
+    person_type?: "type_doc_person_natural" | "type_doc_person_legal" | "";
     citizenship?: string;
     residence_permit?: string;
     trusted_person_fio?: string;
@@ -61,7 +61,7 @@ export interface RiskProfileFormData {
 export interface RiskProfileFormValues extends RiskProfileFormData {
     /** делаем person_type строго обязательным,
         чтобы Formik.values.person_type всегда существовал */
-    person_type: "natural" | "legal" | "";
+    person_type: "type_doc_person_natural" | "type_doc_person_legal" | "";
     [key: string]: string | number | boolean | string[] | undefined;
 }
 

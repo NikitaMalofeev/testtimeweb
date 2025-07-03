@@ -24,6 +24,7 @@ import {
     postConfirmationCode,
     postConfirmationDocsCode,
     postFirstRiskProfile,
+    postFirstRiskProfileLegal,
     postIdentificationData,
     postLegalInfo,
     postNeedHelpRequest,
@@ -39,7 +40,7 @@ import { setConfirmationEmailSuccess, setConfirmationPhoneSuccess, setConfirmati
 import { setError } from "entities/Error/slice/errorSlice";
 import { RootState } from "app/providers/store/config/store";
 import { PasportScanData } from "features/RiskProfile/PassportScanForm/PassportScanForm";
-import { omit } from "lodash";
+import { omit, pick } from "lodash";
 import { setBrokerSuccessResponseInfo } from "entities/Documents/slice/documentsSlice";
 
 interface RiskProfileFormState {
@@ -275,6 +276,53 @@ export const postSecondRiskProfileFormFinal = createAsyncThunk<
             const response = await postSecondRiskProfileFinal(data, token);
             dispatch(updateUserAllData({ first_name: response.first_name, last_name: response.last_name, patronymic: response.patronymic, gender: response.gender }));
             return response;
+        } catch (error: any) {
+
+        }
+    }
+);
+
+export const postFirstRiskProfileLegalForm = createAsyncThunk<
+    void,
+    RiskProfileFormValues,
+    { state: RootState; rejectValue: string }
+>(
+    "riskProfile/postFirstRiskProfileLegalForm",
+    async (data, { getState, dispatch, rejectWithValue }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+            const allowList = [
+                "currency_investment",
+                "invest_goal",
+                "invest_period",
+                "qualification",
+                "operations",
+                "assets",
+                "net_assets",
+                "volatility",
+                "additional",
+            ] as const;                     // ← чтобы TS знал конкретный набор ключей
+
+            type AllowedKey = typeof allowList[number];
+
+            const toStrOrBool = (val: any): string | boolean => {
+                if (typeof val === "boolean" || typeof val === "string") return val;
+                if (typeof val === "number") return val.toString();
+                if (Array.isArray(val)) return val.join(","); // или свой формат
+                return "";                                   // запасной вариант
+            };
+
+            const filteredData: Record<string, string | boolean> = Object.fromEntries(
+                allowList
+                    .map((key) => [key, data[key as AllowedKey]])
+                    .filter(([, v]) => v !== undefined)
+                    .map(([k, v]) => [k, toStrOrBool(v)])
+            );
+            const response = await postFirstRiskProfileLegal(filteredData, token);
+            dispatch(setFirstRiskProfileData(response));
         } catch (error: any) {
 
         }

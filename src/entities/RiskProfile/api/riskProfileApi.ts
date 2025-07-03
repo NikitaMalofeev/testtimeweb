@@ -152,6 +152,22 @@ export const postFirstRiskProfile = async (data: Record<string, string | boolean
     return response.data;
 };
 
+export const postFirstRiskProfileLegal = async (data: Record<string, string | boolean>, token: string) => {
+    const response = await axios.post(
+        `${apiUrl}create_doc_user/second_risk_profiling_person_legal/`,
+        data,
+        {
+            headers: {
+                "Accept-Language": "ru",
+                "Content-Type": "application/json",
+                "Authorization": `Token ${token}`,
+            },
+        }
+    );
+    return response.data;
+};
+
+
 export const postSecondRiskProfile = async (data: SecondRiskProfilePayload, token: string) => {
     const response = await axios.post(
         `${apiUrl}create_doc_user/third_risk_profiling_add_more_info/`,

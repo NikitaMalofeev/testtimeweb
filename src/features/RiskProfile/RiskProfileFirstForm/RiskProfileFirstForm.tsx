@@ -11,7 +11,6 @@ import {
     updateFieldValue,
     updateRiskProfileForm,
     setStep,
-    postFirstRiskProfileLegalForm,
 } from "entities/RiskProfile/slice/riskProfileSlice";
 import * as Yup from "yup";
 import styles from "./styles.module.scss";
@@ -49,9 +48,6 @@ export const RiskProfileFirstForm: React.FC = () => {
         formValues,
         stepsFirstForm: { currentStep },
     } = useSelector((state: RootState) => state.riskProfile);
-    const {
-        type_person,
-    } = useSelector((state: RootState) => state.user.user);
     const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
 
     /* ──────────────────────────── flags ──────────────────────────── */
@@ -117,9 +113,7 @@ export const RiskProfileFirstForm: React.FC = () => {
     const formik = useFormik({
         enableReinitialize: true,
         initialValues: {
-
             ...formValues,
-            person_type: formValues.person_type ?? "",
         } as RiskProfileFormValues,
         validationSchema: Yup.object({
             trusted_person_fio: Yup.string().min(3, "Минимум 3 символа"),
@@ -132,7 +126,6 @@ export const RiskProfileFirstForm: React.FC = () => {
         }),
         onSubmit: () => { },
     });
-
 
     /* 1. «Натуральные» (физ. лицо) */
     const buildNaturalQuestions = (): Question[] => {
@@ -179,112 +172,112 @@ export const RiskProfileFirstForm: React.FC = () => {
     };
 
     /* 2. «Юр. лицо»: заготовка из 7 вопросов, оставь как пример */
-    // Question[] для юр. лиц (сопоставлено со схемой backend)
     const legalQuestionsTemplate: Question[] = [
         {
-            name: "currency_investment",
-            label: "Валюта инвестирования",
-            fieldType: "checkboxGroup",
-            options: {
-                RUR: "Рубли",
-                USD: "Доллары",
-            },
-        },
-        {
-            name: "invest_goal",
+            name: "legal_invest_target",
             label: "Предполагаемая цель инвестирования",
             fieldType: "checkboxGroup",
             options: {
-                person_legal_invest_goal_safe: "Сохранение капитала и поддержание высокой ликвидности",
-                person_legal_invest_goal_profit: "Планомерное наращивание капитала (доход выше депозитов)",
-                person_legal_invest_goal_high: "Получение существенного дохода, спокойное отношение к рискам",
-                person_legal_invest_goal_max_high: "Максимальный доход при готовности к значительным рискам",
+                preserve_capital: "Сохранение капитала и поддержание высокой ликвидности",
+                steady_growth: "Планомерное наращивание капитала путем получения дохода выше банковских ставок по депозитам",
+                significant_income: "Получение существенного дохода. Спокойное отношение к рискам",
+                max_income: "Получение максимального дохода. Готовность мириться со значительными рисками",
             },
         },
         {
-            name: "invest_period",
-            label: "Срок инвестирования без существенных изменений портфеля",
+            name: "legal_investment_period",
+            label:
+                "Срок инвестирования, в течение которого не планируется вносить существенные изменения в свой инвестиционный портфель",
             fieldType: "checkboxGroup",
             options: {
-                person_legal_invest_period_before_1_year: "до 1 года",
-                person_legal_invest_period_1_3_year: "от 1 до 3 лет",
-                person_legal_invest_period_3_5_year: "от 3 до 5 лет",
-                person_legal_invest_period_5_10_year: "от 5 до 10 лет",
-                person_legal_invest_period_10_year_plas: "более 10 лет",
+                up_to_1_year: "до 1 года",
+                from_1_to_3_years: "от 1-го до 3-х лет",
+                from_3_to_5_years: "от 3-х до 5 лет",
+                from_5_to_10_years: "От 5 до 10 лет",
+                over_10_years: "Более 10 лет",
             },
         },
         {
-            name: "qualification",
-            label: "Наличие и квалификация специалистов по инвестициям",
+            name: "legal_specialist_qualification",
+            label:
+                "Наличие специалистов или подразделения, отвечающих за инвестиционную деятельность в юридическом лице. Квалификация специалистов, отвечающих за инвестиционную деятельность",
             fieldType: "checkboxGroup",
             options: {
-                person_legal_qualification_none: "Специалисты и подразделение отсутствуют",
-                person_legal_qualification_edu: "Есть профильное (экономическое/финансовое) высшее образование",
-                person_legal_qualification_edu_exp: "Профильное образование + опыт инвестирования",
-                person_legal_qualification_edu_exp_1y: "Профильное образование + опыт инвестирования больше 1 года", // дублирует exp; если в схеме два разных ключа — оставляем оба
+                no_specialists: "Специалисты и подразделение отсутствуют",
+                finance_education_only: "Высшее экономическое/финансовое образование",
+                education_and_experience:
+                    "Высшее экономическое/финансовое образование и опыт работы на финансовом рынке более 1 года в должности, напрямую связанной с инвестированием активов",
             },
         },
         {
-            name: "operations",
-            label: "Операции с фин. инструментами за последний отчётный год",
+            name: "legal_operations_volume",
+            label:
+                "Наличие, количество и объем операций с различными финансовыми инструментами за последний отчетный год",
             fieldType: "checkboxGroup",
             options: {
-                person_legal_operations_none: "Операции не осуществлялись",
-                person_legal_operations_less_10_under_50m: "Менее 10 операций, оборот до 50 млн ₽",
-                person_legal_operations_more_10_over_50m: "Более 10 операций, оборот свыше 50 млн ₽",
+                no_operations: "Операции с финансовыми инструментами не осуществлялись",
+                under_10_ops: "Совершалось менее 10 операций совокупным оборотом до 50 000 000 рублей",
+                over_10_ops: "Более 10 операций совокупным оборотом более 50 000 000 рублей",
             },
         },
         {
-            name: "assets",
-            label: "Размер активов юр. лица (последний отч. год)",
+            name: "legal_assets_size",
+            label:
+                "Размер активов юридического лица за последний завершенный отчетный год по данным бухгалтерского учета",
             fieldType: "checkboxGroup",
             options: {
-                person_legal_assets_under_20m: "до 20 млн ₽",
-                person_legal_assets_20m_50m: "от 20 млн ₽ до 50 млн ₽",
-                person_legal_assets_50m_100m: "от 50 млн ₽ до 100 млн ₽",
-                person_legal_assets_over_100m: "свыше 100 млн ₽",
+                up_to_20m: "до 20 000 000 рублей",
+                from_20m_to_50m: "от 20 000 000 до 50 000 000 рублей",
+                from_50m_to_100m: "от 50 000 000 до 100 000 000 рублей",
+                over_100m: "от 100 000 000 рублей",
             },
         },
         {
-            name: "net_assets",
-            label: "Отношение чистых активов к объёму предполагаемых инвестиций",
+            name: "legal_net_assets_ratio",
+            label:
+                "Соотношение чистых активов (активы за вычетом обязательств) к объему средств, предполагаемых к инвестированию",
             fieldType: "checkboxGroup",
             options: {
-                person_legal_net_assets_over_1: "Больше 1",
-                person_legal_net_assets_under_1: "Меньше 1",
+                greater_than_1: "Больше 1",
+                less_than_1: "Меньше 1",
             },
         },
         {
-            name: "volatility",
-            label: "Допустимый уровень колебаний стоимости инвестиций",
+            name: "legal_risk_tolerance",
+            label: "Какой уровень изменений стоимости инвестиционных активов допускает юридическое лицо",
             fieldType: "checkboxGroup",
             options: {
-                person_legal_volatility_none: "Не допускается даже временное снижение стоимости",
-                person_legal_volatility_10p: "Допустимо кратковременное снижение до 10 %",
-                person_legal_volatility_some: "Допустимы колебания, возможное временное падение ниже первоначальных вложений",
-                person_legal_volatility_high: "Допустимо значительное падение в расчёте на последующий рост",
+                no_drop_allowed:
+                    "не допускается даже временное снижение суммы инвестиционных вложений компании",
+                small_drop_allowed:
+                    "допускается возможность небольшого снижения стоимости первоначальных инвестиций до 10% в краткосрочной перспективе",
+                temporary_drop_allowed:
+                    "допускается возможность того, что стоимость инвестиций может колебаться, а также упасть ниже стоимости первоначальных инвестиций на некоторый период времени",
+                significant_drop_allowed:
+                    "допускается возможность того, что стоимость инвестиций может колебаться, а также упасть значительно ниже суммы первоначальных инвестиций в течение некоторого периода времени в расчете на последующий рост",
             },
         },
         {
-            name: "additional",
-            label: "Дополнительные существенные условия и ограничения",
+            name: "legal_additional_conditions",
+            label:
+                "Дополнительные существенные условия и ограничения, которые необходимо будет учитывать",
             fieldType: "checkboxGroup",
             options: {
-                person_legal_additional_none: "Отсутствуют",
-                person_legal_additional_yes: "Есть дополнительные условия/ограничения",
+                no_additional_conditions:
+                    "Дополнительных существенных условий или ограничений нет",
+                have_additional_conditions: "Дополнительные условия или ограничения есть",
             },
         },
     ];
 
 
-
     /* ──────────────────────────── окончательный список вопросов ──────────────────────────── */
     const questions: Question[] = useMemo(() => {
-        const isLegal = type_person === "type_doc_person_legal";
+        const isLegal = formik.values.person_type === "type_doc_person_legal";
         const branch = isLegal ? legalQuestionsTemplate : buildNaturalQuestions();
-        return branch
+        return [...branch];
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [type_person, riskProfileSelectors]);
+    }, [formik.values.person_type, riskProfileSelectors]);
 
 
     /* ──────────────────────────── навигация ──────────────────────────── */
@@ -293,75 +286,36 @@ export const RiskProfileFirstForm: React.FC = () => {
     const currentQuestion = questions[currentStep];
 
 
-    /* ──────────────────────────── навигация ──────────────────────────── */
-    /* ──────────────────────────── навигация ──────────────────────────── */
     const goNext = () => {
-        const isLegal = type_person === "type_doc_person_legal";
+        const { person_type } = formik.values;
 
-        /* ---------------- последний вопрос ---------------- */
         if (isLastStep) {
-            /* промежуточное сохранение в Redux/LS */
-            dispatch(updateRiskProfileForm(formik.values));
+            /* -------------------- формируем payload -------------------- */
+            const payload: Partial<RiskProfileFormValues> =
+                person_type === "type_doc_person_legal"
+                    ? Object.fromEntries(
+                        Object.entries(formik.values).filter(([k]) =>
+                            LEGAL_FIELD_NAMES.includes(k as LegalKey),
+                        ),
+                    )
+                    : formik.values;
 
+            /* -------------------- отправляем -------------------- */
+            dispatch(postFirstRiskProfileForm(payload as RiskProfileFormValues));
 
-
-            /* --------- ФИЗ. ЛИЦО: очищаем payload --------- */
-            const filteredPayload = Object.fromEntries(
-                Object.entries(formik.values).filter(([key]) =>
-                    /* всё, что НЕ начинается на 'legal_' и НЕ входит в «чёрный список» */
-                    !key.startsWith("legal_") &&
-                    ![
-                        // поля, которые бэкенду не нужны
-                        "address_residential_apartment",
-                        "address_residential_city",
-                        "address_residential_house",
-                        "address_residential_street",
-                        "issue_whom",
-                        "passport_series",
-                        "region",
-                        "city",
-                        "apartment",
-                        "street",
-                        "passport_number",
-                        "house",
-                        "inn",
-                        "birth_place",
-                    ].includes(key)
-                )
-            ) as RiskProfileFormValues;
-
-            /* по-прежнему конвертируем статус инвестора в boolean */
-            const cleanedPayload: RiskProfileFormValues = {
-                ...filteredPayload,
-
-                is_qualified_investor_status: !!filteredPayload.is_qualified_investor_status,
-            };
-
-            /* --------- ЮР. ЛИЦО: запросов пока нет --------- */
-            if (isLegal) {
-                dispatch(postFirstRiskProfileLegalForm(cleanedPayload))
-                dispatch(setStepAdditionalMenuUI(1));
-                return;
-            } else {
-                /* старый thunk остаётся */
-                dispatch(postFirstRiskProfileForm(cleanedPayload));
-
-                /* gender идёт отдельным PATCH’ем, как и было */
+            if (person_type !== "type_doc_person_legal") {
+                // gender нужен только физ. лицу
                 dispatch(updateUserAllData({ gender: String(formik.values.gender) }));
-
-                dispatch(setStepAdditionalMenuUI(1));
-                return;
             }
 
-
+            dispatch(setStepAdditionalMenuUI(1));
+            return;
         }
 
-        /* ---------------- не последний вопрос ---------------- */
+        /* промежуточный шаг */
         dispatch(updateRiskProfileForm(formik.values));
         dispatch(nextRiskProfileStep());
     };
-
-
 
 
 

@@ -17,7 +17,7 @@ import {
     PassportFormData,
     RiskProfileFormValues,
     LegalFormData,
-    LegalDataFormRequest,
+    LegalDataFormRequest
 } from "../model/types";
 import {
     getAllSelects,
@@ -25,7 +25,6 @@ import {
     postConfirmationCode,
     postConfirmationDocsCode,
     postFirstRiskProfile,
-    postFirstRiskProfileLegal,
     postIdentificationData,
     postLegalInfoForm,
     postNeedHelpRequest,
@@ -41,7 +40,7 @@ import { setConfirmationEmailSuccess, setConfirmationPhoneSuccess, setConfirmati
 import { setError } from "entities/Error/slice/errorSlice";
 import { RootState } from "app/providers/store/config/store";
 import { PasportScanData } from "features/RiskProfile/PassportScanForm/PassportScanForm";
-import { omit, pick } from "lodash";
+import { omit } from "lodash";
 import { setBrokerSuccessResponseInfo } from "entities/Documents/slice/documentsSlice";
 
 interface RiskProfileFormState {
@@ -58,7 +57,6 @@ interface RiskProfileFormState {
         currentStep: number;
     };
     passportFormData: PassportFormData;
-    legalFormData: LegalFormData;
     currentConfirmingDoc: string;
     pasportScanSocketId: string;
     pasportScanProgress: number
@@ -166,7 +164,6 @@ const initialState: RiskProfileFormState = {
         address_residential_house: "",
         address_residential_apartment: ""
     },
-    legalFormData: initialLegalFormData,
     currentConfirmingDoc: 'type_doc_passport',
     pasportScanSocketId: '',
     pasportScanProgress: 0
@@ -324,53 +321,6 @@ export const postSecondRiskProfileFormFinal = createAsyncThunk<
     }
 );
 
-export const postFirstRiskProfileLegalForm = createAsyncThunk<
-    void,
-    RiskProfileFormValues,
-    { state: RootState; rejectValue: string }
->(
-    "riskProfile/postFirstRiskProfileLegalForm",
-    async (data, { getState, dispatch, rejectWithValue }) => {
-        try {
-            const token = getState().user.token;
-            if (!token) {
-                return rejectWithValue("Отсутствует токен авторизации");
-            }
-            const allowList = [
-                "currency_investment",
-                "invest_goal",
-                "invest_period",
-                "qualification",
-                "operations",
-                "assets",
-                "net_assets",
-                "volatility",
-                "additional",
-            ] as const;                     // ← чтобы TS знал конкретный набор ключей
-
-            type AllowedKey = typeof allowList[number];
-
-            const toStrOrBool = (val: any): string | boolean => {
-                if (typeof val === "boolean" || typeof val === "string") return val;
-                if (typeof val === "number") return val.toString();
-                if (Array.isArray(val)) return val.join(","); // или свой формат
-                return "";                                   // запасной вариант
-            };
-
-            const filteredData: Record<string, string | boolean> = Object.fromEntries(
-                allowList
-                    .map((key) => [key, data[key as AllowedKey]])
-                    .filter(([, v]) => v !== undefined)
-                    .map(([k, v]) => [k, toStrOrBool(v)])
-            );
-            const response = await postFirstRiskProfileLegal(filteredData, token);
-            dispatch(setFirstRiskProfileData(response));
-        } catch (error: any) {
-
-        }
-    }
-);
-
 export const postFirstRiskProfileForm = createAsyncThunk<
     void,
     RiskProfileFormValues,
@@ -399,17 +349,7 @@ export const postFirstRiskProfileForm = createAsyncThunk<
                 'passport_number',
                 'house',
                 'inn',
-                'birth_place',
-                "legal_invest_target",
-                "legal_investment_period",
-                "legal_specialist_qualification",
-                "legal_operations_volume",
-                "legal_assets_size",
-                "legal_net_assets_ratio",
-                "legal_risk_tolerance",
-                "legal_additional_conditions",
-                "person_type",
-                "gender"
+                'birth_place'
             ]);
             const transformedData = {
                 ...filteredData,
@@ -746,7 +686,7 @@ const riskProfileSlice = createSlice({
             state,
             action: PayloadAction<Partial<LegalFormData>>,
         ) => {
-            state.legalFormData = { ...state.legalFormData, ...action.payload };
+            state.riskProfileForm = { ...state.riskProfileForm, ...action.payload };
         },
     },
     extraReducers: (builder) => {
@@ -831,18 +771,7 @@ const riskProfileSlice = createSlice({
             .addCase(postPasportInfo.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
-            })
-            .addCase(postLegalInfoThunk.pending, (state) => {
-                state.loading = true;
-                state.error = null;
-            })
-            .addCase(postLegalInfoThunk.fulfilled, (state) => {
-                state.loading = false;
-            })
-            .addCase(postLegalInfoThunk.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.payload as string;
-            })
+            });
 
     }
 });

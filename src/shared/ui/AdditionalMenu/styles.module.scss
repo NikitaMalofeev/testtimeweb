@@ -137,7 +137,16 @@
          }
          .header.shadow {
           position: sticky;
+          background-color: white;
           top: 0;
+          left: -20px;
+          max-width: 960px;
+          
+  /* 2. Убираем внутренние отступы контейнера (60px слева/справа)   *
+   *    Если нужно «прижать» к реальной левой границе белого блока   */
+  margin-left: -60px;
+  padding-left: 60px;   // чтобы текст остался ровно там же
+  padding-right: 60px;  // симметрия
          }
          .progressBar {
           max-width: 960px;

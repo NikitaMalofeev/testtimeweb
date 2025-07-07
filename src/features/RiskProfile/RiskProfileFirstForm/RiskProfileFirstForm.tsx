@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useFormik } from "formik";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
 import {
     fetchAllSelects,
@@ -23,7 +23,7 @@ import { Loader, LoaderTheme } from "shared/ui/Loader/Loader";
 import { Select } from "shared/ui/Select/Select";
 import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
-import { RiskProfileFormValues, TrustedPersonInfo } from "entities/RiskProfile/model/types";
+import { TrustedPersonInfo } from "entities/RiskProfile/model/types";
 import { updateUserAllData } from "entities/User/slice/userSlice";
 import { useNavigate } from "react-router-dom";
 
@@ -40,7 +40,7 @@ export const RiskProfileFirstForm: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
 
-    /* ──────────────────────────── redux state ──────────────────────────── */
+    // ============ REDUX STATE ============
     const {
         loading,
         error,
@@ -50,41 +50,45 @@ export const RiskProfileFirstForm: React.FC = () => {
     } = useSelector((state: RootState) => state.riskProfile);
     const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
 
-    /* ──────────────────────────── flags ──────────────────────────── */
+    // Локальный флаг, сигнализирующий, что localStorage уже загружен
     const [isLSLoaded, setIsLSLoaded] = useState(false);
 
-    /* ──────────────────────────── LS → redux on mount ──────────────────────────── */
+    // ========================= 1. Загрузка данных из localStorage =========================
     useEffect(() => {
         const savedData = localStorage.getItem("riskProfileFormData");
         if (savedData) {
             try {
                 const parsed = JSON.parse(savedData);
+                // Ожидается структура: { step: number; data: Record<string, any> }
                 if (typeof parsed.step === "number" && parsed.data) {
+                    // Обновляем Redux-стейт значениями из localStorage
                     dispatch(setStep(parsed.step));
                     dispatch(updateRiskProfileForm(parsed.data));
                 }
-            } catch (err) {
-                console.error("Ошибка парсинга из localStorage:", err);
+            } catch (error) {
+                console.error("Ошибка парсинга из localStorage: ", error);
             }
         }
+        // Устанавливаем флаг, что загрузка из localStorage завершена
         setIsLSLoaded(true);
     }, []);
 
-    /* ──────────────────────────── fetch selects ──────────────────────────── */
+    // ========================= 2. Получение селекторов =========================
     useEffect(() => {
         dispatch(fetchAllSelects() as any);
     }, []);
 
-    /* ──────────────────────────── redux → LS (после инициализации) ──────────────────────────── */
+    // ========================= 3. Синхронизация Redux → localStorage (только после загрузки LS) =========================
     useEffect(() => {
         if (!isLSLoaded) return;
-        localStorage.setItem(
-            "riskProfileFormData",
-            JSON.stringify({ step: currentStep, data: formValues })
-        );
+        const dataToSave = {
+            step: currentStep,
+            data: formValues,
+        };
+        localStorage.setItem("riskProfileFormData", JSON.stringify(dataToSave));
     }, [currentStep, formValues, isLSLoaded]);
 
-    /* ──────────────────────────── helpers ──────────────────────────── */
+    // ========================= 4. Вспомогательная функция для меток вопросов =========================
     const getLabelByKey = (key: string) => {
         const map: Record<string, string> = {
             age_parameters: "Ваш возраст",
@@ -104,34 +108,15 @@ export const RiskProfileFirstForm: React.FC = () => {
             question_assets_losing_value: "Как Вы поступите, если активы потеряют более 20% стоимости?",
             risk_profiling_int: "Результирующий риск-профиль",
             savings_level: "Информация о наличии и сумме сбережений",
-            gender: "Пол",
         };
         return map[key] || key;
     };
 
-    /* ──────────────────────────── formik ──────────────────────────── */
-    const formik = useFormik({
-        enableReinitialize: true,
-        initialValues: {
-            ...formValues,
-        } as RiskProfileFormValues,
-        validationSchema: Yup.object({
-            trusted_person_fio: Yup.string().min(3, "Минимум 3 символа"),
-            trusted_person_phone: Yup.string()
-                .matches(/^\+\d{11}$/, "Неверный формат")
-                .when(
-                    ["trusted_person_fio"],
-                    ([fio], schema) => (fio ? schema.required("Телефон обязателен") : schema)
-                ),
-        }),
-        onSubmit: () => { },
-    });
-
-    /* 1. «Натуральные» (физ. лицо) */
-    const buildNaturalQuestions = (): Question[] => {
+    // ========================= 5. Построение вопросов =========================
+    const questions: Question[] = React.useMemo(() => {
         if (!riskProfileSelectors) return [];
 
-        /* (1) Гражданство и ВНЖ */
+        // (1) Вопрос о гражданстве
         const citizenshipQuestion: Question = {
             name: "citizenship",
             label: "Гражданство, в том числе ВНЖ",
@@ -140,22 +125,21 @@ export const RiskProfileFirstForm: React.FC = () => {
             options: riskProfileSelectors.countries,
         };
 
-        /* (2) Остальные селекторы, пришедшие с сервера */
+        // (2) Вопросы с сервера
         const serverQuestions: Question[] = Object.entries(riskProfileSelectors)
-            .filter(([k]) => k !== "countries")
-            .map(([key, val]) => ({
+            .filter(([key]) => key !== "countries")
+            .map(([key, value]) => ({
                 name: key,
                 label: getLabelByKey(key),
-                options: val,
+                options: value,
                 fieldType: "checkboxGroup",
             }));
 
-        /* (3) Доверенное лицо + квалификация */
-        const extra: Question[] = [
+        // (3) Дополнительные вопросы
+        const extraTextQuestions: Question[] = [
             {
                 name: "trusted_person",
-                label:
-                    "Доверенное лицо.\nУкажите, пожалуйста, при наличии:\n• ФИО\n• Контактные данные",
+                label: `Доверенное лицо. \nУкажите, пожалуйста, при наличии:\n• ФИО\n• Контактные данные`,
                 needTextField: true,
                 placeholder: "Ответ",
                 fieldType: "textarea",
@@ -164,160 +148,104 @@ export const RiskProfileFirstForm: React.FC = () => {
                 name: "is_qualified_investor_status",
                 label: "Есть ли у Вас статус квалифицированного инвестора?",
                 fieldType: "checkboxGroup",
-                options: { true: "Да", false: "Нет" },
+                options: {
+                    true: "Да",
+                    false: "Нет",
+                },
             },
         ];
 
-        return [citizenshipQuestion, ...extra, ...serverQuestions];
+        return [citizenshipQuestion, ...extraTextQuestions, ...serverQuestions];
+    }, [riskProfileSelectors]);
+
+    // enableReinitialize: true позволит обновлять форму, когда Redux-стейт меняется (например, после загрузки LS)
+    const formik = useFormik({
+        enableReinitialize: true,
+        initialValues: formValues,
+        validationSchema: Yup.object({
+            // Условная валидация для phone: правило применяется только если trusted_person_fio заполнено
+            phone: Yup.string()
+                .matches(/^\+\d{11}$/, "Неверный формат")
+                .when(
+                    ["trusted_person_fio"],
+                    ([trustedPersonFio], schema) =>
+                        trustedPersonFio && trustedPersonFio.trim().length > 0
+                            ? schema.required("Номер телефона обязателен")
+                            : schema
+                ),
+            trusted_person_fio: Yup.string().min(3, "Минимум 3 символа"),
+            trusted_person_phone: Yup.string()
+                .matches(/^\+\d{11}$/, "Неверный формат")
+                .when(
+                    ["trusted_person_fio"],
+                    ([trustedPersonFio], schema) =>
+                        trustedPersonFio && trustedPersonFio.trim().length > 0
+                            ? schema.required("Номер телефона обязателен")
+                            : schema
+                ),
+        }),
+        onSubmit: async (values) => {
+
+        },
+    });
+
+
+    useEffect(() => {
+        console.log(formik.values)
+    }, [])
+
+    useEffect(() => {
+        console.log(formik.errors)
+    }, [formik.values.trusted_person_fio])
+
+    const handleChangeAndDispatch =
+        (fieldName: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+            formik.handleChange(e);
+            dispatch(updateFieldValue({ name: fieldName, value: e.target.value }));
+        };
+
+    const handleSelectChange = (fieldName: string, value: any) => {
+        formik.setFieldValue(fieldName, value);
+        dispatch(updateFieldValue({ name: fieldName, value }));
     };
 
-    /* 2. «Юр. лицо»: заготовка из 7 вопросов, оставь как пример */
-    const legalQuestionsTemplate: Question[] = [
-        {
-            name: "legal_invest_target",
-            label: "Предполагаемая цель инвестирования",
-            fieldType: "checkboxGroup",
-            options: {
-                preserve_capital: "Сохранение капитала и поддержание высокой ликвидности",
-                steady_growth: "Планомерное наращивание капитала путем получения дохода выше банковских ставок по депозитам",
-                significant_income: "Получение существенного дохода. Спокойное отношение к рискам",
-                max_income: "Получение максимального дохода. Готовность мириться со значительными рисками",
-            },
-        },
-        {
-            name: "legal_investment_period",
-            label:
-                "Срок инвестирования, в течение которого не планируется вносить существенные изменения в свой инвестиционный портфель",
-            fieldType: "checkboxGroup",
-            options: {
-                up_to_1_year: "до 1 года",
-                from_1_to_3_years: "от 1-го до 3-х лет",
-                from_3_to_5_years: "от 3-х до 5 лет",
-                from_5_to_10_years: "От 5 до 10 лет",
-                over_10_years: "Более 10 лет",
-            },
-        },
-        {
-            name: "legal_specialist_qualification",
-            label:
-                "Наличие специалистов или подразделения, отвечающих за инвестиционную деятельность в юридическом лице. Квалификация специалистов, отвечающих за инвестиционную деятельность",
-            fieldType: "checkboxGroup",
-            options: {
-                no_specialists: "Специалисты и подразделение отсутствуют",
-                finance_education_only: "Высшее экономическое/финансовое образование",
-                education_and_experience:
-                    "Высшее экономическое/финансовое образование и опыт работы на финансовом рынке более 1 года в должности, напрямую связанной с инвестированием активов",
-            },
-        },
-        {
-            name: "legal_operations_volume",
-            label:
-                "Наличие, количество и объем операций с различными финансовыми инструментами за последний отчетный год",
-            fieldType: "checkboxGroup",
-            options: {
-                no_operations: "Операции с финансовыми инструментами не осуществлялись",
-                under_10_ops: "Совершалось менее 10 операций совокупным оборотом до 50 000 000 рублей",
-                over_10_ops: "Более 10 операций совокупным оборотом более 50 000 000 рублей",
-            },
-        },
-        {
-            name: "legal_assets_size",
-            label:
-                "Размер активов юридического лица за последний завершенный отчетный год по данным бухгалтерского учета",
-            fieldType: "checkboxGroup",
-            options: {
-                up_to_20m: "до 20 000 000 рублей",
-                from_20m_to_50m: "от 20 000 000 до 50 000 000 рублей",
-                from_50m_to_100m: "от 50 000 000 до 100 000 000 рублей",
-                over_100m: "от 100 000 000 рублей",
-            },
-        },
-        {
-            name: "legal_net_assets_ratio",
-            label:
-                "Соотношение чистых активов (активы за вычетом обязательств) к объему средств, предполагаемых к инвестированию",
-            fieldType: "checkboxGroup",
-            options: {
-                greater_than_1: "Больше 1",
-                less_than_1: "Меньше 1",
-            },
-        },
-        {
-            name: "legal_risk_tolerance",
-            label: "Какой уровень изменений стоимости инвестиционных активов допускает юридическое лицо",
-            fieldType: "checkboxGroup",
-            options: {
-                no_drop_allowed:
-                    "не допускается даже временное снижение суммы инвестиционных вложений компании",
-                small_drop_allowed:
-                    "допускается возможность небольшого снижения стоимости первоначальных инвестиций до 10% в краткосрочной перспективе",
-                temporary_drop_allowed:
-                    "допускается возможность того, что стоимость инвестиций может колебаться, а также упасть ниже стоимости первоначальных инвестиций на некоторый период времени",
-                significant_drop_allowed:
-                    "допускается возможность того, что стоимость инвестиций может колебаться, а также упасть значительно ниже суммы первоначальных инвестиций в течение некоторого периода времени в расчете на последующий рост",
-            },
-        },
-        {
-            name: "legal_additional_conditions",
-            label:
-                "Дополнительные существенные условия и ограничения, которые необходимо будет учитывать",
-            fieldType: "checkboxGroup",
-            options: {
-                no_additional_conditions:
-                    "Дополнительных существенных условий или ограничений нет",
-                have_additional_conditions: "Дополнительные условия или ограничения есть",
-            },
-        },
-    ];
+    // ========================= 7. Условия рендера =========================
+    if (loading) return <Loader theme={LoaderTheme.BLUE} />;
+    if (error) return <p style={{ color: "red" }}>{error}</p>;
+    if (!riskProfileSelectors || questions.length === 0) return null;
 
-
-    /* ──────────────────────────── окончательный список вопросов ──────────────────────────── */
-    const questions: Question[] = useMemo(() => {
-        const isLegal = formik.values.person_type === "type_doc_person_legal";
-        const branch = isLegal ? legalQuestionsTemplate : buildNaturalQuestions();
-        return [...branch];
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [formik.values.person_type, riskProfileSelectors]);
-
-
-    /* ──────────────────────────── навигация ──────────────────────────── */
-    const totalSteps = questions.length;
+    const totalSteps = questions.length - 1;
     const isLastStep = currentStep === totalSteps - 1;
     const currentQuestion = questions[currentStep];
 
+    // ========================= 8. Обработка доверенного лица =========================
+    const checkTrustedPerson = () => {
+        const { trusted_person_fio, trusted_person_phone, trusted_person_other_contact } = formik.values;
+        const trustedPersonInfo: TrustedPersonInfo = {
+            trusted_person_fio,
+            trusted_person_phone,
+            trusted_person_other_contact,
+        };
 
-    const goNext = () => {
-        const { person_type } = formik.values;
-
-        if (isLastStep) {
-            /* -------------------- формируем payload -------------------- */
-            const payload: Partial<RiskProfileFormValues> =
-                person_type === "type_doc_person_legal"
-                    ? Object.fromEntries(
-                        Object.entries(formik.values).filter(([k]) =>
-                            LEGAL_FIELD_NAMES.includes(k as LegalKey),
-                        ),
-                    )
-                    : formik.values;
-
-            /* -------------------- отправляем -------------------- */
-            dispatch(postFirstRiskProfileForm(payload as RiskProfileFormValues));
-
-            if (person_type !== "type_doc_person_legal") {
-                // gender нужен только физ. лицу
-                dispatch(updateUserAllData({ gender: String(formik.values.gender) }));
-            }
-
-            dispatch(setStepAdditionalMenuUI(1));
-            return;
-        }
-
-        /* промежуточный шаг */
-        dispatch(updateRiskProfileForm(formik.values));
-        dispatch(nextRiskProfileStep());
+        dispatch(
+            postTrustedPersonInfo({
+                data: trustedPersonInfo,
+                onSuccess: goNext,
+            }) as any
+        );
     };
 
-
+    // ========================= 9. Навигация =========================
+    const goNext = () => {
+        if (isLastStep) {
+            dispatch(postFirstRiskProfileForm(formik.values));
+            dispatch(updateUserAllData({ gender: String(formik.values.gender) }));
+            dispatch(setStepAdditionalMenuUI(1));
+        } else {
+            dispatch(updateRiskProfileForm(formik.values));
+            dispatch(nextRiskProfileStep());
+        }
+    };
 
     const goBack = () => {
         if (currentStep === 0) {
@@ -332,100 +260,80 @@ export const RiskProfileFirstForm: React.FC = () => {
         }
     };
 
-    /* ──────────────────────────── trusted person ──────────────────────────── */
-    const checkTrustedPerson = () => {
-        const { trusted_person_fio, trusted_person_phone, trusted_person_other_contact } =
-            formik.values;
-        if (trusted_person_fio && trusted_person_other_contact && trusted_person_phone) {
-            const info: TrustedPersonInfo = {
-                trusted_person_fio,
-                trusted_person_phone,
-                trusted_person_other_contact,
-            };
-            dispatch(postTrustedPersonInfo({ data: info, onSuccess: goNext }) as any);
-        } else {
-            goNext()
-        }
-    };
-
-    /* ──────────────────────────── helpers ──────────────────────────── */
-    const isQuestionAnswered = (q: Question) => {
-        if (q.name === "person_type") return !!formik.values.person_type;
-
-        if (q.name === "trusted_person")
+    // ========================= 10. Проверка заполненности вопроса =========================
+    const isQuestionAnswered = (question: Question) => {
+        if (question.name === "trusted_person") {
             return (
                 formik.values.trusted_person_fio &&
                 formik.values.trusted_person_phone &&
                 formik.values.trusted_person_other_contact
             );
-
-        if (q.fieldType === "checkboxGroup") return !!formik.values[q.name];
-        if (q.fieldType === "customSelect") return !!formik.values[q.name];
-        if (q.fieldType === "numberinput") return formik.values[q.name] !== "";
-        return !!formik.values[q.name];
+        }
+        if (question.fieldType === "checkboxGroup") {
+            return formik.values[question.name] && formik.values[question.name].length > 0;
+        }
+        if (question.fieldType === "customSelect") {
+            return !!formik.values[question.name];
+        }
+        if (question.fieldType === "numberinput") {
+            return formik.values[question.name] !== undefined && formik.values[question.name] !== "";
+        }
+        return !!formik.values[question.name];
     };
 
-    const handleChangeAndDispatch =
-        (field: string) =>
-            (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-                formik.handleChange(e);
-                dispatch(updateFieldValue({ name: field, value: e.target.value }));
-            };
 
-    const handleSelectChange = (field: string, value: any) => {
-        formik.setFieldValue(field, value);
-        dispatch(updateFieldValue({ name: field, value }));
-    };
 
-    /* ──────────────────────────── ui states ──────────────────────────── */
-    if (loading) return <Loader theme={LoaderTheme.BLUE} />;
-    if (error) return <p style={{ color: "red" }}>{error}</p>;
-    if (!questions.length) return null;
-
-    /* ──────────────────────────── render field ──────────────────────────── */
-    const renderQuestionField = (q: Question) => {
-        if (q.name === "trusted_person") {
+    // ========================= 11. Рендеринг полей вопросов =========================
+    const renderQuestionField = (question: Question) => {
+        if (question.name === "trusted_person") {
             return (
                 <>
                     <Input
                         placeholder="Введите ФИО"
                         name="trusted_person_fio"
+                        type="text"
+                        minLength={2}
                         value={formik.values.trusted_person_fio || ""}
                         onChange={(e) => {
-                            const v = e.target.value.replace(/[^A-Za-zА-Яа-яЁё\s-]/g, "");
-                            handleChangeAndDispatch("trusted_person_fio")({
+                            let value = e.target.value;
+                            value = value.replace(/[^A-Za-zА-Яа-яЁё\s-]/g, ""); // Оставляем только буквы, пробелы и дефисы
+                            const newEvent = {
                                 ...e,
-                                target: { ...e.target, value: v },
-                            } as any);
+                                target: {
+                                    ...e.target,
+                                    value,
+                                },
+                            } as React.ChangeEvent<HTMLInputElement>;
+                            handleChangeAndDispatch("trusted_person_fio")(newEvent);
                         }}
                         onBlur={formik.handleBlur}
-                        needValue={!!formik.values.trusted_person_phone}
-                        error={
-                            formik.touched.trusted_person_fio && formik.errors.trusted_person_fio
-                        }
+                        needValue={formik.values?.trusted_person_phone?.length > 0}
+                        error={formik.touched.trusted_person_fio && formik.errors.trusted_person_fio}
                     />
+
                     <Input
                         placeholder="Введите номер телефона"
                         name="trusted_person_phone"
                         inputMode="numeric"
+                        type="text"
                         value={formik.values.trusted_person_phone || ""}
                         onChange={(e) => {
-                            const digits = e.target.value.replace(/\D/g, "").slice(0, 14);
-                            formik.setFieldValue(
-                                "trusted_person_phone",
-                                digits.length ? "+" + digits : ""
-                            );
+                            let inputVal = e.target.value;
+                            const onlyDigits = inputVal.replace(/\D/g, "");
+                            const limitedDigits = onlyDigits.slice(0, 14);
+                            const formatted = limitedDigits.length > 0 ? "+" + limitedDigits : "";
+                            formik.setFieldValue("trusted_person_phone", formatted);
                         }}
                         onBlur={formik.handleBlur}
-                        needValue={!!formik.values.trusted_person_fio}
-                        error={
-                            formik.touched.trusted_person_phone &&
-                            formik.errors.trusted_person_phone
-                        }
+                        needValue={formik.values?.trusted_person_fio?.length > 0}
+                        error={formik.touched.trusted_person_phone && formik.errors.trusted_person_phone}
                     />
+
+
                     <Input
                         placeholder="Доп. контактная информация"
                         name="trusted_person_other_contact"
+                        type="text"
                         value={formik.values.trusted_person_other_contact || ""}
                         onChange={handleChangeAndDispatch("trusted_person_other_contact")}
                     />
@@ -433,11 +341,12 @@ export const RiskProfileFirstForm: React.FC = () => {
             );
         }
 
-        if (q.name === "citizenship") {
-            const countryOpts = Object.entries(q.options || {}).map(([v, l]) => ({
-                value: v,
-                label: l,
+        if (question.name === "citizenship") {
+            const countryOptions = Object.entries(question.options || {}).map(([key, val]) => ({
+                value: key,
+                label: val,
             }));
+
             return (
                 <>
                     <Select
@@ -445,85 +354,71 @@ export const RiskProfileFirstForm: React.FC = () => {
                         needValue
                         value={formik.values.citizenship || ""}
                         title="Выберите страну"
-                        items={countryOpts}
-                        onChange={(v) => handleSelectChange("citizenship", v)}
+                        items={countryOptions}
+                        onChange={(selectedVal) => handleSelectChange("citizenship", selectedVal)}
                     />
                     <Select
                         label="Вид на жительство"
                         needValue={false}
-                        value={formik.values.citizenship_including_residence_permit as any || ""}
-
+                        value={formik.values.citizenship_including_residence_permit || ""}
                         title="Выберите страну"
-                        items={countryOpts}
-                        onChange={(v) =>
-                            handleSelectChange("citizenship_including_residence_permit", v)
-                        }
+                        items={countryOptions}
+                        onChange={(selectedVal) => handleSelectChange("citizenship_including_residence_permit", selectedVal)}
                     />
                 </>
             );
         }
 
-        if (q.fieldType === "checkboxGroup" && q.options) {
+        if (question.fieldType === "checkboxGroup" && question.options) {
             return (
                 <CheckboxGroup
-                    name={q.name}
-                    options={Object.entries(q.options).map(([v, l]) => ({ value: v, label: l }))}
-                    value={String(formik.values[q.name])}
-                    onChange={(name, v) => {
-                        formik.setFieldValue(name, v);
-                        dispatch(updateFieldValue({ name, value: v }));
+                    name={question.name}
+                    options={Object.entries(question.options).map(([value, label]) => ({ label, value }))}
+                    value={String(formik.values[question.name])}
+                    onChange={(name, selectedValue) => {
+                        formik.setFieldValue(name, selectedValue);
+                        dispatch(updateFieldValue({ name, value: selectedValue }));
                     }}
                 />
             );
         }
 
-        if (q.fieldType === "textarea")
+        if (question.fieldType === "textarea") {
             return (
                 <Input
+                    placeholder={question.placeholder}
+                    name={question.name}
                     type="textarea"
-                    placeholder={q.placeholder}
-                    name={q.name}
-                    value={(formik.values as any)[q.name] || ""}
-                    onChange={handleChangeAndDispatch(q.name)}
+                    value={formik.values[question.name] || ""}
+                    onChange={handleChangeAndDispatch(question.name)}
                 />
             );
+        }
 
-        if (q.fieldType === "numberinput")
+        if (question.fieldType === "numberinput") {
             return (
                 <Input
+                    placeholder={question.placeholder}
+                    name={question.name}
                     type="number"
-                    placeholder={q.placeholder}
-                    name={q.name}
-                    value={(formik.values as any)[q.name] || ""}
-                    onChange={handleChangeAndDispatch(q.name)}
-                />
-            );
-
-        if (q.fieldType === "customSelect" && q.options) {
-            const items = Object.entries(q.options).map(([v, l]) => ({ value: v, label: l }));
-            return (
-                <Select
-                    label=""
-                    value={(formik.values as any)[q.name] || ""}
-                    title={q.placeholder || q.label}
-                    items={items}
-                    needValue
-                    onChange={(v) => handleSelectChange(q.name, v)}
+                    value={formik.values[question.name] || ""}
+                    onChange={handleChangeAndDispatch(question.name)}
                 />
             );
         }
 
         return (
             <Input
-                placeholder={q.placeholder}
-                name={q.name}
-                value={(formik.values as any)[q.name] || ""}
-                onChange={handleChangeAndDispatch(q.name)}
+                placeholder={question.placeholder}
+                name={question.name}
+                type="text"
+                value={formik.values[question.name] || ""}
+                onChange={handleChangeAndDispatch(question.name)}
             />
         );
     };
 
-    /* ──────────────────────────── JSX ──────────────────────────── */
+    // ========================= 12. Рендер компонента =========================
     return (
         <div className={styles.form}>
             <p className={styles.form__steps}>
@@ -536,7 +431,9 @@ export const RiskProfileFirstForm: React.FC = () => {
                         {currentQuestion.label}
                     </label>
 
-                    <div style={{ marginBottom: 32 }}>{renderQuestionField(currentQuestion)}</div>
+                    <div style={{ marginBottom: "32px" }}>
+                        {renderQuestionField(currentQuestion)}
+                    </div>
                 </div>
 
                 <div className={`${styles.buttons} ${isBottom ? "" : styles.shadow}`}>
@@ -552,14 +449,9 @@ export const RiskProfileFirstForm: React.FC = () => {
                     <Button
                         type="button"
                         theme={ButtonTheme.BLUE}
-                        onClick={
-                            currentQuestion.name === "trusted_person" ? checkTrustedPerson : goNext
-                        }
+                        onClick={currentStep !== 1 ? goNext : checkTrustedPerson}
                         className={styles.button}
-                        disabled={
-                            !isQuestionAnswered(currentQuestion) &&
-                            currentQuestion.name !== "trusted_person"
-                        }
+                        disabled={!isQuestionAnswered(currentQuestion) && currentQuestion.name !== "trusted_person"}
                     >
                         Продолжить
                     </Button>

@@ -113,10 +113,11 @@ export const RiskProfileFirstForm: React.FC = () => {
     };
 
     // ========================= 5. Построение вопросов =========================
+    // ========================= 5. Построение вопросов =========================
     const questions: Question[] = React.useMemo(() => {
         if (!riskProfileSelectors) return [];
 
-        // (1) Вопрос о гражданстве
+        /* 1. Гражданство (оставляем как было) */
         const citizenshipQuestion: Question = {
             name: "citizenship",
             label: "Гражданство, в том числе ВНЖ",
@@ -125,17 +126,44 @@ export const RiskProfileFirstForm: React.FC = () => {
             options: riskProfileSelectors.countries,
         };
 
-        // (2) Вопросы с сервера
-        const serverQuestions: Question[] = Object.entries(riskProfileSelectors)
-            .filter(([key]) => key !== "countries")
-            .map(([key, value]) => ({
-                name: key,
-                label: getLabelByKey(key),
-                options: value,
-                fieldType: "checkboxGroup",
-            }));
+        /* 2. Список вопросов, пришедших от сервера
+         *    ─ теперь разворачиваем весь объект person_natural,
+         *      игнорируя person_legal и countries
+         */
+        const serverQuestions: Question[] = [];
 
-        // (3) Дополнительные вопросы
+        Object.entries(riskProfileSelectors).forEach(([key, value]) => {
+            // countries обрабатываем отдельно (см. citizenshipQuestion)
+            if (key === "countries") return;
+
+            // person_natural содержит ВСЕ нужные вопросы
+            if (key === "person_natural" && value && typeof value === "object") {
+                //@ts-ignore
+                Object.entries(value as Record<string, Record<string, string>>).forEach(
+                    ([innerKey, innerVal]) => {
+                        serverQuestions.push({
+                            name: innerKey,
+                            label: getLabelByKey(innerKey),
+                            options: innerVal,
+                            fieldType: "checkboxGroup",
+                        });
+                    }
+                );
+                return; // дальше ничего не делаем
+            }
+
+            // всё остальное (currency_investment и т.п.)
+            if (key !== "person_legal") {
+                serverQuestions.push({
+                    name: key,
+                    label: getLabelByKey(key),
+                    options: value as Record<string, string>,
+                    fieldType: "checkboxGroup",
+                });
+            }
+        });
+
+        /* 3. Дополнительные «ручные» вопросы */
         const extraTextQuestions: Question[] = [
             {
                 name: "trusted_person",
@@ -148,15 +176,13 @@ export const RiskProfileFirstForm: React.FC = () => {
                 name: "is_qualified_investor_status",
                 label: "Есть ли у Вас статус квалифицированного инвестора?",
                 fieldType: "checkboxGroup",
-                options: {
-                    true: "Да",
-                    false: "Нет",
-                },
+                options: { true: "Да", false: "Нет" },
             },
         ];
 
         return [citizenshipQuestion, ...extraTextQuestions, ...serverQuestions];
     }, [riskProfileSelectors]);
+
 
     // enableReinitialize: true позволит обновлять форму, когда Redux-стейт меняется (например, после загрузки LS)
     const formik = useFormik({

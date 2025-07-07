@@ -14,10 +14,7 @@ import {
     SendCodeDocsConfirmPayload,
     SecondRiskProfileFinalPayload,
     BrokerSetTokenPayload,
-    PassportFormData,
-    RiskProfileFormValues,
-    LegalFormData,
-    LegalDataFormRequest
+    PassportFormData
 } from "../model/types";
 import {
     getAllSelects,
@@ -26,7 +23,6 @@ import {
     postConfirmationDocsCode,
     postFirstRiskProfile,
     postIdentificationData,
-    postLegalInfoForm,
     postNeedHelpRequest,
     postPasportData,
     postPasportScanData,
@@ -52,7 +48,7 @@ interface RiskProfileFormState {
     secondRiskProfileData: SecondRiskProfileResponse | null;
     thirdRiskProfileResponse: ThirdRiskProfileResponse | null;
     riskProfileSelectors: RiskProfileSelectors | null;
-    formValues: RiskProfileFormValues;
+    formValues: Record<string, string>;
     stepsFirstForm: {
         currentStep: number;
     };
@@ -61,67 +57,6 @@ interface RiskProfileFormState {
     pasportScanSocketId: string;
     pasportScanProgress: number
 }
-
-export const initialLegalFormData: LegalFormData = {
-    /* вариант 1 */
-    organization_name: "",
-    general_director: "",
-    inn: "",
-    kpp: "",
-    ogrn: "",
-    bank_name: "",
-    checking_account: "",
-    correspondent_account: "",
-    bik: "",
-    work_email: "",
-    work_phone: "",
-    legal_region: "",
-    legal_city: "",
-    legal_street: "",
-    legal_house: "",
-    legal_apartment: "",
-
-    /* вариант 2 */
-    company_name: "",
-    first_name: "",
-    last_name: "",
-    patronymic: "",
-    type_message: "SMS",
-
-    company_inn: "",
-    company_kpp: "",
-    company_ogrn: "",
-
-    company_payment_account: "",
-    company_bank_payment_account: "",
-    company_bank_bik: "",
-    company_bank_correspondent_account: "",
-
-    phone: "",
-    email: "",
-
-    company_region: "",
-    company_city: "",
-    company_street: "",
-    company_house: "",
-    company_apartment: "",
-
-    /* переключатель + почтовый адрес */
-    is_receive_mail_this_address: false,
-    company_mailing_region: "",
-    company_mailing_city: "",
-    company_mailing_street: "",
-    company_mailing_house: "",
-    company_mailing_apartment: "",
-
-    postal_region: "",
-    postal_city: "",
-    postal_street: "",
-    postal_house: "",
-    postal_apartment: "",
-    g_recaptcha: ''
-};
-
 
 const initialState: RiskProfileFormState = {
     loading: false,
@@ -132,9 +67,7 @@ const initialState: RiskProfileFormState = {
     IdentificationFromData: null,
     riskProfileSelectors: null,
     thirdRiskProfileResponse: null,
-    formValues: {
-        person_type: "",
-    } as RiskProfileFormValues,
+    formValues: {},
     stepsFirstForm: {
         currentStep: 0
     },
@@ -168,38 +101,6 @@ const initialState: RiskProfileFormState = {
     pasportScanSocketId: '',
     pasportScanProgress: 0
 };
-
-export const postLegalInfoThunk = createAsyncThunk<
-    void,
-    { data: LegalDataFormRequest; onSuccess: () => void },
-    { state: RootState; rejectValue: string }
->(
-    "riskProfile/postLegalInfo",
-    async ({ data, onSuccess }, { getState, dispatch, rejectWithValue }) => {
-        try {
-            const token = getState().user.token;
-            if (!token) return rejectWithValue("Отсутствует токен авторизации");
-
-            /* ───── убираем чекбокс ───── */
-            const { is_receive_mail_this_address, ...payload } = data;
-
-            const response = await postLegalInfoForm(
-                payload as Omit<LegalDataFormRequest, "is_receive_mail_this_address">,
-                token,
-            );
-
-            if (response.group_name_upload_scans_progress) {
-                dispatch(setPasportScanSocketId(response.group_name_upload_scans_progress));
-            }
-            onSuccess();
-        } catch (error: any) {
-            dispatch(setError(error.response?.data?.errorText || "Ошибка"));
-            return rejectWithValue(error.response?.data?.errorText);
-        }
-    },
-);
-
-
 
 export const createRiskProfile = createAsyncThunk<
     void,
@@ -323,7 +224,7 @@ export const postSecondRiskProfileFormFinal = createAsyncThunk<
 
 export const postFirstRiskProfileForm = createAsyncThunk<
     void,
-    RiskProfileFormValues,
+    Record<string, string>,
     { state: RootState; rejectValue: string }
 >(
     "riskProfile/postFirstRiskProfileForm",
@@ -349,7 +250,26 @@ export const postFirstRiskProfileForm = createAsyncThunk<
                 'passport_number',
                 'house',
                 'inn',
-                'birth_place'
+                'birth_place',
+                'legal_specialist_qualification',
+                'legal_operations_volume',
+                'legal_net_assets_ratio',
+                'legal_invest_target',
+                'type_person',
+                'legal_assets_size',
+                'gender',
+                'legal_additional_conditions',
+                'assets',
+                'invest_goal',
+                'volatility',
+                'person_type',
+                'operations',
+                'invest_period',
+                'legal_risk_tolerance',
+                'net_assets',
+                'additional',
+                'qualification',
+                'legal_investment_period'
             ]);
             const transformedData = {
                 ...filteredData,
@@ -644,11 +564,8 @@ const riskProfileSlice = createSlice({
             }
             state.formValues[action.payload.name] = action.payload.value;
         },
-        updateRiskProfileForm: (
-            state,
-            action: PayloadAction<Partial<RiskProfileFormValues>>
-        ) => {
-            state.formValues = { ...state.formValues, ...action.payload };
+        updateRiskProfileForm: (state, action: PayloadAction<Record<string, string>>) => {
+            state.formValues = action.payload;
         },
         nextRiskProfileStep(state) {
             state.stepsFirstForm.currentStep += 1;
@@ -681,13 +598,7 @@ const riskProfileSlice = createSlice({
         },
         setPassportScanProgress(state, action: PayloadAction<number>) {
             state.pasportScanProgress = action.payload
-        },
-        updateLegalFormData: (
-            state,
-            action: PayloadAction<Partial<LegalFormData>>,
-        ) => {
-            state.riskProfileForm = { ...state.riskProfileForm, ...action.payload };
-        },
+        }
     },
     extraReducers: (builder) => {
         builder
@@ -787,7 +698,6 @@ export const {
     setThirdRiskProfileResponse,
     setFirstRiskProfileData,
     setPassportScanProgress,
-    updatePassportFormData,
-    updateLegalFormData
+    updatePassportFormData
 } = riskProfileSlice.actions;
 export default riskProfileSlice.reducer;

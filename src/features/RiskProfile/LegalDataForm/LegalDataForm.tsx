@@ -35,6 +35,7 @@ import { isEqual } from "lodash";
 import { toLegalDataRequest } from "shared/lib/utils/toLegalDataRequest";
 import { postLegalInfoThunk } from "entities/RiskProfile/slice/riskProfileSlice";
 import styles from './styles.module.scss'
+import { LegalDataFormRequest, LegalFormData } from "entities/RiskProfile/model/types";
 /* ────────────────────────────────────────────────────────────── */
 
 /**
@@ -182,7 +183,8 @@ export const LegalDataForm: React.FC = () => {
         onSubmit: values => {
             dispatch(
                 postLegalInfoThunk({
-                    data: toLegalDataRequest(values),
+                    //@ts-ignore
+                    data: toLegalDataRequest(values) as LegalDataFormRequest,
                     onSuccess: () =>
                         dispatch(
                             openModal({

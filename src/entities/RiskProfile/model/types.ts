@@ -10,6 +10,7 @@ export interface IdentificationProfileData {
     g_recaptcha: string;
     is_individual_entrepreneur: boolean;
     type_sms_message?: string
+
 }
 
 export interface ConfirmationCodeData {

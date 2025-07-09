@@ -41,6 +41,7 @@ import { RootState } from "app/providers/store/config/store";
 import { PasportScanData } from "features/RiskProfile/PassportScanForm/PassportScanForm";
 import { omit } from "lodash";
 import { setBrokerSuccessResponseInfo } from "entities/Documents/slice/documentsSlice";
+import { EMPTY_LEGAL_FORM } from "../constants/constansRiskProfile";
 
 interface RiskProfileFormState {
     loading: boolean;
@@ -56,7 +57,7 @@ interface RiskProfileFormState {
         currentStep: number;
     };
     passportFormData: PassportFormData;
-    legalFormData: LegalFormData | null;
+    legalFormData: LegalFormData;
     currentConfirmingDoc: string;
     pasportScanSocketId: string;
     pasportScanProgress: number
@@ -75,7 +76,7 @@ const initialState: RiskProfileFormState = {
     stepsFirstForm: {
         currentStep: 0
     },
-    legalFormData: null,
+    legalFormData: EMPTY_LEGAL_FORM,
     passportFormData: {
         last_name: "",
         gender: '',

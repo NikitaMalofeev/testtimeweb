@@ -14,7 +14,9 @@ import {
     SendCodeDocsConfirmPayload,
     SecondRiskProfileFinalPayload,
     BrokerSetTokenPayload,
-    PassportFormData
+    PassportFormData,
+    LegalFormData,
+    LegalDataFormRequest
 } from "../model/types";
 import {
     getAllSelects,
@@ -23,6 +25,7 @@ import {
     postConfirmationDocsCode,
     postFirstRiskProfile,
     postIdentificationData,
+    postLegalInfoForm,
     postNeedHelpRequest,
     postPasportData,
     postPasportScanData,
@@ -53,6 +56,7 @@ interface RiskProfileFormState {
         currentStep: number;
     };
     passportFormData: PassportFormData;
+    legalFormData: LegalFormData | null;
     currentConfirmingDoc: string;
     pasportScanSocketId: string;
     pasportScanProgress: number
@@ -71,6 +75,7 @@ const initialState: RiskProfileFormState = {
     stepsFirstForm: {
         currentStep: 0
     },
+    legalFormData: null,
     passportFormData: {
         last_name: "",
         gender: '',
@@ -158,6 +163,24 @@ export const postSecondRiskProfileForm = createAsyncThunk<
             const token = getState().user.token;
             const response = await postSecondRiskProfile(data, token);
             dispatch(setThirdRiskProfileResponse(response));
+        } catch (error: any) {
+
+        }
+    }
+);
+
+export const postLegalInfoThunk = createAsyncThunk<
+    void,
+    { data: LegalDataFormRequest, onSuccess: () => void },
+    { state: RootState; rejectValue: string }
+>(
+    "riskProfile/postLegalInfoThunk",
+    async ({ data, onSuccess }, { dispatch, rejectWithValue, getState }) => {
+        try {
+            const token = getState().user.token;
+            const response = await postLegalInfoForm(data, token);
+            onSuccess()
+            return response
         } catch (error: any) {
 
         }
@@ -255,7 +278,6 @@ export const postFirstRiskProfileForm = createAsyncThunk<
                 'legal_operations_volume',
                 'legal_net_assets_ratio',
                 'legal_invest_target',
-                'type_person',
                 'legal_assets_size',
                 'gender',
                 'legal_additional_conditions',

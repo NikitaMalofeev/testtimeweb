@@ -59,6 +59,7 @@ const DocumentsPage: React.FC = () => {
     const userChecks = useSelector((s: RootState) => s.payments.checks);
     const tariff = useSelector((s: RootState) => s.payments.payments_info);
     const activeTariffs = useSelector((s: RootState) => s.payments.activeTariffs);
+    const user = useSelector((s: RootState) => s.user.user);
     const currentUserTariffIdForPayments = useSelector((s: RootState) => s.payments.currentUserTariffIdForPayments);
     const targetTariffId = currentUserTariffIdForPayments || '';
 
@@ -105,7 +106,7 @@ const DocumentsPage: React.FC = () => {
 
     // Лейблы для отображения
     const docTypeLabels: Record<string, string> = {
-        type_doc_passport: "1. Паспортные данные",
+        type_doc_passport: user.is_individual_entrepreneur === false ? "1. Паспортные данные" : '1. Данные об ИП',
         type_doc_EDS_agreement: "2. Соглашение об ЭДО",
         type_doc_RP_questionnairy: "3. Анкета РП",
         type_doc_agreement_investment_advisor: "4. Договор ИС",

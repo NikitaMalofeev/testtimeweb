@@ -70,11 +70,13 @@
     height: calc(100dvh - 50.5px);
     flex-direction: column;
 
+
     overflow: auto;
   }
 
   &__container_scrolled {
     padding-top: 83px;
+        padding-bottom: 20px;
   }
 }
 
@@ -138,8 +140,8 @@
          .header.shadow {
           position: sticky;
           background-color: white;
-          top: 0;
-          left: -20px;
+          top: -64px;
+          left: calc(50vw - 480px);
           max-width: 960px;
           
   /* 2. Убираем внутренние отступы контейнера (60px слева/справа)   *
@@ -149,7 +151,7 @@
   padding-right: 60px;  // симметрия
          }
          .progressBar {
-          max-width: 960px;
+          max-width: 956px;
           position: absolute;
           top: 24px;
           // left: -32px;
@@ -159,6 +161,11 @@
          .header__tooltip {
                       top: -28px;
             left: -2px;
+         }
+
+         .header__tooltip_scrolled {
+                    top: 18px;
+          left: 20px;
          }
 
          .header__title {

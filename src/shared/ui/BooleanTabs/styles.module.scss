@@ -28,9 +28,11 @@
 .tab {
     display: flex;
     align-items: center;
+    justify-content: center;
   flex: 1;
   text-align: center;
   padding: 12px 29px;
+  min-width: 60px;
   border-radius: 50px;
   font: 16px/19.36px Inter, sans-serif;
   color: #000;

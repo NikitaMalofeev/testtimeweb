@@ -3,8 +3,8 @@ export interface userType {
     email: string;
     first_name?: string;
     patronymic?: string;
-    type_person?: string;
     last_name?: string;
+    is_individual_entrepreneur?: boolean;
     is_agreement?: boolean;
 }
 

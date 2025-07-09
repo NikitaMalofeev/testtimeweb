@@ -36,7 +36,7 @@ const IdentificationProfileForm: React.FC = () => {
     const gcaptchaSiteKey = import.meta.env.VITE_RANKS_GRCAPTCHA_SITE_KEY;
 
     /* ───────────── вкладка «Физ/Юр лицо» ───────────── */
-    const [personTab, setPersonTab] = useState<"natural" | "legal">("natural");
+    const [personTab, setPersonTab] = useState<boolean>(false);
 
     /* ───────────── капча ───────────── */
     const recaptchaRef = useRef<ReCAPTCHA | null>(null);
@@ -65,9 +65,9 @@ const IdentificationProfileForm: React.FC = () => {
             email: "",
             password: "",
             password2: "",
-            type_person: '',
             is_agreement: false,
             g_recaptcha: "",
+            is_individual_entrepreneur: false,
             type_sms_message: "SMS",
         },
         validationSchema: Yup.object({
@@ -174,7 +174,7 @@ const IdentificationProfileForm: React.FC = () => {
             password2: formik.values.password2,
             is_agreement: formik.values.is_agreement,
             g_recaptcha: formik.values.g_recaptcha,
-            type_person: formik.values.type_person,
+            is_individual_entrepreneur: formik.values.is_individual_entrepreneur,
             type_sms_message: formik.values.type_sms_message,
         };
 
@@ -184,7 +184,7 @@ const IdentificationProfileForm: React.FC = () => {
             first_name: formik.values.firstName,
             patronymic: formik.values.patronymic,
             last_name: formik.values.lastName,
-            type_person: formik.values.type_person,
+            is_individual_entrepreneur: formik.values.is_individual_entrepreneur,
             is_agreement: formik.values.is_agreement,
         };
 
@@ -211,11 +211,9 @@ const IdentificationProfileForm: React.FC = () => {
     };
 
     /* ───────────── обработка клика по вкладкам ───────────── */
-    const handlePersonTabChange = (tab: "natural" | "legal") => {
+    const handlePersonTabChange = (tab: boolean) => {
         setPersonTab(tab);
-        const mappedValue =
-            tab === "natural" ? "type_doc_person_natural" : "type_doc_person_legal";
-        formik.setFieldValue("type_person", mappedValue);
+        formik.setFieldValue("is_individual_entrepreneur", tab);
     };
 
     return (
@@ -236,11 +234,11 @@ const IdentificationProfileForm: React.FC = () => {
                     {/* ───────────── поля формы ───────────── */}
 
                     <BooleanTabs
-                        leftTitle="Физ.лицо"
-                        rightTitle="Юр.лицо"
-                        active={personTab === "natural" ? "left" : "right"}
-                        onLeftClick={() => handlePersonTabChange("natural")}
-                        onRightClick={() => handlePersonTabChange("legal")}
+                        leftTitle="ИП"
+                        rightTitle="Физ.лицо"
+                        active={personTab === false ? "right" : "left"}
+                        onLeftClick={() => handlePersonTabChange(true)}
+                        onRightClick={() => handlePersonTabChange(false)}
                     />
                     <Input
                         name="lastName"

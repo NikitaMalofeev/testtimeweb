@@ -9,21 +9,14 @@ import { PasportDataForm } from "features/RiskProfile/PasportDataFrom/PasportDat
 import { PasportScanForm } from "features/RiskProfile/PassportScanForm/PassportScanForm";
 import { ConfirmAllDocs } from "features/RiskProfile/ConfirmationAllDocs/ConfirmationAllDocs";
 import { BrokerConnectionForm } from "features/RiskProfile/BrokerConnectionForm/BrokerConnectionForm";
+import { LegalDataForm } from "features/RiskProfile/LegalDataForm/LegalDataForm";
 // import { LegalDataForm } from "features/RiskProfile/LegalDataForm/LegalDataForm";
 
 interface WithStepContentProps {
     onClose: () => void;
 }
 
-const stepTitles = [
-    "Риск-профилирование",
-    "Уточнение риск профиля",
-    "Паспортные данные",
-    "Отправка документов",
-    "Подписание документов",
-    "Настройка подключения к брокеру",
-    "Отправка документов"
-];
+
 
 
 
@@ -35,14 +28,23 @@ const withStepContent = (
         description: string | boolean | ReactElement;
     }>
 ) => {
-    // Возвращаем компонент-функцию, внутри которого можно безопасно использовать хуки
     return ({ onClose }: WithStepContentProps) => {
-        const type_person = useSelector((s: RootState) => s.user.user.type_person)
+        const user = useSelector((s: RootState) => s.user.user)
+
+        const stepTitles = [
+            "Риск-профилирование",
+            "Уточнение риск профиля",
+            user.is_individual_entrepreneur === false ? "Паспортные данные" : 'Данные об ИП',
+            "Отправка документов",
+            "Подписание документов",
+            "Настройка подключения к брокеру",
+            "Отправка документов"
+        ];
+        const type_person = useSelector((s: RootState) => s.user.user.is_individual_entrepreneur)
         const stepContents = [
             <RiskProfileFirstForm />,
             <RiskProfileSecondForm />,
-            // type_person === 'type_doc_person_legal' ? <LegalDataForm /> : <PasportDataForm />,
-            type_person === 'type_doc_person_legal' ? <PasportDataForm /> : <PasportDataForm />,
+            type_person === false ? <PasportDataForm /> : <LegalDataForm />,
 
             <PasportScanForm />,
             <ConfirmAllDocs />,

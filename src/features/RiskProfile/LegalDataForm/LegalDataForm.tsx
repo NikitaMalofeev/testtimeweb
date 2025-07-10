@@ -36,6 +36,7 @@ import { toLegalDataRequest } from "shared/lib/utils/toLegalDataRequest";
 import { postLegalInfoThunk } from "entities/RiskProfile/slice/riskProfileSlice";
 import styles from './styles.module.scss'
 import { LegalDataFormRequest, LegalFormData } from "entities/RiskProfile/model/types";
+import { setCurrentConfirmationMethod } from "entities/Documents/slice/documentsSlice";
 /* ────────────────────────────────────────────────────────────── */
 
 /**
@@ -54,7 +55,7 @@ export const LegalDataForm: React.FC = () => {
     const gcaptchaSiteKey = import.meta.env.VITE_RANKS_GRCAPTCHA_SITE_KEY;
 
     /* store selectors */
-    const { loading } = useSelector((s: RootState) => s.user);
+    const { loading, userPersonalAccountInfo } = useSelector((s: RootState) => s.user);
     const modalState = useSelector((s: RootState) => s.modal);
     const isBottomState = useSelector((s: RootState) => s.ui.isScrollToBottom);
     const { legalFormData } = useSelector((s: RootState) => s.riskProfile);
@@ -176,7 +177,12 @@ export const LegalDataForm: React.FC = () => {
     /* ──────── Formik ──────── */
     const formik = useFormik({
         initialValues: {
-            ...legalFormData
+            ...legalFormData,
+            phone: userPersonalAccountInfo?.phone.replace(/^\+|\s+/g, ''),
+            first_name: userPersonalAccountInfo?.first_name,
+            last_name: userPersonalAccountInfo?.last_name,
+            email: userPersonalAccountInfo?.email,
+            type_message: 'EMAIL'
         },
         enableReinitialize: true,
         validationSchema,
@@ -284,6 +290,7 @@ export const LegalDataForm: React.FC = () => {
         formik.setFieldValue("type_message", method);
         // сбрасываем captcha при смене метода
         setCaptchaVerified(false);
+        dispatch(setCurrentConfirmationMethod(method));
         formik.setFieldValue("g_recaptcha", "");
         recaptchaRef.current?.reset();
     };

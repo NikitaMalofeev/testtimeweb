@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import AppRouter from './providers/router/ui/AppRouter';
 import './styles/index.scss';
 import { Header } from 'widgets/Header/ui/Header';
@@ -96,6 +96,7 @@ function App() {
     const unread = currentAnswerCount > storedAnswerCount ? currentAnswerCount - storedAnswerCount : 0;
     dispatch(setUnreadAnswersCount(unread));
   }, [messages, dispatch]);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isNeedScrollToTop) {
@@ -113,6 +114,18 @@ function App() {
     dispatch(getAllUserTariffsThunk({ onSuccess: () => { } }))
   }, []);
 
+  useLayoutEffect(() => {
+    if (location.pathname === '/lk') {
+      const node = scrollRef.current;
+      if (!node) return;
+
+      const prev = node.style.scrollBehavior;
+      node.style.scrollBehavior = 'auto';
+      node.scrollTop = 0;
+      node.style.scrollBehavior = prev;
+    }
+  }, [location.pathname]);
+
   const handleResetTariffs = async () => {
     const res = await deleteUserTariffs(token)
   }
@@ -121,7 +134,7 @@ function App() {
     <div className='page__wrapper'>
       <div className='page__content'>
         <Header currentNotificationsCount={unreadAnswersCount} variant='main' />
-        <div className="page__scroll">
+        <div className="page__scroll" ref={scrollRef}>
           {/* <button onClick={handleResetTariffs}>reset</button> */}
           <Cover />
           <AppRouter />

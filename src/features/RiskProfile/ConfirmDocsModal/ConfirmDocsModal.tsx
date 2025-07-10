@@ -223,6 +223,7 @@ export const ConfirmDocsModal = memo(
                         }
                     }))
                 } else {
+                    console.log('отправляю код' + code)
                     dispatch(
                         sendDocsConfirmationCode({
                             codeFirst: code,

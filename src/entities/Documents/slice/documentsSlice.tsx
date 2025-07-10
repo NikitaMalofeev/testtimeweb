@@ -299,6 +299,7 @@ export const sendDocsConfirmationCode = createAsyncThunk<
         try {
             const token = getState().user.token;
             const currentConfirmableDoc = getState().documents.currentConfirmableDoc
+            const isLegal = getState().user.user.is_individual_entrepreneur
             const broker_id = getState().documents.brokerIds[0]
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");
@@ -314,15 +315,15 @@ export const sendDocsConfirmationCode = createAsyncThunk<
                 dispatch(setCurrentConfirmableDoc(responseDocs.next_document));
             } else if (codeFirst) {
                 // console.log('попытка отправить код легально' + person_type)
-                // const responseDocs = person_type !== 'type_doc_person_legal' ? await postConfirmationDocsCode(
-                //     { code: codeFirst, type_document: docs },
-                //     token
-                // ) : await postConfirmationCodeLegal(
-                //     { code: codeFirst, type_document: docs },
-                //     token
-                // )
-                // onSuccess?.(responseDocs);
-                // dispatch(setCurrentConfirmableDoc(responseDocs.next_document));
+                const responseDocs = !isLegal ? await postConfirmationDocsCode(
+                    { code: codeFirst, type_document: docs },
+                    token
+                ) : await postConfirmationCodeLegal(
+                    { code: codeFirst, type_document: docs },
+                    token
+                )
+                onSuccess?.(responseDocs);
+                dispatch(setCurrentConfirmableDoc(responseDocs.next_document));
             }
 
         } catch (error: any) {

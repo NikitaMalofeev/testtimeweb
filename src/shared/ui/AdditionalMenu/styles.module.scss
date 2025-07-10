@@ -71,6 +71,7 @@
     flex-direction: column;
 
 
+
     overflow: auto;
   }
 
@@ -128,6 +129,7 @@
             margin: 0 auto;
             background-color: white;
             border-radius: 15px;
+                overflow-x: hidden;
             padding: 64px 60px 0;
           }
          }

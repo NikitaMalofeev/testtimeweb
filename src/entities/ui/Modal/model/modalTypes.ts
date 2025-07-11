@@ -32,7 +32,8 @@ export enum ModalType {
     INFO = 'info',
     SUCCESS = 'success',
     WARNING = 'warning',
-    CHECKS_PREVIEW = 'checksPreview'
+    CHECKS_PREVIEW = 'checksPreview',
+    CONFIRM_CONTACTS = 'confirmContacts'
 }
 
 /** Состояние одной конкретной модалки */

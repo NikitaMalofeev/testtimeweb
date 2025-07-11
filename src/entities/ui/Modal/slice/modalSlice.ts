@@ -128,6 +128,12 @@ const initialState: ExtendedModalState = {
         animation: ModalAnimation.BOTTOM,
         isScrolled: false,
     },
+    [ModalType.CONFIRM_CONTACTS]: {
+        isOpen: false,
+        size: ModalSize.MIDDLE,
+        animation: ModalAnimation.BOTTOM,
+        isScrolled: false,
+    },
 
     // auxiliary fields
     additionalOverlayVisibility: true,

@@ -16,12 +16,14 @@ import {
     BrokerSetTokenPayload,
     PassportFormData,
     LegalFormData,
-    LegalDataFormRequest
+    LegalDataFormRequest,
+    LegalConfirmData
 } from "../model/types";
 import {
     getAllSelects,
     postBrokerApiToken,
     postConfirmationCode,
+    postConfirmationCodeLegal,
     postConfirmationDocsCode,
     postFirstRiskProfile,
     postIdentificationData,
@@ -42,6 +44,8 @@ import { PasportScanData } from "features/RiskProfile/PassportScanForm/PassportS
 import { omit } from "lodash";
 import { setBrokerSuccessResponseInfo } from "entities/Documents/slice/documentsSlice";
 import { EMPTY_LEGAL_FORM } from "../constants/constansRiskProfile";
+import { openModal } from "entities/ui/Modal/slice/modalSlice";
+import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 
 interface RiskProfileFormState {
     loading: boolean;
@@ -58,6 +62,7 @@ interface RiskProfileFormState {
     };
     passportFormData: PassportFormData;
     legalFormData: LegalFormData;
+    legalConfirmData: LegalConfirmData | null;
     currentConfirmingDoc: string;
     pasportScanSocketId: string;
     pasportScanProgress: number
@@ -76,6 +81,7 @@ const initialState: RiskProfileFormState = {
     stepsFirstForm: {
         currentStep: 0
     },
+    legalConfirmData: null,
     legalFormData: EMPTY_LEGAL_FORM,
     passportFormData: {
         last_name: "",
@@ -170,23 +176,42 @@ export const postSecondRiskProfileForm = createAsyncThunk<
     }
 );
 
+// ❌ onSuccess больше не нужен в аргументах
 export const postLegalInfoThunk = createAsyncThunk<
-    void,
-    { data: LegalDataFormRequest, onSuccess: () => void },
+    LegalConfirmData,                       // что возвращаем
+    LegalDataFormRequest,                   // что передаём
     { state: RootState; rejectValue: string }
 >(
     "riskProfile/postLegalInfoThunk",
-    async ({ data, onSuccess }, { dispatch, rejectWithValue, getState }) => {
+    async (data, { getState, rejectWithValue, dispatch }) => {
+        console.log('до try')
         try {
             const token = getState().user.token;
+            console.log('need contacts before')
             const response = await postLegalInfoForm(data, token);
-            onSuccess()
+            dispatch(setLegalConfirmData(response));
+            console.log(JSON.stringify(null, response, 2) + 'need contacts')
+
+            const needContacts =
+                response.is_need_confirm_email || response.is_need_confirm_phone;
+            console.log(needContacts)
+            dispatch(
+                openModal({
+                    type: needContacts
+                        ? ModalType.CONFIRM_CONTACTS
+                        : ModalType.CONFIRM_DOCS,
+                    size: ModalSize.MIDDLE,
+                    animation: ModalAnimation.LEFT,
+                })
+            );
             return response
         } catch (error: any) {
-
+            return rejectWithValue("Не удалось отправить юр. форму");
         }
     }
 );
+
+
 
 export const postBrokerApiTokenThunk = createAsyncThunk<
     void,
@@ -476,12 +501,14 @@ export const sendPhoneConfirmationCode = createAsyncThunk<
 >(
     "riskProfile/sendPhoneConfirmationCode",
     async (
-        { user_id, codeFirst, method, onSuccess, onError },
+        { user_id, codeFirst, method, onSuccess, onError, purposeNewContacts, },
         { getState, dispatch }
     ) => {
+        const IsLegal = getState().user.user.is_individual_entrepreneur
+        const token = getState().user.token;
         try {
             if (codeFirst) {
-                const responsePhone = await postConfirmationCode({ user_id, code: codeFirst, type: 'phone' });
+                const responsePhone = !purposeNewContacts || !IsLegal ? await postConfirmationCode({ user_id, code: codeFirst, type: 'phone' }) : await postConfirmationCodeLegal({ code: codeFirst, type_document: 'phone' }, token);
                 if (responsePhone.is_confirmed_phone) {
                     onSuccess?.(responsePhone);
                 } else {
@@ -502,16 +529,18 @@ export const sendPhoneConfirmationCode = createAsyncThunk<
 
 export const sendEmailConfirmationCode = createAsyncThunk<
     void,
-    { user_id: string; codeSecond: string; onSuccess?: (data: any) => void; onError?: (data: any) => void },
+    { user_id: string; purposeNewContacts: boolean; codeSecond: string; onSuccess?: (data: any) => void; onError?: (data: any) => void },
     { rejectValue: string; state: RootState }
 >(
     "riskProfile/sendEmailConfirmationCode",
     async (
-        { user_id, codeSecond, onSuccess, onError },
+        { user_id, codeSecond, onSuccess, onError, purposeNewContacts },
         { getState, dispatch }
     ) => {
+        const IsLegal = getState().user.user.is_individual_entrepreneur
+        const token = getState().user.token;
         try {
-            const responseEmail = await postConfirmationCode({ user_id, code: codeSecond, type: "email" });
+            const responseEmail = !purposeNewContacts || !IsLegal ? await postConfirmationCode({ user_id, code: codeSecond, type: "email" }) : await postConfirmationCodeLegal({ code: codeSecond, type_document: 'email' }, token);
             if (responseEmail.status === "success") {
                 onSuccess?.(responseEmail);
             } else if (responseEmail.code !== 200) {
@@ -621,7 +650,16 @@ const riskProfileSlice = createSlice({
         },
         setPassportScanProgress(state, action: PayloadAction<number>) {
             state.pasportScanProgress = action.payload
-        }
+        },
+        setLegalConfirmData(state, action: PayloadAction<LegalConfirmData>) {
+            state.legalConfirmData = action.payload;
+        },
+        updateLegalFormData: (
+            state,
+            action: PayloadAction<Partial<LegalFormData>>
+        ) => {
+            Object.assign(state.legalFormData, action.payload);
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -705,7 +743,19 @@ const riskProfileSlice = createSlice({
             .addCase(postPasportInfo.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
-            });
+            })
+            .addCase(postLegalInfoThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.legalConfirmData = action.payload;    // ⬅️  сохраняем
+            })
+            .addCase(postLegalInfoThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(postLegalInfoThunk.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
 
     }
 });
@@ -721,6 +771,8 @@ export const {
     setThirdRiskProfileResponse,
     setFirstRiskProfileData,
     setPassportScanProgress,
-    updatePassportFormData
+    updatePassportFormData,
+    setLegalConfirmData,
+    updateLegalFormData
 } = riskProfileSlice.actions;
 export default riskProfileSlice.reducer;

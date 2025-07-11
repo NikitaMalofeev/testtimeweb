@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import ReCAPTCHA from "react-google-recaptcha";
@@ -33,10 +33,11 @@ import {
 import { ConfirmDocsModal } from "../ConfirmDocsModal/ConfirmDocsModal";
 import { isEqual } from "lodash";
 import { toLegalDataRequest } from "shared/lib/utils/toLegalDataRequest";
-import { postLegalInfoThunk } from "entities/RiskProfile/slice/riskProfileSlice";
+import { postLegalInfoThunk, setLegalConfirmData, updateLegalFormData } from "entities/RiskProfile/slice/riskProfileSlice";
 import styles from './styles.module.scss'
 import { LegalDataFormRequest, LegalFormData } from "entities/RiskProfile/model/types";
 import { setCurrentConfirmationMethod } from "entities/Documents/slice/documentsSlice";
+import { ConfirmContactsModal } from "../ConfirmContactsModal/ConfirmContactsModal";
 /* ────────────────────────────────────────────────────────────── */
 
 /**
@@ -174,34 +175,38 @@ export const LegalDataForm: React.FC = () => {
         g_recaptcha: Yup.string().required("Пройдите проверку reCAPTCHA")
     });
 
+    const handleSubmit = () => {
+
+    }
+
+    useEffect(() => {
+        dispatch(setCurrentConfirmationMethod('EMAIL'))
+    }, [])
+
+    const initialValues = useMemo(() => ({
+        ...legalFormData,          // то, что лежит в сторе
+        phone: userPersonalAccountInfo?.phone.replace(/^\+|\s+/g, '') ?? '',
+        email: userPersonalAccountInfo?.email ?? '',
+        type_message: 'EMAIL',
+    }), [legalFormData, userPersonalAccountInfo?.phone, userPersonalAccountInfo?.email]);
+
     /* ──────── Formik ──────── */
     const formik = useFormik({
-        initialValues: {
-            ...legalFormData,
-            phone: userPersonalAccountInfo?.phone.replace(/^\+|\s+/g, ''),
-            first_name: userPersonalAccountInfo?.first_name,
-            last_name: userPersonalAccountInfo?.last_name,
-            email: userPersonalAccountInfo?.email,
-            type_message: 'EMAIL'
-        },
+        initialValues,
         enableReinitialize: true,
         validationSchema,
         onSubmit: values => {
+            //@ts-ignore
+            dispatch(updateLegalFormData(values));
+            console.log('отправляю фанк')
             dispatch(
-                postLegalInfoThunk({
+                postLegalInfoThunk(
                     //@ts-ignore
-                    data: toLegalDataRequest(values) as LegalDataFormRequest,
-                    onSuccess: () =>
-                        dispatch(
-                            openModal({
-                                type: ModalType.CONFIRM_DOCS,
-                                size: ModalSize.MIDDLE,
-                                animation: ModalAnimation.LEFT
-                            })
-                        )
-                })
-            );
-        }
+                    toLegalDataRequest(values)   // payload
+                )
+            )
+        },
+
     });
 
     /* ──────── helpers ──────── */
@@ -304,10 +309,6 @@ export const LegalDataForm: React.FC = () => {
         }
     }, [modalState.confirmDocsModal]);
 
-    /* сохраняем черновик при каждом изменении */
-    useEffect(() => {
-        // dispatch(updateLegalFormData(formik.values));
-    }, [formik.values]);
 
     if (loading) return <Loader />;
 
@@ -685,6 +686,9 @@ export const LegalDataForm: React.FC = () => {
                 isOpen={modalState.confirmDocsModal.isOpen}
                 onClose={() => dispatch(closeModal(ModalType.CONFIRM_DOCS))}
                 docsType="type_doc_person_legal"
+            />
+            <ConfirmContactsModal
+
             />
         </form>
     );

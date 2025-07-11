@@ -336,6 +336,41 @@ export const sendDocsConfirmationCode = createAsyncThunk<
     }
 );
 
+export const sendDocsConfirmationCodeLegal = createAsyncThunk<
+    void,
+    SendCodeDocsConfirmPayload,
+    { rejectValue: string; state: RootState }
+>(
+    "documents/sendDocsConfirmationCodeLegal",
+    async ({ codeFirst, docs, onSuccess }, { getState, dispatch, rejectWithValue }) => {
+        try {
+            const token = getState().user.token;
+            const currentConfirmableDoc = getState().documents.currentConfirmableDoc
+            const isLegal = getState().user.user.is_individual_entrepreneur
+            const broker_id = getState().documents.brokerIds[0]
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+            if (codeFirst) {
+                // console.log('попытка отправить код легально' + person_type)
+                const responseDocs = postConfirmationCodeLegal(
+                    { code: codeFirst, type_document: docs },
+                    token
+                )
+                onSuccess?.(responseDocs);
+
+            }
+
+        } catch (error: any) {
+            dispatch(setConfirmationDocsSuccess("не пройдено"));
+            console.log(error);
+            const msg =
+                error.response?.data?.errorText
+            dispatch(setError(msg));
+        }
+    }
+);
+
 export const sendCustomDocsConfirmationCode = createAsyncThunk<
     void,
     SendCodeCustomDocsConfirmPayload,

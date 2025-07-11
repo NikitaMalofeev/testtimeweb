@@ -58,6 +58,7 @@ const persistConfig = getPersistConfig({
         'modal.resetPassword',
         'modal.progress',
         'modal.success',
+        'modal.confirmContacts',
         'modal.modalStack',
         'modal.confirmationMethod',
         'modal.selectedCountry',
@@ -77,6 +78,7 @@ const persistConfig = getPersistConfig({
         'riskProfile.currentConfirmingDoc',
         'riskProfile.passportFormData',
         'riskProfile.legalFormData',
+        'riskProfile.legalConfirmData',
 
         // 'payments.tariffs',
         // 'payments.currentUserTariffIdForPayments',

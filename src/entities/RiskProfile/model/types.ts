@@ -83,6 +83,7 @@ export interface SendCodePayload {
     codeFirst: string;        // Код из первой формы
     codeSecond?: string;      // Код из второй формы (при методе 'phone' + email)
     method: 'SMS' | 'email' | 'WHATSAPP' | 'whatsapp' | 'phone' | 'EMAIL'  // Как в вашем modalSlice
+    purposeNewContacts?: boolean;
     onSuccess?: (data?: any) => void;
     onError?: (data?: any) => void;
     onClose?: () => void;
@@ -189,8 +190,8 @@ export interface PassportFormData {
 export interface LegalDataFormRequest {
     /* company block */
     company_name: string;
-    first_name: string;
-    last_name: string;
+    first_name?: string;
+    last_name?: string;
     patronymic: string;
     type_message: "SMS" | "EMAIL" | "WHATSAPP";
 
@@ -203,8 +204,8 @@ export interface LegalDataFormRequest {
     company_bank_bik: string;
     company_bank_correspondent_account: string;
 
-    phone: string;
-    email: string;
+    phone?: string;
+    email?: string;
 
     /* legal address */
     company_region: string;
@@ -291,4 +292,15 @@ export interface LegalFormData {
     company_mailing_house: string;
     company_mailing_apartment: string;
     g_recaptcha: string
+}
+
+export interface LegalConfirmData {
+    is_send_email: boolean;
+    is_send_phone: boolean;
+    is_send_message_person: boolean;
+    timeinterval_sms: number | null;
+    is_need_confirm_email: boolean;
+    is_need_confirm_phone: boolean;
+    max_size_scan_mb: number;
+    group_name_upload_scans_progress: string;
 }

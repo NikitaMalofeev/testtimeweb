@@ -66,6 +66,7 @@ const persistConfig = getPersistConfig({
 
         'user.user',
         'user.token',
+        'user.personalAccountInfo',
 
         'documents.userDocuments',
         'documents.allNotSignedDocumentsHtml',

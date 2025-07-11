@@ -504,7 +504,7 @@ export const sendPhoneConfirmationCode = createAsyncThunk<
         { user_id, codeFirst, method, onSuccess, onError, purposeNewContacts, },
         { getState, dispatch }
     ) => {
-        const IsLegal = getState().user.user.is_individual_entrepreneur
+        const IsLegal = getState().user.userPersonalAccountInfo?.is_individual_entrepreneur
         const token = getState().user.token;
         try {
             if (codeFirst) {
@@ -537,7 +537,7 @@ export const sendEmailConfirmationCode = createAsyncThunk<
         { user_id, codeSecond, onSuccess, onError, purposeNewContacts },
         { getState, dispatch }
     ) => {
-        const IsLegal = getState().user.user.is_individual_entrepreneur
+        const IsLegal = getState().user.userPersonalAccountInfo?.is_individual_entrepreneur
         const token = getState().user.token;
         try {
             const responseEmail = !purposeNewContacts || !IsLegal ? await postConfirmationCode({ user_id, code: codeSecond, type: "email" }) : await postConfirmationCodeLegal({ code: codeSecond, type_document: 'email' }, token);

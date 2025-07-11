@@ -59,7 +59,7 @@ const DocumentsPage: React.FC = () => {
     const userChecks = useSelector((s: RootState) => s.payments.checks);
     const tariff = useSelector((s: RootState) => s.payments.payments_info);
     const activeTariffs = useSelector((s: RootState) => s.payments.activeTariffs);
-    const user = useSelector((s: RootState) => s.user.user);
+    const user = useSelector((s: RootState) => s.user.userPersonalAccountInfo);
     const currentUserTariffIdForPayments = useSelector((s: RootState) => s.payments.currentUserTariffIdForPayments);
     const targetTariffId = currentUserTariffIdForPayments || '';
 

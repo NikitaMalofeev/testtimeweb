@@ -299,7 +299,7 @@ export const sendDocsConfirmationCode = createAsyncThunk<
         try {
             const token = getState().user.token;
             const currentConfirmableDoc = getState().documents.currentConfirmableDoc
-            const isLegal = getState().user.user.is_individual_entrepreneur
+            const isLegal = getState().user.userPersonalAccountInfo?.is_individual_entrepreneur
             const broker_id = getState().documents.brokerIds[0]
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");
@@ -346,7 +346,7 @@ export const sendDocsConfirmationCodeLegal = createAsyncThunk<
         try {
             const token = getState().user.token;
             const currentConfirmableDoc = getState().documents.currentConfirmableDoc
-            const isLegal = getState().user.user.is_individual_entrepreneur
+            const isLegal = getState().user.userPersonalAccountInfo?.is_individual_entrepreneur
             const broker_id = getState().documents.brokerIds[0]
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");

@@ -56,7 +56,7 @@ const PersonalAccountMenu: React.FC = () => {
     const tariffs = useSelector((s: RootState) => s.payments.tariffs);
     const activeTariffs = useSelector((s: RootState) => s.payments.activeTariffs);
     const isUserVip = useSelector((s: RootState) => s.user.is_vip)
-    const isUserIP = useSelector((s: RootState) => s.user.user.is_individual_entrepreneur)
+    const isUserIP = useSelector((s: RootState) => s.user.userPersonalAccountInfo?.is_individual_entrepreneur)
     const hasActiveTariff = activeTariffs.length > 0
 
     useEffect(() => {

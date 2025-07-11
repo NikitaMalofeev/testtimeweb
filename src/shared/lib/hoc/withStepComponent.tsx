@@ -1,94 +1,110 @@
-import React, { ReactElement } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "app/providers/store/config/store";
-import IdentificationProfileForm from "features/RiskProfile/IdentificationForm/ui/IdentificationForm";
-import { RiskProfileFirstForm } from "features/RiskProfile/RiskProfileFirstForm/RiskProfileFirstForm";
+// withStepContent.tsx
+import React, { ReactElement, useMemo } from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from 'app/providers/store/config/store';
+
+
+
 import styles from './styles.module.scss';
-import { RiskProfileSecondForm } from "features/RiskProfile/RiskProfileSecondForm/RiskProfileSecondForm";
-import { PasportDataForm } from "features/RiskProfile/PasportDataFrom/PasportDataForm";
-import { PasportScanForm } from "features/RiskProfile/PassportScanForm/PassportScanForm";
-import { ConfirmAllDocs } from "features/RiskProfile/ConfirmationAllDocs/ConfirmationAllDocs";
-import { BrokerConnectionForm } from "features/RiskProfile/BrokerConnectionForm/BrokerConnectionForm";
-import { LegalDataForm } from "features/RiskProfile/LegalDataForm/LegalDataForm";
-// import { LegalDataForm } from "features/RiskProfile/LegalDataForm/LegalDataForm";
+import { RiskProfileFirstForm } from 'features/RiskProfile/RiskProfileFirstForm/RiskProfileFirstForm';
+import { RiskProfileSecondForm } from 'features/RiskProfile/RiskProfileSecondForm/RiskProfileSecondForm';
+import { LegalDataForm } from 'features/RiskProfile/LegalDataForm/LegalDataForm';
+import { PasportDataForm } from 'features/RiskProfile/PasportDataFrom/PasportDataForm';
+import { PasportScanForm } from 'features/RiskProfile/PassportScanForm/PassportScanForm';
+import { ConfirmAllDocs } from 'features/RiskProfile/ConfirmationAllDocs/ConfirmationAllDocs';
+import { BrokerConnectionForm } from 'features/RiskProfile/BrokerConnectionForm/BrokerConnectionForm';
+
+const Loader = () => <div style={{ padding: 32 }}>Загружаем профиль…</div>;
 
 interface WithStepContentProps {
     onClose: () => void;
 }
+interface StepLayoutProps {
+    onClose: () => void;
+    title: string;
+    content: ReactElement;
+    description: string | ReactElement | boolean;
+}
 
+const withStepContent = (StepLayout: React.FC<StepLayoutProps>) =>
+    ({ onClose }: WithStepContentProps) => {
+        /* ───── селекторы ───── */
+        const user = useSelector(
+            (s: RootState) => s.user.userPersonalAccountInfo,
+        );
+        const currentStep = useSelector(
+            (s: RootState) => s.ui.additionalMenu.currentStep,
+        );
 
+        /* ───── ждём данные ───── */
+        const isIE = user?.is_individual_entrepreneur === true;
+        const dataReady = user && user.is_individual_entrepreneur !== undefined;
+        if (!dataReady) return <Loader />;
 
+        /* ───── заголовок + контент ───── */
+        const { title, content } = useMemo(() => {
+            const titles = [
+                'Риск-профилирование',
+                'Уточнение риск-профиля',
+                isIE ? 'Данные об ИП' : 'Паспортные данные',
+                'Отправка документов',
+                'Подписание документов',
+                'Настройка подключения к брокеру',
+                'Отправка документов',
+            ];
 
+            const steps = [
+                <RiskProfileFirstForm key="step-1" />,
+                <RiskProfileSecondForm key="step-2" />,
+                isIE ? (
+                    <LegalDataForm key="step-3-ie" />
+                ) : (
+                    <PasportDataForm key="step-3-pass" />
+                ),
+                <PasportScanForm key="step-4" />,
+                <ConfirmAllDocs key="step-5" />,
+                <BrokerConnectionForm key="step-6" />,
+            ];
 
-const withStepContent = (
-    Component: React.FC<{
-        onClose: () => void;
-        title: string;
-        content: ReactElement;
-        description: string | boolean | ReactElement;
-    }>
-) => {
-    return ({ onClose }: WithStepContentProps) => {
-        const user = useSelector((s: RootState) => s.user.user)
+            return {
+                title: titles[currentStep] ?? '',
+                content: steps[currentStep] ?? <></>,
+            };
+        }, [isIE, currentStep]);
 
-        const stepTitles = [
-            "Риск-профилирование",
-            "Уточнение риск профиля",
-            user.is_individual_entrepreneur === false ? "Паспортные данные" : 'Данные об ИП',
-            "Отправка документов",
-            "Подписание документов",
-            "Настройка подключения к брокеру",
-            "Отправка документов"
-        ];
-        const type_person = useSelector((s: RootState) => s.user.user.is_individual_entrepreneur)
-        const stepContents = [
-            <RiskProfileFirstForm />,
-            <RiskProfileSecondForm />,
-            type_person === false ? <PasportDataForm /> : <LegalDataForm />,
-
-            <PasportScanForm />,
-            <ConfirmAllDocs />,
-            <BrokerConnectionForm />
-        ];
-        // Теперь хуки вызываются внутри тела функционального компонента
-        const maxRiskProfile = useSelector((state: RootState) => {
-            const profiles = state.riskProfile.secondRiskProfileData?.recommended_risk_profiles;
-            if (profiles) {
-                const profilesArray = Object.values(profiles);
-                return profilesArray.length > 0
-                    ? profilesArray[profilesArray.length - 1]
-                    : null;
-            }
-            return null;
+        /* ───── описание шага ───── */
+        const maxRisk = useSelector((s: RootState) => {
+            const p = s.riskProfile.secondRiskProfileData?.recommended_risk_profiles;
+            return p ? Object.values(p).at(-1) ?? null : null;
         });
 
-        const currentStep = useSelector((state: RootState) => state.ui.additionalMenu.currentStep);
+        const description = useMemo(() => {
+            const list: Array<string | ReactElement> = [
+                'Пройдите анкетирование для определения вашего инвестиционного профиля',
+                (
+                    <div className={styles.description}>
+                        <span className={styles.description__title}>
+                            Максимально допустимый риск-профиль: {maxRisk}
+                        </span>
+                    </div>
+                ),
+                'Данные вводимые в форму должны совпадать с паспортом и ИНН',
+                'Данные вводимые в форму должны совпадать с паспортом и ИНН',
+                'Подписание документов по «ЭДО»',
+            ];
+            return list[currentStep];
+        }, [currentStep, maxRisk]);
 
-        const stepTooltipDescriptions = [
-            'Пройдите анкетирование для определения вашего инвестиционного профиля',
-            <div className={styles.description}>
-                <div className={styles.description__container}>
-                    <span className={styles.description__title}>Максимально допустимый риск профиль: {maxRiskProfile}</span>
-                    {/* Если нужно, можно вставить maxRiskProfile, например:
-                    <span className={styles.description__value}>{maxRiskProfile}</span> */}
-                </div>
-            </div>,
-            'Данные вводимые в форму должны совпадать с паспортными данными и свидетельством ИНН',
-            'Данные вводимые в форму должны совпадать с паспортными данными и свидетельством ИНН',
-            'Подписание документов по "ЭДО"'
-        ];
-
+        /* ───── рендер ───── */
         return (
-            <div>
-                <Component
-                    onClose={onClose}
-                    title={stepTitles[currentStep]}
-                    content={<>{stepContents[currentStep]}</>}
-                    description={stepTooltipDescriptions[currentStep]}
-                />
-            </div>
+            <StepLayout
+                key={`${isIE}-${currentStep}`} // гарантированный ремоунт при смене типа
+                onClose={onClose}
+                title={title}
+                content={content}
+                description={description}
+            />
         );
     };
-};
 
 export default withStepContent;

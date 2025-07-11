@@ -42,6 +42,9 @@ import { getAllUserChecksThunk } from "entities/Payments/slice/paymentsSlice";
 import { useDevice } from "shared/hooks/useDevice";
 import { CheckPreviewModal } from "features/Payments/CheckPreviewModal/CheckPreviewModal";
 import { PasportScanForm } from "features/RiskProfile/PassportScanForm/PassportScanForm";
+import { Checkbox } from "shared/ui/Checkbox/Checkbox";
+import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
+import { BulkSignModal } from "features/Documents/BulkSignModal/BulkSignModal";
 
 const DocumentsPage: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -62,6 +65,38 @@ const DocumentsPage: React.FC = () => {
     const user = useSelector((s: RootState) => s.user.userPersonalAccountInfo);
     const currentUserTariffIdForPayments = useSelector((s: RootState) => s.payments.currentUserTariffIdForPayments);
     const targetTariffId = currentUserTariffIdForPayments || '';
+
+
+    //Логика с подписанием всех документов 
+
+    const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
+    const [bulkOpen, setBulkOpen] = useState(false);
+
+    /** документы, недоступные для массовой подписи */
+    const EXCLUDED_BULK = [
+        "type_doc_broker_api_token",
+        "type_doc_agreement_investment_advisor_app_1",
+        "type_doc_passport",
+    ];
+
+    /** клик по чек-боксу одного документа */
+    const toggleDoc = (id: string) =>
+        setSelectedDocs((prev) =>
+            prev.includes(id) ? prev.filter((d) => d !== id) : [...prev, id]
+        );
+
+    /** «выбрать все» / «снять все» */
+    const toggleAll = () => {
+        const selectable = documents
+            .filter((d) => !EXCLUDED_BULK.includes(d.id) && d.status === "signable")
+            .map((d) => d.id);
+
+        const allSelected = selectable.every((id) => selectedDocs.includes(id));
+        setSelectedDocs(allSelected ? [] : selectable);
+    };
+
+
+    //Логика с подписанием всех документов 
 
 
     const normalize = (id: string) => id.replace(/-/g, '');
@@ -106,16 +141,17 @@ const DocumentsPage: React.FC = () => {
 
     // Лейблы для отображения
     const docTypeLabels: Record<string, string> = {
-        type_doc_passport: user.is_individual_entrepreneur === false ? "1. Паспортные данные" : '1. Данные об ИП',
+        type_doc_passport: user?.is_individual_entrepreneur === false ? "1. Паспортные данные" : '1. Данные об ИП',
         type_doc_EDS_agreement: "2. Соглашение об ЭДО",
         type_doc_RP_questionnairy: "3. Анкета РП",
         type_doc_agreement_investment_advisor: "4. Договор ИС",
         type_doc_risk_declarations: "5. Декларация о рисках",
         type_doc_agreement_personal_data_policy: "6. Политика перс. данных",
         type_doc_investment_profile_certificate: "7. Справка ИП",
-        type_doc_broker_api_token: "8. Согласие на передачу API ключа к брокерскому счету",
-        type_doc_agreement_investment_advisor_app_1: '9. Договор ИС: Приложение 1',
-        type_doc_agreement_account_maintenance: "10. Доверенность на управление счетом",
+        type_doc_agreement_account_maintenance: "8. Доверенность на управление счетом",
+        type_doc_broker_api_token: "9. Согласие на передачу API ключа к брокерскому счету",
+        type_doc_agreement_investment_advisor_app_1: '10. Договор ИС: Приложение 1',
+
     };
 
     // Порядок документов
@@ -127,9 +163,10 @@ const DocumentsPage: React.FC = () => {
         "type_doc_risk_declarations",
         "type_doc_agreement_personal_data_policy",
         "type_doc_investment_profile_certificate",
+        "type_doc_agreement_account_maintenance",
         "type_doc_broker_api_token",
         'type_doc_agreement_investment_advisor_app_1',
-        "type_doc_agreement_account_maintenance",
+
     ];
 
     // Метод для подписания конкретного документа
@@ -266,6 +303,11 @@ const DocumentsPage: React.FC = () => {
         // Обработка исключений для EDS и брокерского документа
         if (type === "type_doc_EDS_agreement" && !filledRiskProfileChapters.is_exist_scan_passport) {
             status = "disabled";
+        }
+        if (type === 'type_doc_passport') {
+            status =
+                filledRiskProfileChapters.is_exist_scan_passport ? 'signed' :
+                    date ? 'signed' : 'signable';
         }
         if (type === "type_doc_broker_api_token" && brokersCount > 0) {
             status = "signed";
@@ -529,6 +571,30 @@ const DocumentsPage: React.FC = () => {
                 </div>
 
                 {/* Список документов */}
+                {user?.is_confirm_all_documents_one_code && (
+                    <div className={styles.bulkToolbar}>
+                        <Checkbox
+                            name="selectAll"
+                            value={
+                                documents
+                                    .filter(d => !EXCLUDED_BULK.includes(d.id) && d.status === "signable")
+                                    .every(d => selectedDocs.includes(d.id))
+                            }
+                            onChange={() => toggleAll()}
+                            label={<span>Выбрать все</span>}
+                        />
+
+                        <Button
+                            theme={ButtonTheme.BLUE}
+                            disabled={!selectedDocs.length}
+                            onClick={() => setBulkOpen(true)}
+                            className={styles.bulkButton}
+                            padding="10px"
+                        >
+                            Подписать выбранные&nbsp;({selectedDocs.length})
+                        </Button>
+                    </div>
+                )}
                 <div className={styles.documents__list}>
                     {renderedDocuments.map((doc) => {
                         // Вынесем логику определения отображения кнопки/статуса
@@ -562,203 +628,235 @@ const DocumentsPage: React.FC = () => {
                         return (
                             <>
                                 {device === 'mobile' ? (
-                                    <div key={doc.id} className={styles.document__item}>
-                                        <div className={styles.document__info}>
-                                            <span className={styles.document__info__title}>{doc.title}</span>
-                                            <div className={styles.document__info__flex}>
-                                                {doc.isPayment && (
-                                                    <Button
-                                                        className={styles.document__preview}
-                                                        theme={ButtonTheme.UNDERLINE}
-                                                        onClick={() => handleOpenPreview(doc.id)}
-                                                    >
-                                                        Просмотр
-                                                    </Button>
-                                                )}
-                                                {doc.status === "signed" && (
-                                                    <>
-                                                        {doc.timeoutPending && doc.timeoutPending > 0 ? (
-                                                            <span className={styles.documents__timer}>
-                                                                Формирование документа (
-                                                                {Math.ceil(doc.timeoutPending / 1000)} с)
-                                                            </span>
-                                                        ) : (
+                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                        <div>
+                                            {user?.is_confirm_all_documents_one_code && (
+                                                <Checkbox
+                                                    name={doc.id}                                  // уникальное имя
+                                                    value={selectedDocs.includes(doc.id)}          // «отмечен ли»
+                                                    disabled={EXCLUDED_BULK.includes(doc.id) || doc.status !== "signable"}
+                                                    onChange={() => toggleDoc(doc.id)}             // событие нам не нужно
+                                                    label={<></>}                                  // пустая метка (можно иконку)
+
+                                                />
+                                            )}
+                                        </div>
+                                        <div key={doc.id} className={styles.document__item}>
+                                            <div>
+
+                                                <div className={styles.document__info}>
+                                                    <span className={styles.document__info__title}>{doc.title}</span>
+                                                    <div className={styles.document__info__flex}>
+                                                        {doc.isPayment && (
+                                                            <Button
+                                                                className={styles.document__preview}
+                                                                theme={ButtonTheme.UNDERLINE}
+                                                                onClick={() => handleOpenPreview(doc.id)}
+                                                            >
+                                                                Просмотр
+                                                            </Button>
+                                                        )}
+                                                        {doc.status === "signed" && (
                                                             <>
-                                                                <Button
-                                                                    className={styles.document__preview}
-                                                                    theme={ButtonTheme.UNDERLINE}
-                                                                    onClick={() => handleOpenPreview(doc.id)}
-                                                                >
-                                                                    Просмотр
-                                                                </Button>
-                                                                {doc.id !== "type_doc_passport" && (
-                                                                    <Icon
-                                                                        Svg={DownloadIcon}
-                                                                        onClick={() => handleDownloadPdf(doc.id)}
-                                                                        width={33}
-                                                                        height={33}
-                                                                    />
+                                                                {doc.timeoutPending && doc.timeoutPending > 0 ? (
+                                                                    <span className={styles.documents__timer}>
+                                                                        Формирование документа (
+                                                                        {Math.ceil(doc.timeoutPending / 1000)} с)
+                                                                    </span>
+                                                                ) : (
+                                                                    <>
+                                                                        <Button
+                                                                            className={styles.document__preview}
+                                                                            theme={ButtonTheme.UNDERLINE}
+                                                                            onClick={() => handleOpenPreview(doc.id)}
+                                                                        >
+                                                                            Просмотр
+                                                                        </Button>
+                                                                        {doc.id !== "type_doc_passport" && (
+                                                                            <Icon
+                                                                                Svg={DownloadIcon}
+                                                                                onClick={() => handleDownloadPdf(doc.id)}
+                                                                                width={33}
+                                                                                height={33}
+                                                                            />
+                                                                        )}
+                                                                    </>
                                                                 )}
                                                             </>
                                                         )}
-                                                    </>
-                                                )}
-                                                {doc.additionalMessages && (
-                                                    <div className={styles.documents__warning}>
-                                                        <Icon Svg={WarningIcon} width={16} height={16} />
-                                                        <span >{doc.additionalMessages}</span>
+                                                        {doc.additionalMessages && (
+                                                            <div className={styles.documents__warning}>
+                                                                <Icon Svg={WarningIcon} width={16} height={16} />
+                                                                <span >{doc.additionalMessages}</span>
+                                                            </div>
+                                                        )}
+
                                                     </div>
-                                                )}
-
+                                                </div>
                                             </div>
-                                        </div>
 
-                                        <div className={styles.document__status}>
-                                            {/* Показываем дату, если документ подписан */}
-                                            <span className={styles.document__date}>
+                                            <div className={styles.document__status}>
+                                                {/* Показываем дату, если документ подписан */}
+                                                <span className={styles.document__date}>
 
-                                                {doc.date
-                                                    ? new Date(doc.date).toLocaleDateString("ru-RU", {
-                                                        day: "2-digit",
-                                                        month: "2-digit",
-                                                        year: "numeric",
-                                                    })
-                                                    : (doc.id === "type_doc_passport"
-                                                        ? "Дата заполнения"
-                                                        : "Дата подписания")}
+                                                    {doc.date
+                                                        ? new Date(doc.date).toLocaleDateString("ru-RU", {
+                                                            day: "2-digit",
+                                                            month: "2-digit",
+                                                            year: "numeric",
+                                                        })
+                                                        : (doc.id === "type_doc_passport"
+                                                            ? "Дата заполнения"
+                                                            : "Дата подписания")}
 
-                                            </span>
+                                                </span>
 
-                                            {doc.isPayment
-                                                ? (
-                                                    <div className={styles.document__paymentStatus} >Оплачено</div>
-                                                )
-                                                : showSuccess
+                                                {doc.isPayment
                                                     ? (
-                                                        <div className={styles.document__button_success}>
-                                                            <Icon Svg={SuccessBlueIcon} width={24} height={24} />
-                                                            <span>
-                                                                {isPassport
-                                                                    ? "Подтверждено"
-                                                                    : isBroker && brokerIds[0] && filledRiskProfileChapters.is_exist_scan_passport
+                                                        <div className={styles.document__paymentStatus} >Оплачено</div>
+                                                    )
+                                                    : showSuccess
+                                                        ? (
+                                                            <div className={styles.document__button_success}>
+                                                                <Icon Svg={SuccessBlueIcon} width={24} height={24} />
+                                                                <span>
+                                                                    {isPassport
                                                                         ? "Подтверждено"
-                                                                        : "Подписано"}
-                                                            </span>
-                                                        </div>
-                                                    )
-                                                    : (
-                                                        <Button
-                                                            onClick={() => handleSignDocument(doc.id)}
-                                                            disabled={isDisabled}
-                                                            className={doc.colorClass}
-                                                            theme={ButtonTheme.BLUE}
-                                                        >
-                                                            {buttonText}
-                                                        </Button>
-                                                    )
-                                            }
-                                        </div>
-                                    </div>
+                                                                        : isBroker && brokerIds[0] && filledRiskProfileChapters.is_exist_scan_passport
+                                                                            ? "Подтверждено"
+                                                                            : "Подписано"}
+                                                                </span>
+                                                            </div>
+                                                        )
+                                                        : (
+                                                            <Button
+                                                                onClick={() => handleSignDocument(doc.id)}
+                                                                disabled={isDisabled}
+                                                                className={doc.colorClass}
+                                                                theme={ButtonTheme.BLUE}
+                                                            >
+                                                                {buttonText}
+                                                            </Button>
+                                                        )
+                                                }
+                                            </div>
+                                        </div></div>
                                 ) : (
-                                    <div key={doc.id} className={styles.document__item}>
-                                        <div className={styles.document__info}>
-                                            {/* Показываем дату, если документ подписан */}
-                                            <span className={styles.document__date}>
+                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                        {user?.is_confirm_all_documents_one_code && (
+                                            <div>
+                                                <Checkbox
+                                                    name={doc.id}                                  // уникальное имя
+                                                    value={selectedDocs.includes(doc.id)}          // «отмечен ли»
+                                                    disabled={EXCLUDED_BULK.includes(doc.id) || doc.status !== "signable"}
+                                                    onChange={() => toggleDoc(doc.id)}             // событие нам не нужно
+                                                    label={<></>}                                  // пустая метка (можно иконку)
 
-                                                {doc.date
-                                                    ? new Date(doc.date).toLocaleDateString("ru-RU", {
-                                                        day: "2-digit",
-                                                        month: "2-digit",
-                                                        year: "numeric",
-                                                    })
-                                                    : (doc.id === "type_doc_passport"
-                                                        ? "Дата заполнения"
-                                                        : "Дата подписания")}
+                                                />
+                                            </div>
+                                        )}
 
-                                            </span>
-                                            <span className={styles.document__info__title}>{doc.title}</span>
+                                        <div key={doc.id} className={styles.document__item}>
+                                            <div className={styles.document__info}>
+                                                {/* Показываем дату, если документ подписан */}
+                                                <span className={styles.document__date}>
 
-                                        </div>
+                                                    {doc.date
+                                                        ? new Date(doc.date).toLocaleDateString("ru-RU", {
+                                                            day: "2-digit",
+                                                            month: "2-digit",
+                                                            year: "numeric",
+                                                        })
+                                                        : (doc.id === "type_doc_passport"
+                                                            ? "Дата заполнения"
+                                                            : "Дата подписания")}
 
-                                        <div className={styles.document__info__flex} style={doc.status !== 'signed' ? { flexDirection: 'column', alignItems: 'end', justifyContent: 'end' } : {}}>
-                                            <div className={styles.document__status} style={{ display: 'flex' }}>
-
-                                                {doc.isPayment && (
-                                                    <Button
-                                                        className={styles.document__preview}
-                                                        theme={ButtonTheme.UNDERLINE}
-                                                        onClick={() => handleOpenPreview(doc.id)}
-                                                    >
-                                                        Просмотр
-                                                    </Button>
-                                                )}
-                                                {doc.status === "signed" && !doc.isPayment && (
-                                                    <>
-                                                        {doc.timeoutPending && doc.timeoutPending > 0 ? (
-                                                            <span className={styles.documents__timer}>
-                                                                Формирование документа (
-                                                                {Math.ceil(doc.timeoutPending / 1000)} с)
-                                                            </span>
-                                                        ) : (
-                                                            <>
-                                                                <Button
-                                                                    className={styles.document__preview}
-                                                                    theme={ButtonTheme.UNDERLINE}
-                                                                    onClick={() => handleOpenPreview(doc.id)}
-                                                                >
-                                                                    Просмотр
-                                                                </Button>
-                                                                {doc.id !== "type_doc_passport" && (
-                                                                    <Icon
-                                                                        Svg={DownloadIcon}
-                                                                        onClick={() => handleDownloadPdf(doc.id)}
-                                                                        width={33}
-                                                                        height={33}
-                                                                    />
-                                                                )}
-                                                            </>
-                                                        )}
-                                                    </>
-                                                )}
-                                                {doc.additionalMessages && (
-                                                    <div className={styles.documents__warning}>
-                                                        <Icon Svg={WarningIcon} width={16} height={16} />
-                                                        <span >{doc.additionalMessages}</span>
-                                                    </div>
-                                                )}
+                                                </span>
+                                                <span className={styles.document__info__title}>{doc.title}</span>
 
                                             </div>
 
-                                            {doc.isPayment
-                                                ? (
-                                                    <div className={styles.document__paymentStatus} >Оплачено</div>
-                                                )
-                                                : showSuccess
-                                                    ? (
-                                                        <div className={styles.document__button_success}>
-                                                            <Icon Svg={SuccessBlueIcon} width={24} height={24} />
-                                                            <span>
-                                                                {isPassport
-                                                                    ? "Подтверждено"
-                                                                    : isBroker && brokerIds[0] && filledRiskProfileChapters.is_exist_scan_passport
-                                                                        ? "Подтверждено"
-                                                                        : "Подписано"}
-                                                            </span>
-                                                        </div>
-                                                    )
-                                                    : (
+                                            <div className={styles.document__info__flex} style={doc.status !== 'signed' ? { flexDirection: 'column', alignItems: 'end', justifyContent: 'end' } : {}}>
+                                                <div className={styles.document__status} style={{ display: 'flex' }}>
+
+                                                    {doc.isPayment && (
                                                         <Button
-                                                            onClick={() => handleSignDocument(doc.id)}
-                                                            disabled={isDisabled}
-                                                            className={`${doc.colorClass} ${styles.button}`}
-                                                            theme={ButtonTheme.BLUE}
+                                                            className={styles.document__preview}
+                                                            theme={ButtonTheme.UNDERLINE}
+                                                            onClick={() => handleOpenPreview(doc.id)}
                                                         >
-                                                            {buttonText}
+                                                            Просмотр
                                                         </Button>
+                                                    )}
+                                                    {doc.status === "signed" && !doc.isPayment && (
+                                                        <>
+                                                            {doc.timeoutPending && doc.timeoutPending > 0 ? (
+                                                                <span className={styles.documents__timer}>
+                                                                    Формирование документа (
+                                                                    {Math.ceil(doc.timeoutPending / 1000)} с)
+                                                                </span>
+                                                            ) : (
+                                                                <>
+                                                                    <Button
+                                                                        className={styles.document__preview}
+                                                                        theme={ButtonTheme.UNDERLINE}
+                                                                        onClick={() => handleOpenPreview(doc.id)}
+                                                                    >
+                                                                        Просмотр
+                                                                    </Button>
+                                                                    {doc.id !== "type_doc_passport" && (
+                                                                        <Icon
+                                                                            Svg={DownloadIcon}
+                                                                            onClick={() => handleDownloadPdf(doc.id)}
+                                                                            width={33}
+                                                                            height={33}
+                                                                        />
+                                                                    )}
+                                                                </>
+                                                            )}
+                                                        </>
+                                                    )}
+                                                    {doc.additionalMessages && (
+                                                        <div className={styles.documents__warning}>
+                                                            <Icon Svg={WarningIcon} width={16} height={16} />
+                                                            <span >{doc.additionalMessages}</span>
+                                                        </div>
+                                                    )}
+
+                                                </div>
+
+                                                {doc.isPayment
+                                                    ? (
+                                                        <div className={styles.document__paymentStatus} >Оплачено</div>
                                                     )
-                                            }
+                                                    : showSuccess
+                                                        ? (
+                                                            <div className={styles.document__button_success}>
+                                                                <Icon Svg={SuccessBlueIcon} width={24} height={24} />
+                                                                <span>
+                                                                    {isPassport
+                                                                        ? "Подтверждено"
+                                                                        : isBroker && brokerIds[0] && filledRiskProfileChapters.is_exist_scan_passport
+                                                                            ? "Подтверждено"
+                                                                            : "Подписано"}
+                                                                </span>
+                                                            </div>
+                                                        )
+                                                        : (
+                                                            <Button
+                                                                onClick={() => handleSignDocument(doc.id)}
+                                                                disabled={isDisabled}
+                                                                className={`${doc.colorClass} ${styles.button}`}
+                                                                theme={ButtonTheme.BLUE}
+                                                            >
+                                                                {buttonText}
+                                                            </Button>
+                                                        )
+                                                }
+                                            </div>
                                         </div>
                                     </div>
+
                                 )}
                             </>
 
@@ -786,6 +884,12 @@ const DocumentsPage: React.FC = () => {
                 checkId={modalState.checksPreview.docId}
                 onClose={() => dispatch(closeModal(ModalType.CHECKS_PREVIEW))}
             />
+            {bulkOpen && (
+                <BulkSignModal
+                    docs={documents.filter((d) => selectedDocs.includes(d.id))}
+                    onClose={() => setBulkOpen(false)}
+                />
+            )}
         </div>
     );
 };

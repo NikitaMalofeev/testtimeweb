@@ -2,8 +2,8 @@
 
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "app/providers/store/config/store";
-import { AvailabilityPersonalAccountMenuItems, ConfirmCustomDocsPayload, ConfirmDocsPayload, FilledRiskProfileChapters, SetHtmlsPayload } from "../types/documentsTypes";
-import { confirmBrokerDocsRequest, confirmCustomDocsRequest, confirmDocsRequest, confirmTariffDocs, getAllBrokers, getBrokerDocumentsSigned, getCustomDocumentsNotSigned, getCustomDocumentsSigned, getDocumentNotSigned, getDocumentsInfo, getDocumentsNotSigned, getDocumentsSigned, getDocumentsState, postConfirmationCodeCustom } from "../api/documentsApi";
+import { AvailabilityPersonalAccountMenuItems, ConfirmAllDocsPayload, ConfirmCustomDocsPayload, ConfirmDocsPayload, FilledRiskProfileChapters, SetHtmlsPayload } from "../types/documentsTypes";
+import { confirmAllDocsRequest, confirmBrokerDocsRequest, confirmCustomDocsRequest, confirmDocsRequest, confirmTariffDocs, getAllBrokers, getBrokerDocumentsSigned, getCustomDocumentsNotSigned, getCustomDocumentsSigned, getDocumentNotSigned, getDocumentsInfo, getDocumentsNotSigned, getDocumentsSigned, getDocumentsState, postConfirmationCodeCustom } from "../api/documentsApi";
 import { setCurrentConfirmingDoc } from "entities/RiskProfile/slice/riskProfileSlice";
 import { setConfirmationDocsSuccess } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
@@ -53,9 +53,10 @@ export const docTypes = [
     "type_doc_risk_declarations",
     "type_doc_agreement_personal_data_policy",
     "type_doc_investment_profile_certificate",
+    "type_doc_agreement_account_maintenance",
     "type_doc_broker_api_token",
     "type_doc_agreement_investment_advisor_app_1",
-    "type_doc_agreement_account_maintenance",
+
 ];
 
 // Лейблы для UI.
@@ -67,9 +68,10 @@ export const docTypeLabels: Record<string, string> = {
     type_doc_risk_declarations: "Декларация о рисках",
     type_doc_agreement_personal_data_policy: "Политика перс. данных",
     type_doc_investment_profile_certificate: "Справка ИП",
+    type_doc_agreement_account_maintenance: 'Доверенность на управление счетом',
     type_doc_broker_api_token: 'Согласие на передачу API ключа к брокерскому счету',
     type_doc_agreement_investment_advisor_app_1: 'Договор ИС: Приложение 1',
-    type_doc_agreement_account_maintenance: 'Доверенность на управление счетом',
+
 };
 
 interface DocumentsState {
@@ -261,6 +263,66 @@ export const confirmDocsRequestThunk = createAsyncThunk<
             const msg =
                 error.response?.data?.errorText
             dispatch(setError(msg));
+        }
+    }
+);
+
+export const confirmAllDocsRequestThunk = createAsyncThunk<
+    // 1) То, что возвращает API (можно указать тип, если response.data имеет интерфейс)
+    ReturnType<typeof confirmAllDocsRequest>,
+    // 2) Аргументы, которые вы передаёте при dispatch
+    {
+        data: ConfirmAllDocsPayload;
+        onSuccess?: () => void;
+    },
+    // 3) Опции: какой тип состояния и тип rejectValue
+    { state: RootState; rejectValue: string }
+>(
+    "documents/confirmAllDocsRequest",
+    async (
+        { data, onSuccess },
+        { getState, dispatch, rejectWithValue }
+    ) => {
+        const token = getState().user.token;
+        const currentConfirmableDoc = getState().documents.currentConfirmableDoc;
+
+        if (!token) {
+            // Если нет токена — уход в rejected
+            return rejectWithValue("Отсутствует токен авторизации");
+        }
+
+        try {
+            // Отправляем полный payload
+            const response = await confirmAllDocsRequest(data, token);
+
+            // Помечаем, что всё ок
+            dispatch(setConfirmationDocsSuccess("пройдено"));
+
+            // Если пришёл group_ws — открываем WS
+            if (response.group_ws) {
+                dispatch(
+                    openUploadDocWebsocketThunk({
+                        docId: currentConfirmableDoc,
+                        socketId: response.group_ws,
+                    })
+                );
+            }
+
+            // Колл­бэк при успехе
+            onSuccess?.();
+
+            return response;
+        } catch (err: any) {
+            // Сохраняем текст ошибки
+            const errorMsg =
+                err.response?.data?.errorText ?? "Ошибка при подписании документов";
+
+            // Диспачим редьюсеры для ошибки
+            dispatch(setError(errorMsg));
+            dispatch(setConfirmationDocsSuccess("не пройдено"));
+
+            // Возвращаем reject с сообщением
+            return rejectWithValue(errorMsg);
         }
     }
 );

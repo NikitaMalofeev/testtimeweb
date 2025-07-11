@@ -148,6 +148,7 @@ text-align: center;
     display: flex;
     flex-direction: column;
     gap: 16px;
+    overflow-x: hidden;
 }
 
 .document__button_success {
@@ -171,6 +172,11 @@ text-align: center;
 }
 
 @include mix.respond-to('tablet-desktop') {
+
+    
+.bulkToolbar {
+    padding-left: 32px;
+}
 
      .page {
          max-width: 950px;
@@ -202,6 +208,7 @@ text-align: center;
     .documents__list {
         overflow-y: auto;
         padding: 0 42px;
+        overflow-x: hidden;
 
          & .document__item {
              &:first-child {
@@ -264,4 +271,8 @@ text-align: center;
         }
     }
 }
+.bulkButton {
+    max-width: 400px;
+}
+
 

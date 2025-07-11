@@ -134,6 +134,12 @@ const initialState: ExtendedModalState = {
         animation: ModalAnimation.BOTTOM,
         isScrolled: false,
     },
+    [ModalType.CONFIRM_ALL_DOCS]: {
+        isOpen: false,
+        size: ModalSize.MIDDLE,
+        animation: ModalAnimation.BOTTOM,
+        isScrolled: false,
+    },
 
     // auxiliary fields
     additionalOverlayVisibility: true,

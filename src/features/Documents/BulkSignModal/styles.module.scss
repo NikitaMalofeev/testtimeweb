@@ -1,0 +1,32 @@
+.modal {
+    position: relative;
+    padding: 16px;
+    overflow: auto;
+    height: 100%;
+}
+
+.title {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    list-style: none;
+
+    &__item {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+
+.channel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+    margin: 20px 0;
+}

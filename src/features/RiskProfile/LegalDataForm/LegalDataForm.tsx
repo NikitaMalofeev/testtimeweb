@@ -185,7 +185,7 @@ export const LegalDataForm: React.FC = () => {
 
     const initialValues = useMemo(() => ({
         ...legalFormData,          // то, что лежит в сторе
-        phone: userPersonalAccountInfo?.phone.replace(/^\+|\s+/g, '') ?? '',
+        phone: userPersonalAccountInfo?.phone.replace(/\D/g, '') ?? '',
         email: userPersonalAccountInfo?.email ?? '',
         type_message: 'EMAIL',
     }), [legalFormData, userPersonalAccountInfo?.phone, userPersonalAccountInfo?.email]);

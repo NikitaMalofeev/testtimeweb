@@ -187,6 +187,9 @@ text-align: center;
     .page__title {
         padding-left: 42px;
 
+        & img {
+            cursor: pointer;
+        }
         & h2 {
             padding-left: 0;
         }

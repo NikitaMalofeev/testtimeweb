@@ -27,6 +27,7 @@ import {
     postConfirmationDocsCode,
     postFirstRiskProfile,
     postIdentificationData,
+    postINNScanData,
     postLegalInfoForm,
     postNeedHelpRequest,
     postPasportData,
@@ -400,6 +401,38 @@ export const postPasportScanThunk = createAsyncThunk<
             // Вызываем onSuccess после успешной отправки
             onSuccess();
             dispatch(setTooltipActive({ active: true, message: 'Сканы паспортов успешно загружены' }))
+        } catch (error: any) {
+            const errorText = error.response?.data?.errorText;
+            console.log('Статус ошибки:', error.response?.status);
+            console.log('Текст ошибки:', errorText);
+
+            if (errorText && errorText.trim() === 'Сканы уже загружены. Для изменения сканов обратитесь в поддержку') {
+                dispatch(setError(errorText));
+            } else {
+                dispatch(setError(errorText, 'pasportScan'));
+            }
+        }
+
+    }
+);
+
+export const postINNScanThunk = createAsyncThunk<
+    void,
+    { data: FormData; onSuccess: () => void; },
+    { state: RootState; rejectValue: string }
+>(
+    "riskProfile/postINNScanThunk",
+    async ({ data, onSuccess }, { getState, rejectWithValue, dispatch }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+            // Отправляем данные сканов через API
+            await postINNScanData(data, token);
+            // Вызываем onSuccess после успешной отправки
+            onSuccess();
+            dispatch(setTooltipActive({ active: true, message: 'Скан ИИН успешно загружен' }))
         } catch (error: any) {
             const errorText = error.response?.data?.errorText;
             console.log('Статус ошибки:', error.response?.status);

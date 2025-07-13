@@ -103,7 +103,7 @@ export const Recomendations = () => {
                 <h2 className={styles.recomendations__title__title}>
                     Индивидуальные инвестиционные рекомендации
                 </h2>
-                <Tooltip
+                {/* <Tooltip
                     positionBox={{ top: '68px', left: '-224px' }}
                     squerePosition={{ top: '-4px', left: '228px' }}
                     boxWidth={{ width: '280px' }}
@@ -111,7 +111,7 @@ export const Recomendations = () => {
                     className={styles.recomendations__tooltip}
                     description="Если ИИР не отклонено в течение суток,
                 то считается исполненным"
-                />
+                /> */}
             </div>
 
             <div className={styles.recomendations__content}>

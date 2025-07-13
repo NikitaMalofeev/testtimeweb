@@ -33,6 +33,8 @@ export interface FilledRiskProfileChapters {
     is_risk_profile_complete_final: boolean;
     is_complete_passport: boolean;
     is_exist_scan_passport: boolean;
+    is_complete_person_legal: boolean;
+    is_exist_scan_person_legal: boolean;
 }
 
 export interface PostBrokerApiTokenResponse {

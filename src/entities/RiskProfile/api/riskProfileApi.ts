@@ -108,6 +108,16 @@ export const postPasportScanData = async (data: FormData, token: string) => {
     return response.data;
 };
 
+export const postINNScanData = async (data: FormData, token: string) => {
+    const response = await axios.post(`${apiUrl}create_doc_user/fifth_person_legal_scan/`, data, {
+        headers: {
+            "Accept-Language": "ru",
+            "Authorization": `Token ${token}`,
+        },
+    });
+    return response.data;
+};
+
 export const postResendConfirmationCode = async (data: any) => {
     const response = await axios.post(
         `${apiUrl}create_doc_user/update_confirmation_code_id/`,

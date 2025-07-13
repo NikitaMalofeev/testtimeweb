@@ -16,7 +16,7 @@ import {
 } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { selectModalState } from "entities/ui/Modal/selectors/selectorsModals";
-import { setTooltipActive, setConfirmationDocsSuccess, setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
+import { setTooltipActive, setConfirmationDocsSuccess, setStepAdditionalMenuUI, nextStep } from "entities/ui/Ui/slice/uiSlice";
 import { clearDocumentTimeout, confirmDocsRequestThunk, getUserDocumentsStateThunk, sendDocsConfirmationCode, setDocumentTimeoutPending } from "entities/Documents/slice/documentsSlice";
 import { ConfirmDocsPayload } from "entities/Documents/types/documentsTypes";
 import { checkConfirmationCodeTariffThunk, setCurrentOrderStatus, createOrderThunk } from "entities/Payments/slice/paymentsSlice";
@@ -228,6 +228,9 @@ export const ConfirmDocsModal = memo(
                         sendDocsConfirmationCode({
                             codeFirst: code,
                             docs: docsType || "",
+                            onSuccessLegal: () => {
+                                dispatch(nextStep())
+                            },
                             onSuccess: (data: any) => {
                                 dispatch(getUserDocumentsStateThunk());
                                 if (docsType === 'type_doc_passport') {

@@ -115,6 +115,8 @@ const initialState: DocumentsState = {
         is_risk_profile_complete_final: false,
         is_complete_passport: false,
         is_exist_scan_passport: false,
+        is_complete_person_legal: false,
+        is_exist_scan_person_legal: false
     },
     brokerIds: [],
     brokersCount: 0,
@@ -357,10 +359,11 @@ export const sendDocsConfirmationCode = createAsyncThunk<
     { rejectValue: string; state: RootState }
 >(
     "documents/sendDocsConfirmationCode",
-    async ({ codeFirst, docs, onSuccess }, { getState, dispatch, rejectWithValue }) => {
+    async ({ codeFirst, docs, onSuccess, onSuccessLegal }, { getState, dispatch, rejectWithValue }) => {
         try {
             const token = getState().user.token;
             const currentConfirmableDoc = getState().documents.currentConfirmableDoc
+            const currentStep = getState().ui.additionalMenu.currentStep
             const isLegal = getState().user.userPersonalAccountInfo?.is_individual_entrepreneur
             const broker_id = getState().documents.brokerIds[0]
             if (!token) {
@@ -384,6 +387,7 @@ export const sendDocsConfirmationCode = createAsyncThunk<
                     { code: codeFirst, type_document: docs },
                     token
                 )
+                currentStep === 2 && isLegal && onSuccessLegal?.()
                 onSuccess?.(responseDocs);
                 dispatch(setCurrentConfirmableDoc(responseDocs.next_document));
             }
@@ -467,7 +471,8 @@ export const getUserDocumentsStateThunk = createAsyncThunk<
                 return rejectWithValue("Отсутствует токен авторизации");
             }
             const response = await getDocumentsState(token);
-            const { is_risk_profile_complete, is_risk_profile_complete_final, is_exist_scan_passport, is_complete_passport } = response;
+            const { is_risk_profile_complete, is_risk_profile_complete_final, is_exist_scan_passport, is_complete_passport, is_complete_person_legal, is_exist_scan_person_legal
+            } = response;
             dispatch(setAvailabilityPersonalAccountMenuItems(response.main_menu_clickable_items))
             dispatch(
                 setIsRiksProfileComplete({
@@ -475,6 +480,8 @@ export const getUserDocumentsStateThunk = createAsyncThunk<
                     is_risk_profile_complete_final,
                     is_complete_passport,
                     is_exist_scan_passport,
+                    is_complete_person_legal,
+                    is_exist_scan_person_legal
                 })
             );
 

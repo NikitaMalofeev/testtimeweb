@@ -94,6 +94,7 @@ export interface SendCodeDocsConfirmPayload {
     codeSecond?: string;
     docs: string;
     onSuccess?: (data?: any) => void;
+    onSuccessLegal?: (data?: any) => void;
     onClose?: () => void
 }
 

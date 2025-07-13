@@ -13,6 +13,7 @@ import { PasportDataForm } from 'features/RiskProfile/PasportDataFrom/PasportDat
 import { PasportScanForm } from 'features/RiskProfile/PassportScanForm/PassportScanForm';
 import { ConfirmAllDocs } from 'features/RiskProfile/ConfirmationAllDocs/ConfirmationAllDocs';
 import { BrokerConnectionForm } from 'features/RiskProfile/BrokerConnectionForm/BrokerConnectionForm';
+import { IEIINForm } from 'features/RiskProfile/IEIINForm/IEIINForm';
 
 const Loader = () => <div style={{ padding: 32 }}>Загружаем профиль…</div>;
 
@@ -61,7 +62,11 @@ const withStepContent = (StepLayout: React.FC<StepLayoutProps>) =>
                 ) : (
                     <PasportDataForm key="step-3-pass" />
                 ),
-                <PasportScanForm key="step-4" />,
+                isIE ? (
+                    <IEIINForm key="step-4-ie" />
+                ) : (
+                    <PasportScanForm key="step-4-pass" />
+                ),
                 <ConfirmAllDocs key="step-5" />,
                 <BrokerConnectionForm key="step-6" />,
             ];

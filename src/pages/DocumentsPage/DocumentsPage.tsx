@@ -65,6 +65,16 @@ const DocumentsPage: React.FC = () => {
     const user = useSelector((s: RootState) => s.user.userPersonalAccountInfo);
     const currentUserTariffIdForPayments = useSelector((s: RootState) => s.payments.currentUserTariffIdForPayments);
     const targetTariffId = currentUserTariffIdForPayments || '';
+    const isIp = !!user?.is_individual_entrepreneur;
+
+    // Универсальные флаги «заполнена карточка» / «есть сканы»
+    const isIdentityDataComplete = isIp
+        ? filledRiskProfileChapters.is_complete_person_legal
+        : filledRiskProfileChapters.is_complete_passport;
+
+    const isIdentityScanExist = isIp
+        ? filledRiskProfileChapters.is_exist_scan_person_legal
+        : filledRiskProfileChapters.is_exist_scan_passport;
 
 
     //Логика с подписанием всех документов 
@@ -115,8 +125,8 @@ const DocumentsPage: React.FC = () => {
 
     useEffect(() => {
         dispatch(getUserDocumentsStateThunk());
-        dispatch(getUserDocumentsNotSignedThunk())
-    }, [currentConfirmableDocument, PasportScanForm, brokersCount, filledRiskProfileChapters.is_exist_scan_passport]);
+        dispatch(getUserDocumentsNotSignedThunk());
+    }, [currentConfirmableDocument, PasportScanForm, brokersCount, isIdentityScanExist]);
 
     const isAnyModalOpen = useSelector(selectIsAnyModalOpen);
 
@@ -188,7 +198,7 @@ const DocumentsPage: React.FC = () => {
                 const passportDocInfo = userDocuments.find((doc) => doc.key === "type_doc_passport");
                 const isPassportSigned = !!passportDocInfo?.date_last_confirmed;
 
-                if (!filledRiskProfileChapters.is_complete_passport || !isPassportSigned) {
+                if (!isIdentityDataComplete || !isPassportSigned) {
                     dispatch(setCurrentConfirmableDoc("type_doc_passport"));
                     dispatch(setStepAdditionalMenuUI(2));
                     dispatch(
@@ -198,7 +208,7 @@ const DocumentsPage: React.FC = () => {
                             animation: ModalAnimation.LEFT,
                         })
                     );
-                } else if (!filledRiskProfileChapters.is_exist_scan_passport) {
+                } else if (!isIdentityScanExist) {
                     dispatch(setCurrentConfirmableDoc("type_doc_passport"));
                     dispatch(setStepAdditionalMenuUI(3));
                     dispatch(
@@ -268,7 +278,7 @@ const DocumentsPage: React.FC = () => {
             case "type_doc_agreement_personal_data_policy":
             case "type_doc_investment_profile_certificate":
 
-                if (docId === "type_doc_EDS_agreement" && !filledRiskProfileChapters.is_exist_scan_passport) {
+                if (docId === "type_doc_EDS_agreement" && !isIdentityScanExist) {
                     // Если паспорт не существует, не даём подписывать документ
                     return;
                 }
@@ -301,12 +311,12 @@ const DocumentsPage: React.FC = () => {
         let status = date ? "signed" : "signable"; // если нет даты => значит не подписан
 
         // Обработка исключений для EDS и брокерского документа
-        if (type === "type_doc_EDS_agreement" && !filledRiskProfileChapters.is_exist_scan_passport) {
+        if (type === "type_doc_EDS_agreement" && !isIdentityScanExist) {
             status = "disabled";
         }
         if (type === 'type_doc_passport') {
             status =
-                filledRiskProfileChapters.is_exist_scan_passport ? 'signed' :
+                isIdentityScanExist ? 'signed' :
                     date ? 'signed' : 'signable';
         }
         if (type === "type_doc_broker_api_token" && brokersCount > 0) {
@@ -354,7 +364,7 @@ const DocumentsPage: React.FC = () => {
     // - Если не подписан, но это именно "первый" не подписанный => серый
     // - Если не подписан, но не первый => красный
     //условия для проверки Договора ИС
-    const hasPassport = filledRiskProfileChapters.is_exist_scan_passport;
+    const hasPassport = isIdentityScanExist;
     const hasBroker = brokersCount > 0;             // или !!brokerIds.length
     const hasTariff = activePaidTariffs.length > 0
 
@@ -604,14 +614,14 @@ const DocumentsPage: React.FC = () => {
                         const isAdvisorAgreement = doc.id === 'type_doc_agreement_investment_advisor_app_1';
 
                         const showSuccess =
-                            (isPassport && isSigned && filledRiskProfileChapters.is_exist_scan_passport) ||
+                            (isPassport && isSigned && isIdentityScanExist) ||
                             (!isPassport && isSigned);
 
                         let buttonText = "Подписать";
                         if (isBroker && brokersCount === 0) {
                             buttonText = brokerIds && brokerIds.length ? "Подписать" : "Заполнить";
                         } else if (isPassport) {
-                            buttonText = filledRiskProfileChapters.is_exist_scan_passport ? "Подписать" : "Заполнить";
+                            buttonText = isIdentityScanExist ? "Подписать" : "Заполнить";
                         } else if (doc.id === "type_doc_RP_questionnairy") {
                             buttonText = filledRiskProfileChapters.is_risk_profile_complete_final ? "Подписать" : "Заполнить";
                         }
@@ -722,7 +732,7 @@ const DocumentsPage: React.FC = () => {
                                                                 <span>
                                                                     {isPassport
                                                                         ? "Подтверждено"
-                                                                        : isBroker && brokerIds[0] && filledRiskProfileChapters.is_exist_scan_passport
+                                                                        : isBroker && brokerIds[0] && isIdentityScanExist
                                                                             ? "Подтверждено"
                                                                             : "Подписано"}
                                                                 </span>
@@ -836,7 +846,7 @@ const DocumentsPage: React.FC = () => {
                                                                 <span>
                                                                     {isPassport
                                                                         ? "Подтверждено"
-                                                                        : isBroker && brokerIds[0] && filledRiskProfileChapters.is_exist_scan_passport
+                                                                        : isBroker && brokerIds[0] && isIdentityScanExist
                                                                             ? "Подтверждено"
                                                                             : "Подписано"}
                                                                 </span>

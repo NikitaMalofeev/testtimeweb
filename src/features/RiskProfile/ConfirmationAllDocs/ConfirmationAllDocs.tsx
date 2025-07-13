@@ -45,14 +45,28 @@ export const ConfirmAllDocs: React.FC = () => {
     const currentTypeDoc = useSelector((state: RootState) => state.documents.currentConfirmableDoc);
     const [currentTimeout, setCurrentTimeout] = useState(0);
     const modalState = useSelector((state: RootState) => state.modal.documentsPreview);
-    const isPasportFilled = useSelector((state: RootState) => state.documents.filledRiskProfileChapters.is_complete_passport);
     const isRPFilled = useSelector((state: RootState) => state.documents.filledRiskProfileChapters.is_risk_profile_complete);
     const isRPFinalFilled = useSelector((state: RootState) => state.documents.filledRiskProfileChapters.is_risk_profile_complete);
+    const { filledRiskProfileChapters } = useSelector((state: RootState) => state.documents);
     const timeoutBetweenConfirmation = useSelector((state: RootState) => state.documents.timeoutBetweenConfirmation);
     const messageTypeOptions = { SMS: "SMS", EMAIL: "Email", WHATSAPP: "Whatsapp" };
     const successModalOpen = useSelector((state: RootState) => state.modal.success.isOpen)
     const currentTariffId = useSelector((state: RootState) => state.payments.currentTariffId)
     const device = useDevice()
+    const isUserIP = !!useSelector(
+        (s: RootState) => s.user.userPersonalAccountInfo?.is_individual_entrepreneur,
+    );
+
+    // «карточка заполнена» / «сканы загружены»
+    const isIdentityDataComplete = isUserIP
+        ? filledRiskProfileChapters.is_complete_person_legal
+        : filledRiskProfileChapters.is_complete_passport;
+
+    const isIdentityScanExist = isUserIP
+        ? filledRiskProfileChapters.is_exist_scan_person_legal
+        : filledRiskProfileChapters.is_exist_scan_passport;
+
+    const hasIdentityDocs = isIdentityDataComplete && isIdentityScanExist;
 
     // Состояние для хранения последнего подписанного документа (для описания в successModal)
     const [lastConfirmedDoc, setLastConfirmedDoc] = useState<string>("");
@@ -66,10 +80,10 @@ export const ConfirmAllDocs: React.FC = () => {
     }, [currentTypeDoc, isRPFilled, isRPFinalFilled, dispatch]);
 
     useEffect(() => {
-        if (isPasportFilled) {
+        if (isIdentityDataComplete) {
             dispatch(getUserDocumentsNotSignedThunk());
         }
-    }, [isPasportFilled, dispatch]);
+    }, [isIdentityDataComplete, dispatch]);
 
     useEffect(() => {
         if (isRPFinalFilled) {
@@ -119,7 +133,7 @@ export const ConfirmAllDocs: React.FC = () => {
             is_agree: Yup.boolean().oneOf([true], "внимание"),
         }),
         onSubmit: () => {
-            if (currentTypeDoc === "type_doc_passport" && !isPasportFilled) {
+            if (currentTypeDoc === "type_doc_passport" && !isIdentityDataComplete) {
                 dispatch(setStepAdditionalMenuUI(3));
             } else if (currentTypeDoc === "type_doc_RP_questionary") {
                 if (isRPFilled) {

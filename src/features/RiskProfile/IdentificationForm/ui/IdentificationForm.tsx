@@ -393,7 +393,7 @@ const IdentificationProfileForm: React.FC = () => {
                 justPreview={PrivacyPdf}
                 isOpen={modalState.isOpen}
                 onClose={() => dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW))}
-                docId="type_doc_agreement_personal_data_policy"
+
             />
         </>
     );

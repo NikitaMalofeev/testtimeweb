@@ -63,6 +63,9 @@ const persistConfig = getPersistConfig({
         'modal.confirmationMethod',
         'modal.selectedCountry',
         'modal.currentProblemScreen',
+        'modal.confirmAllDocumentsOneCode',
+        'modal.confirmAllDocuments',
+
 
         'user.user',
         'user.token',
@@ -75,6 +78,7 @@ const persistConfig = getPersistConfig({
         'documents.currentSugnedDocument',
         'documents.filledRiskProfileChapters',
         'documents.userPassportData',
+        'documents.brokerIds',
 
         'riskProfile.currentConfirmingDoc',
         'riskProfile.passportFormData',

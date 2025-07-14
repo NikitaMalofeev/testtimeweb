@@ -34,7 +34,8 @@ export enum ModalType {
     WARNING = 'warning',
     CHECKS_PREVIEW = 'checksPreview',
     CONFIRM_CONTACTS = 'confirmContacts',
-    CONFIRM_ALL_DOCS = 'confirmAllDocuments'
+    CONFIRM_ALL_DOCS = 'confirmAllDocuments',
+    CONFIRM_ALL_DOCS_ONE_CODE = 'confirmAllDocumentsOneCode'
 }
 
 /** Состояние одной конкретной модалки */

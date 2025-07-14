@@ -47,6 +47,17 @@ export const confirmAllDocsRequest = async (data: ConfirmAllDocsPayload, token: 
     return response.data;
 };
 
+export const postConfirmationCodeAllDocuments = async (data: ConfirmationDocsData, token: string) => {
+    const response = await axios.post(`${apiUrl}create_doc_user/check_confirmation_code_all_documents/`, data, {
+        headers: {
+            "Accept-Language": "ru",
+            "Content-Type": "application/json",
+            "Authorization": `Token ${token}`,
+        },
+    });
+    return response.data;
+};
+
 export const confirmTariffDocs = async (data: ConfirmDocsPayload, token: string) => {
     const response = await axios.post(`${apiUrl}create_doc_user/signing_tariff/`, data, {
         headers: {

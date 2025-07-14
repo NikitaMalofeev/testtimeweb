@@ -19,6 +19,7 @@ import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/mo
 import { UploadProgressModal } from "features/Ui/UploadProgressModal/UploadProgressModal";
 import { getUserDocumentsStateThunk } from "entities/Documents/slice/documentsSlice";
 import { setError } from "entities/Error/slice/errorSlice";
+import { useNavigate } from "react-router-dom";
 
 export interface PasportScanData {
     file_scan_page_first: null | string;
@@ -27,6 +28,8 @@ export interface PasportScanData {
 
 export const PasportScanForm: React.FC = () => {
     const dispatch = useAppDispatch();
+    const navigate = useNavigate()
+    const hasAllDocsConfirm = useSelector((state: RootState) => state.user.userPersonalAccountInfo?.is_confirm_all_documents_one_code);
     const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
     const loading = useSelector((state: RootState) => state.riskProfile.loading);
     const pasportScanSocketId = useSelector((state: RootState) => state.riskProfile.pasportScanSocketId);
@@ -113,11 +116,19 @@ export const PasportScanForm: React.FC = () => {
                 data: formData,
                 onSuccess: () => {
                     dispatch(getUserDocumentsStateThunk())
-                    setTimeout(() => {
-                        closeModal(ModalType.PROGRESS)
-                        dispatch(setStepAdditionalMenuUI(4))
-                        dispatch(getUserDocumentsStateThunk())
-                    }, 2000)
+                    if (hasAllDocsConfirm) {
+                        setTimeout(() => {
+                            navigate('/documents')
+                            closeModal(ModalType.PROGRESS)
+                        }, 2000)
+                    } else {
+                        setTimeout(() => {
+                            closeModal(ModalType.PROGRESS)
+                            dispatch(setStepAdditionalMenuUI(4))
+                            dispatch(getUserDocumentsStateThunk())
+                        }, 2000)
+                    }
+
                 }
             })
         );

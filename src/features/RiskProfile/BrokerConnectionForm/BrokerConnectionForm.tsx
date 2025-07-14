@@ -200,11 +200,14 @@ export const BrokerConnectionForm: React.FC = () => {
                         navigate('/documents')
                         dispatch(setCurrentConfirmableDoc('type_doc_broker_api_token'))
                         dispatch(closeModal(ModalType.INFO));
+                        dispatch(closeModal(ModalType.IDENTIFICATION))
+                    } else {
+                        navigate('/documents')
+                        dispatch(setCurrentConfirmableDoc('type_doc_broker_api_token'))
+                        dispatch(setStepAdditionalMenuUI(4))
+                        dispatch(closeModal(ModalType.INFO));
                     }
-                    navigate('/documents')
-                    dispatch(setCurrentConfirmableDoc('type_doc_broker_api_token'))
-                    dispatch(setStepAdditionalMenuUI(4))
-                    dispatch(closeModal(ModalType.INFO));
+
 
                 }}
                 onClose={() => {

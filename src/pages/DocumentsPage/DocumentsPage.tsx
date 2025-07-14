@@ -45,6 +45,7 @@ import { PasportScanForm } from "features/RiskProfile/PassportScanForm/PassportS
 import { Checkbox } from "shared/ui/Checkbox/Checkbox";
 import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { BulkSignModal } from "features/Documents/BulkSignModal/BulkSignModal";
+import { ConfirmAllDocsOneCodeModal } from "features/RiskProfile/ConfirmAllDocsOneCode/ConfirmAllDocsOneCode";
 
 const DocumentsPage: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -922,6 +923,13 @@ const DocumentsPage: React.FC = () => {
                         ]
                         : 'Документ'
                 }
+            />
+            <ConfirmAllDocsOneCodeModal
+                isOpen={modalState.confirmAllDocumentsOneCode.isOpen}
+                onClose={() => {
+                    dispatch(closeModal(ModalType.CONFIRM_ALL_DOCS_ONE_CODE));
+                }}
+
             />
             <CheckPreviewModal
                 isOpen={modalState.checksPreview.isOpen}

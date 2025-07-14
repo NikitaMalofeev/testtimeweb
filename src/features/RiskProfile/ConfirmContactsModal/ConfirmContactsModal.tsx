@@ -27,6 +27,7 @@ import {
     resendConfirmationCodeLegal,
 } from "entities/RiskProfile/slice/riskProfileSlice";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
+import { getAllUserInfoThunk, getUserPersonalAccountInfoThunk } from "entities/User/slice/userSlice";
 
 const CODE_LEN = 4;
 
@@ -123,21 +124,27 @@ export const ConfirmContactsModal = memo(({ onClose }: ConfirmContactsModalProps
         return () => el?.removeEventListener("scroll", handler);
     }, []);
 
-    /* ───────── helpers для ввода ───────── */
-    const updateDigit = (
-        arrSetter: React.Dispatch<React.SetStateAction<string[]>>,
-        idx: number,
-        value: string,
-        refs: typeof phoneRefs
-    ) => {
-        const v = value.replace(/\D/g, "").slice(0, 1);
-        arrSetter((prev) => {
-            const next = [...prev];
-            next[idx] = v;
-            return next;
-        });
-        if (v && idx < CODE_LEN - 1) refs.current[idx + 1]?.focus();
-    };
+    const handlePaste =
+        (
+            e: React.ClipboardEvent<HTMLInputElement>,
+            setCode: React.Dispatch<React.SetStateAction<string[]>>,
+            refs: React.MutableRefObject<(HTMLInputElement | null)[]>
+        ) => {
+            e.preventDefault();
+            const digits = e.clipboardData
+                .getData("text")
+                .replace(/\D/g, "")
+                .slice(0, CODE_LEN)
+                .split("");
+
+            const next = Array(CODE_LEN).fill("");
+            for (let i = 0; i < CODE_LEN; i++) next[i] = digits[i] || "";
+            setCode(next);
+
+            // ставим фокус: если код не полный — на следующий инпут, иначе убираем
+            if (digits.length < CODE_LEN) refs.current[digits.length]?.focus();
+            else refs.current[CODE_LEN - 1]?.blur();
+        };
 
     const handleBackspace =
         (
@@ -169,7 +176,10 @@ export const ConfirmContactsModal = memo(({ onClose }: ConfirmContactsModalProps
                 method: phoneCode ? 'phone' : 'email',
                 codeFirst: phoneCode.join(""),
                 purposeNewContacts: true,
-                onSuccess: () => setSentPhone(true),
+                onSuccess: () => {
+                    setSentPhone(true)
+                    dispatch(getUserPersonalAccountInfoThunk())
+                },
             }));
         }
     }, [needPhone, phoneCode, sentPhone]);
@@ -184,7 +194,10 @@ export const ConfirmContactsModal = memo(({ onClose }: ConfirmContactsModalProps
                     user_id: localStorage.getItem("user_id")!,
                     codeSecond: code,
                     purposeNewContacts: true,
-                    onSuccess: () => setSentEmail(true),
+                    onSuccess: () => {
+                        setSentEmail(true)
+                        dispatch(getUserPersonalAccountInfoThunk())
+                    },
                 })
             );
         }
@@ -295,7 +308,9 @@ export const ConfirmContactsModal = memo(({ onClose }: ConfirmContactsModalProps
                                     inputMode="numeric"
                                     pattern="[0-9]*"
                                     value={d}
+                                    style={sentPhone ? { borderBottom: '2px solid #1CC15A' } : { borderBottom: '2px solid #D4D4E8' }}
                                     className={styles.codeInput__box}
+                                    onPaste={(e) => handlePaste(e, setPhoneCode, phoneRefs)}
                                     onChange={(e) =>
                                         handleInputChange(
                                             e.target.value,
@@ -345,7 +360,9 @@ export const ConfirmContactsModal = memo(({ onClose }: ConfirmContactsModalProps
                                     inputMode="numeric"
                                     pattern="[0-9]*"
                                     value={d}
+                                    style={sentEmail ? { borderBottom: '2px solid #1CC15A' } : { borderBottom: '2px solid #D4D4E8' }}
                                     className={styles.codeInput__box}
+                                    onPaste={(e) => handlePaste(e, setEmailCode, emailRefs)}
                                     onChange={(e) =>
                                         handleInputChange(
                                             e.target.value,

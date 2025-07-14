@@ -57,6 +57,7 @@ export const BulkSignModal: React.FC<Props> = ({ docs, onClose }) => {
                     broker_id: brokerIds[0]
                 },
                 onSuccess: () => {
+                    dispatch(openModal({ type: ModalType.CONFIRM_ALL_DOCS_ONE_CODE, size: ModalSize.MIDDLE, animation: ModalAnimation.LEFT }))
                     dispatch(getUserDocumentsNotSignedThunk());
                     dispatch(getUserDocumentsStateThunk())
                     onClose();

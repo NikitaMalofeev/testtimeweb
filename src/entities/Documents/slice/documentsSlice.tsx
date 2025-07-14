@@ -3,7 +3,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "app/providers/store/config/store";
 import { AvailabilityPersonalAccountMenuItems, ConfirmAllDocsPayload, ConfirmCustomDocsPayload, ConfirmDocsPayload, FilledRiskProfileChapters, SetHtmlsPayload } from "../types/documentsTypes";
-import { confirmAllDocsRequest, confirmBrokerDocsRequest, confirmCustomDocsRequest, confirmDocsRequest, confirmTariffDocs, getAllBrokers, getBrokerDocumentsSigned, getCustomDocumentsNotSigned, getCustomDocumentsSigned, getDocumentNotSigned, getDocumentsInfo, getDocumentsNotSigned, getDocumentsSigned, getDocumentsState, postConfirmationCodeCustom } from "../api/documentsApi";
+import { confirmAllDocsRequest, confirmBrokerDocsRequest, confirmCustomDocsRequest, confirmDocsRequest, confirmTariffDocs, getAllBrokers, getBrokerDocumentsSigned, getCustomDocumentsNotSigned, getCustomDocumentsSigned, getDocumentNotSigned, getDocumentsInfo, getDocumentsNotSigned, getDocumentsSigned, getDocumentsState, postConfirmationCodeAllDocuments, postConfirmationCodeCustom } from "../api/documentsApi";
 import { setCurrentConfirmingDoc } from "entities/RiskProfile/slice/riskProfileSlice";
 import { setConfirmationDocsSuccess } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
@@ -390,6 +390,39 @@ export const sendDocsConfirmationCode = createAsyncThunk<
                 currentStep === 2 && isLegal && onSuccessLegal?.()
                 onSuccess?.(responseDocs);
                 dispatch(setCurrentConfirmableDoc(responseDocs.next_document));
+            }
+
+        } catch (error: any) {
+            dispatch(setConfirmationDocsSuccess("не пройдено"));
+            console.log(error);
+            const msg =
+                error.response?.data?.errorText
+            dispatch(setError(msg));
+        }
+    }
+);
+
+export const sendDocsConfirmationAllDocuments = createAsyncThunk<
+    void,
+    { codeFirst: string; broker_id: string; onSuccess: () => void },
+    { rejectValue: string; state: RootState }
+>(
+    "documents/sendDocsConfirmationCode",
+    async ({ codeFirst, broker_id, onSuccess }, { getState, dispatch, rejectWithValue }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+            if (codeFirst) {
+                // console.log('попытка отправить код легально' + person_type)
+                const responseDocs = await postConfirmationCodeAllDocuments(
+                    { code: codeFirst, broker_id },
+                    token
+                )
+                onSuccess?.();
+                return responseDocs
+                // dispatch(setCurrentConfirmableDoc(responseDocs.next_document));
             }
 
         } catch (error: any) {

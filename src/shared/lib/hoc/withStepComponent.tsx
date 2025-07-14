@@ -14,8 +14,7 @@ import { PasportScanForm } from 'features/RiskProfile/PassportScanForm/PassportS
 import { ConfirmAllDocs } from 'features/RiskProfile/ConfirmationAllDocs/ConfirmationAllDocs';
 import { BrokerConnectionForm } from 'features/RiskProfile/BrokerConnectionForm/BrokerConnectionForm';
 import { IEIINForm } from 'features/RiskProfile/IEIINForm/IEIINForm';
-
-const Loader = () => <div style={{ padding: 32 }}>Загружаем профиль…</div>;
+import { Loader, LoaderSize } from 'shared/ui/Loader/Loader';
 
 interface WithStepContentProps {
     onClose: () => void;
@@ -40,7 +39,7 @@ const withStepContent = (StepLayout: React.FC<StepLayoutProps>) =>
         /* ───── ждём данные ───── */
         const isIE = user?.is_individual_entrepreneur === true;
         const dataReady = user && user.is_individual_entrepreneur !== undefined;
-        if (!dataReady) return <Loader />;
+        if (!dataReady) return <Loader size={LoaderSize.LARGE} />;
 
         /* ───── заголовок + контент ───── */
         const { title, content } = useMemo(() => {

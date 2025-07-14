@@ -14,6 +14,7 @@ import { closeAllModals } from 'entities/ui/Modal/slice/modalSlice';
 import { setError } from 'entities/Error/slice/errorSlice';
 import PhoneIcon from 'shared/assets/svg/phone.svg'
 import { Button, ButtonTheme } from 'shared/ui/Button/Button';
+import { setUserToken } from 'entities/User/slice/userSlice';
 
 interface HeaderProps {
     currentNotificationsCount?: number;
@@ -22,6 +23,8 @@ interface HeaderProps {
 
 export const Header = ({ currentNotificationsCount, variant }: HeaderProps) => {
 
+
+
     if (variant === 'fallback') {
         return (
             <header className={styles.header}>
@@ -29,6 +32,15 @@ export const Header = ({ currentNotificationsCount, variant }: HeaderProps) => {
             </header>
         );
     }
+
+    const handleLogout = () => {
+        localStorage.removeItem("savedToken");
+        localStorage.removeItem("lastExit");
+        localStorage.removeItem("lastExitSignature");
+        dispatch(setUserToken(""));
+        navigate("/");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
 
     const location = useLocation()
 
@@ -71,7 +83,7 @@ export const Header = ({ currentNotificationsCount, variant }: HeaderProps) => {
             {!haveUser && window.innerWidth > 750
                 ?
                 <div className={styles.header__entry}>
-                    <div className={styles.header__contacts}>
+                    <div className={styles.header__contacts} >
                         <Icon Svg={PhoneIcon} width={24} height={24} />
                         <a href="tel:+78432126778">+7 843 212 67 78</a>
                     </div>
@@ -108,7 +120,7 @@ export const Header = ({ currentNotificationsCount, variant }: HeaderProps) => {
                     <div className={styles.header__notifications}>{currentNotificationsCount}</div>
                     <Icon Svg={AccountIcon} width={24} height={24} />
                 </div>}
-
+            <div onClick={handleLogout}>Выйти</div>
         </header>
     );
 };

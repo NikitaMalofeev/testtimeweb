@@ -183,12 +183,32 @@ export const LegalDataForm: React.FC = () => {
         dispatch(setCurrentConfirmationMethod('EMAIL'))
     }, [])
 
+    useEffect(() => {
+        if (!userPersonalAccountInfo) return;
+
+        const patch: Partial<LegalFormData> = {};
+
+        if (!legalFormData.phone && userPersonalAccountInfo.phone)
+            patch.phone = userPersonalAccountInfo.phone.replace(/\D/g, '');
+
+        if (!legalFormData.email && userPersonalAccountInfo.email)
+            patch.email = userPersonalAccountInfo.email;
+
+        // если есть что патчить – обновляем store
+        if (Object.keys(patch).length) {
+            dispatch(updateLegalFormData(patch));
+        }
+    }, [
+        legalFormData.phone,
+        legalFormData.email,
+        userPersonalAccountInfo?.phone,
+        userPersonalAccountInfo?.email,
+    ]);
+
     const initialValues = useMemo(() => ({
-        ...legalFormData,          // то, что лежит в сторе
-        phone: userPersonalAccountInfo?.phone.replace(/\D/g, '') ?? '',
-        email: userPersonalAccountInfo?.email ?? '',
+        ...legalFormData,
         type_message: 'EMAIL',
-    }), [legalFormData, userPersonalAccountInfo?.phone, userPersonalAccountInfo?.email]);
+    }), [legalFormData]);
 
     /* ──────── Formik ──────── */
     const formik = useFormik({
@@ -687,7 +707,9 @@ export const LegalDataForm: React.FC = () => {
                 onClose={() => dispatch(closeModal(ModalType.CONFIRM_DOCS))}
                 docsType="type_doc_person_legal"
             />
-            <ConfirmContactsModal
+            <ConfirmContactsModal onClose={() => {
+                formik.setFieldValue("g_recaptcha", "");
+            }}
 
             />
         </form>

@@ -132,6 +132,20 @@ export const postResendConfirmationCode = async (data: any) => {
     return response.data;
 };
 
+export const postResendConfirmationCodeLegal = async (data: any) => {
+    const response = await axios.post(
+        `${apiUrl}create_doc_user/update_confirmation_code_legal_person/`,
+        data,
+        {
+            headers: {
+                "Accept-Language": "ru",
+                "Content-Type": "application/json",
+            },
+        }
+    );
+    return response.data;
+};
+
 export const postNeedHelpRequest = async (data: NeedHelpData, token: string) => {
     const response = await axios.post(`${apiUrl}create_doc_user/need_help/`, data, {
         headers: {

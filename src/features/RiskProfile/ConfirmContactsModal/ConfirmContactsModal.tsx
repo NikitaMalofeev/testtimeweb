@@ -24,12 +24,17 @@ import {
     resendConfirmationCode,
     sendPhoneConfirmationCode,
     sendEmailConfirmationCode,
+    resendConfirmationCodeLegal,
 } from "entities/RiskProfile/slice/riskProfileSlice";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
 
 const CODE_LEN = 4;
 
-export const ConfirmContactsModal = memo(() => {
+interface ConfirmContactsModalProps {
+    onClose: () => void
+}
+
+export const ConfirmContactsModal = memo(({ onClose }: ConfirmContactsModalProps) => {
     const dispatch = useAppDispatch();
 
     /* ───────── Redux state ───────── */
@@ -198,6 +203,41 @@ export const ConfirmContactsModal = memo(() => {
         }
     }, [sentPhone, sentEmail]);
 
+    const handleInputChange = (
+        value: string,
+        index: number,
+        code: string[],
+        setCode: React.Dispatch<React.SetStateAction<string[]>>,
+        refs: React.MutableRefObject<(HTMLInputElement | null)[]>
+    ) => {
+        // вставили сразу несколько символов (или авто-заполнение)
+        if (value.length > 1) {
+            const digits = value.replace(/\D/g, '').slice(0, CODE_LEN).split('');
+            const newCode = Array(CODE_LEN).fill('');
+            for (let i = 0; i < CODE_LEN; i++) newCode[i] = digits[i] || '';
+            setCode(newCode);
+
+            // ставим фокус
+            if (digits.length < CODE_LEN) refs.current[digits.length]?.focus();
+            else refs.current[CODE_LEN - 1]?.blur();
+            return;
+        }
+
+        // обычный ввод по одной цифре
+        const v = value.replace(/\D/g, '').slice(0, 1);
+        const next = [...code];
+        next[index] = v;
+        setCode(next);
+        if (v && index < CODE_LEN - 1) refs.current[index + 1]?.focus();
+    };
+
+    useEffect(() => {
+        if (isOpen) {
+            setSentPhone(false);
+            setSentEmail(false);
+        }
+    }, [isOpen]);
+
     /* ───────── рендер ───────── */
     const resendBtn = (
         timer: number,
@@ -223,7 +263,10 @@ export const ConfirmContactsModal = memo(() => {
     return (
         <Modal
             isOpen={isOpen}
-            onClose={() => dispatch(closeModal(ModalType.CONFIRM_CONTACTS))}
+            onClose={() => {
+                dispatch(closeModal(ModalType.CONFIRM_CONTACTS))
+                onClose()
+            }}
             type={ModalType.CONFIRM_CONTACTS}
             size={size}
             animation={animation}
@@ -254,7 +297,13 @@ export const ConfirmContactsModal = memo(() => {
                                     value={d}
                                     className={styles.codeInput__box}
                                     onChange={(e) =>
-                                        updateDigit(setPhoneCode, i, e.target.value, phoneRefs)
+                                        handleInputChange(
+                                            e.target.value,
+                                            i,
+                                            phoneCode,
+                                            setPhoneCode,
+                                            phoneRefs
+                                        )
                                     }
                                     onKeyDown={handleBackspace(
                                         () => phoneCode,
@@ -262,14 +311,15 @@ export const ConfirmContactsModal = memo(() => {
                                         i,
                                         phoneRefs
                                     )}
+
                                 />
                             ))}
                         </div>
 
                         {resendBtn(phoneLeft, phoneTimer, () => {
                             dispatch(
-                                resendConfirmationCode({
-                                    user_id: localStorage.getItem("user_id")!,
+                                resendConfirmationCodeLegal({
+                                    type_document: 'phone',
                                     method: "phone",
                                 })
                             );
@@ -297,7 +347,13 @@ export const ConfirmContactsModal = memo(() => {
                                     value={d}
                                     className={styles.codeInput__box}
                                     onChange={(e) =>
-                                        updateDigit(setEmailCode, i, e.target.value, emailRefs)
+                                        handleInputChange(
+                                            e.target.value,
+                                            i,
+                                            emailCode,
+                                            setEmailCode,
+                                            emailRefs
+                                        )
                                     }
                                     onKeyDown={handleBackspace(
                                         () => emailCode,
@@ -305,14 +361,15 @@ export const ConfirmContactsModal = memo(() => {
                                         i,
                                         emailRefs
                                     )}
+
                                 />
                             ))}
                         </div>
 
                         {resendBtn(emailLeft, emailTimer, () => {
                             dispatch(
-                                resendConfirmationCode({
-                                    user_id: localStorage.getItem("user_id")!,
+                                resendConfirmationCodeLegal({
+                                    type_document: 'email',
                                     method: "email",
                                 })
                             );

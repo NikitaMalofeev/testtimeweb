@@ -33,6 +33,7 @@ import {
     postPasportData,
     postPasportScanData,
     postResendConfirmationCode,
+    postResendConfirmationCodeLegal,
     postSecondRiskProfile,
     postSecondRiskProfileFinal,
     postTrustedPersonInfoApi
@@ -611,6 +612,38 @@ export const resendConfirmationCode = createAsyncThunk<
                 payload.type_confirm = "phone";
             }
             await postResendConfirmationCode(payload);
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message ||
+                "Ошибка при повторной отправке кода"
+            );
+        }
+    }
+);
+
+export const resendConfirmationCodeLegal = createAsyncThunk<
+    void,
+    { type_document: string; method: 'SMS' | 'email' | 'WHATSAPP' | 'whatsapp' | 'phone' | 'EMAIL' },
+    { rejectValue: string }
+>(
+    "riskProfile/resendConfirmationCodeLegal",
+    async ({ method, type_document }, { rejectWithValue }) => {
+        try {
+            const payload: Record<string, any> = {
+                type_document
+            };
+            if (method === "WHATSAPP") {
+                payload.type_confirm = "SMS";
+                payload.type_message = "WHATSAPP";
+            } else if (method === "SMS") {
+                payload.type_confirm = "SMS";
+                payload.type_message = "SMS";
+            } else if (method === "email") {
+                payload.type_confirm = "email";
+            } else if (method === 'phone') {
+                payload.type_confirm = "phone";
+            }
+            await postResendConfirmationCodeLegal(payload);
         } catch (error: any) {
             return rejectWithValue(
                 error.response?.data?.message ||

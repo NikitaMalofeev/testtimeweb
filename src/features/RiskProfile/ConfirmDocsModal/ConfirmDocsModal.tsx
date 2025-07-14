@@ -230,6 +230,7 @@ export const ConfirmDocsModal = memo(
                             docs: docsType || "",
                             onSuccessLegal: () => {
                                 dispatch(nextStep())
+                                dispatch(nextStep())
                             },
                             onSuccess: (data: any) => {
                                 dispatch(getUserDocumentsStateThunk());

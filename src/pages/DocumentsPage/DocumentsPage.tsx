@@ -65,6 +65,10 @@ const DocumentsPage: React.FC = () => {
     const user = useSelector((s: RootState) => s.user.userPersonalAccountInfo);
     const currentUserTariffIdForPayments = useSelector((s: RootState) => s.payments.currentUserTariffIdForPayments);
     const targetTariffId = currentUserTariffIdForPayments || '';
+    const isBulkEnabled = !!user?.is_confirm_all_documents_one_code;
+    const brokerDoc = userDocuments.find(d => d.key === "type_doc_broker_api_token");
+    const isBrokerSigned = brokerIds.length > 0;
+    const showBulkToolbar = isBulkEnabled && isBrokerSigned;
     const isIp = !!user?.is_individual_entrepreneur;
 
     // Универсальные флаги «заполнена карточка» / «есть сканы»
@@ -84,7 +88,6 @@ const DocumentsPage: React.FC = () => {
 
     /** документы, недоступные для массовой подписи */
     const EXCLUDED_BULK = [
-        "type_doc_broker_api_token",
         "type_doc_agreement_investment_advisor_app_1",
         "type_doc_passport",
     ];
@@ -149,35 +152,65 @@ const DocumentsPage: React.FC = () => {
         }
     }, [modalState.documentsPreview.isOpen, isAnyModalOpen]);
 
-    // Лейблы для отображения
-    const docTypeLabels: Record<string, string> = {
-        type_doc_passport: user?.is_individual_entrepreneur === false ? "1. Паспортные данные" : '1. Данные об ИП',
-        type_doc_EDS_agreement: "2. Соглашение об ЭДО",
-        type_doc_RP_questionnairy: "3. Анкета РП",
-        type_doc_agreement_investment_advisor: "4. Договор ИС",
-        type_doc_risk_declarations: "5. Декларация о рисках",
-        type_doc_agreement_personal_data_policy: "6. Политика перс. данных",
-        type_doc_investment_profile_certificate: "7. Справка ИП",
-        type_doc_agreement_account_maintenance: "8. Доверенность на управление счетом",
-        type_doc_broker_api_token: "9. Согласие на передачу API ключа к брокерскому счету",
-        type_doc_agreement_investment_advisor_app_1: '10. Договор ИС: Приложение 1',
 
+    const docOrder = useMemo(() => {
+        const baseOrder = [
+            "type_doc_passport",
+            "type_doc_EDS_agreement",
+            "type_doc_RP_questionnairy",
+            "type_doc_agreement_investment_advisor",
+            "type_doc_risk_declarations",
+            "type_doc_agreement_personal_data_policy",
+            "type_doc_investment_profile_certificate",
+            "type_doc_agreement_account_maintenance",
+            "type_doc_broker_api_token",
+            "type_doc_agreement_investment_advisor_app_1",
+        ];
+
+        return isBulkEnabled
+            ? [
+                // два нужных документа в нужном порядке
+                "type_doc_passport",
+                "type_doc_broker_api_token",
+                // «хвост» без дубликатов
+                ...baseOrder.filter(
+                    d =>
+                        d !== "type_doc_passport" &&
+                        d !== "type_doc_broker_api_token"
+                ),
+            ]
+            : baseOrder;
+    }, [isBulkEnabled]);
+
+    /** «Чистые» названия без нумерации  */
+    const baseDocTitles: Record<string, string> = {
+        type_doc_passport: user?.is_individual_entrepreneur === false
+            ? "Паспортные данные"
+            : "Данные об ИП",
+        type_doc_EDS_agreement: "Соглашение об ЭДО",
+        type_doc_RP_questionnairy: "Анкета РП",
+        type_doc_agreement_investment_advisor: "Договор ИС",
+        type_doc_risk_declarations: "Декларация о рисках",
+        type_doc_agreement_personal_data_policy: "Политика перс. данных",
+        type_doc_investment_profile_certificate: "Справка ИП",
+        type_doc_agreement_account_maintenance: "Доверенность на управление счётом",
+        type_doc_broker_api_token: "Согласие на передачу API-ключа к брокерскому счёту",
+        type_doc_agreement_investment_advisor_app_1: "Договор ИС: Приложение 1",
     };
 
-    // Порядок документов
-    const docOrder = [
-        "type_doc_passport",
-        "type_doc_EDS_agreement",
-        "type_doc_RP_questionnairy",
-        "type_doc_agreement_investment_advisor",
-        "type_doc_risk_declarations",
-        "type_doc_agreement_personal_data_policy",
-        "type_doc_investment_profile_certificate",
-        "type_doc_agreement_account_maintenance",
-        "type_doc_broker_api_token",
-        'type_doc_agreement_investment_advisor_app_1',
+    /** Итоговые лейблы с корректной нумерацией */
+    const docTypeLabels: Record<string, string> = useMemo(() => {
+        const labels: Record<string, string> = {};
 
-    ];
+        docOrder.forEach((key, idx) => {
+            // base title + номер, начиная с 1
+            labels[key] = `${idx + 1}. ${baseDocTitles[key] ?? key}`;
+        });
+
+        return labels;
+    }, [docOrder, user?.is_individual_entrepreneur]);
+
+
 
     // Метод для подписания конкретного документа
     const handleSignDocument = (docId: string) => {
@@ -388,7 +421,7 @@ const DocumentsPage: React.FC = () => {
                 additionalMessages = '';
             }
         } else if (doc.id === "type_doc_broker_api_token") {
-            if (brokersCount === 0) {
+            if (brokerIds.length === 0) {
                 colorClass = styles.button__gray;
                 additionalMessages = 'Для подписания подключите брокерский счет';
             } else {
@@ -399,7 +432,7 @@ const DocumentsPage: React.FC = () => {
         } else if (doc.id === 'type_doc_agreement_account_maintenance') {
             if (activePaidTariffs.length > 0) {
                 colorClass = styles.button__gray;
-            } else if (activePaidTariffs.length > 0 && brokersCount < 0) {
+            } else if (activePaidTariffs.length > 0 && brokerIds.length < 0) {
                 colorClass = styles.button__gray;
                 additionalMessages = 'Для подписания подключите брокерский счет';
             } else {
@@ -581,7 +614,7 @@ const DocumentsPage: React.FC = () => {
                 </div>
 
                 {/* Список документов */}
-                {user?.is_confirm_all_documents_one_code && (
+                {showBulkToolbar && (
                     <div className={styles.bulkToolbar}>
                         <Checkbox
                             name="selectAll"
@@ -607,6 +640,7 @@ const DocumentsPage: React.FC = () => {
                 )}
                 <div className={styles.documents__list}>
                     {renderedDocuments.map((doc) => {
+                        const isInBulk = isBulkEnabled && !EXCLUDED_BULK.includes(doc.id) && doc.id !== "type_doc_broker_api_token";
                         // Вынесем логику определения отображения кнопки/статуса
                         const isSigned = doc.status === "signed";
                         const isPassport = doc.id === "type_doc_passport";
@@ -640,7 +674,7 @@ const DocumentsPage: React.FC = () => {
                                 {device === 'mobile' ? (
                                     <div style={{ display: 'flex', gap: '10px' }}>
                                         <div>
-                                            {user?.is_confirm_all_documents_one_code && (
+                                            {showBulkToolbar && (
                                                 <Checkbox
                                                     name={doc.id}                                  // уникальное имя
                                                     value={selectedDocs.includes(doc.id)}          // «отмечен ли»
@@ -725,35 +759,37 @@ const DocumentsPage: React.FC = () => {
                                                     ? (
                                                         <div className={styles.document__paymentStatus} >Оплачено</div>
                                                     )
-                                                    : showSuccess
-                                                        ? (
-                                                            <div className={styles.document__button_success}>
-                                                                <Icon Svg={SuccessBlueIcon} width={24} height={24} />
-                                                                <span>
-                                                                    {isPassport
-                                                                        ? "Подтверждено"
-                                                                        : isBroker && brokerIds[0] && isIdentityScanExist
+                                                    : isInBulk          // если документ пойдёт в «общую» подпись — ничего не показываем
+                                                        ? null
+                                                        : showSuccess
+                                                            ? (
+                                                                <div className={styles.document__button_success}>
+                                                                    <Icon Svg={SuccessBlueIcon} width={24} height={24} />
+                                                                    <span>
+                                                                        {isPassport
                                                                             ? "Подтверждено"
-                                                                            : "Подписано"}
-                                                                </span>
-                                                            </div>
-                                                        )
-                                                        : (
-                                                            <Button
-                                                                onClick={() => handleSignDocument(doc.id)}
-                                                                disabled={isDisabled}
-                                                                className={doc.colorClass}
-                                                                theme={ButtonTheme.BLUE}
-                                                            >
-                                                                {buttonText}
-                                                            </Button>
-                                                        )
+                                                                            : isBroker && brokerIds[0] && isIdentityScanExist
+                                                                                ? "Подтверждено"
+                                                                                : "Подписано"}
+                                                                    </span>
+                                                                </div>
+                                                            )
+                                                            : (
+                                                                <Button
+                                                                    onClick={() => handleSignDocument(doc.id)}
+                                                                    disabled={isDisabled}
+                                                                    className={doc.colorClass}
+                                                                    theme={ButtonTheme.BLUE}
+                                                                >
+                                                                    {buttonText}
+                                                                </Button>
+                                                            )
                                                 }
                                             </div>
                                         </div></div>
                                 ) : (
                                     <div style={{ display: 'flex', gap: '10px' }}>
-                                        {user?.is_confirm_all_documents_one_code && (
+                                        {showBulkToolbar && (
                                             <div>
                                                 <Checkbox
                                                     name={doc.id}                                  // уникальное имя
@@ -839,29 +875,31 @@ const DocumentsPage: React.FC = () => {
                                                     ? (
                                                         <div className={styles.document__paymentStatus} >Оплачено</div>
                                                     )
-                                                    : showSuccess
-                                                        ? (
-                                                            <div className={styles.document__button_success}>
-                                                                <Icon Svg={SuccessBlueIcon} width={24} height={24} />
-                                                                <span>
-                                                                    {isPassport
-                                                                        ? "Подтверждено"
-                                                                        : isBroker && brokerIds[0] && isIdentityScanExist
+                                                    : isInBulk          // если документ пойдёт в «общую» подпись — ничего не показываем
+                                                        ? null
+                                                        : showSuccess
+                                                            ? (
+                                                                <div className={styles.document__button_success}>
+                                                                    <Icon Svg={SuccessBlueIcon} width={24} height={24} />
+                                                                    <span>
+                                                                        {isPassport
                                                                             ? "Подтверждено"
-                                                                            : "Подписано"}
-                                                                </span>
-                                                            </div>
-                                                        )
-                                                        : (
-                                                            <Button
-                                                                onClick={() => handleSignDocument(doc.id)}
-                                                                disabled={isDisabled}
-                                                                className={`${doc.colorClass} ${styles.button}`}
-                                                                theme={ButtonTheme.BLUE}
-                                                            >
-                                                                {buttonText}
-                                                            </Button>
-                                                        )
+                                                                            : isBroker && brokerIds[0] && isIdentityScanExist
+                                                                                ? "Подтверждено"
+                                                                                : "Подписано"}
+                                                                    </span>
+                                                                </div>
+                                                            )
+                                                            : (
+                                                                <Button
+                                                                    onClick={() => handleSignDocument(doc.id)}
+                                                                    disabled={isDisabled}
+                                                                    className={`${doc.colorClass} ${styles.button}`}
+                                                                    theme={ButtonTheme.BLUE}
+                                                                >
+                                                                    {buttonText}
+                                                                </Button>
+                                                            )
                                                 }
                                             </div>
                                         </div>

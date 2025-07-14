@@ -733,12 +733,19 @@ export const documentsSlice = createSlice({
             state.allNotSignedDocumentsHtml["type_doc_broker_api_token"] =
                 action.payload.notSignedDocBroker;
         },
+        // setBrokerIds(
+        //     state,
+        //     action: PayloadAction<{ brokerId: string; count: number; }>
+        // ) {
+        //     state.brokerIds.push(action.payload.brokerId);
+        //     state.brokersCount = action.payload.count
+        // },
         setBrokerIds(
             state,
-            action: PayloadAction<{ brokerId: string; count: number; }>
+            action: PayloadAction<{ brokerId: string; count: number }>
         ) {
-            state.brokerIds.push(action.payload.brokerId);
-            state.brokersCount = action.payload.count
+            state.brokerIds = [action.payload.brokerId];   // ← старое значение затираем
+            state.brokersCount = action.payload.count;
         },
         setTimeoutBetweenConfirmation(state, action: PayloadAction<number>) {
             state.timeoutBetweenConfirmation = action.payload;

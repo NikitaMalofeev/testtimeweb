@@ -25,6 +25,7 @@ export const BulkSignModal: React.FC<Props> = ({ docs, onClose }) => {
     const dispatch = useAppDispatch();
     const [channel, setChannel] = useState<"SMS" | "EMAIL" | "WHATSAPP">("EMAIL");
     const [agreeAll, setAgreeAll] = useState(false);
+    const brokerIds = useSelector((s: RootState) => s.documents.brokerIds)
 
     const handlePreview = (id: string) => {
         dispatch(getUserDocumentsNotSignedThunk());
@@ -52,6 +53,8 @@ export const BulkSignModal: React.FC<Props> = ({ docs, onClose }) => {
                     is_agree_type_doc_agreement_personal_data_policy: true,
                     is_agree_type_doc_investment_profile_certificate: true,
                     is_agree_type_doc_agreement_account_maintenance: true,
+
+                    broker_id: brokerIds[0]
                 },
                 onSuccess: () => {
                     dispatch(getUserDocumentsNotSignedThunk());

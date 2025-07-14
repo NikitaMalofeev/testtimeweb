@@ -207,6 +207,9 @@ export const LegalDataForm: React.FC = () => {
 
     const initialValues = useMemo(() => ({
         ...legalFormData,
+        first_name: userPersonalAccountInfo?.first_name,
+        last_name: userPersonalAccountInfo?.last_name,
+        patronymic: userPersonalAccountInfo?.patronymic,
         type_message: 'EMAIL',
     }), [legalFormData]);
 

@@ -19,6 +19,7 @@ import limitationDoc from 'shared/assets/documents/limitationOfliabil.pdf'
 import offerDoc from 'shared/assets/documents/Offer.pdf'
 import personalDataAgreementDoc from 'shared/assets/documents/personalDataAgreement.pdf'
 import personalPolicyDoc from 'shared/assets/documents/personalPolicyDoc.pdf'
+import { DocumentsPreviewPdfModal } from "features/Documents/DocumentsPreviewPdfModal/DocumentsPreviewPdfModal";
 
 
 export const Footer: React.FC = () => {
@@ -36,7 +37,7 @@ export const Footer: React.FC = () => {
     ];
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
-    const modalState = useSelector((state: RootState) => state.modal.documentsPreview);
+    const modalState = useSelector((state: RootState) => state.modal);
 
     // Храним путь или ID документа для предпросмотра
     const [currentDocForPreview, setCurrentDocForPreview] = useState<string>("");
@@ -44,7 +45,7 @@ export const Footer: React.FC = () => {
     // Как только выбрали документ, открываем модалку
     useEffect(() => {
         if (currentDocForPreview) {
-            dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW, animation: ModalAnimation.LEFT, size: ModalSize.FULL }));
+            dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW_PDF, animation: ModalAnimation.LEFT, size: ModalSize.FULL }));
             console.log(currentDocForPreview + 'current')
         }
     }, [currentDocForPreview, dispatch]);
@@ -182,11 +183,11 @@ export const Footer: React.FC = () => {
                 </div>
             </div>
 
-            <DocumentPreviewModal
-                title=""
-                isOpen={modalState.isOpen}
-                onClose={handleClosePreview}
-                justPreview={currentDocForPreview}
+            <DocumentsPreviewPdfModal
+                pdfUrl={currentDocForPreview}
+                isOpen={modalState.documentsPreviewPdf.isOpen}
+                onClose={() => dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW_PDF))}
+
             />
         </>
     );

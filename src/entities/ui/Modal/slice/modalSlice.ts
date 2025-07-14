@@ -68,6 +68,12 @@ const initialState: ExtendedModalState = {
         // extra field for preview
         docId: undefined,
     } as ModalStateItem & { checkId?: string },
+    [ModalType.DOCUMENTS_PREVIEW_PDF]: {
+        isOpen: false,
+        size: ModalSize.FULL,
+        animation: ModalAnimation.LEFT,
+        isScrolled: false,
+    },
     [ModalType.CHECKS_PREVIEW]: {
         isOpen: false,
         size: ModalSize.FULL,

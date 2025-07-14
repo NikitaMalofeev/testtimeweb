@@ -32,6 +32,7 @@ import { setStepAdditionalMenuUI } from 'entities/ui/Ui/slice/uiSlice';
 import { useNavigate } from 'react-router-dom';
 import brokerInstructionPDF from 'shared/assets/documents/brokerInstruction.pdf'
 import { useDevice } from 'shared/hooks/useDevice';
+import { DocumentsPreviewPdfModal } from 'features/Documents/DocumentsPreviewPdfModal/DocumentsPreviewPdfModal';
 
 export const BrokerConnectionForm: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -185,7 +186,15 @@ export const BrokerConnectionForm: React.FC = () => {
 
             <DocumentPreviewModal title={!brokerIds[0] ? 'Инструкция подключения к брокеру' : 'Согласие на передачу API ключа к брокерскому счету'} isOpen={modalState.documentsPreview.isOpen} onClose={() => {
                 dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW))
-            }} docId='type_doc_broker_api_token' justPreview={!brokerIds[0] ? `${brokerInstructionPDF}` : ''} />
+            }} docId='type_doc_broker_api_token' />
+
+            <DocumentsPreviewPdfModal
+                pdfUrl={!brokerIds[0] ? `${brokerInstructionPDF}` : ''}
+                isOpen={modalState.documentsPreviewPdf.isOpen}
+                onClose={() => dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW_PDF))}
+
+            />
+
             <ProblemsModal isOpen={modalState.problem.isOpen} title='Проблемы с подключением брокера' problemScreen='Подключение брокера'
                 onClose={() => {
                     dispatch(closeModal(ModalType.PROBLEM));

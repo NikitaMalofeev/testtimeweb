@@ -30,6 +30,7 @@ import PrivacyPdf from "shared/assets/documents/PersonalPolicy.pdf";
 import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { useScrollShadow } from "shared/hooks/useScrollShadow";
 import BooleanTabs from "shared/ui/BooleanTabs/BooleanTabs";
+import { DocumentsPreviewPdfModal } from "features/Documents/DocumentsPreviewPdfModal/DocumentsPreviewPdfModal";
 
 const IdentificationProfileForm: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -47,7 +48,7 @@ const IdentificationProfileForm: React.FC = () => {
     const { isScrolled, isBottom } = useScrollShadow(formContentRef, true);
 
     const { loading } = useSelector((s: RootState) => s.riskProfile);
-    const modalState = useSelector((s: RootState) => s.modal.documentsPreview);
+    const modalState = useSelector((s: RootState) => s.modal);
     const systemError = useSelector((s: RootState) => s.error.error);
     const modalConfirmOpen = useSelector(
         (s: RootState) => s.modal.confirmCodeModal.isOpen
@@ -147,7 +148,7 @@ const IdentificationProfileForm: React.FC = () => {
         e.preventDefault();
         dispatch(
             openModal({
-                type: ModalType.DOCUMENTS_PREVIEW,
+                type: ModalType.DOCUMENTS_PREVIEW_PDF,
                 animation: ModalAnimation.LEFT,
                 size: ModalSize.FULL,
             })
@@ -389,10 +390,10 @@ const IdentificationProfileForm: React.FC = () => {
             </form>
 
             {/* ───────────── модалка превью документов ───────────── */}
-            <DocumentPreviewModal
-                justPreview={PrivacyPdf}
-                isOpen={modalState.isOpen}
-                onClose={() => dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW))}
+            <DocumentsPreviewPdfModal
+                pdfUrl={PrivacyPdf}
+                isOpen={modalState.documentsPreviewPdf.isOpen}
+                onClose={() => dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW_PDF))}
 
             />
         </>

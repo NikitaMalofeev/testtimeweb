@@ -403,6 +403,7 @@ const DocumentsPage: React.FC = () => {
 
     const renderedDocuments = allDocuments.map((doc) => {
         let colorClass = styles.button__gray;
+
         let additionalMessages = '';
         let tariffs = currentTariffId
 
@@ -456,6 +457,8 @@ const DocumentsPage: React.FC = () => {
             additionalMessages
         };
     });
+
+
 
 
     const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
@@ -651,6 +654,7 @@ const DocumentsPage: React.FC = () => {
                             (isPassport && isSigned && isIdentityScanExist) ||
                             (!isPassport && isSigned);
 
+
                         let buttonText = "Подписать";
                         if (isBroker && brokersCount === 0) {
                             buttonText = brokerIds && brokerIds.length ? "Подписать" : "Заполнить";
@@ -668,6 +672,10 @@ const DocumentsPage: React.FC = () => {
                                     ? false
                                     : doc.id !== firstNotConfirmed || !hasPassport;
 
+                        const shouldShowButton =
+                            !isInBulk &&
+                            !showSuccess &&
+                            !(isBroker && buttonText === "Подписать");
 
                         return (
                             <>
@@ -755,36 +763,30 @@ const DocumentsPage: React.FC = () => {
 
                                                 </span>
 
-                                                {doc.isPayment
-                                                    ? (
-                                                        <div className={styles.document__paymentStatus} >Оплачено</div>
-                                                    )
-                                                    : isInBulk          // если документ пойдёт в «общую» подпись — ничего не показываем
-                                                        ? null
-                                                        : showSuccess
-                                                            ? (
-                                                                <div className={styles.document__button_success}>
-                                                                    <Icon Svg={SuccessBlueIcon} width={24} height={24} />
-                                                                    <span>
-                                                                        {isPassport
-                                                                            ? "Подтверждено"
-                                                                            : isBroker && brokerIds[0] && isIdentityScanExist
-                                                                                ? "Подтверждено"
-                                                                                : "Подписано"}
-                                                                    </span>
-                                                                </div>
-                                                            )
-                                                            : (
-                                                                <Button
-                                                                    onClick={() => handleSignDocument(doc.id)}
-                                                                    disabled={isDisabled}
-                                                                    className={doc.colorClass}
-                                                                    theme={ButtonTheme.BLUE}
-                                                                >
-                                                                    {buttonText}
-                                                                </Button>
-                                                            )
-                                                }
+                                                {doc.isPayment ? (
+                                                    <div className={styles.document__paymentStatus}>Оплачено</div>
+                                                ) : showSuccess ? (
+                                                    <div className={styles.document__button_success}>
+                                                        <Icon Svg={SuccessBlueIcon} width={24} height={24} />
+                                                        <span>
+                                                            {isPassport
+                                                                ? "Подтверждено"
+                                                                : isBroker && brokerIds[0] && isIdentityScanExist
+                                                                    ? "Подтверждено"
+                                                                    : "Подписано"}
+                                                        </span>
+                                                    </div>
+                                                ) : shouldShowButton ? (
+                                                    <Button
+                                                        onClick={() => handleSignDocument(doc.id)}
+                                                        disabled={isDisabled}
+                                                        className={`${doc.colorClass} ${styles.button}`}
+                                                        theme={ButtonTheme.BLUE}
+                                                    >
+                                                        {buttonText}
+                                                    </Button>
+                                                ) : null}
+
                                             </div>
                                         </div></div>
                                 ) : (
@@ -871,36 +873,30 @@ const DocumentsPage: React.FC = () => {
 
                                                 </div>
 
-                                                {doc.isPayment
-                                                    ? (
-                                                        <div className={styles.document__paymentStatus} >Оплачено</div>
-                                                    )
-                                                    : isInBulk          // если документ пойдёт в «общую» подпись — ничего не показываем
-                                                        ? null
-                                                        : showSuccess
-                                                            ? (
-                                                                <div className={styles.document__button_success}>
-                                                                    <Icon Svg={SuccessBlueIcon} width={24} height={24} />
-                                                                    <span>
-                                                                        {isPassport
-                                                                            ? "Подтверждено"
-                                                                            : isBroker && brokerIds[0] && isIdentityScanExist
-                                                                                ? "Подтверждено"
-                                                                                : "Подписано"}
-                                                                    </span>
-                                                                </div>
-                                                            )
-                                                            : (
-                                                                <Button
-                                                                    onClick={() => handleSignDocument(doc.id)}
-                                                                    disabled={isDisabled}
-                                                                    className={`${doc.colorClass} ${styles.button}`}
-                                                                    theme={ButtonTheme.BLUE}
-                                                                >
-                                                                    {buttonText}
-                                                                </Button>
-                                                            )
-                                                }
+                                                {doc.isPayment ? (
+                                                    <div className={styles.document__paymentStatus}>Оплачено</div>
+                                                ) : showSuccess ? (
+                                                    <div className={styles.document__button_success}>
+                                                        <Icon Svg={SuccessBlueIcon} width={24} height={24} />
+                                                        <span>
+                                                            {isPassport
+                                                                ? "Подтверждено"
+                                                                : isBroker && brokerIds[0] && isIdentityScanExist
+                                                                    ? "Подтверждено"
+                                                                    : "Подписано"}
+                                                        </span>
+                                                    </div>
+                                                ) : shouldShowButton ? (
+                                                    <Button
+                                                        onClick={() => handleSignDocument(doc.id)}
+                                                        disabled={isDisabled}
+                                                        className={`${doc.colorClass} ${styles.button}`}
+                                                        theme={ButtonTheme.BLUE}
+                                                    >
+                                                        {buttonText}
+                                                    </Button>
+                                                ) : null}
+
                                             </div>
                                         </div>
                                     </div>

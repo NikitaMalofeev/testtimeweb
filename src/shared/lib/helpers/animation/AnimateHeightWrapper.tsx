@@ -1,39 +1,49 @@
-import { useEffect, useRef, useState, ReactNode } from 'react';
+import {
+    useLayoutEffect,
+    useRef,
+    useState,
+    ReactNode,
+    CSSProperties,
+} from 'react';
 import { motion } from 'framer-motion';
-import styles from './styles.module.scss'
+import styles from './styles.module.scss';
 
 type AnimateHeightWrapperProps = {
     isOpen: boolean;
     children: ReactNode;
-    minHeight?: string;
+    minHeight?: string | number;
+    style?: CSSProperties;          // можно не передавать
 };
 
 const AnimateHeightWrapper: React.FC<AnimateHeightWrapperProps> = ({
     isOpen,
     children,
-    minHeight = '500px'
+    minHeight = 500,
+    style = {},
 }) => {
     const contentRef = useRef<HTMLDivElement | null>(null);
     const [height, setHeight] = useState<string | number>(minHeight);
 
-    useEffect(() => {
-        if (isOpen && contentRef.current) {
+    // Считаем высоту ДО кадра, где браузер рисует элемент,
+    // чтобы сразу отдать корректное значение motion-div’у
+    useLayoutEffect(() => {
+        if (contentRef.current) {
             const fullHeight = contentRef.current.scrollHeight + 20;
-            setHeight(fullHeight);
-        } else {
-            setHeight(minHeight);
+            setHeight(isOpen ? fullHeight : minHeight);
         }
-    }, [isOpen, minHeight]);
+    }, [isOpen, minHeight]);   // если style меняет габариты, пересчитываем
 
     return (
         <motion.div
-            style={{ width: '100%', overflow: 'hidden' }}
+            style={{ width: '100%', overflow: 'hidden', display: 'flex', alignItems: 'end' }}   // внешний div — как было
             animate={{ height }}
-            transition={{ duration: 0.4, ease: "easeInOut" }}
-
+            initial={false}                                 // не нужен стартовый кадр
+            transition={{ duration: 0.4, ease: 'easeInOut' }}
         >
-            <div className={styles.container} ref={contentRef}>{children}</div>
-
+            {/* стиль остаётся на контейнере, применяется сразу */}
+            <div ref={contentRef} className={styles.container} style={style}>
+                {children}
+            </div>
         </motion.div>
     );
 };

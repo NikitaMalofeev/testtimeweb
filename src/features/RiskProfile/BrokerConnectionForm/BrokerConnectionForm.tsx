@@ -39,6 +39,7 @@ export const BrokerConnectionForm: React.FC = () => {
     const navigate = useNavigate()
     const { brokerIds } = useSelector((state: RootState) => state.documents)
     const device = useDevice()
+    const isBulk = useSelector((s: RootState) => s.user.userPersonalAccountInfo?.is_confirm_all_documents_one_code)
 
     const brokersItems = [
         {
@@ -195,10 +196,16 @@ export const BrokerConnectionForm: React.FC = () => {
                 description='Для предоставления услуги необходимо подписать документ «Согласие на передачу API ключа к брокерскому счету»'
                 buttonText='Перейти к подписи'
                 action={() => {
+                    if (isBulk) {
+                        navigate('/documents')
+                        dispatch(setCurrentConfirmableDoc('type_doc_broker_api_token'))
+                        dispatch(closeModal(ModalType.INFO));
+                    }
                     navigate('/documents')
+                    dispatch(setCurrentConfirmableDoc('type_doc_broker_api_token'))
                     dispatch(setStepAdditionalMenuUI(4))
                     dispatch(closeModal(ModalType.INFO));
-                    dispatch(setCurrentConfirmableDoc('type_doc_broker_api_token'))
+
                 }}
                 onClose={() => {
                     dispatch(closeModal(ModalType.INFO));

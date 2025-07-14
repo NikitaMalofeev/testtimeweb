@@ -12,14 +12,14 @@ type AnimateHeightWrapperProps = {
     isOpen: boolean;
     children: ReactNode;
     minHeight?: string | number;
-    style?: CSSProperties;          // можно не передавать
+    style: CSSProperties
 };
 
 const AnimateHeightWrapper: React.FC<AnimateHeightWrapperProps> = ({
     isOpen,
     children,
     minHeight = 500,
-    style = {},
+    style
 }) => {
     const contentRef = useRef<HTMLDivElement | null>(null);
     const [height, setHeight] = useState<string | number>(minHeight);

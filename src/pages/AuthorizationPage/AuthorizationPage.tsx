@@ -88,7 +88,7 @@ const AuthorizationPage = () => {
     return (
         <>
             <div className={styles.auth} >
-                <AnimateHeightWrapper isOpen={activeTab === 'registration'} minHeight={deviceSize === 'desktop' ? '100%' : '500px'} style={activeTab === 'login' ? { height: '100%' } : { height: 'max-content' }}>
+                <AnimateHeightWrapper isOpen={activeTab === 'registration'} minHeight={deviceSize === 'desktop' ? '100%' : '469px'} style={activeTab === 'registration' ? { height: '98%' } : { height: '100%' }}>
                     <div className={styles.auth__wrapper}>
                         <div
                             className={`${styles.auth__container} ${activeTab === 'registration' ? styles.auth__container_extended : ''}`}
@@ -151,6 +151,9 @@ const AuthorizationPage = () => {
                                     </div>
                                 </form>
                             )}
+
+                            {/* Элемент crutch всегда отрисовывается, но изначально скрыт */}
+                            <div ref={crutchRef} className={styles.crutch} style={{ display: "none" }}></div>
 
                             {activeTab === 'registration' && (
                                 <IdentificationProfileForm />

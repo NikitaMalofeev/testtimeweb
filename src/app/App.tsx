@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import AppRouter from './providers/router/ui/AppRouter';
 import './styles/index.scss';
 import { Header } from 'widgets/Header/ui/Header';
@@ -25,6 +25,7 @@ import { setScrollToTop } from 'entities/ui/Ui/slice/uiSlice';
 import { WarningPopup } from 'features/Ui/WarningPopup/WarningPopup';
 import { getAllUserTariffsThunk } from 'entities/Payments/slice/paymentsSlice';
 import { deleteUserTariffs } from 'entities/User/api/userApi';
+import { Loader } from 'shared/ui/Loader/Loader';
 
 function App() {
   const modalState = useSelector((state: RootState) => state.modal);

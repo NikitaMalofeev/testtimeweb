@@ -84,8 +84,10 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     );
 
     const isPaidAndActive = (catalogId: string) => {
-        const userKey = paidTariffKeys[catalogId];
-        return !!userKey && paidUserKeys.has(userKey);
+        if (activeTariffs.some(tariff => tariff.is_active)) {
+            const userKey = paidTariffKeys[catalogId];
+            return !!userKey && paidUserKeys.has(userKey);
+        }
     };
 
     useEffect(() => {

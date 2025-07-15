@@ -31,6 +31,8 @@ import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { useScrollShadow } from "shared/hooks/useScrollShadow";
 import BooleanTabs from "shared/ui/BooleanTabs/BooleanTabs";
 import { DocumentsPreviewPdfModal } from "features/Documents/DocumentsPreviewPdfModal/DocumentsPreviewPdfModal";
+import { setBrokerIds } from "entities/Documents/slice/documentsSlice";
+import { setActiveTariffs } from "entities/Payments/slice/paymentsSlice";
 
 const IdentificationProfileForm: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -209,6 +211,11 @@ const IdentificationProfileForm: React.FC = () => {
                 },
             })
         );
+
+        //FIXME 
+        //сбрасываю id брокера 
+        dispatch(setBrokerIds({ count: 0, brokerId: '' }))
+        dispatch(setActiveTariffs([]))
     };
 
     /* ───────────── обработка клика по вкладкам ───────────── */

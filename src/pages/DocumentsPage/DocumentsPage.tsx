@@ -101,11 +101,9 @@ const DocumentsPage: React.FC = () => {
 
     /** «выбрать все» / «снять все» */
     const toggleAll = () => {
-        const selectable = documents
-            .filter((d) => !EXCLUDED_BULK.includes(d.id) && d.status === "signable")
-            .map((d) => d.id);
+        const selectable = bulkSelectableDocs.map(d => d.id);
 
-        const allSelected = selectable.every((id) => selectedDocs.includes(id));
+        const allSelected = selectable.every(id => selectedDocs.includes(id));
         setSelectedDocs(allSelected ? [] : selectable);
     };
 
@@ -365,6 +363,13 @@ const DocumentsPage: React.FC = () => {
             isPayment: false,
         };
     });
+    const bulkSelectableDocs = useMemo(
+        () =>
+            documents.filter(
+                d => !EXCLUDED_BULK.includes(d.id) && d.status === 'signable'
+            ),
+        [documents]
+    );
 
     const checksArray = Object.values(userChecks)        // ← UserCheck[]
         .sort((a, b) =>
@@ -622,12 +627,8 @@ const DocumentsPage: React.FC = () => {
                     <div className={styles.bulkToolbar}>
                         <Checkbox
                             name="selectAll"
-                            value={
-                                documents
-                                    .filter(d => !EXCLUDED_BULK.includes(d.id) && d.status === "signable")
-                                    .every(d => selectedDocs.includes(d.id))
-                            }
-                            onChange={() => toggleAll()}
+                            value={bulkSelectableDocs.every(d => selectedDocs.includes(d.id))}
+                            onChange={toggleAll}
                             label={<span>Выбрать все</span>}
                         />
 
@@ -678,19 +679,22 @@ const DocumentsPage: React.FC = () => {
                             !showSuccess &&
                             !(isBroker && buttonText === "Подписать");
 
+                        const showCheckbox =
+                            showBulkToolbar &&
+                            !EXCLUDED_BULK.includes(doc.id) &&
+                            doc.status === 'signable';
                         return (
+
                             <>
                                 {device === 'mobile' ? (
                                     <div style={{ display: 'flex', gap: '10px' }}>
                                         <div>
-                                            {showBulkToolbar && (
+                                            {showCheckbox && (
                                                 <Checkbox
-                                                    name={doc.id}                                  // уникальное имя
-                                                    value={selectedDocs.includes(doc.id)}          // «отмечен ли»
-                                                    disabled={EXCLUDED_BULK.includes(doc.id) || doc.status !== "signable"}
-                                                    onChange={() => toggleDoc(doc.id)}             // событие нам не нужно
-                                                    label={<></>}                                  // пустая метка (можно иконку)
-
+                                                    name={doc.id}
+                                                    value={selectedDocs.includes(doc.id)}
+                                                    onChange={() => toggleDoc(doc.id)}
+                                                    label={<></>}
                                                 />
                                             )}
                                         </div>
@@ -791,18 +795,15 @@ const DocumentsPage: React.FC = () => {
                                             </div>
                                         </div></div>
                                 ) : (
-                                    <div style={{ display: 'flex', gap: '10px' }}>
-                                        {showBulkToolbar && (
-                                            <div>
-                                                <Checkbox
-                                                    name={doc.id}                                  // уникальное имя
-                                                    value={selectedDocs.includes(doc.id)}          // «отмечен ли»
-                                                    disabled={EXCLUDED_BULK.includes(doc.id) || doc.status !== "signable"}
-                                                    onChange={() => toggleDoc(doc.id)}             // событие нам не нужно
-                                                    label={<></>}                                  // пустая метка (можно иконку)
 
-                                                />
-                                            </div>
+                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                        {showCheckbox && (
+                                            <Checkbox
+                                                name={doc.id}
+                                                value={selectedDocs.includes(doc.id)}
+                                                onChange={() => toggleDoc(doc.id)}
+                                                label={<></>}
+                                            />
                                         )}
 
                                         <div key={doc.id} className={styles.document__item}>

@@ -93,7 +93,7 @@ const persistConfig = getPersistConfig({
         // 'payments.activeTariffs',
         // 'payments.paidTariffKeys'
         //проблема с paidTariffsKeys поэтому сохраняю полностью 
-        'payments'
+        // 'payments'
     ],
     rootReducer,
 });

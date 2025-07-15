@@ -201,7 +201,7 @@ export const ConfirmDocsModal = memo(
         useEffect(() => {
             const code = smsCodeFirst.join("");
             if (code.length === codeLength) {
-                if (confirmationPurpose === 'payments') {
+                if (docsType === 'currentTypeDoc === "type_doc_agreement_investment_advisor_app_1"') {
                     dispatch(checkConfirmationCodeTariffThunk({
                         tariff_id: paymentsTariffId,
                         code,

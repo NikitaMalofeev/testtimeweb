@@ -1,4 +1,3 @@
-// ui/DocumentPreviewModal/DocumentPreviewModal.tsx
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { motion } from "framer-motion";
@@ -13,15 +12,19 @@ import CloseIcon from "shared/assets/svg/close.svg";
 import { RiskProfileAllData } from "features/RiskProfile/RiskProfileAllData/RiskProfileAllData";
 import { Loader } from "shared/ui/Loader/Loader";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
+import { PdfViewer } from "shared/ui/PDFViewer/PDFViewer";
 import { useNavigate } from "react-router-dom";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
-import ErrorIcon from "shared/assets/svg/Error.svg";
+import ErrorIcon from 'shared/assets/svg/Error.svg'
+import { getUserDocumentNotSignedThunk, getUserDocumentsStateThunk } from "entities/Documents/slice/documentsSlice";
 
 interface PreviewModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    title?: string;
-    docId?: string | null;
+    isOpen: boolean;       // Открыта ли модалка
+    onClose: () => void;   // Функция закрытия модалки
+    title?: string;        // Заголовок модалки
+    docId?: string | null; // Идентификатор документа
+    justPreview?: string;  // Если передаём URL для превью
+    isSignedDoc?: boolean;
 }
 
 export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
@@ -29,41 +32,82 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
     onClose,
     title,
     docId,
+    isSignedDoc,
+    justPreview,
 }) => {
     const dispatch = useAppDispatch();
-    const navigate = useNavigate();
-
+    const navigate = useNavigate()
+    // Все HTML-документы для неподписанных лежат в Redux-стейте
     const allDocumentsHtml = useSelector(
-        (s: RootState) => s.documents.allNotSignedDocumentsHtml,
+        (state: RootState) => state.documents.allNotSignedDocumentsHtml
     );
-    const { loading } = useSelector((s: RootState) => s.documents);
 
+
+    // Данные для подписанного документа (бинарный PDF)
+    const hasCurrentSighedDocument = useSelector(
+        (state: RootState) => state.documents.currentSugnedDocument
+    );
+    const { loading } = useSelector((state: RootState) => state.documents);
+
+    // Локальное состояние готовности содержимого
     const [isContentReady, setIsContentReady] = useState(false);
+
+    useEffect(() => {
+        // console.log(justPreview)
+        // console.log(docId)
+        // console.log(isContentReady)
+        console.log(isSignedDoc)
+    }, [docId, isContentReady])
 
     useEffect(() => {
         if (loading) {
             setIsContentReady(false);
             return;
         }
-
-        if (docId?.startsWith("iir")) {
+        if (docId?.startsWith('iir')) {
             setIsContentReady(true);
             return;
         }
-
-        if (docId === "type_doc_passport") {
+        if (justPreview) {
             setIsContentReady(true);
             return;
         }
-
-        if (docId && allDocumentsHtml?.hasOwnProperty(docId)) {
-            setTimeout(() => setIsContentReady(true), 1000);
-            return;
+        if (docId) {
+            if (docId === "type_doc_passport") {
+                setIsContentReady(true);
+                return;
+            }
+            // Если документ не подписан – ожидаем наличие HTML (даже если пустая строка)
+            if (allDocumentsHtml && allDocumentsHtml.hasOwnProperty(docId)) {
+                setTimeout(() => {
+                    setIsContentReady(true);
+                }, 1000);
+            }
+            // Если документ подписан – проверяем наличие бинарных данных
+            if (isSignedDoc && hasCurrentSighedDocument && hasCurrentSighedDocument.document) {
+                if (hasCurrentSighedDocument.document.length > 0) {
+                    setIsContentReady(true);
+                    return;
+                }
+            }
         }
-
         setIsContentReady(false);
-    }, [loading, docId, allDocumentsHtml]);
+    }, [
+        loading,
+        justPreview,
+        docId,
+        allDocumentsHtml,
+        hasCurrentSighedDocument.document,
+        isSignedDoc
+    ]);
 
+    // useEffect(() => {
+    //     console.log(isSignedDoc)
+    //     console.log(isContentReady)
+    //     console.log('hasCurrentSighedDocument', hasCurrentSighedDocument);
+    // }, [hasCurrentSighedDocument, isContentReady]);
+
+    // Блокировка скролла, если модалка открыта
     const isAnyModalOpen = useSelector(selectIsAnyModalOpen);
     useEffect(() => {
         if (isOpen) {
@@ -85,11 +129,15 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
 
     const handleClose = () => {
         dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW));
+        dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW_SIGNED));
         onClose();
     };
 
-    if (!isOpen) return null;
+    if (!isOpen) {
+        return null;
+    }
 
+    // Находим или создаём контейнер для портала
     let modalRoot = document.getElementById("modal-root");
     if (!modalRoot) {
         modalRoot = document.createElement("div");
@@ -111,18 +159,31 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                     <span className={styles.modalTitle}>{title || "Документ"}</span>
                     <Icon Svg={CloseIcon} width={20} height={20} onClick={handleClose} />
                 </div>
-
-                <div className={styles.modalContent}>
+                <div className={styles.modalContent} >
+                    {/* style={
+                    isSignedDoc
+                        ? ({ padding: '8px 0 8px 22px', '--after-display': 'block' } as React.CSSProperties)
+                        : ({ padding: '8px 16px', '--after-display': 'none' } as React.CSSProperties)
+                } */}
                     {!isContentReady && !loading ? (
                         <Loader />
+                    ) : (isSignedDoc && hasCurrentSighedDocument &&
+                        hasCurrentSighedDocument.document &&
+                        Object.keys(hasCurrentSighedDocument.document).length > 0) ? (
+
+                        <div className={styles.htmlContainer}>
+                            <PdfViewer pdfBinary={hasCurrentSighedDocument.document} />
+                        </div>
+                    ) : justPreview ? (
+                        <PdfViewer pdfUrl={justPreview} />
                     ) : docId === "type_doc_passport" ? (
                         <div className={styles.htmlContainer}>
                             <RiskProfileAllData />
                         </div>
-                    ) : docId && allDocumentsHtml?.[docId] ? (
+                    ) : !isSignedDoc && docId && (allDocumentsHtml && allDocumentsHtml.hasOwnProperty(docId)) ? (
                         <div
                             className={styles.htmlContainer}
-                            style={{ padding: "10px" }}
+                            style={{ padding: '10px' }}
                             dangerouslySetInnerHTML={{ __html: allDocumentsHtml[docId] }}
                         />
                     ) : (
@@ -132,8 +193,8 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                             <Button
                                 theme={ButtonTheme.UNDERLINE}
                                 onClick={() => {
-                                    dispatch(closeAllModals());
-                                    navigate("/support");
+                                    dispatch(closeAllModals())
+                                    navigate('/support')
                                 }}
                                 className={styles.error__button}
                             >
@@ -144,6 +205,6 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                 </div>
             </motion.div>
         </div>,
-        modalRoot,
+        modalRoot
     );
 };

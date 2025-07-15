@@ -123,9 +123,9 @@ export const PasportScanForm: React.FC = () => {
                         }, 2000)
                     } else {
                         setTimeout(() => {
+                            dispatch(getUserDocumentsStateThunk())
                             closeModal(ModalType.PROGRESS)
                             dispatch(setStepAdditionalMenuUI(4))
-                            dispatch(getUserDocumentsStateThunk())
                         }, 2000)
                     }
 

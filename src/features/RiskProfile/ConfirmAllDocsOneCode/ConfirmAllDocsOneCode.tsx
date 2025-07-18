@@ -190,7 +190,6 @@ export const ConfirmAllDocsOneCodeModal = memo(
         useEffect(() => {
             const code = smsCodeFirst.join("");
             if (code.length === codeLength) {
-                setInputColors('#FF3C53')
                 dispatch(
                     sendDocsConfirmationAllDocuments({
                         codeFirst: code,
@@ -202,7 +201,9 @@ export const ConfirmAllDocsOneCodeModal = memo(
                             setSmsCodeFirst(Array(codeLength).fill(""));
                             onClose();
                         },
-
+                        onError: () => {
+                            setInputColors('#FF3C53')
+                        }
                     })
                 );
             }

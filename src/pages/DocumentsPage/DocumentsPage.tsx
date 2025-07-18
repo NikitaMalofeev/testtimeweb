@@ -309,9 +309,25 @@ const DocumentsPage: React.FC = () => {
                         })
                     );
                 }
+                break
+            }
+            case 'type_doc_agreement_investment_advisor_app_1': {
+                if (hasTariff) {
+                    dispatch(setCurrentConfirmableDoc(docId));
+                    dispatch(setStepAdditionalMenuUI(4));
+                    dispatch(
+                        openModal({
+                            type: ModalType.IDENTIFICATION,
+                            size: ModalSize.FULL,
+                            animation: ModalAnimation.LEFT,
+                        })
+                    );
+                } else {
+                    navigate('/payments')
+                }
+                break
             }
             case "type_doc_EDS_agreement":
-            case 'type_doc_agreement_investment_advisor_app_1':
             case "type_doc_agreement_investment_advisor":
             case "type_doc_risk_declarations":
             case "type_doc_agreement_personal_data_policy":
@@ -379,15 +395,21 @@ const DocumentsPage: React.FC = () => {
         [documents]
     );
     const showBulkToolbar =
-        isBulkEnabled && bulkSelectableDocs.length > 0;
+        isBulkEnabled && bulkSelectableDocs.length > 0 && brokerIds.length > 0;
 
-    // ↓ после определения bulkSelectableDocs
     useEffect(() => {
-        // оставляем в selectedDocs только те, что всё ещё можно подписать
-        setSelectedDocs(prev =>
-            prev.filter(id => bulkSelectableDocs.some(d => d.id === id))
-        );
+        setSelectedDocs(prev => {
+            const updated = prev.filter(id =>
+                bulkSelectableDocs.some(d => d.id === id)
+            );
+            // Если массив совпадает по длине и по элементам – не обновляем state
+            const isSame =
+                updated.length === prev.length &&
+                updated.every((v, i) => v === prev[i]);
+            return isSame ? prev : updated;
+        });
     }, [bulkSelectableDocs]);
+
 
     const checksArray = Object.values(userChecks)        // ← UserCheck[]
         .sort((a, b) =>
@@ -438,7 +460,7 @@ const DocumentsPage: React.FC = () => {
 
         /* ───────── isDisabled ───────── */
         const isDisabled = isAdvisorAgreement
-            ? !(hasPassport && hasBroker && hasTariff)                       // «Приложение 1»
+            ? !(hasPassport && hasBroker)                         // «Приложение 1»
             : isBroker
                 ? !hasPassport || brokerDisabledByFlag                         // брокер: паспорта нет ИЛИ выключен one‑code
                 : isPassport
@@ -451,12 +473,14 @@ const DocumentsPage: React.FC = () => {
 
         /* 1) Приложение 1 (логика без изменений) */
         if (isAdvisorAgreement) {
-            if (!hasPassport || !hasBroker || !hasTariff) {
-                colorClass = styles.button__red;
+            if (!hasPassport || !hasBroker) {        // нет паспорта / брокера → серая
+                colorClass = styles.button__gray;
                 additionalMessages =
                     `Для подписания${!hasPassport ? ' заполните паспорт,' : ''}` +
-                    `${!hasBroker ? ' подключите брокера,' : ''}` +
-                    `${!hasTariff ? ' подключите тариф' : ''}`.replace(/,\s*$/, '');
+                    `${!hasBroker ? ' подключите брокера' : ''}`.replace(/,\s*$/, '');
+            } else if (!hasTariff) {                 // всё есть, кроме тарифа → красная
+                colorClass = styles.button__gray;
+                additionalMessages = 'Для подписания подключите тариф';
             }
         }
 
@@ -709,6 +733,12 @@ const DocumentsPage: React.FC = () => {
                             buttonText = isIdentityScanExist ? "Подписать" : "Заполнить";
                         } else if (doc.id === "type_doc_RP_questionnairy") {
                             buttonText = filledRiskProfileChapters.is_risk_profile_complete_final ? "Подписать" : "Заполнить";
+                        } else if (isAdvisorAgreement) {
+                            buttonText =
+                                !hasTariff &&
+                                    currentConfirmableDocument === 'type_doc_agreement_investment_advisor_app_1'
+                                    ? 'Подключить'
+                                    : 'Подписать';
                         }
 
                         const showSuccess =
@@ -844,12 +874,14 @@ const DocumentsPage: React.FC = () => {
 
                                     <div style={{ display: 'flex', gap: '10px' }}>
                                         {showCheckbox && (
-                                            <Checkbox
-                                                name={doc.id}
-                                                value={selectedDocs.includes(doc.id)}
-                                                onChange={() => toggleDoc(doc.id)}
-                                                label={<></>}
-                                            />
+                                            <div>
+                                                <Checkbox
+                                                    name={doc.id}
+                                                    value={selectedDocs.includes(doc.id)}
+                                                    onChange={() => toggleDoc(doc.id)}
+                                                    label={<></>}
+                                                />
+                                            </div>
                                         )}
 
                                         <div key={doc.id} className={styles.document__item}>

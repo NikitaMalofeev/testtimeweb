@@ -423,11 +423,11 @@ export const sendDocsConfirmationCode = createAsyncThunk<
 
 export const sendDocsConfirmationAllDocuments = createAsyncThunk<
     void,
-    { codeFirst: string; broker_id: string; onSuccess: () => void },
+    { codeFirst: string; broker_id: string; onSuccess: () => void; onError: () => void },
     { rejectValue: string; state: RootState }
 >(
     "documents/sendDocsConfirmationCode",
-    async ({ codeFirst, broker_id, onSuccess }, { getState, dispatch, rejectWithValue }) => {
+    async ({ codeFirst, broker_id, onSuccess, onError }, { getState, dispatch, rejectWithValue }) => {
         try {
             const token = getState().user.token;
             if (!token) {
@@ -446,6 +446,7 @@ export const sendDocsConfirmationAllDocuments = createAsyncThunk<
 
         } catch (error: any) {
             dispatch(setConfirmationDocsSuccess("не пройдено"));
+            onError()
             console.log(error);
             const msg =
                 error.response?.data?.errorText
@@ -522,6 +523,7 @@ export const getUserDocumentsStateThunk = createAsyncThunk<
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");
             }
+            const currentBrokerIds = getState().documents.brokerIds
             const response = await getDocumentsState(token);
             const { is_risk_profile_complete, is_risk_profile_complete_final, is_exist_scan_passport, is_complete_passport, is_complete_person_legal, is_exist_scan_person_legal
             } = response;
@@ -562,7 +564,7 @@ export const getUserDocumentsStateThunk = createAsyncThunk<
                 });
             }
             console.log(mergedDocs)
-
+            currentBrokerIds && dispatch(setBrokerIds({ brokerId: currentBrokerIds[0], count: response.confirmed_brokers_count }))
             dispatch(setUserDocuments(mergedDocs));
         } catch (error: any) {
             console.log(error);

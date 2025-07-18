@@ -56,6 +56,7 @@ const DocumentsPage: React.FC = () => {
 
     const { userDocuments, loading, filledRiskProfileChapters, brokerIds, brokersCount } = useSelector((state: RootState) => state.documents);
     const currentDocument = useSelector((state: RootState) => state.documents.currentSugnedDocument.document);
+
     const currentConfirmableDocument = useSelector((state: RootState) => state.documents.currentConfirmableDoc);
     const currentTariffId = useSelector((state: RootState) => state.payments.currentTariffId);
     const uploadDocs = useSelector((s: RootState) => s.documents.uploadDocs);
@@ -291,7 +292,8 @@ const DocumentsPage: React.FC = () => {
                 break;
             }
             case "type_doc_agreement_account_maintenance": {
-                if (activePaidTariffs.length > 0) {
+                // if (activePaidTariffs.length > 0) {
+                if (true) {
                     dispatch(setCurrentConfirmableDoc(docId));
                     dispatch(setStepAdditionalMenuUI(4));
                     dispatch(
@@ -363,6 +365,7 @@ const DocumentsPage: React.FC = () => {
             isPayment: false,
         };
     });
+
     const bulkSelectableDocs = useMemo(
         () =>
             documents.filter(
@@ -405,54 +408,75 @@ const DocumentsPage: React.FC = () => {
     //условия для проверки Договора ИС
     const hasPassport = isIdentityScanExist;
     const hasBroker = brokersCount > 0;             // или !!brokerIds.length
-    const hasTariff = activePaidTariffs.length > 0
+    const hasTariff = activeTariffs.some(tariff => tariff.is_active);
 
     const renderedDocuments = allDocuments.map((doc) => {
+        /* ───────── базовые флаги ───────── */
+        const isBroker = doc.id === "type_doc_broker_api_token";
+        const isPassport = doc.id === "type_doc_passport";
+        const isAdvisorAgreement = doc.id === "type_doc_agreement_investment_advisor_app_1";
+        const isMaintenanceAgree = doc.id === "type_doc_agreement_account_maintenance";
+
+        /* --- НОВОЕ: блокируем брокера, если нет one‑code и открыт не он --- */
+        const brokerDisabledByFlag =
+            isBroker && !isBulkEnabled && currentConfirmableDocument !== "type_doc_broker_api_token";
+
+        /* ───────── isDisabled ───────── */
+        const isDisabled = isAdvisorAgreement
+            ? !(hasPassport && hasBroker && hasTariff)                       // «Приложение 1»
+            : isBroker
+                ? !hasPassport || brokerDisabledByFlag                         // брокер: паспорта нет ИЛИ выключен one‑code
+                : isPassport
+                    ? false                                                     // паспорт всегда активен
+                    : doc.id !== firstNotConfirmed || !hasPassport;             // прочие
+
+        /* ───────── цвет и сообщения ───────── */
         let colorClass = styles.button__gray;
-
         let additionalMessages = '';
-        let tariffs = currentTariffId
 
-        // 1) Специально для app_1
-        if (doc.id === 'type_doc_agreement_investment_advisor_app_1') {
+        /* 1) Приложение 1 (логика без изменений) */
+        if (isAdvisorAgreement) {
             if (!hasPassport || !hasBroker || !hasTariff) {
                 colorClass = styles.button__red;
-
                 additionalMessages =
-                    `Для подписания${!hasPassport ? ' заполните паспорт,' : ''
-                        }${!hasBroker ? ' подключите брокера,' : ''
-                        }${!hasTariff ? ' подключите тариф' : ''
-                        }`.replace(/,\s*$/, '');
-            } else {
-                colorClass = styles.button__gray;
-                additionalMessages = '';
+                    `Для подписания${!hasPassport ? ' заполните паспорт,' : ''}` +
+                    `${!hasBroker ? ' подключите брокера,' : ''}` +
+                    `${!hasTariff ? ' подключите тариф' : ''}`.replace(/,\s*$/, '');
             }
-        } else if (doc.id === "type_doc_broker_api_token") {
-            if (brokerIds.length === 0) {
-                colorClass = styles.button__gray;
-                additionalMessages = 'Для подписания подключите брокерский счет';
-            } else {
-                colorClass = styles.button__red;
-            }
+        }
 
-            // 3) Иначе общий случай    
-        } else if (doc.id === 'type_doc_agreement_account_maintenance') {
-            if (activePaidTariffs.length > 0) {
+        /* 2) Брокерский токен */
+        else if (isBroker) {
+            if (brokerDisabledByFlag && brokerIds.length === 0) {
+                // НОВОЕ правило — всегда серый и задизейблен
                 colorClass = styles.button__gray;
-            } else if (activePaidTariffs.length > 0 && brokerIds.length < 0) {
+                additionalMessages = 'Для подписания подключите брокерский счёт';
+            } else if (brokerIds.length === 0) {
                 colorClass = styles.button__gray;
-                additionalMessages = 'Для подписания подключите брокерский счет';
+                additionalMessages = 'Для подписания подключите брокерский счёт';
             } else {
-                colorClass = styles.button__red;
+                colorClass = styles.button__red; // активный брокер
             }
-        } else {
-            if (doc.status === "signable") {
-                if (doc.id === firstNotConfirmed) {
-                    colorClass = styles.button__gray;
-                } else {
-                    colorClass = styles.button__red;
-                }
-            } else if (doc.status === "disabled") {
+        }
+
+        /* 3) Доверенность на управление счётом */
+        // else if (isMaintenanceAgree) {
+        //     if (activePaidTariffs.length > 0) {
+        //         colorClass = styles.button__gray;
+        //     } else {
+        //         colorClass = styles.button__red;
+        //         if (brokerIds.length === 0) {
+
+        //         }
+        //     }
+        // }
+
+        /* 4) Общие документы */
+        else {
+            if (doc.status === 'signable') {
+                colorClass =
+                    doc.id === firstNotConfirmed ? styles.button__gray : styles.button__red;
+            } else if (doc.status === 'disabled') {
                 colorClass = styles.button__gray;
             }
         }
@@ -460,9 +484,11 @@ const DocumentsPage: React.FC = () => {
         return {
             ...doc,
             colorClass,
-            additionalMessages
+            additionalMessages,
+            isDisabled,                 // кидаем внутрь, чтобы в JSX взять напрямую
         };
     });
+
 
 
 
@@ -646,17 +672,21 @@ const DocumentsPage: React.FC = () => {
                 <div className={styles.documents__list}>
                     {renderedDocuments.map((doc) => {
                         const isInBulk = isBulkEnabled && !EXCLUDED_BULK.includes(doc.id) && doc.id !== "type_doc_broker_api_token";
+
+
                         // Вынесем логику определения отображения кнопки/статуса
                         const isSigned = doc.status === "signed";
                         const isPassport = doc.id === "type_doc_passport";
                         const isBroker = doc.id === "type_doc_broker_api_token";
                         const isAdvisorAgreement = doc.id === 'type_doc_agreement_investment_advisor_app_1';
 
-                        const showSuccess =
-                            (isPassport && isSigned && isIdentityScanExist) ||
-                            (!isPassport && isSigned);
-
-
+                        const isDisabled = isAdvisorAgreement
+                            ? !(hasPassport && hasBroker && hasTariff)
+                            : isBroker
+                                ? !hasPassport
+                                : isPassport
+                                    ? false
+                                    : doc.id !== firstNotConfirmed || !hasPassport;
                         let buttonText = "Подписать";
                         if (isBroker && brokersCount === 0) {
                             buttonText = brokerIds && brokerIds.length ? "Подписать" : "Заполнить";
@@ -666,18 +696,19 @@ const DocumentsPage: React.FC = () => {
                             buttonText = filledRiskProfileChapters.is_risk_profile_complete_final ? "Подписать" : "Заполнить";
                         }
 
-                        const isDisabled = isAdvisorAgreement
-                            ? !(hasPassport && hasBroker && hasTariff)
-                            : isBroker
-                                ? !hasPassport
-                                : isPassport
-                                    ? false
-                                    : doc.id !== firstNotConfirmed || !hasPassport;
+                        const showSuccess =
+                            (isPassport && isSigned && isIdentityScanExist) ||
+                            (!isPassport && isSigned);
+                        const shouldHideBrokerWhenBulk =
+                            isBroker && buttonText === 'Подписать' && showBulkToolbar;
 
                         const shouldShowButton =
                             !isInBulk &&
                             !showSuccess &&
-                            !(isBroker && buttonText === "Подписать");
+                            !shouldHideBrokerWhenBulk;
+
+
+
 
                         const showCheckbox =
                             showBulkToolbar &&
@@ -784,7 +815,7 @@ const DocumentsPage: React.FC = () => {
                                                 ) : shouldShowButton ? (
                                                     <Button
                                                         onClick={() => handleSignDocument(doc.id)}
-                                                        disabled={isDisabled}
+                                                        disabled={doc.isDisabled}
                                                         className={`${doc.colorClass} ${styles.button}`}
                                                         theme={ButtonTheme.BLUE}
                                                     >
@@ -891,7 +922,7 @@ const DocumentsPage: React.FC = () => {
                                                 ) : shouldShowButton ? (
                                                     <Button
                                                         onClick={() => handleSignDocument(doc.id)}
-                                                        disabled={isDisabled}
+                                                        disabled={doc.isDisabled}
                                                         className={`${doc.colorClass} ${styles.button}`}
                                                         theme={ButtonTheme.BLUE}
                                                     >

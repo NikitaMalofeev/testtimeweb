@@ -428,7 +428,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                     name="type_message"
                                     label=""
                                     direction="row"
-                                    greedOrFlex={device === 'mobile' ? 'grid' : 'flex'}
+                                    greedOrFlex={device === 'mobile' ? 'flex' : 'flex'}
                                     options={Object.entries(messageTypeOptions).map(([value, label]) => ({
                                         value,
                                         label,

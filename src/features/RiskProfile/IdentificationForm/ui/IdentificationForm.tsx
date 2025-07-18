@@ -31,7 +31,7 @@ import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { useScrollShadow } from "shared/hooks/useScrollShadow";
 import BooleanTabs from "shared/ui/BooleanTabs/BooleanTabs";
 import { DocumentsPreviewPdfModal } from "features/Documents/DocumentsPreviewPdfModal/DocumentsPreviewPdfModal";
-import { setBrokerIds } from "entities/Documents/slice/documentsSlice";
+import { resetBrokerIds, setBrokerIds } from "entities/Documents/slice/documentsSlice";
 import { setActiveTariffs } from "entities/Payments/slice/paymentsSlice";
 
 const IdentificationProfileForm: React.FC = () => {
@@ -214,7 +214,7 @@ const IdentificationProfileForm: React.FC = () => {
 
         //FIXME 
         //сбрасываю id брокера 
-        dispatch(setBrokerIds({ count: 0, brokerId: '' }))
+        dispatch(resetBrokerIds())
         dispatch(setActiveTariffs([]))
     };
 
@@ -242,11 +242,11 @@ const IdentificationProfileForm: React.FC = () => {
                     {/* ───────────── поля формы ───────────── */}
 
                     <BooleanTabs
-                        leftTitle="ИП"
-                        rightTitle="Физ.лицо"
-                        active={personTab === false ? "right" : "left"}
-                        onLeftClick={() => handlePersonTabChange(true)}
-                        onRightClick={() => handlePersonTabChange(false)}
+                        leftTitle="Физ.лицо"
+                        rightTitle="ИП"
+                        active={personTab !== false ? "right" : "left"}
+                        onLeftClick={() => handlePersonTabChange(false)}
+                        onRightClick={() => handlePersonTabChange(true)}
                     />
                     <Input
                         name="lastName"

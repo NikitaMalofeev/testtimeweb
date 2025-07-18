@@ -17,7 +17,7 @@ import {
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { selectModalState } from "entities/ui/Modal/selectors/selectorsModals";
 import { setTooltipActive, setConfirmationDocsSuccess, setStepAdditionalMenuUI, nextStep } from "entities/ui/Ui/slice/uiSlice";
-import { clearDocumentTimeout, confirmDocsRequestThunk, getUserDocumentsStateThunk, sendDocsConfirmationCode, setDocumentTimeoutPending } from "entities/Documents/slice/documentsSlice";
+import { clearDocumentTimeout, confirmDocsRequestThunk, getUserDocumentsStateThunk, sendDocsConfirmationCode, setCurrentConfirmableDoc, setDocumentTimeoutPending } from "entities/Documents/slice/documentsSlice";
 import { ConfirmDocsPayload } from "entities/Documents/types/documentsTypes";
 import { checkConfirmationCodeTariffThunk, setCurrentOrderStatus, createOrderThunk } from "entities/Payments/slice/paymentsSlice";
 import { useNavigate } from "react-router-dom";
@@ -201,7 +201,7 @@ export const ConfirmDocsModal = memo(
         useEffect(() => {
             const code = smsCodeFirst.join("");
             if (code.length === codeLength) {
-                if (docsType === 'currentTypeDoc === "type_doc_agreement_investment_advisor_app_1"') {
+                if (confirmationPurpose === 'payments' || docsType === 'currentTypeDoc === "type_doc_agreement_investment_advisor_app_1"') {
                     dispatch(checkConfirmationCodeTariffThunk({
                         tariff_id: paymentsTariffId,
                         code,
@@ -233,6 +233,8 @@ export const ConfirmDocsModal = memo(
                                 dispatch(nextStep())
                             },
                             onSuccess: (data: any) => {
+
+                                //временная мера для установки документа брокера после доверенности на управление счетом
                                 dispatch(getUserDocumentsStateThunk());
                                 if (docsType === 'type_doc_passport') {
                                     dispatch(setStepAdditionalMenuUI(3));
@@ -252,7 +254,6 @@ export const ConfirmDocsModal = memo(
                                 if (docsType) {
                                     dispatch(setDocumentTimeoutPending({ docKey: docsType, timeout: 10000 }));
                                 }
-
                                 if (openSuccessModal) {
                                     openSuccessModal(docsType);
                                 } else {

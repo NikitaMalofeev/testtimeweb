@@ -780,6 +780,10 @@ export const documentsSlice = createSlice({
             state.brokerIds = [action.payload.brokerId];   // ← старое значение затираем
             state.brokersCount = action.payload.count;
         },
+        resetBrokerIds(state) {
+            state.brokerIds = [];
+            state.brokersCount = 0;
+        },
         setTimeoutBetweenConfirmation(state, action: PayloadAction<number>) {
             state.timeoutBetweenConfirmation = action.payload;
         },
@@ -972,6 +976,7 @@ export const {
     setCustomDocumentData,
     setUploadDocSocket,
     setUploadDocStatus,
+    resetBrokerIds,
     setAvailabilityPersonalAccountMenuItems
 } = documentsSlice.actions;
 

@@ -228,9 +228,10 @@ export const ConfirmAllDocs: React.FC = () => {
             case "type_doc_agreement_personal_data_policy":
             case "type_doc_investment_profile_certificate":
             case 'type_doc_agreement_investment_advisor_app_1':
+            case "type_doc_agreement_account_maintenance":
             case "type_doc_broker_api_token":
                 return docTypeLabels[currentTypeDoc];
-            case "type_doc_agreement_account_maintenance":
+
             default:
                 navigate("/documents");
                 dispatch(closeAllModals());
@@ -271,7 +272,10 @@ export const ConfirmAllDocs: React.FC = () => {
         <>
             <div className={styles.page}>
                 <div className={styles.header}>
-                    <div className={styles.back} onClick={() => dispatch(closeModal(ModalType.IDENTIFICATION))}>
+                    <div className={styles.back} onClick={() => {
+                        dispatch(getUserDocumentsStateThunk())
+                        dispatch(closeModal(ModalType.IDENTIFICATION))
+                    }}>
                         <Icon Svg={ArrowBack} width={24} height={24} /> Назад
                     </div>
                     <div className={styles.page__counter}>

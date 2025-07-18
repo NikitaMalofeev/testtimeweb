@@ -78,7 +78,7 @@ const persistConfig = getPersistConfig({
         'documents.currentSugnedDocument',
         'documents.filledRiskProfileChapters',
         'documents.userPassportData',
-        'documents.brokerIds',
+        // 'documents.brokerIds',
 
         'riskProfile.currentConfirmingDoc',
         'riskProfile.passportFormData',

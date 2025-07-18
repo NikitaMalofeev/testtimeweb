@@ -285,7 +285,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                 capital={`${t.days_service_validity} days`}
                                 imageUrl={t.title === 'Базовый тариф' ? PaymentsBase : PaymentsActive}
                                 onMore={() => handleChooseTariff(t.id)}
-                                paidFor={isPaidAndActive(t.id)}
+                                paidFor={isPaidAndActive(t.id) || false}
                             />
                         </motion.div>
                     ),
@@ -385,7 +385,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                         capital={`${t.days_service_validity} days`}
                                         imageUrl={t.title === 'Долгосрочный инвестор' ? PaymentsBase : PaymentsActive}
                                         onMore={() => handleChooseTariff(t.id)}
-                                        paidFor={isPaidAndActive(t.id)}
+                                        paidFor={isPaidAndActive(t.id) || false}
                                     />
                                 </motion.div>
                             ),

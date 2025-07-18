@@ -564,7 +564,7 @@ export const getUserDocumentsStateThunk = createAsyncThunk<
                 });
             }
             console.log(mergedDocs)
-            currentBrokerIds && dispatch(setBrokerIds({ brokerId: currentBrokerIds[0], count: response.confirmed_brokers_count }))
+            currentBrokerIds[0] && dispatch(setBrokerIds({ brokerId: currentBrokerIds[0], count: response.confirmed_brokers_count }))
             dispatch(setUserDocuments(mergedDocs));
         } catch (error: any) {
             console.log(error);

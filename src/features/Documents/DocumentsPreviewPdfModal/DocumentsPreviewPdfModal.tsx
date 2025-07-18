@@ -18,8 +18,6 @@ interface DocumentsPreviewPdfProps {
     onClose: () => void;
     title?: string;
     pdfUrl?: string;
-    pdfBinary?: Uint8Array;
-    pdfBase64?: string;
 }
 
 export const DocumentsPreviewPdfModal: React.FC<DocumentsPreviewPdfProps> = ({
@@ -27,15 +25,8 @@ export const DocumentsPreviewPdfModal: React.FC<DocumentsPreviewPdfProps> = ({
     onClose,
     title,
     pdfUrl,
-    pdfBinary,
-    pdfBase64,
 }) => {
     const dispatch = useAppDispatch();
-    const [isContentReady, setIsContentReady] = useState(false);
-
-    useEffect(() => {
-        setIsContentReady(Boolean(pdfUrl || pdfBinary || pdfBase64));
-    }, [pdfUrl, pdfBinary, pdfBase64]);
 
     const isAnyModalOpen = useSelector(selectIsAnyModalOpen);
     useEffect(() => {
@@ -60,6 +51,7 @@ export const DocumentsPreviewPdfModal: React.FC<DocumentsPreviewPdfProps> = ({
         dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW_PDF));
         onClose();
     };
+
 
     if (!isOpen) return null;
 
@@ -86,15 +78,7 @@ export const DocumentsPreviewPdfModal: React.FC<DocumentsPreviewPdfProps> = ({
                 </div>
 
                 <div className={styles.modalContent}>
-                    {!isContentReady ? (
-                        <Loader />
-                    ) : (
-                        <PdfViewer
-                            pdfUrl={pdfUrl}
-                            pdfBinary={pdfBinary}
-                            pdfBase64={pdfBase64}
-                        />
-                    )}
+                    {pdfUrl && <PdfViewer pdfUrl={pdfUrl} />}
                 </div>
             </motion.div>
         </div>,

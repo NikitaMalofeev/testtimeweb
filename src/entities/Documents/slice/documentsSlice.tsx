@@ -16,6 +16,7 @@ export interface DocumentConfirmationInfo {
     date_last_confirmed: string | null; // null, если документ не подписан
     date_last_confirmed_type_doc_agreement_transfer_broker?: string | null;
     timeoutPending?: number;
+    is_confirmed_type_doc_agreement_transfer_broker?: boolean
 }
 
 export interface UserPassportData {
@@ -379,14 +380,32 @@ export const sendDocsConfirmationCode = createAsyncThunk<
                 onSuccess?.(responseDocs);
                 dispatch(setCurrentConfirmableDoc(responseDocs.next_document));
             } else if (codeFirst) {
-                // console.log('попытка отправить код легально' + person_type)
-                const responseDocs = !isLegal ? await postConfirmationDocsCode(
-                    { code: codeFirst, type_document: docs },
-                    token
-                ) : await postConfirmationCodeLegal(
-                    { code: codeFirst, type_document: docs },
-                    token
-                )
+                let responseDocs;
+                const legalDocTypes = [
+                    "phone",
+                    "email",
+                    "type_doc_person_legal",
+                ];
+                if (!isLegal) {
+                    responseDocs = await postConfirmationDocsCode(
+                        { code: codeFirst, type_document: docs },
+                        token
+                    );
+                }
+                // 4. Легальные — только если текущий тип в списке
+                else if (legalDocTypes.includes(docs)) {
+                    responseDocs = await postConfirmationCodeLegal(
+                        { code: codeFirst, type_document: docs },
+                        token
+                    );
+                }
+                // 5. Всё остальное — обратно на обычный
+                else {
+                    responseDocs = await postConfirmationDocsCode(
+                        { code: codeFirst, type_document: docs },
+                        token
+                    );
+                }
                 currentStep === 2 && isLegal && onSuccessLegal?.()
                 onSuccess?.(responseDocs);
                 dispatch(setCurrentConfirmableDoc(responseDocs.next_document));
@@ -506,6 +525,7 @@ export const getUserDocumentsStateThunk = createAsyncThunk<
             const response = await getDocumentsState(token);
             const { is_risk_profile_complete, is_risk_profile_complete_final, is_exist_scan_passport, is_complete_passport, is_complete_person_legal, is_exist_scan_person_legal
             } = response;
+            const confirmedBrokers = response.confirmed_brokers ?? [];
             dispatch(setAvailabilityPersonalAccountMenuItems(response.main_menu_clickable_items))
             dispatch(
                 setIsRiksProfileComplete({
@@ -520,6 +540,7 @@ export const getUserDocumentsStateThunk = createAsyncThunk<
 
             const confirmedDocuments = response.confirmed_documents;
             const currentDocs = getState().documents.userDocuments;
+
             const mergedDocs = confirmedDocuments.map((doc: DocumentConfirmationInfo) => {
                 const localDoc = currentDocs.find(d => d.key === doc.key);
                 return {
@@ -529,6 +550,18 @@ export const getUserDocumentsStateThunk = createAsyncThunk<
                     timeoutPending: localDoc?.timeoutPending ?? doc.timeoutPending ?? 0,
                 };
             });
+            if (confirmedBrokers.length) {
+                const broker = confirmedBrokers[0];                 // берём только первого
+
+                mergedDocs.push({
+                    key: 'type_doc_broker_api_token',
+                    // дата может называться у вас по‑другому. Берём ту, что приходит.
+                    date_last_confirmed_type_doc_agreement_transfer_broker:
+                        broker.modified ?? broker.modified ?? broker.modified,
+                    timeoutPending: 0,
+                });
+            }
+            console.log(mergedDocs)
 
             dispatch(setUserDocuments(mergedDocs));
         } catch (error: any) {

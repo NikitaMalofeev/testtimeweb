@@ -188,10 +188,12 @@ export const LegalDataForm: React.FC = () => {
 
         const patch: Partial<LegalFormData> = {};
 
-        if (!legalFormData.phone && userPersonalAccountInfo.phone)
+        // if (!legalFormData.phone && userPersonalAccountInfo.phone)
+        if (userPersonalAccountInfo.phone)
             patch.phone = userPersonalAccountInfo.phone.replace(/\D/g, '');
+        if (userPersonalAccountInfo.email)
+            // if (!legalFormData.email && userPersonalAccountInfo.email)
 
-        if (!legalFormData.email && userPersonalAccountInfo.email)
             patch.email = userPersonalAccountInfo.email;
 
         // если есть что патчить – обновляем store

@@ -69,8 +69,11 @@ const DocumentsPage: React.FC = () => {
     const targetTariffId = currentUserTariffIdForPayments || '';
     const isBulkEnabled = !!user?.is_confirm_all_documents_one_code;
     const brokerDoc = userDocuments.find(d => d.key === "type_doc_broker_api_token");
-    const isBrokerSigned = brokerIds.length > 0;
-    const showBulkToolbar = isBulkEnabled && isBrokerSigned;
+    const brokerConfirmation = userDocuments.find(
+        d => d.is_confirmed_type_doc_agreement_transfer_broker === true,
+    );
+    const isBrokerSigned = !!brokerConfirmation;
+
     const isIp = !!user?.is_individual_entrepreneur;
 
     // Универсальные флаги «заполнена карточка» / «есть сканы»
@@ -107,6 +110,8 @@ const DocumentsPage: React.FC = () => {
         const allSelected = selectable.every(id => selectedDocs.includes(id));
         setSelectedDocs(allSelected ? [] : selectable);
     };
+
+
 
 
     //Логика с подписанием всех документов 
@@ -353,7 +358,7 @@ const DocumentsPage: React.FC = () => {
                 isIdentityScanExist ? 'signed' :
                     date ? 'signed' : 'signable';
         }
-        if (type === "type_doc_broker_api_token" && brokersCount > 0) {
+        if (type === "type_doc_broker_api_token" && isBrokerSigned) {
             status = "signed";
         }
         return {
@@ -373,6 +378,16 @@ const DocumentsPage: React.FC = () => {
             ),
         [documents]
     );
+    const showBulkToolbar =
+        isBulkEnabled && bulkSelectableDocs.length > 0;
+
+    // ↓ после определения bulkSelectableDocs
+    useEffect(() => {
+        // оставляем в selectedDocs только те, что всё ещё можно подписать
+        setSelectedDocs(prev =>
+            prev.filter(id => bulkSelectableDocs.some(d => d.id === id))
+        );
+    }, [bulkSelectableDocs]);
 
     const checksArray = Object.values(userChecks)        // ← UserCheck[]
         .sort((a, b) =>
@@ -971,7 +986,10 @@ const DocumentsPage: React.FC = () => {
             {bulkOpen && (
                 <BulkSignModal
                     docs={documents.filter((d) => selectedDocs.includes(d.id))}
-                    onClose={() => setBulkOpen(false)}
+                    onClose={() => {
+                        setSelectedDocs([])
+                        setBulkOpen(false)
+                    }}
                 />
             )}
         </div>

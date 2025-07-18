@@ -17,7 +17,7 @@ import {
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { selectModalState } from "entities/ui/Modal/selectors/selectorsModals";
 import { setTooltipActive, setConfirmationDocsSuccess, setStepAdditionalMenuUI, nextStep } from "entities/ui/Ui/slice/uiSlice";
-import { clearDocumentTimeout, confirmDocsRequestThunk, getUserDocumentsStateThunk, sendDocsConfirmationAllDocuments, sendDocsConfirmationCode, setDocumentTimeoutPending } from "entities/Documents/slice/documentsSlice";
+import { clearDocumentTimeout, confirmDocsRequestThunk, getUserDocumentsStateThunk, sendDocsConfirmationAllDocuments, sendDocsConfirmationCode, setCurrentConfirmableDoc, setDocumentTimeoutPending } from "entities/Documents/slice/documentsSlice";
 import { ConfirmDocsPayload } from "entities/Documents/types/documentsTypes";
 import { checkConfirmationCodeTariffThunk, setCurrentOrderStatus, createOrderThunk } from "entities/Payments/slice/paymentsSlice";
 import { useNavigate } from "react-router-dom";
@@ -197,6 +197,7 @@ export const ConfirmAllDocsOneCodeModal = memo(
                         broker_id: brokerIds[0],
                         onSuccess: () => {
                             setInputColors("#1CC15A")
+                            dispatch(setCurrentConfirmableDoc('type_doc_agreement_investment_advisor_app_1'))
                             dispatch(getUserDocumentsStateThunk());
                             setSmsCodeFirst(Array(codeLength).fill(""));
                             onClose();

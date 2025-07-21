@@ -231,10 +231,19 @@ text-align: center;
     }
 
     .document__info {
-
+        
         & > span {
             max-width: 400px;
         }
+    }
+
+    .document__info__flex {
+        width: 326px;
+    }
+
+    .document__button_success {
+        width: 100%;
+        justify-content: end;
     }
 
     .document__item {

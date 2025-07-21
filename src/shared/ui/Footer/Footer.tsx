@@ -41,6 +41,7 @@ export const Footer: React.FC = () => {
 
     // Храним путь или ID документа для предпросмотра
     const [currentDocForPreview, setCurrentDocForPreview] = useState<string>("");
+    const [localModalIsOpen, setLocalModalIsOpen] = useState(false)
 
     // Как только выбрали документ, открываем модалку
     useEffect(() => {
@@ -57,11 +58,13 @@ export const Footer: React.FC = () => {
     // Устанавливаем документ для превью и дальше useEffect откроет модалку
     const handleOpenDocPreview = (docId: string) => {
         setCurrentDocForPreview(docId);
+        setLocalModalIsOpen(true)
     };
 
     const handleClosePreview = () => {
-        dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW));
+        dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW_PDF));
         setCurrentDocForPreview("");
+        setLocalModalIsOpen(false)
     };
 
     return (
@@ -185,9 +188,8 @@ export const Footer: React.FC = () => {
 
             <DocumentsPreviewPdfModal
                 pdfUrl={currentDocForPreview}
-                isOpen={modalState.documentsPreviewPdf.isOpen}
-                onClose={() => dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW_PDF))}
-
+                isOpen={modalState.documentsPreviewPdf.isOpen && localModalIsOpen}
+                onClose={handleClosePreview}
             />
         </>
     );

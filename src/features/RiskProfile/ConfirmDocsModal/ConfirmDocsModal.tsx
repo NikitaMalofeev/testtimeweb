@@ -201,7 +201,7 @@ export const ConfirmDocsModal = memo(
         useEffect(() => {
             const code = smsCodeFirst.join("");
             if (code.length === codeLength) {
-                if (confirmationPurpose === 'payments' || docsType === 'currentTypeDoc === "type_doc_agreement_investment_advisor_app_1"') {
+                if (confirmationPurpose === 'payments') {
                     dispatch(checkConfirmationCodeTariffThunk({
                         tariff_id: paymentsTariffId,
                         code,
@@ -234,10 +234,15 @@ export const ConfirmDocsModal = memo(
                             },
                             onSuccess: (data: any) => {
 
-                                //временная мера для установки документа брокера после доверенности на управление счетом
                                 dispatch(getUserDocumentsStateThunk());
                                 if (docsType === 'type_doc_passport') {
                                     dispatch(setStepAdditionalMenuUI(3));
+                                }
+                                if (docsType === 'type_doc_agreement_account_maintenance') {
+                                    dispatch(setCurrentConfirmableDoc('type_doc_broker_api_token'));
+                                }
+                                if (docsType === 'type_doc_broker_api_token') {
+                                    dispatch(setCurrentConfirmableDoc('type_doc_agreement_investment_advisor_app_1'));
                                 }
                                 if (docsType === 'type_doc_EDS_agreement' && (isRPFilled && isRPFinalFilled)) {
                                     dispatch(setStepAdditionalMenuUI(4));

@@ -378,7 +378,8 @@ export const sendDocsConfirmationCode = createAsyncThunk<
                 dispatch(getUserDocumentsStateThunk());
                 dispatch(getAllBrokersThunk({ is_confirmed_type_doc_agreement_transfer_broker: true, onSuccess: () => { } }));
                 onSuccess?.(responseDocs);
-                dispatch(setCurrentConfirmableDoc(responseDocs.next_document));
+                responseDocs.next_document && dispatch(setCurrentConfirmableDoc(responseDocs.next_document));
+
             } else if (codeFirst) {
                 let responseDocs;
                 const legalDocTypes = [
@@ -408,7 +409,7 @@ export const sendDocsConfirmationCode = createAsyncThunk<
                 }
                 currentStep === 2 && isLegal && onSuccessLegal?.()
                 onSuccess?.(responseDocs);
-                dispatch(setCurrentConfirmableDoc(responseDocs.next_document));
+                responseDocs.next_document && dispatch(setCurrentConfirmableDoc(responseDocs.next_document));
             }
 
         } catch (error: any) {

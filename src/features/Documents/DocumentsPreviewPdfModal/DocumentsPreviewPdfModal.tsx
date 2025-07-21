@@ -47,13 +47,17 @@ export const DocumentsPreviewPdfModal: React.FC<DocumentsPreviewPdfProps> = ({
         }
     }, [isOpen, isAnyModalOpen]);
 
+    useEffect(() => {
+        console.log(pdfUrl + 'url')
+    }, [pdfUrl])
+
     const handleClose = () => {
         dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW_PDF));
         onClose();
     };
 
 
-    if (!isOpen) return null;
+    if (!isOpen || !pdfUrl) return null;
 
     let modalRoot = document.getElementById("modal-root");
     if (!modalRoot) {
@@ -78,7 +82,8 @@ export const DocumentsPreviewPdfModal: React.FC<DocumentsPreviewPdfProps> = ({
                 </div>
 
                 <div className={styles.modalContent}>
-                    {pdfUrl && <PdfViewer pdfUrl={pdfUrl} />}
+                    {/* {pdfUrl && <PdfViewer pdfUrl={pdfUrl} />} */}
+                    <PdfViewer pdfUrl={pdfUrl} />
                 </div>
             </motion.div>
         </div>,

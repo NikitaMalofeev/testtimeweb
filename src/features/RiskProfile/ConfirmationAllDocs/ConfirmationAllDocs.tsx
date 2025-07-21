@@ -47,7 +47,7 @@ export const ConfirmAllDocs: React.FC = () => {
     const modalState = useSelector((state: RootState) => state.modal.documentsPreview);
     const isRPFilled = useSelector((state: RootState) => state.documents.filledRiskProfileChapters.is_risk_profile_complete);
     const isRPFinalFilled = useSelector((state: RootState) => state.documents.filledRiskProfileChapters.is_risk_profile_complete);
-    const { filledRiskProfileChapters } = useSelector((state: RootState) => state.documents);
+    const { filledRiskProfileChapters, brokerIds } = useSelector((state: RootState) => state.documents);
     const timeoutBetweenConfirmation = useSelector((state: RootState) => state.documents.timeoutBetweenConfirmation);
     const messageTypeOptions = { SMS: "SMS", EMAIL: "Email", WHATSAPP: "Whatsapp" };
     const successModalOpen = useSelector((state: RootState) => state.modal.success.isOpen)
@@ -143,6 +143,9 @@ export const ConfirmAllDocs: React.FC = () => {
                 } else {
                     dispatch(setStepAdditionalMenuUI(4));
                 }
+            } else if (currentTypeDoc === "type_doc_broker_api_token" && brokerIds.length === 0) {
+                dispatch(setStepAdditionalMenuUI(5));
+                console.log(5)
             } else if (currentTypeDoc === "type_doc_agreement_investment_advisor_app_1") {
                 confirmTariffRequestThunk({
                     data: formik.values,
@@ -158,6 +161,7 @@ export const ConfirmAllDocs: React.FC = () => {
                 })
             } else {
                 // При успешном запросе открываем ConfirmDocsModal
+                console.log(1)
                 dispatch(
                     confirmDocsRequestThunk({
                         data: formik.values,

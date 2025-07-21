@@ -26,7 +26,7 @@ import { userType } from "entities/User/types/userTypes";
 import { setUserData } from "entities/User/slice/userSlice";
 import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
 import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/DocumentPreviewModal";
-import PrivacyPdf from "shared/assets/documents/personalPolicyDoc.pdf";
+import PrivacyPdf from "shared/assets/documents/PersonalPolicy.pdf";
 import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { useScrollShadow } from "shared/hooks/useScrollShadow";
 import BooleanTabs from "shared/ui/BooleanTabs/BooleanTabs";

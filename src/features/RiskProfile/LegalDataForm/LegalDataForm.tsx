@@ -84,10 +84,6 @@ export const LegalDataForm: React.FC = () => {
             .matches(CYRILLIC_NAME, "Только кириллица, пробел и дефис")
             .min(2, "Минимум 2 символа")
             .required("Фамилия обязательна"),
-        patronymic: Yup.string().matches(
-            CYRILLIC_NAME,
-            "Только кириллица, пробел и дефис"
-        ),
 
         /* Тип сообщения (ENUM, выводится чекбоксами) */
         type_message: Yup.string()

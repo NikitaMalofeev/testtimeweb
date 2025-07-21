@@ -37,6 +37,7 @@ export const ConfirmDocsModal = memo(
         const navigate = useNavigate()
         const modalState = useSelector((state: RootState) => state.modal);
         const { confirmationMethod } = useSelector((state: RootState) => state.documents);
+        const confirmOneCode = useSelector((state: RootState) => state.user.userPersonalAccountInfo?.is_confirm_all_documents_one_code);
         const docsSuccess = useSelector((state: RootState) => state.ui.confirmationDocs);
         const isRPFilled = useSelector((state: RootState) => state.documents.filledRiskProfileChapters.is_risk_profile_complete);
         const isRPFinalFilled = useSelector((state: RootState) => state.documents.filledRiskProfileChapters.is_risk_profile_complete);
@@ -231,19 +232,33 @@ export const ConfirmDocsModal = memo(
                             onSuccessLegal: () => {
                                 dispatch(nextStep())
                                 dispatch(nextStep())
+
+                                if ((docsType === 'type_doc_EDS_agreement' || docsType === 'type_doc_person_legal') && confirmOneCode) {
+                                    dispatch(closeModal(ModalType.IDENTIFICATION))
+
+                                }
                             },
                             onSuccess: (data: any) => {
 
-                                dispatch(getUserDocumentsStateThunk());
-                                if (docsType === 'type_doc_passport') {
-                                    dispatch(setStepAdditionalMenuUI(3));
-                                }
+                                //бек не отправляет next_document на эти 2
                                 if (docsType === 'type_doc_agreement_account_maintenance') {
                                     dispatch(setCurrentConfirmableDoc('type_doc_broker_api_token'));
                                 }
                                 if (docsType === 'type_doc_broker_api_token') {
                                     dispatch(setCurrentConfirmableDoc('type_doc_agreement_investment_advisor_app_1'));
                                 }
+                                //бек не отправляет next_document на эти 2
+
+
+                                if ((docsType === 'type_doc_EDS_agreement' || docsType === 'type_doc_person_legal') && confirmOneCode) {
+                                    dispatch(closeModal(ModalType.IDENTIFICATION))
+                                }
+                                dispatch(getUserDocumentsStateThunk());
+                                if (docsType === 'type_doc_passport') {
+                                    dispatch(setStepAdditionalMenuUI(3));
+                                    console.log(1 + 'пробую перевести сразу в документы 4')
+                                }
+
                                 if (docsType === 'type_doc_EDS_agreement' && (isRPFilled && isRPFinalFilled)) {
                                     dispatch(setStepAdditionalMenuUI(4));
                                 }

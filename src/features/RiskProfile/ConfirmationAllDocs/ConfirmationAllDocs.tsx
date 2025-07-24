@@ -147,7 +147,7 @@ export const ConfirmAllDocs: React.FC = () => {
                 dispatch(setStepAdditionalMenuUI(5));
                 console.log(5)
             } else if (currentTypeDoc === "type_doc_agreement_investment_advisor_app_1") {
-                confirmTariffRequestThunk({
+                dispatch(confirmTariffRequestThunk({
                     data: formik.values,
                     onSuccess: () => {
                         dispatch(
@@ -158,7 +158,7 @@ export const ConfirmAllDocs: React.FC = () => {
                             })
                         );
                     },
-                })
+                }))
             } else {
                 // При успешном запросе открываем ConfirmDocsModal
                 console.log(1)

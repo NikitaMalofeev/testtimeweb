@@ -787,7 +787,7 @@ const DocumentsPage: React.FC = () => {
                                                                 Просмотр
                                                             </Button>
                                                         )}
-                                                        {doc.status === "signed" && (
+                                                        {doc.status === "signed" && !doc.isPayment && (
                                                             <>
                                                                 {doc.timeoutPending && doc.timeoutPending > 0 ? (
                                                                     <span className={styles.documents__timer}>

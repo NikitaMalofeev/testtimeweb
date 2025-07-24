@@ -40,7 +40,7 @@ const initialState: PushState = {
         {
             id: "fillPassportData",
             title: "Заполнить паспортные данные",
-            description: "Заполните паспортные данные в разделt \n\"Документы\"\n Личного Кабинета",
+            description: "Заполните паспортные данные в разделе \n\"Документы\"\n Личного Кабинета",
             active: false,
             hasOpened: false,
             uiStep: 2
@@ -52,6 +52,24 @@ const initialState: PushState = {
             active: false,
             hasOpened: false,
             uiStep: 3
+        },
+        {
+            id: "fillIPData",
+            title: "Заполните данные ИП",
+            description:
+                'Заполните регистрационные данные индивидуального предпринимателя в разделе \n"Документы"\n Личного Кабинета',
+            active: false,
+            hasOpened: false,
+            uiStep: 2,
+        },
+        {
+            id: "uploadIPDocuments",
+            title: "Загрузите документы ИП",
+            description:
+                'Загрузите свидетельство о регистрации ИП и другие документы в разделе \n"Документы"\n Личного Кабинета',
+            active: false,
+            hasOpened: false,
+            uiStep: 3,
         },
         {
             id: "type_doc_EDS_agreement",
@@ -107,15 +125,7 @@ const initialState: PushState = {
             route: '/documents',
             uiStep: 4
         },
-        {
-            id: "type_doc_agreement_account_maintenance",
-            title: "Подписать договор на обслуживание аккаунта",
-            description: "Подпишите договор на обслуживание аккаунта в разделе \n\"Документы\"\n Личного Кабинета",
-            active: false,
-            hasOpened: false,
-            route: '/documents',
-            uiStep: 4
-        },
+
         {
             id: "type_doc_broker_api_token_fill",
             title: "Подключить брокера",
@@ -150,6 +160,15 @@ const initialState: PushState = {
             route: '/documents',
             uiStep: 4
         },
+        {
+            id: "type_doc_agreement_account_maintenance",
+            title: "Подписать договор на обслуживание аккаунта",
+            description: "Подпишите договор на обслуживание аккаунта в разделе \n\"Документы\"\n Личного Кабинета",
+            active: false,
+            hasOpened: false,
+            route: '/documents',
+            uiStep: 4
+        },
     ],
 };
 
@@ -164,21 +183,35 @@ export const checkPushNotificationsThunk = createAsyncThunk<void, void, { state:
             userDocuments
         } = getState().documents;
 
-        // 1. Рисковое профилирование / паспорт
-        const pushMapping: { field: keyof FilledRiskProfileChapters; id: string }[] = [
-            { field: 'is_risk_profile_complete', id: 'fillRiskProfiling' },
-            { field: 'is_risk_profile_complete_final', id: 'confirmRiskProfile' },
-            { field: 'is_complete_passport', id: 'fillPassportData' },
-            { field: 'is_exist_scan_passport', id: 'uploadDocuments' },
+        const isIp = !!getState().user.userPersonalAccountInfo?.is_individual_entrepreneur;
+
+        // 2. Типизированный helper, чтобы не писать as каждый раз
+        type PushPair = { field: keyof FilledRiskProfileChapters; id: string };
+
+        const personBlock: PushPair[] = isIp
+            ? [
+                { field: "is_complete_person_legal", id: "fillPersonLegalData" },
+                { field: "is_exist_scan_person_legal", id: "uploadPersonLegalDocs" },
+            ]
+            : [
+                { field: "is_complete_passport", id: "fillPassportData" },
+                { field: "is_exist_scan_passport", id: "uploadDocuments" },
+            ];
+
+        const pushMapping: PushPair[] = [
+            { field: "is_risk_profile_complete", id: "fillRiskProfiling" },
+            { field: "is_risk_profile_complete_final", id: "confirmRiskProfile" },
+            ...personBlock,
         ];
 
-        // Найдём первый незавершённый
-        const firstRisk = pushMapping.find(({ field }) => !filledRiskProfileChapters[field]);
+        /** 3) Старая логика — без изменений */
+        const firstRisk = pushMapping.find(
+            ({ field }) => !filledRiskProfileChapters[field]
+        );
         if (firstRisk) {
             dispatch(activatePush(firstRisk.id));
             return;
         }
-        // Всё из рисковой группы выполнено — сбросим их
         pushMapping.forEach(({ id }) => dispatch(deactivatePush(id)));
 
         // 2. Подписание документов
@@ -189,8 +222,8 @@ export const checkPushNotificationsThunk = createAsyncThunk<void, void, { state:
             'type_doc_risk_declarations',
             'type_doc_agreement_personal_data_policy',
             'type_doc_investment_profile_certificate',
-            'type_doc_agreement_account_maintenance',
             'type_doc_agreement_investment_advisor_app_1',
+            'type_doc_agreement_account_maintenance',
         ] as const;
 
         const firstDocToSign = confirmableDocs.find(docId =>

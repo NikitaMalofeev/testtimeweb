@@ -2,13 +2,13 @@
 
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "app/providers/store/config/store";
-import { AvailabilityPersonalAccountMenuItems, ConfirmCustomDocsPayload, ConfirmDocsPayload, FilledRiskProfileChapters, SetHtmlsPayload } from "../types/documentsTypes";
-import { confirmBrokerDocsRequest, confirmCustomDocsRequest, confirmDocsRequest, confirmTariffDocs, getAllBrokers, getBrokerDocumentsSigned, getCustomDocumentsNotSigned, getCustomDocumentsSigned, getDocumentNotSigned, getDocumentsInfo, getDocumentsNotSigned, getDocumentsSigned, getDocumentsState, postConfirmationCodeCustom } from "../api/documentsApi";
+import { AvailabilityPersonalAccountMenuItems, ConfirmAllDocsPayload, ConfirmCustomDocsPayload, ConfirmDocsPayload, FilledRiskProfileChapters, SetHtmlsPayload } from "../types/documentsTypes";
+import { confirmAllDocsRequest, confirmBrokerDocsRequest, confirmCustomDocsRequest, confirmDocsRequest, confirmTariffDocs, getAllBrokers, getBrokerDocumentsSigned, getCustomDocumentsNotSigned, getCustomDocumentsSigned, getDocumentNotSigned, getDocumentsInfo, getDocumentsNotSigned, getDocumentsSigned, getDocumentsState, postConfirmationCodeAllDocuments, postConfirmationCodeCustom } from "../api/documentsApi";
 import { setCurrentConfirmingDoc } from "entities/RiskProfile/slice/riskProfileSlice";
 import { setConfirmationDocsSuccess } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
 import { SendCodeCustomDocsConfirmPayload, SendCodeDocsConfirmPayload } from "entities/RiskProfile/model/types";
-import { postBrokerConfirmationDocsCode, postConfirmationDocsCode } from "entities/RiskProfile/api/riskProfileApi";
+import { postBrokerConfirmationDocsCode, postConfirmationCodeLegal, postConfirmationDocsCode } from "entities/RiskProfile/api/riskProfileApi";
 
 // Новый тип, соответствующий элементам из "confirmed_documents"
 export interface DocumentConfirmationInfo {
@@ -16,6 +16,7 @@ export interface DocumentConfirmationInfo {
     date_last_confirmed: string | null; // null, если документ не подписан
     date_last_confirmed_type_doc_agreement_transfer_broker?: string | null;
     timeoutPending?: number;
+    is_confirmed_type_doc_agreement_transfer_broker?: boolean
 }
 
 export interface UserPassportData {
@@ -55,7 +56,8 @@ export const docTypes = [
     "type_doc_investment_profile_certificate",
     "type_doc_agreement_account_maintenance",
     "type_doc_broker_api_token",
-    "type_doc_agreement_investment_advisor_app_1"
+    "type_doc_agreement_investment_advisor_app_1",
+
 ];
 
 // Лейблы для UI.
@@ -70,6 +72,7 @@ export const docTypeLabels: Record<string, string> = {
     type_doc_agreement_account_maintenance: 'Доверенность на управление счетом',
     type_doc_broker_api_token: 'Согласие на передачу API ключа к брокерскому счету',
     type_doc_agreement_investment_advisor_app_1: 'Договор ИС: Приложение 1',
+
 };
 
 interface DocumentsState {
@@ -113,6 +116,8 @@ const initialState: DocumentsState = {
         is_risk_profile_complete_final: false,
         is_complete_passport: false,
         is_exist_scan_passport: false,
+        is_complete_person_legal: false,
+        is_exist_scan_person_legal: false
     },
     brokerIds: [],
     brokersCount: 0,
@@ -265,6 +270,66 @@ export const confirmDocsRequestThunk = createAsyncThunk<
     }
 );
 
+export const confirmAllDocsRequestThunk = createAsyncThunk<
+    // 1) То, что возвращает API (можно указать тип, если response.data имеет интерфейс)
+    ReturnType<typeof confirmAllDocsRequest>,
+    // 2) Аргументы, которые вы передаёте при dispatch
+    {
+        data: ConfirmAllDocsPayload;
+        onSuccess?: () => void;
+    },
+    // 3) Опции: какой тип состояния и тип rejectValue
+    { state: RootState; rejectValue: string }
+>(
+    "documents/confirmAllDocsRequest",
+    async (
+        { data, onSuccess },
+        { getState, dispatch, rejectWithValue }
+    ) => {
+        const token = getState().user.token;
+        const currentConfirmableDoc = getState().documents.currentConfirmableDoc;
+
+        if (!token) {
+            // Если нет токена — уход в rejected
+            return rejectWithValue("Отсутствует токен авторизации");
+        }
+
+        try {
+            // Отправляем полный payload
+            const response = await confirmAllDocsRequest(data, token);
+
+            // Помечаем, что всё ок
+            dispatch(setConfirmationDocsSuccess("пройдено"));
+
+            // Если пришёл group_ws — открываем WS
+            if (response.group_ws) {
+                dispatch(
+                    openUploadDocWebsocketThunk({
+                        docId: currentConfirmableDoc,
+                        socketId: response.group_ws,
+                    })
+                );
+            }
+
+            // Колл­бэк при успехе
+            onSuccess?.();
+
+            return response;
+        } catch (err: any) {
+            // Сохраняем текст ошибки
+            const errorMsg =
+                err.response?.data?.errorText ?? "Ошибка при подписании документов";
+
+            // Диспачим редьюсеры для ошибки
+            dispatch(setError(errorMsg));
+            dispatch(setConfirmationDocsSuccess("не пройдено"));
+
+            // Возвращаем reject с сообщением
+            return rejectWithValue(errorMsg);
+        }
+    }
+);
+
 export const confirmCustomDocsRequestThunk = createAsyncThunk<
     void,
     { data: ConfirmCustomDocsPayload; onSuccess: () => void },
@@ -295,10 +360,12 @@ export const sendDocsConfirmationCode = createAsyncThunk<
     { rejectValue: string; state: RootState }
 >(
     "documents/sendDocsConfirmationCode",
-    async ({ codeFirst, docs, onSuccess }, { getState, dispatch, rejectWithValue }) => {
+    async ({ codeFirst, docs, onSuccess, onSuccessLegal }, { getState, dispatch, rejectWithValue }) => {
         try {
             const token = getState().user.token;
             const currentConfirmableDoc = getState().documents.currentConfirmableDoc
+            const currentStep = getState().ui.additionalMenu.currentStep
+            const isLegal = getState().user.userPersonalAccountInfo?.is_individual_entrepreneur
             const broker_id = getState().documents.brokerIds[0]
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");
@@ -311,14 +378,107 @@ export const sendDocsConfirmationCode = createAsyncThunk<
                 dispatch(getUserDocumentsStateThunk());
                 dispatch(getAllBrokersThunk({ is_confirmed_type_doc_agreement_transfer_broker: true, onSuccess: () => { } }));
                 onSuccess?.(responseDocs);
-                dispatch(setCurrentConfirmableDoc(responseDocs.next_document));
+                responseDocs.next_document && dispatch(setCurrentConfirmableDoc(responseDocs.next_document));
+
             } else if (codeFirst) {
-                const responseDocs = await postConfirmationDocsCode(
+                let responseDocs;
+                const legalDocTypes = [
+                    "phone",
+                    "email",
+                    "type_doc_person_legal",
+                ];
+                if (!isLegal) {
+                    responseDocs = await postConfirmationDocsCode(
+                        { code: codeFirst, type_document: docs },
+                        token
+                    );
+                }
+                // 4. Легальные — только если текущий тип в списке
+                else if (legalDocTypes.includes(docs)) {
+                    responseDocs = await postConfirmationCodeLegal(
+                        { code: codeFirst, type_document: docs },
+                        token
+                    );
+                }
+                // 5. Всё остальное — обратно на обычный
+                else {
+                    responseDocs = await postConfirmationDocsCode(
+                        { code: codeFirst, type_document: docs },
+                        token
+                    );
+                }
+                currentStep === 2 && isLegal && onSuccessLegal?.()
+                onSuccess?.(responseDocs);
+                responseDocs.next_document && dispatch(setCurrentConfirmableDoc(responseDocs.next_document));
+            }
+
+        } catch (error: any) {
+            dispatch(setConfirmationDocsSuccess("не пройдено"));
+            console.log(error);
+            const msg =
+                error.response?.data?.errorText
+            dispatch(setError(msg));
+        }
+    }
+);
+
+export const sendDocsConfirmationAllDocuments = createAsyncThunk<
+    void,
+    { codeFirst: string; broker_id: string; onSuccess: () => void; onError: () => void },
+    { rejectValue: string; state: RootState }
+>(
+    "documents/sendDocsConfirmationCode",
+    async ({ codeFirst, broker_id, onSuccess, onError }, { getState, dispatch, rejectWithValue }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+            if (codeFirst) {
+                // console.log('попытка отправить код легально' + person_type)
+                const responseDocs = await postConfirmationCodeAllDocuments(
+                    { code: codeFirst, broker_id },
+                    token
+                )
+                onSuccess?.();
+                return responseDocs
+                // dispatch(setCurrentConfirmableDoc(responseDocs.next_document));
+            }
+
+        } catch (error: any) {
+            dispatch(setConfirmationDocsSuccess("не пройдено"));
+            onError()
+            console.log(error);
+            const msg =
+                error.response?.data?.errorText
+            dispatch(setError(msg));
+        }
+    }
+);
+
+export const sendDocsConfirmationCodeLegal = createAsyncThunk<
+    void,
+    SendCodeDocsConfirmPayload,
+    { rejectValue: string; state: RootState }
+>(
+    "documents/sendDocsConfirmationCodeLegal",
+    async ({ codeFirst, docs, onSuccess }, { getState, dispatch, rejectWithValue }) => {
+        try {
+            const token = getState().user.token;
+            const currentConfirmableDoc = getState().documents.currentConfirmableDoc
+            const isLegal = getState().user.userPersonalAccountInfo?.is_individual_entrepreneur
+            const broker_id = getState().documents.brokerIds[0]
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+            if (codeFirst) {
+                // console.log('попытка отправить код легально' + person_type)
+                const responseDocs = postConfirmationCodeLegal(
                     { code: codeFirst, type_document: docs },
                     token
-                );
+                )
                 onSuccess?.(responseDocs);
-                dispatch(setCurrentConfirmableDoc(responseDocs.next_document));
+
             }
 
         } catch (error: any) {
@@ -364,8 +524,11 @@ export const getUserDocumentsStateThunk = createAsyncThunk<
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");
             }
+            const currentBrokerIds = getState().documents.brokerIds
             const response = await getDocumentsState(token);
-            const { is_risk_profile_complete, is_risk_profile_complete_final, is_exist_scan_passport, is_complete_passport } = response;
+            const { is_risk_profile_complete, is_risk_profile_complete_final, is_exist_scan_passport, is_complete_passport, is_complete_person_legal, is_exist_scan_person_legal
+            } = response;
+            const confirmedBrokers = response.confirmed_brokers ?? [];
             dispatch(setAvailabilityPersonalAccountMenuItems(response.main_menu_clickable_items))
             dispatch(
                 setIsRiksProfileComplete({
@@ -373,11 +536,14 @@ export const getUserDocumentsStateThunk = createAsyncThunk<
                     is_risk_profile_complete_final,
                     is_complete_passport,
                     is_exist_scan_passport,
+                    is_complete_person_legal,
+                    is_exist_scan_person_legal
                 })
             );
 
             const confirmedDocuments = response.confirmed_documents;
             const currentDocs = getState().documents.userDocuments;
+
             const mergedDocs = confirmedDocuments.map((doc: DocumentConfirmationInfo) => {
                 const localDoc = currentDocs.find(d => d.key === doc.key);
                 return {
@@ -387,7 +553,19 @@ export const getUserDocumentsStateThunk = createAsyncThunk<
                     timeoutPending: localDoc?.timeoutPending ?? doc.timeoutPending ?? 0,
                 };
             });
+            if (confirmedBrokers.length) {
+                const broker = confirmedBrokers[0];                 // берём только первого
 
+                mergedDocs.push({
+                    key: 'type_doc_broker_api_token',
+                    // дата может называться у вас по‑другому. Берём ту, что приходит.
+                    date_last_confirmed_type_doc_agreement_transfer_broker:
+                        broker.modified ?? broker.modified ?? broker.modified,
+                    timeoutPending: 0,
+                });
+            }
+            console.log(mergedDocs)
+            currentBrokerIds[0] && dispatch(setBrokerIds({ brokerId: currentBrokerIds[0], count: response.confirmed_brokers_count }))
             dispatch(setUserDocuments(mergedDocs));
         } catch (error: any) {
             console.log(error);
@@ -624,12 +802,23 @@ export const documentsSlice = createSlice({
             state.allNotSignedDocumentsHtml["type_doc_broker_api_token"] =
                 action.payload.notSignedDocBroker;
         },
+        // setBrokerIds(
+        //     state,
+        //     action: PayloadAction<{ brokerId: string; count: number; }>
+        // ) {
+        //     state.brokerIds.push(action.payload.brokerId);
+        //     state.brokersCount = action.payload.count
+        // },
         setBrokerIds(
             state,
-            action: PayloadAction<{ brokerId: string; count: number; }>
+            action: PayloadAction<{ brokerId: string; count: number }>
         ) {
-            state.brokerIds.push(action.payload.brokerId);
-            state.brokersCount = action.payload.count
+            state.brokerIds = [action.payload.brokerId];   // ← старое значение затираем
+            state.brokersCount = action.payload.count;
+        },
+        resetBrokerIds(state) {
+            state.brokerIds = [];
+            state.brokersCount = 0;
         },
         setTimeoutBetweenConfirmation(state, action: PayloadAction<number>) {
             state.timeoutBetweenConfirmation = action.payload;
@@ -823,6 +1012,7 @@ export const {
     setCustomDocumentData,
     setUploadDocSocket,
     setUploadDocStatus,
+    resetBrokerIds,
     setAvailabilityPersonalAccountMenuItems
 } = documentsSlice.actions;
 

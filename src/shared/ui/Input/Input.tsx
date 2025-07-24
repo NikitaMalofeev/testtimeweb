@@ -546,6 +546,11 @@ export const Input: React.FC<InputProps> = ({
                                             }
                                             onChange(e);
                                         }}
+                                        // ↓↓↓ блокируем колесо и стрелки ↓↓↓
+                                        onWheel={(e) => e.preventDefault()}
+                                        onKeyDown={(e) =>
+                                            (e.key === "ArrowUp" || e.key === "ArrowDown") && e.preventDefault()
+                                        }
                                     />
                                     {error && (
                                         <div className={styles.input__error}>

@@ -56,7 +56,17 @@ const PersonalAccountMenu: React.FC = () => {
     const tariffs = useSelector((s: RootState) => s.payments.tariffs);
     const activeTariffs = useSelector((s: RootState) => s.payments.activeTariffs);
     const isUserVip = useSelector((s: RootState) => s.user.is_vip)
-    const hasActiveTariff = activeTariffs.length > 0
+    const isUserIP = useSelector((s: RootState) => s.user.userPersonalAccountInfo?.is_individual_entrepreneur)
+    const hasActiveTariff = activeTariffs.some(tariff => tariff.is_active);
+    const isIdentityDataComplete = isUserIP
+        ? filledRiskProfileChapters.is_complete_person_legal
+        : filledRiskProfileChapters.is_complete_passport;
+
+    const isIdentityScanExist = isUserIP
+        ? filledRiskProfileChapters.is_exist_scan_person_legal
+        : filledRiskProfileChapters.is_exist_scan_passport;
+
+    const hasIdentityDocs = isIdentityDataComplete && isIdentityScanExist;
 
     useEffect(() => {
         dispatch(getUserPersonalAccountInfoThunk());
@@ -82,7 +92,7 @@ const PersonalAccountMenu: React.FC = () => {
         navigate("/");
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
-    const isPassportFilled = filledRiskProfileChapters.is_complete_passport && filledRiskProfileChapters.is_exist_scan_passport;
+
 
     const items: PersonalAccountItem[] = [
         {
@@ -109,14 +119,14 @@ const PersonalAccountMenu: React.FC = () => {
                     navigate("/documents")
                 }
             },
-            notificationsCount: 9 - userDocuments.length,
+            notificationsCount: 10 - userDocuments.length,
             iconWidth: 28,
             iconHeight: 28,
             warningMessage: filledRiskProfileChapters.is_risk_profile_complete_final
                 ? (9 - userDocuments.length !== 0 ? (
                     <div className={styles.warning}>
                         <Icon Svg={WarningIcon} width={16} height={16} />
-                        <div>Есть неподписанные документы ({9 - userDocuments.length} шт.)</div>
+                        <div>Есть неподписанные документы ({10 - userDocuments.length} шт.)</div>
                     </div>
                 ) : null)
                 :
@@ -134,9 +144,7 @@ const PersonalAccountMenu: React.FC = () => {
             action: () => {
                 if (availableMenuItems?.broker) {
                     const hasBrokerKey = brokerIds.length > 0;
-                    const hasPassport =
-                        filledRiskProfileChapters.is_complete_passport &&
-                        filledRiskProfileChapters.is_exist_scan_passport;
+                    const hasPassport = hasIdentityDocs
                     const hasTariff = hasActiveTariff;
 
                     // if (!hasPassport && !hasTariff) {
@@ -191,7 +199,7 @@ const PersonalAccountMenu: React.FC = () => {
                     if (!hasPassport && brokersCount < 1) {
                         setWarning({
                             active: true,
-                            description: 'Для подключения брокера, пожалуйста, заполните паспортные данные',
+                            description: `Для подключения брокера, пожалуйста, заполните ${isUserIP ? "Данные об ИП" : "паспортные данные"}`,
                             buttonLabel: 'Перейти к заполнению',
                             action: () => {
                                 dispatch(setStepAdditionalMenuUI(0))
@@ -213,10 +221,7 @@ const PersonalAccountMenu: React.FC = () => {
             iconWidth: 28,
             iconHeight: 28,
             warningMessage: (!hasActiveTariff
-                && (
-                    !filledRiskProfileChapters.is_complete_passport
-                    || !filledRiskProfileChapters.is_exist_scan_passport
-                )
+                && !hasIdentityDocs
             ) ? (
                 <div className={styles.warning}>
                     <Icon Svg={WarningIcon} width={16} height={16} />
@@ -307,7 +312,7 @@ const PersonalAccountMenu: React.FC = () => {
             style.opacity = "0.5";
         }
         // Если пункт – "Брокер" и паспорт заполнен не полностью
-        else if (item.title === "Брокер" && !isPassportFilled) {
+        else if (item.title === "Брокер" && !hasIdentityDocs) {
             style.opacity = "0.5";
         }
         // Можно добавить здесь иные условия при необходимости

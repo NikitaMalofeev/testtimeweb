@@ -8,8 +8,9 @@ export interface IdentificationProfileData {
     password2: string;
     is_agreement: boolean;
     g_recaptcha: string;
+    is_individual_entrepreneur: boolean;
     type_sms_message?: string
-    type_person?: string
+
 }
 
 export interface ConfirmationCodeData {
@@ -46,7 +47,7 @@ export interface TrustedPersonInfo {
 }
 
 export interface RiskProfileFormData {
-    person_type?: "natural" | "legal" | "";
+    person_type?: "type_doc_person_natural" | "type_doc_person_legal" | "";
     citizenship?: string;
     residence_permit?: string;
     trusted_person_fio?: string;
@@ -61,7 +62,7 @@ export interface RiskProfileFormData {
 export interface RiskProfileFormValues extends RiskProfileFormData {
     /** делаем person_type строго обязательным,
         чтобы Formik.values.person_type всегда существовал */
-    person_type: "natural" | "legal" | "";
+    person_type: "type_doc_person_natural" | "type_doc_person_legal" | "";
     [key: string]: string | number | boolean | string[] | undefined;
 }
 
@@ -82,6 +83,7 @@ export interface SendCodePayload {
     codeFirst: string;        // Код из первой формы
     codeSecond?: string;      // Код из второй формы (при методе 'phone' + email)
     method: 'SMS' | 'email' | 'WHATSAPP' | 'whatsapp' | 'phone' | 'EMAIL'  // Как в вашем modalSlice
+    purposeNewContacts?: boolean;
     onSuccess?: (data?: any) => void;
     onError?: (data?: any) => void;
     onClose?: () => void;
@@ -92,6 +94,7 @@ export interface SendCodeDocsConfirmPayload {
     codeSecond?: string;
     docs: string;
     onSuccess?: (data?: any) => void;
+    onSuccessLegal?: (data?: any) => void;
     onClose?: () => void
 }
 
@@ -183,6 +186,43 @@ export interface PassportFormData {
     address_residential_apartment: string;
 }
 
+// entities/RiskProfile/model/types.ts
+/** Поля, которые API действительно принимает */
+export interface LegalDataFormRequest {
+    /* company block */
+    company_name: string;
+    first_name?: string;
+    last_name?: string;
+    patronymic: string;
+    type_message: "SMS" | "EMAIL" | "WHATSAPP";
+
+    company_inn: string;
+    company_kpp: string;
+    company_ogrn: string;
+
+    company_payment_account: string;
+    company_bank_payment_account: string;
+    company_bank_bik: string;
+    company_bank_correspondent_account: string;
+
+    phone?: string;
+    email?: string;
+
+    /* legal address */
+    company_region: string;
+    company_city: string;
+    company_street: string;
+    company_house: string;
+    company_apartment: string;
+    is_receive_mail_this_address?: string;
+    company_mailing_region: string;
+    company_mailing_city: string;
+    company_mailing_street: string;
+    company_mailing_house: string;
+    company_mailing_apartment: string;
+}
+
+
 
 
 export interface BrokerSetTokenPayload {
@@ -192,7 +232,7 @@ export interface BrokerSetTokenPayload {
 }
 
 export interface LegalFormData {
-    /* реквизиты */
+    /* реквизиты (вариант #1) */
     organization_name: string;
     general_director: string;
     inn: string;
@@ -205,18 +245,63 @@ export interface LegalFormData {
     work_email: string;
     work_phone: string;
 
-    /* юридический адрес */
+    /* company-block (вариант #2) */
+    company_name: string;
+    first_name: string;
+    last_name: string;
+    patronymic: string;
+    type_message: "SMS" | "EMAIL" | "WHATSAPP";
+
+    company_inn: string;
+    company_kpp: string;
+    company_ogrn: string;
+
+    company_payment_account: string;
+    company_bank_payment_account: string;
+    company_bank_bik: string;
+    company_bank_correspondent_account: string;
+
+    phone: string;
+    email: string;
+
+    /* юридический адрес (оба варианта) */
     legal_region: string;
     legal_city: string;
     legal_street: string;
     legal_house: string;
     legal_apartment: string;
 
-    /* почтовый адрес */
+    company_region: string;
+    company_city: string;
+    company_street: string;
+    company_house: string;
+    company_apartment: string;
+
+    /* флаг совпадения адресов */
     is_receive_mail_this_address: boolean;
+
+    /* почтовый адрес (оба варианта) */
     postal_region: string;
     postal_city: string;
     postal_street: string;
     postal_house: string;
     postal_apartment: string;
+
+    company_mailing_region: string;
+    company_mailing_city: string;
+    company_mailing_street: string;
+    company_mailing_house: string;
+    company_mailing_apartment: string;
+    g_recaptcha: string
+}
+
+export interface LegalConfirmData {
+    is_send_email: boolean;
+    is_send_phone: boolean;
+    is_send_message_person: boolean;
+    timeinterval_sms: number | null;
+    is_need_confirm_email: boolean;
+    is_need_confirm_phone: boolean;
+    max_size_scan_mb: number;
+    group_name_upload_scans_progress: string;
 }

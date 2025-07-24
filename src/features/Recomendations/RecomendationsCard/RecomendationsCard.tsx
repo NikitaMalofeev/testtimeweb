@@ -58,14 +58,14 @@ export const RecomendationsCard = ({
                     Просмотр
                 </Button>
 
-                <Button
+                {/* <Button
                     className={styles.card__button}
                     theme={ButtonTheme.REDUNDERLINE}
                     onClick={() => onRejectClick(uuid)}
                     padding="8px 14px"
                 >
                     Отклонить ИИР
-                </Button>
+                </Button> */}
             </div>
         </div>
     );

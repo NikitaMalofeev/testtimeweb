@@ -30,13 +30,16 @@ import PrivacyPdf from "shared/assets/documents/PersonalPolicy.pdf";
 import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { useScrollShadow } from "shared/hooks/useScrollShadow";
 import BooleanTabs from "shared/ui/BooleanTabs/BooleanTabs";
+import { DocumentsPreviewPdfModal } from "features/Documents/DocumentsPreviewPdfModal/DocumentsPreviewPdfModal";
+import { resetBrokerIds, setBrokerIds } from "entities/Documents/slice/documentsSlice";
+import { setActiveTariffs } from "entities/Payments/slice/paymentsSlice";
 
 const IdentificationProfileForm: React.FC = () => {
     const dispatch = useAppDispatch();
     const gcaptchaSiteKey = import.meta.env.VITE_RANKS_GRCAPTCHA_SITE_KEY;
 
     /* ───────────── вкладка «Физ/Юр лицо» ───────────── */
-    const [personTab, setPersonTab] = useState<"natural" | "legal">("natural");
+    const [personTab, setPersonTab] = useState<boolean>(false);
 
     /* ───────────── капча ───────────── */
     const recaptchaRef = useRef<ReCAPTCHA | null>(null);
@@ -47,7 +50,7 @@ const IdentificationProfileForm: React.FC = () => {
     const { isScrolled, isBottom } = useScrollShadow(formContentRef, true);
 
     const { loading } = useSelector((s: RootState) => s.riskProfile);
-    const modalState = useSelector((s: RootState) => s.modal.documentsPreview);
+    const modalState = useSelector((s: RootState) => s.modal);
     const systemError = useSelector((s: RootState) => s.error.error);
     const modalConfirmOpen = useSelector(
         (s: RootState) => s.modal.confirmCodeModal.isOpen
@@ -67,6 +70,7 @@ const IdentificationProfileForm: React.FC = () => {
             password2: "",
             is_agreement: false,
             g_recaptcha: "",
+            is_individual_entrepreneur: false,
             type_sms_message: "SMS",
         },
         validationSchema: Yup.object({
@@ -146,7 +150,7 @@ const IdentificationProfileForm: React.FC = () => {
         e.preventDefault();
         dispatch(
             openModal({
-                type: ModalType.DOCUMENTS_PREVIEW,
+                type: ModalType.DOCUMENTS_PREVIEW_PDF,
                 animation: ModalAnimation.LEFT,
                 size: ModalSize.FULL,
             })
@@ -173,6 +177,7 @@ const IdentificationProfileForm: React.FC = () => {
             password2: formik.values.password2,
             is_agreement: formik.values.is_agreement,
             g_recaptcha: formik.values.g_recaptcha,
+            is_individual_entrepreneur: formik.values.is_individual_entrepreneur,
             type_sms_message: formik.values.type_sms_message,
         };
 
@@ -182,6 +187,7 @@ const IdentificationProfileForm: React.FC = () => {
             first_name: formik.values.firstName,
             patronymic: formik.values.patronymic,
             last_name: formik.values.lastName,
+            is_individual_entrepreneur: formik.values.is_individual_entrepreneur,
             is_agreement: formik.values.is_agreement,
         };
 
@@ -205,14 +211,17 @@ const IdentificationProfileForm: React.FC = () => {
                 },
             })
         );
+
+        //FIXME 
+        //сбрасываю id брокера 
+        dispatch(resetBrokerIds())
+        dispatch(setActiveTariffs([]))
     };
 
     /* ───────────── обработка клика по вкладкам ───────────── */
-    const handlePersonTabChange = (tab: "natural" | "legal") => {
+    const handlePersonTabChange = (tab: boolean) => {
         setPersonTab(tab);
-        const mappedValue =
-            tab === "natural" ? "type_person_natural" : "type_person_legal";
-        formik.setFieldValue("type_person", mappedValue);
+        formik.setFieldValue("is_individual_entrepreneur", tab);
     };
 
     return (
@@ -231,6 +240,14 @@ const IdentificationProfileForm: React.FC = () => {
                 {/* ───────────── ФИЗ / ЮР лицо ───────────── */}
                 <div style={{ paddingTop: "8px" }} className={styles.form__grid}>
                     {/* ───────────── поля формы ───────────── */}
+
+                    <BooleanTabs
+                        leftTitle="Физ.лицо"
+                        rightTitle="ИП"
+                        active={personTab !== false ? "right" : "left"}
+                        onLeftClick={() => handlePersonTabChange(false)}
+                        onRightClick={() => handlePersonTabChange(true)}
+                    />
                     <Input
                         name="lastName"
                         value={formik.values.lastName}
@@ -380,11 +397,10 @@ const IdentificationProfileForm: React.FC = () => {
             </form>
 
             {/* ───────────── модалка превью документов ───────────── */}
-            <DocumentPreviewModal
-                justPreview={PrivacyPdf}
-                isOpen={modalState.isOpen}
-                onClose={() => dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW))}
-                docId="type_doc_agreement_personal_data_policy"
+            <DocumentsPreviewPdfModal
+                pdfUrl={PrivacyPdf}
+                isOpen={modalState.documentsPreviewPdf.isOpen}
+                onClose={() => dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW_PDF))}
             />
         </>
     );
@@ -392,11 +408,3 @@ const IdentificationProfileForm: React.FC = () => {
 
 export default IdentificationProfileForm;
 
-
-// <BooleanTabs
-//     leftTitle="Физ.лицо"
-//     rightTitle="Юр.лицо"
-//     active={personTab === "natural" ? "left" : "right"}
-//     onLeftClick={() => handlePersonTabChange("natural")}
-//     onRightClick={() => handlePersonTabChange("legal")}
-// />

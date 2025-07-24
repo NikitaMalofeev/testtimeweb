@@ -17,6 +17,7 @@
         font-size: 18px;
         line-height: 100%;
         letter-spacing: 0%;
+        margin-bottom: 20px;
         color: #0F0E0E;
         text-align: left;
     }
@@ -99,6 +100,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-bottom: 20px;
 }
 
 @include mix.respond-to('tablet-desktop') {

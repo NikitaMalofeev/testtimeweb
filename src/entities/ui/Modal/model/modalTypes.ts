@@ -26,13 +26,17 @@ export enum ModalType {
     PREVIEW = 'preview',
     DOCUMENTS_PREVIEW_SIGNED = 'documentsPreviewSigned',
     DOCUMENTS_PREVIEW = 'documentsPreview',
+    DOCUMENTS_PREVIEW_PDF = 'documentsPreviewPdf',
     RECOMENDATIONS_PREVIEW = 'recomendationsPreview',
     RESET_PASSWORD = 'resetPassword',
     PROGRESS = 'progress',
     INFO = 'info',
     SUCCESS = 'success',
     WARNING = 'warning',
-    CHECKS_PREVIEW = 'checksPreview'
+    CHECKS_PREVIEW = 'checksPreview',
+    CONFIRM_CONTACTS = 'confirmContacts',
+    CONFIRM_ALL_DOCS = 'confirmAllDocuments',
+    CONFIRM_ALL_DOCS_ONE_CODE = 'confirmAllDocumentsOneCode'
 }
 
 /** Состояние одной конкретной модалки */

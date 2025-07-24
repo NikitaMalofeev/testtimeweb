@@ -15,10 +15,25 @@ export const Cover = () => {
     const [isMounted, setIsMounted] = useState(true);
     const isVipUser = useSelector((s: RootState) => s.user.is_vip);
 
+    // ⬇️ показываем Cover, пока страница полностью не загрузится (+800 мс, как было)
     useEffect(() => {
-        /* 300 мс анимация + 500 мс на экране */
-        const hideTimer = setTimeout(() => setIsMounted(false), 800);
-        return () => clearTimeout(hideTimer);
+        let hideTimer: ReturnType<typeof setTimeout>;
+
+        const hideCover = () => {
+            // 300 мс анимация + 500 мс «задержка на экране» = 800 мс
+            hideTimer = setTimeout(() => setIsMounted(false), 800);
+        };
+
+        if (document.readyState === 'complete') {
+            hideCover();                // уже всё загружено (кеш / fast reload)
+        } else {
+            window.addEventListener('load', hideCover);
+        }
+
+        return () => {
+            clearTimeout(hideTimer);
+            window.removeEventListener('load', hideCover);
+        };
     }, []);
 
     /* Вариант для обычного и VIP-пользователей */
@@ -71,9 +86,5 @@ export const Cover = () => {
         </motion.div>
     );
 
-    return (
-        <AnimatePresence mode="wait">
-            {isMounted && coverContent}
-        </AnimatePresence>
-    );
+    return <AnimatePresence mode="wait">{isMounted && coverContent}</AnimatePresence>;
 };

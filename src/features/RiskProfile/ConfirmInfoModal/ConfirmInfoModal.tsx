@@ -331,6 +331,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
                 sendPhoneConfirmationCode({
                     user_id: userId ?? "",
                     codeFirst: code,
+                    purposeNewContacts: false,
                     method: confirmationMethod,
                     onSuccess: (data: any) => {
                         // setSubmittingFirst(false);
@@ -362,6 +363,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
             dispatch(
                 sendEmailConfirmationCode({
                     user_id: userId ?? "",
+                    purposeNewContacts: false,
                     codeSecond: code, // Теперь передается правильно
                     onSuccess: (data: any) => {
                         dispatch(

@@ -15,21 +15,25 @@ import {
     SecondRiskProfileFinalPayload,
     BrokerSetTokenPayload,
     PassportFormData,
-    RiskProfileFormValues,
-    LegalFormData
+    LegalFormData,
+    LegalDataFormRequest,
+    LegalConfirmData
 } from "../model/types";
 import {
     getAllSelects,
     postBrokerApiToken,
     postConfirmationCode,
+    postConfirmationCodeLegal,
     postConfirmationDocsCode,
     postFirstRiskProfile,
     postIdentificationData,
-    postLegalInfo,
+    postINNScanData,
+    postLegalInfoForm,
     postNeedHelpRequest,
     postPasportData,
     postPasportScanData,
     postResendConfirmationCode,
+    postResendConfirmationCodeLegal,
     postSecondRiskProfile,
     postSecondRiskProfileFinal,
     postTrustedPersonInfoApi
@@ -41,6 +45,9 @@ import { RootState } from "app/providers/store/config/store";
 import { PasportScanData } from "features/RiskProfile/PassportScanForm/PassportScanForm";
 import { omit } from "lodash";
 import { setBrokerSuccessResponseInfo } from "entities/Documents/slice/documentsSlice";
+import { EMPTY_LEGAL_FORM } from "../constants/constansRiskProfile";
+import { openModal } from "entities/ui/Modal/slice/modalSlice";
+import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 
 interface RiskProfileFormState {
     loading: boolean;
@@ -51,12 +58,13 @@ interface RiskProfileFormState {
     secondRiskProfileData: SecondRiskProfileResponse | null;
     thirdRiskProfileResponse: ThirdRiskProfileResponse | null;
     riskProfileSelectors: RiskProfileSelectors | null;
-    formValues: RiskProfileFormValues;
+    formValues: Record<string, string>;
     stepsFirstForm: {
         currentStep: number;
     };
     passportFormData: PassportFormData;
     legalFormData: LegalFormData;
+    legalConfirmData: LegalConfirmData | null;
     currentConfirmingDoc: string;
     pasportScanSocketId: string;
     pasportScanProgress: number
@@ -71,12 +79,12 @@ const initialState: RiskProfileFormState = {
     IdentificationFromData: null,
     riskProfileSelectors: null,
     thirdRiskProfileResponse: null,
-    formValues: {
-        person_type: "",
-    } as RiskProfileFormValues,
+    formValues: {},
     stepsFirstForm: {
         currentStep: 0
     },
+    legalConfirmData: null,
+    legalFormData: EMPTY_LEGAL_FORM,
     passportFormData: {
         last_name: "",
         gender: '',
@@ -103,63 +111,10 @@ const initialState: RiskProfileFormState = {
         address_residential_house: "",
         address_residential_apartment: ""
     },
-    legalFormData: {
-        organization_name: "",
-        general_director: "",
-        inn: "",
-        kpp: "",
-        ogrn: "",
-        bank_name: "",
-        checking_account: "",
-        correspondent_account: "",
-        bik: "",
-        work_email: "",
-        work_phone: "",
-        legal_region: "",
-        legal_city: "",
-        legal_street: "",
-        legal_house: "",
-        legal_apartment: "",
-        is_receive_mail_this_address: false,
-        postal_region: "",
-        postal_city: "",
-        postal_street: "",
-        postal_house: "",
-        postal_apartment: "",
-    },
     currentConfirmingDoc: 'type_doc_passport',
     pasportScanSocketId: '',
     pasportScanProgress: 0
 };
-
-export const postLegalInfoThunk = createAsyncThunk<
-    void,
-    { data: LegalFormData; onSuccess: () => void },
-    { state: RootState; rejectValue: string }
->(
-    "riskProfile/postLegalInfo",
-    async ({ data, onSuccess }, { getState, dispatch, rejectWithValue }) => {
-        try {
-            const token = getState().user.token;
-            if (!token) return rejectWithValue("Отсутствует токен авторизации");
-
-            const response = await postLegalInfo(data, token);
-            /* если бек возвращает socket-id для отслеживания загрузки сканов */
-            if (response.group_name_upload_scans_progress) {
-                dispatch(
-                    setPasportScanSocketId(
-                        response.group_name_upload_scans_progress,
-                    ),
-                );
-            }
-            onSuccess();
-        } catch (error: any) {
-            dispatch(setError(error.response?.data?.errorText || "Ошибка"));
-            return rejectWithValue(error.response?.data?.errorText);
-        }
-    },
-);
-
 
 export const createRiskProfile = createAsyncThunk<
     void,
@@ -223,6 +178,43 @@ export const postSecondRiskProfileForm = createAsyncThunk<
     }
 );
 
+// ❌ onSuccess больше не нужен в аргументах
+export const postLegalInfoThunk = createAsyncThunk<
+    LegalConfirmData,                       // что возвращаем
+    LegalDataFormRequest,                   // что передаём
+    { state: RootState; rejectValue: string }
+>(
+    "riskProfile/postLegalInfoThunk",
+    async (data, { getState, rejectWithValue, dispatch }) => {
+        console.log('до try')
+        try {
+            const token = getState().user.token;
+            console.log('need contacts before')
+            const response = await postLegalInfoForm(data, token);
+            dispatch(setLegalConfirmData(response));
+            console.log(JSON.stringify(null, response, 2) + 'need contacts')
+
+            const needContacts =
+                response.is_need_confirm_email || response.is_need_confirm_phone;
+            console.log(needContacts)
+            dispatch(
+                openModal({
+                    type: needContacts
+                        ? ModalType.CONFIRM_CONTACTS
+                        : ModalType.CONFIRM_DOCS,
+                    size: ModalSize.MIDDLE,
+                    animation: ModalAnimation.LEFT,
+                })
+            );
+            return response
+        } catch (error: any) {
+            return rejectWithValue("Не удалось отправить юр. форму");
+        }
+    }
+);
+
+
+
 export const postBrokerApiTokenThunk = createAsyncThunk<
     void,
     { data: BrokerSetTokenPayload, onSuccess: () => void },
@@ -283,7 +275,7 @@ export const postSecondRiskProfileFormFinal = createAsyncThunk<
 
 export const postFirstRiskProfileForm = createAsyncThunk<
     void,
-    RiskProfileFormValues,
+    Record<string, string>,
     { state: RootState; rejectValue: string }
 >(
     "riskProfile/postFirstRiskProfileForm",
@@ -310,16 +302,24 @@ export const postFirstRiskProfileForm = createAsyncThunk<
                 'house',
                 'inn',
                 'birth_place',
-                "legal_invest_target",
-                "legal_investment_period",
-                "legal_specialist_qualification",
-                "legal_operations_volume",
-                "legal_assets_size",
-                "legal_net_assets_ratio",
-                "legal_risk_tolerance",
-                "legal_additional_conditions",
-                "person_type",
-                "gender"
+                'legal_specialist_qualification',
+                'legal_operations_volume',
+                'legal_net_assets_ratio',
+                'legal_invest_target',
+                'legal_assets_size',
+                'gender',
+                'legal_additional_conditions',
+                'assets',
+                'invest_goal',
+                'volatility',
+                'person_type',
+                'operations',
+                'invest_period',
+                'legal_risk_tolerance',
+                'net_assets',
+                'additional',
+                'qualification',
+                'legal_investment_period'
             ]);
             const transformedData = {
                 ...filteredData,
@@ -402,6 +402,38 @@ export const postPasportScanThunk = createAsyncThunk<
             // Вызываем onSuccess после успешной отправки
             onSuccess();
             dispatch(setTooltipActive({ active: true, message: 'Сканы паспортов успешно загружены' }))
+        } catch (error: any) {
+            const errorText = error.response?.data?.errorText;
+            console.log('Статус ошибки:', error.response?.status);
+            console.log('Текст ошибки:', errorText);
+
+            if (errorText && errorText.trim() === 'Сканы уже загружены. Для изменения сканов обратитесь в поддержку') {
+                dispatch(setError(errorText));
+            } else {
+                dispatch(setError(errorText, 'pasportScan'));
+            }
+        }
+
+    }
+);
+
+export const postINNScanThunk = createAsyncThunk<
+    void,
+    { data: FormData; onSuccess: () => void; },
+    { state: RootState; rejectValue: string }
+>(
+    "riskProfile/postINNScanThunk",
+    async ({ data, onSuccess }, { getState, rejectWithValue, dispatch }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+            // Отправляем данные сканов через API
+            await postINNScanData(data, token);
+            // Вызываем onSuccess после успешной отправки
+            onSuccess();
+            dispatch(setTooltipActive({ active: true, message: 'Скан ИИН успешно загружен' }))
         } catch (error: any) {
             const errorText = error.response?.data?.errorText;
             console.log('Статус ошибки:', error.response?.status);
@@ -503,12 +535,14 @@ export const sendPhoneConfirmationCode = createAsyncThunk<
 >(
     "riskProfile/sendPhoneConfirmationCode",
     async (
-        { user_id, codeFirst, method, onSuccess, onError },
+        { user_id, codeFirst, method, onSuccess, onError, purposeNewContacts, },
         { getState, dispatch }
     ) => {
+        const IsLegal = getState().user.userPersonalAccountInfo?.is_individual_entrepreneur
+        const token = getState().user.token;
         try {
             if (codeFirst) {
-                const responsePhone = await postConfirmationCode({ user_id, code: codeFirst, type: 'phone' });
+                const responsePhone = !purposeNewContacts || !IsLegal ? await postConfirmationCode({ user_id, code: codeFirst, type: 'phone' }) : await postConfirmationCodeLegal({ code: codeFirst, type_document: 'phone' }, token);
                 if (responsePhone.is_confirmed_phone) {
                     onSuccess?.(responsePhone);
                 } else {
@@ -529,16 +563,18 @@ export const sendPhoneConfirmationCode = createAsyncThunk<
 
 export const sendEmailConfirmationCode = createAsyncThunk<
     void,
-    { user_id: string; codeSecond: string; onSuccess?: (data: any) => void; onError?: (data: any) => void },
+    { user_id: string; purposeNewContacts: boolean; codeSecond: string; onSuccess?: (data: any) => void; onError?: (data: any) => void },
     { rejectValue: string; state: RootState }
 >(
     "riskProfile/sendEmailConfirmationCode",
     async (
-        { user_id, codeSecond, onSuccess, onError },
+        { user_id, codeSecond, onSuccess, onError, purposeNewContacts },
         { getState, dispatch }
     ) => {
+        const IsLegal = getState().user.userPersonalAccountInfo?.is_individual_entrepreneur
+        const token = getState().user.token;
         try {
-            const responseEmail = await postConfirmationCode({ user_id, code: codeSecond, type: "email" });
+            const responseEmail = !purposeNewContacts || !IsLegal ? await postConfirmationCode({ user_id, code: codeSecond, type: "email" }) : await postConfirmationCodeLegal({ code: codeSecond, type_document: 'email' }, token);
             if (responseEmail.status === "success") {
                 onSuccess?.(responseEmail);
             } else if (responseEmail.code !== 200) {
@@ -585,6 +621,38 @@ export const resendConfirmationCode = createAsyncThunk<
     }
 );
 
+export const resendConfirmationCodeLegal = createAsyncThunk<
+    void,
+    { type_document: string; method: 'SMS' | 'email' | 'WHATSAPP' | 'whatsapp' | 'phone' | 'EMAIL' },
+    { rejectValue: string }
+>(
+    "riskProfile/resendConfirmationCodeLegal",
+    async ({ method, type_document }, { rejectWithValue }) => {
+        try {
+            const payload: Record<string, any> = {
+                type_document
+            };
+            if (method === "WHATSAPP") {
+                payload.type_confirm = "SMS";
+                payload.type_message = "WHATSAPP";
+            } else if (method === "SMS") {
+                payload.type_confirm = "SMS";
+                payload.type_message = "SMS";
+            } else if (method === "email") {
+                payload.type_confirm = "email";
+            } else if (method === 'phone') {
+                payload.type_confirm = "phone";
+            }
+            await postResendConfirmationCodeLegal(payload);
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message ||
+                "Ошибка при повторной отправке кода"
+            );
+        }
+    }
+);
+
 export const requestNeedHelp = createAsyncThunk<
     void,
     NeedHelpData,
@@ -614,11 +682,8 @@ const riskProfileSlice = createSlice({
             }
             state.formValues[action.payload.name] = action.payload.value;
         },
-        updateRiskProfileForm: (
-            state,
-            action: PayloadAction<Partial<RiskProfileFormValues>>
-        ) => {
-            state.formValues = { ...state.formValues, ...action.payload };
+        updateRiskProfileForm: (state, action: PayloadAction<Record<string, string>>) => {
+            state.formValues = action.payload;
         },
         nextRiskProfileStep(state) {
             state.stepsFirstForm.currentStep += 1;
@@ -652,11 +717,14 @@ const riskProfileSlice = createSlice({
         setPassportScanProgress(state, action: PayloadAction<number>) {
             state.pasportScanProgress = action.payload
         },
+        setLegalConfirmData(state, action: PayloadAction<LegalConfirmData>) {
+            state.legalConfirmData = action.payload;
+        },
         updateLegalFormData: (
             state,
-            action: PayloadAction<Partial<LegalFormData>>,
+            action: PayloadAction<Partial<LegalFormData>>
         ) => {
-            state.legalFormData = { ...state.legalFormData, ...action.payload };
+            Object.assign(state.legalFormData, action.payload);
         },
     },
     extraReducers: (builder) => {
@@ -742,12 +810,13 @@ const riskProfileSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload as string;
             })
+            .addCase(postLegalInfoThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.legalConfirmData = action.payload;    // ⬅️  сохраняем
+            })
             .addCase(postLegalInfoThunk.pending, (state) => {
                 state.loading = true;
                 state.error = null;
-            })
-            .addCase(postLegalInfoThunk.fulfilled, (state) => {
-                state.loading = false;
             })
             .addCase(postLegalInfoThunk.rejected, (state, action) => {
                 state.loading = false;
@@ -769,6 +838,7 @@ export const {
     setFirstRiskProfileData,
     setPassportScanProgress,
     updatePassportFormData,
+    setLegalConfirmData,
     updateLegalFormData
 } = riskProfileSlice.actions;
 export default riskProfileSlice.reducer;

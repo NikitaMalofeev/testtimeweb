@@ -32,6 +32,7 @@ import { setStepAdditionalMenuUI } from 'entities/ui/Ui/slice/uiSlice';
 import { useNavigate } from 'react-router-dom';
 import brokerInstructionPDF from 'shared/assets/documents/brokerInstruction.pdf'
 import { useDevice } from 'shared/hooks/useDevice';
+import { DocumentsPreviewPdfModal } from 'features/Documents/DocumentsPreviewPdfModal/DocumentsPreviewPdfModal';
 
 export const BrokerConnectionForm: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -39,6 +40,7 @@ export const BrokerConnectionForm: React.FC = () => {
     const navigate = useNavigate()
     const { brokerIds } = useSelector((state: RootState) => state.documents)
     const device = useDevice()
+    const isBulk = useSelector((s: RootState) => s.user.userPersonalAccountInfo?.is_confirm_all_documents_one_code)
 
     const brokersItems = [
         {
@@ -113,7 +115,7 @@ export const BrokerConnectionForm: React.FC = () => {
                 <div className={styles.desktop__item}>
                     <p className={styles.broker__description}>Создайте брокерский счет и получите в личном кабинете ключи, которые позволят подключить ваш торговый счет. Подробнее в PDF.</p>
                     <div className={styles.broker__instruction}>
-                        <Icon Svg={PdfIcon} width={37} height={37} /> <span className={styles.broker__instruction__text} onClick={() => dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))}>Инструкция подключения к брокеру</span>
+                        <Icon Svg={PdfIcon} width={37} height={37} /> <span className={styles.broker__instruction__text} onClick={() => dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW_PDF, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))}>Инструкция подключения к брокеру</span>
                     </div>
                 </div>
                 <div className={styles.desktop__item}>
@@ -184,7 +186,15 @@ export const BrokerConnectionForm: React.FC = () => {
 
             <DocumentPreviewModal title={!brokerIds[0] ? 'Инструкция подключения к брокеру' : 'Согласие на передачу API ключа к брокерскому счету'} isOpen={modalState.documentsPreview.isOpen} onClose={() => {
                 dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW))
-            }} docId='type_doc_broker_api_token' justPreview={!brokerIds[0] ? `${brokerInstructionPDF}` : ''} />
+            }} docId='type_doc_broker_api_token' />
+
+            <DocumentsPreviewPdfModal
+                pdfUrl={brokerInstructionPDF}
+                isOpen={modalState.documentsPreviewPdf.isOpen}
+                onClose={() => dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW_PDF))}
+
+            />
+
             <ProblemsModal isOpen={modalState.problem.isOpen} title='Проблемы с подключением брокера' problemScreen='Подключение брокера'
                 onClose={() => {
                     dispatch(closeModal(ModalType.PROBLEM));
@@ -195,10 +205,19 @@ export const BrokerConnectionForm: React.FC = () => {
                 description='Для предоставления услуги необходимо подписать документ «Согласие на передачу API ключа к брокерскому счету»'
                 buttonText='Перейти к подписи'
                 action={() => {
-                    navigate('/documents')
-                    dispatch(setStepAdditionalMenuUI(4))
-                    dispatch(closeModal(ModalType.INFO));
-                    dispatch(setCurrentConfirmableDoc('type_doc_broker_api_token'))
+                    if (isBulk) {
+                        navigate('/documents')
+                        dispatch(setCurrentConfirmableDoc('type_doc_broker_api_token'))
+                        dispatch(closeModal(ModalType.INFO));
+                        dispatch(closeModal(ModalType.IDENTIFICATION))
+                    } else {
+                        navigate('/documents')
+                        dispatch(setCurrentConfirmableDoc('type_doc_broker_api_token'))
+                        dispatch(setStepAdditionalMenuUI(4))
+                        dispatch(closeModal(ModalType.INFO));
+                    }
+
+
                 }}
                 onClose={() => {
                     dispatch(closeModal(ModalType.INFO));

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import {
     Viewer,
     Worker,
@@ -62,6 +62,10 @@ export const PdfViewer: React.FC<MyPdfViewerProps> = ({
         }
         return null;
     }, [pdfUrl, pdfBase64, pdfBinary]);
+
+    useEffect(() => {
+        console.log("📄 viewerSource:", viewerSource);
+    }, [viewerSource])
 
     if (!viewerSource) {
         return <div>Нет данных для PDF</div>;

@@ -19,6 +19,7 @@ import limitationDoc from 'shared/assets/documents/limitationOfliabil.pdf'
 import offerDoc from 'shared/assets/documents/Offer.pdf'
 import personalDataAgreementDoc from 'shared/assets/documents/personalDataAgreement.pdf'
 import personalPolicyDoc from 'shared/assets/documents/personalPolicyDoc.pdf'
+import { DocumentsPreviewPdfModal } from "features/Documents/DocumentsPreviewPdfModal/DocumentsPreviewPdfModal";
 
 
 export const Footer: React.FC = () => {
@@ -36,15 +37,16 @@ export const Footer: React.FC = () => {
     ];
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
-    const modalState = useSelector((state: RootState) => state.modal.documentsPreview);
+    const modalState = useSelector((state: RootState) => state.modal);
 
     // Храним путь или ID документа для предпросмотра
     const [currentDocForPreview, setCurrentDocForPreview] = useState<string>("");
+    const [localModalIsOpen, setLocalModalIsOpen] = useState(false)
 
     // Как только выбрали документ, открываем модалку
     useEffect(() => {
         if (currentDocForPreview) {
-            dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW, animation: ModalAnimation.LEFT, size: ModalSize.FULL }));
+            dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW_PDF, animation: ModalAnimation.LEFT, size: ModalSize.FULL }));
             console.log(currentDocForPreview + 'current')
         }
     }, [currentDocForPreview, dispatch]);
@@ -56,11 +58,13 @@ export const Footer: React.FC = () => {
     // Устанавливаем документ для превью и дальше useEffect откроет модалку
     const handleOpenDocPreview = (docId: string) => {
         setCurrentDocForPreview(docId);
+        setLocalModalIsOpen(true)
     };
 
     const handleClosePreview = () => {
-        dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW));
+        dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW_PDF));
         setCurrentDocForPreview("");
+        setLocalModalIsOpen(false)
     };
 
     return (
@@ -182,11 +186,10 @@ export const Footer: React.FC = () => {
                 </div>
             </div>
 
-            <DocumentPreviewModal
-                title=""
-                isOpen={modalState.isOpen}
+            <DocumentsPreviewPdfModal
+                pdfUrl={currentDocForPreview}
+                isOpen={modalState.documentsPreviewPdf.isOpen && localModalIsOpen}
                 onClose={handleClosePreview}
-                justPreview={currentDocForPreview}
             />
         </>
     );

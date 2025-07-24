@@ -58,13 +58,18 @@ const persistConfig = getPersistConfig({
         'modal.resetPassword',
         'modal.progress',
         'modal.success',
+        'modal.confirmContacts',
         'modal.modalStack',
         'modal.confirmationMethod',
         'modal.selectedCountry',
         'modal.currentProblemScreen',
+        'modal.confirmAllDocumentsOneCode',
+        'modal.confirmAllDocuments',
+
 
         'user.user',
         'user.token',
+        'user.personalAccountInfo',
 
         'documents.userDocuments',
         'documents.allNotSignedDocumentsHtml',
@@ -73,9 +78,12 @@ const persistConfig = getPersistConfig({
         'documents.currentSugnedDocument',
         'documents.filledRiskProfileChapters',
         'documents.userPassportData',
+        // 'documents.brokerIds',
 
         'riskProfile.currentConfirmingDoc',
         'riskProfile.passportFormData',
+        'riskProfile.legalFormData',
+        'riskProfile.legalConfirmData',
 
         // 'payments.tariffs',
         // 'payments.currentUserTariffIdForPayments',
@@ -85,7 +93,7 @@ const persistConfig = getPersistConfig({
         // 'payments.activeTariffs',
         // 'payments.paidTariffKeys'
         //проблема с paidTariffsKeys поэтому сохраняю полностью 
-        'payments'
+        // 'payments'
     ],
     rootReducer,
 });
@@ -122,5 +130,5 @@ initBroadcastListener(store.dispatch);
 
 export const persistor = persistStore(store);
 
-export type RootState = ReturnType<typeof store.getState>;
+export type RootState = ReturnType<typeof rootReducer>;
 export type AppDispatch = typeof store.dispatch;

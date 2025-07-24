@@ -56,7 +56,7 @@
 
 @media (max-width: 1023px) {
   .header.shadow {
-    padding: 16px 21px;
+    padding: 16px 32px;
   }
 }
 
@@ -70,11 +70,14 @@
     height: calc(100dvh - 50.5px);
     flex-direction: column;
 
+
+
     overflow: auto;
   }
 
   &__container_scrolled {
     padding-top: 83px;
+        padding-bottom: 20px;
   }
 }
 
@@ -126,6 +129,7 @@
             margin: 0 auto;
             background-color: white;
             border-radius: 15px;
+                overflow-x: hidden;
             padding: 64px 60px 0;
           }
          }
@@ -137,10 +141,19 @@
          }
          .header.shadow {
           position: sticky;
-          top: 0;
+          background-color: white;
+          top: -64px;
+          left: calc(50vw - 480px);
+          max-width: 960px;
+          
+  /* 2. Убираем внутренние отступы контейнера (60px слева/справа)   *
+   *    Если нужно «прижать» к реальной левой границе белого блока   */
+  margin-left: -60px;
+  padding-left: 60px;   // чтобы текст остался ровно там же
+  padding-right: 60px;  // симметрия
          }
          .progressBar {
-          max-width: 960px;
+          max-width: 956px;
           position: absolute;
           top: 24px;
           // left: -32px;
@@ -150,6 +163,11 @@
          .header__tooltip {
                       top: -28px;
             left: -2px;
+         }
+
+         .header__tooltip_scrolled {
+                    top: 18px;
+          left: 20px;
          }
 
          .header__title {

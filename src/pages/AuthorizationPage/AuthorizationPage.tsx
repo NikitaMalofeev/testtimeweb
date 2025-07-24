@@ -10,7 +10,7 @@ import { Icon } from "shared/ui/Icon/Icon";
 import WhiteLogo from 'shared/assets/svg/WhiteLogo.svg';
 import { RootState } from "app/providers/store/config/store";
 import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
-import { userLoginThunk } from "entities/User/slice/userSlice";
+import { setPersonTypeThunk, userLoginThunk } from "entities/User/slice/userSlice";
 import IdentificationProfileForm from "features/RiskProfile/IdentificationForm/ui/IdentificationForm";
 import { motion } from "framer-motion";
 import AnimateHeightWrapper from "shared/lib/helpers/animation/AnimateHeightWrapper";
@@ -83,10 +83,12 @@ const AuthorizationPage = () => {
         }
     }, [activeTab]);
 
+
+
     return (
         <>
-            <div className={styles.auth}>
-                <AnimateHeightWrapper isOpen={activeTab === 'registration'} minHeight={deviceSize === 'desktop' ? '100%' : '500px'}>
+            <div className={styles.auth} >
+                <AnimateHeightWrapper isOpen={activeTab === 'registration'} minHeight={deviceSize === 'desktop' ? '100%' : '469px'} style={activeTab === 'registration' ? { height: '98%' } : { height: '100%' }}>
                     <div className={styles.auth__wrapper}>
                         <div
                             className={`${styles.auth__container} ${activeTab === 'registration' ? styles.auth__container_extended : ''}`}
@@ -106,6 +108,7 @@ const AuthorizationPage = () => {
                                 <form onSubmit={formik.handleSubmit} className={styles.auth__form}>
                                     <div className={styles.auth__form__container}>
                                         <div>
+
                                             <Input
                                                 autoComplete="new-password"
                                                 placeholder="Email/телефон +7"
@@ -146,11 +149,11 @@ const AuthorizationPage = () => {
                                             </Button>
                                         </div>
                                     </div>
-
-                                    {/* Элемент crutch всегда отрисовывается, но изначально скрыт */}
-                                    <div ref={crutchRef} className={styles.crutch} style={{ display: "none" }}></div>
                                 </form>
                             )}
+
+                            {/* Элемент crutch всегда отрисовывается, но изначально скрыт */}
+                            <div ref={crutchRef} className={styles.crutch} style={{ display: "none" }}></div>
 
                             {activeTab === 'registration' && (
                                 <IdentificationProfileForm />

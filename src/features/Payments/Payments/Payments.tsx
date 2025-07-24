@@ -84,8 +84,10 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     );
 
     const isPaidAndActive = (catalogId: string) => {
-        const userKey = paidTariffKeys[catalogId];
-        return !!userKey && paidUserKeys.has(userKey);
+        if (activeTariffs.some(tariff => tariff.is_active)) {
+            const userKey = paidTariffKeys[catalogId];
+            return !!userKey && paidUserKeys.has(userKey);
+        }
     };
 
     useEffect(() => {
@@ -283,7 +285,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                 capital={`${t.days_service_validity} days`}
                                 imageUrl={t.title === 'Базовый тариф' ? PaymentsBase : PaymentsActive}
                                 onMore={() => handleChooseTariff(t.id)}
-                                paidFor={isPaidAndActive(t.id)}
+                                paidFor={isPaidAndActive(t.id) || false}
                             />
                         </motion.div>
                     ),
@@ -383,7 +385,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                         capital={`${t.days_service_validity} days`}
                                         imageUrl={t.title === 'Долгосрочный инвестор' ? PaymentsBase : PaymentsActive}
                                         onMore={() => handleChooseTariff(t.id)}
-                                        paidFor={isPaidAndActive(t.id)}
+                                        paidFor={isPaidAndActive(t.id) || false}
                                     />
                                 </motion.div>
                             ),
@@ -426,7 +428,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                     name="type_message"
                                     label=""
                                     direction="row"
-                                    greedOrFlex={device === 'mobile' ? 'grid' : 'flex'}
+                                    greedOrFlex={device === 'mobile' ? 'flex' : 'flex'}
                                     options={Object.entries(messageTypeOptions).map(([value, label]) => ({
                                         value,
                                         label,

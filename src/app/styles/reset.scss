@@ -68,14 +68,14 @@ progress {
     overflow: hidden;
 }
 
-input[type="radio"] {
-  /* сбрасываем обводку по фокусу */
-  &:focus {
-    outline: none;
-    box-shadow: none;
-  }
-  /* для Firefox убираем внутреннюю рамку */
-  &::-moz-focus-inner {
-    border: 0;
-  }
-}
+// input[type="radio"] {
+//   /* сбрасываем обводку по фокусу */
+//   &:focus {
+//     outline: none;
+//     box-shadow: none;
+//   }
+//   /* для Firefox убираем внутреннюю рамку */
+//   &::-moz-focus-inner {
+//     border: 0;
+//   }
+// }

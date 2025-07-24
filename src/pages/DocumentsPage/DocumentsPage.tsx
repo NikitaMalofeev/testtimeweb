@@ -110,10 +110,6 @@ const DocumentsPage: React.FC = () => {
         const allSelected = selectable.every(id => selectedDocs.includes(id));
         setSelectedDocs(allSelected ? [] : selectable);
     };
-
-
-
-
     //Логика с подписанием всех документов 
 
 
@@ -708,7 +704,9 @@ const DocumentsPage: React.FC = () => {
                         </Button>
                     </div>
                 )}
-                <div className={styles.documents__list}>
+                <div className={`
+    ${styles.documents__list}
+  `}>
                     {renderedDocuments.map((doc) => {
                         const isInBulk = isBulkEnabled && !EXCLUDED_BULK.includes(doc.id) && doc.id !== "type_doc_broker_api_token";
 

@@ -149,6 +149,7 @@ text-align: center;
     flex-direction: column;
     gap: 16px;
     overflow-x: hidden;
+    max-height: 100%
 }
 
 .document__button_success {
@@ -198,6 +199,7 @@ text-align: center;
 
     .page__container {
         display: flex;
+         overflow-y: hidden;
         justify-content: space-between;
         flex-direction: column;
         max-width: 950px;
@@ -212,6 +214,8 @@ text-align: center;
         overflow-y: auto;
         padding: 0 42px;
         overflow-x: hidden;
+        overflow-y: auto;
+        max-height: 520px;
 
          & .document__item {
              &:first-child {
@@ -288,3 +292,12 @@ text-align: center;
 }
 
 
+//   .documents__list__shadow_top {
+//     max-height: 520px;
+//     box-shadow: inset 0 6px 6px -4px rgba(0, 0, 0, 0.1);
+//   }
+  
+//   .documents__list__shadow_bottom {
+//     max-height: 520px;
+//     box-shadow: inset 0 -6px 6px -4px rgba(0, 0, 0, 0.1);
+//   }

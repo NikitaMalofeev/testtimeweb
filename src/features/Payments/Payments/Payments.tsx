@@ -254,22 +254,30 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         }} />;
     }
 
-    const mergedTariffs = useMemo(() => {
-    // если активных тарифов ещё нет – показываем обычный массив
-    if (activeTariffs.length === 0) return tariffs;
+   const mergedTariffs = useMemo(() => {
+    // страхуемся, что всегда работаем с массивами
+    const baseTariffs   = Array.isArray(tariffs)       ? tariffs       : [];
+    const active        = Array.isArray(activeTariffs) ? activeTariffs : [];
 
-    // Map<title, tariff> — позволяет быстро «перезаписать» совпадающие title
-    const byTitle = new Map<string, (typeof tariffs)[number]>(
-        tariffs.map(t => [t.title, t])
+    // нет активных – просто отдаём базовый список
+    if (active.length === 0) return baseTariffs;
+
+    // Map<title, tariff>
+    const byTitle = new Map<string, (typeof baseTariffs)[number]>(
+        baseTariffs.map(t => [t.title, t]),
     );
 
-    // активные тарифы заменяют/добавляют записи с тем же title
-    activeTariffs.forEach(at => {
-        byTitle.set(at.title, at);
-    });
-
-    return Array.from(byTitle.values());
+    // активные «перезаписывают» такие же title
+    active.forEach(t => byTitle.set(t.title, t));
+    // 👇 обязательно массив!
+    return [...byTitle.values()];
 }, [tariffs, activeTariffs]);
+
+    useEffect(() => {
+    console.log(mergedTariffs)
+console.log(JSON.stringify(mergedTariffs, null, 2));
+    }, [mergedTariffs])
+
 
     // if (isFetching && !currentOrderStatus && !statusParam) return <Loader />;
 

@@ -77,6 +77,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         (s: RootState) => s.payments.paidTariffKeys
     );
 
+
     const isPaidAndActive = (title: string): boolean =>
         activeTariffs.some(t => t.title === title);
 
@@ -244,31 +245,6 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         }} />;
     }
 
-    const mergedTariffs = useMemo(() => {
-        // страхуемся, что всегда работаем с массивами
-        const baseTariffs = Array.isArray(tariffs) ? tariffs : [];
-        const active = Array.isArray(activeTariffs) ? activeTariffs : [];
-
-        // нет активных – просто отдаём базовый список
-        if (active.length === 0) return baseTariffs;
-
-        // Map<title, tariff>
-        const byTitle = new Map<string, (typeof baseTariffs)[number]>(
-            baseTariffs.map(t => [t.title, t]),
-        );
-
-        // активные «перезаписывают» такие же title
-        active.forEach(t => byTitle.set(t.title, t));
-        // 👇 обязательно массив!
-        return [...byTitle.values()];
-    }, [tariffs, activeTariffs]);
-
-    useEffect(() => {
-        console.log(mergedTariffs)
-        console.log(JSON.stringify(mergedTariffs, null, 2));
-    }, [mergedTariffs])
-
-
     // if (isFetching && !currentOrderStatus && !statusParam) return <Loader />;
 
     /* Cards, списки отображаем только пока не в confirm-step */
@@ -276,7 +252,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         <>
             <AnimatePresence mode="popLayout">
 
-                {(currentOrderId ? mergedTariffs.filter(t => t.id === currentOrderId) : mergedTariffs).map(
+                {(currentOrderId ? tariffs.filter((t) => t.id === currentOrderId) : tariffs).map(
                     (t, index) => (
                         <motion.div
                             key={t.id}
@@ -375,7 +351,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                     </motion.span>
 
                     <AnimatePresence mode="popLayout">
-                        {(currentOrderId ? mergedTariffs.filter(t => t.id === currentOrderId) : mergedTariffs).map(
+                        {(currentOrderId ? tariffs.filter((t) => t.id === currentOrderId) : tariffs).map(
                             (t, index) => (
                                 <motion.div
                                     key={t.id}

@@ -25,7 +25,7 @@ export interface PaymentsCardProps {
     imageUrl: string;
     paidFor: boolean;
     onMore: () => void;
-}
+}   
 
 export const PaymentsCard: React.FC<PaymentsCardProps> = ({
     isSelected = false,

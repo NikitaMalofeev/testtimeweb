@@ -77,18 +77,9 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         (s: RootState) => s.payments.paidTariffKeys
     );
 
-    // ② преобразуем его В ЗНАЧЕНИЯ (user-keys) и кладём в Set
-    const paidUserKeys = useMemo(
-        () => new Set(Object.values(paidTariffKeys)),   // ← values, не keys!
-        [paidTariffKeys]
-    );
 
-    const isPaidAndActive = (catalogId: string) => {
-        if (activeTariffs.some(tariff => tariff.is_active)) {
-            const userKey = paidTariffKeys[catalogId];
-            return !!userKey && paidUserKeys.has(userKey);
-        }
-    };
+    const isPaidAndActive = (title: string): boolean =>
+        activeTariffs.some(t => t.title === title);
 
     useEffect(() => {
         if (statusParam && allowedStatus.includes(statusParam as any)) {
@@ -254,31 +245,6 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         }} />;
     }
 
-   const mergedTariffs = useMemo(() => {
-    // страхуемся, что всегда работаем с массивами
-    const baseTariffs   = Array.isArray(tariffs)       ? tariffs       : [];
-    const active        = Array.isArray(activeTariffs) ? activeTariffs : [];
-
-    // нет активных – просто отдаём базовый список
-    if (active.length === 0) return baseTariffs;
-
-    // Map<title, tariff>
-    const byTitle = new Map<string, (typeof baseTariffs)[number]>(
-        baseTariffs.map(t => [t.title, t]),
-    );
-
-    // активные «перезаписывают» такие же title
-    active.forEach(t => byTitle.set(t.title, t));
-    // 👇 обязательно массив!
-    return [...byTitle.values()];
-}, [tariffs, activeTariffs]);
-
-    useEffect(() => {
-    console.log(mergedTariffs)
-console.log(JSON.stringify(mergedTariffs, null, 2));
-    }, [mergedTariffs])
-
-
     // if (isFetching && !currentOrderStatus && !statusParam) return <Loader />;
 
     /* Cards, списки отображаем только пока не в confirm-step */
@@ -286,7 +252,7 @@ console.log(JSON.stringify(mergedTariffs, null, 2));
         <>
             <AnimatePresence mode="popLayout">
 
-                {(currentOrderId ? mergedTariffs.filter(t => t.id === currentOrderId) : mergedTariffs).map(
+                {(currentOrderId ? tariffs.filter((t) => t.id === currentOrderId) : tariffs).map(
                     (t, index) => (
                         <motion.div
                             key={t.id}
@@ -310,7 +276,7 @@ console.log(JSON.stringify(mergedTariffs, null, 2));
                                 capital={`${t.days_service_validity} days`}
                                 imageUrl={t.title === 'Базовый тариф' ? PaymentsBase : PaymentsActive}
                                 onMore={() => handleChooseTariff(t.id)}
-                                paidFor={isPaidAndActive(t.id) || false}
+                                paidFor={isPaidAndActive(t.title) || false}
                             />
                         </motion.div>
                     ),
@@ -385,7 +351,7 @@ console.log(JSON.stringify(mergedTariffs, null, 2));
                     </motion.span>
 
                     <AnimatePresence mode="popLayout">
-                        {(currentOrderId ? mergedTariffs.filter(t => t.id === currentOrderId) : mergedTariffs).map(
+                        {(currentOrderId ? tariffs.filter((t) => t.id === currentOrderId) : tariffs).map(
                             (t, index) => (
                                 <motion.div
                                     key={t.id}
@@ -410,7 +376,7 @@ console.log(JSON.stringify(mergedTariffs, null, 2));
                                         capital={`${t.days_service_validity} days`}
                                         imageUrl={t.title === 'Долгосрочный инвестор' ? PaymentsBase : PaymentsActive}
                                         onMore={() => handleChooseTariff(t.id)}
-                                        paidFor={isPaidAndActive(t.id) || false}
+                                        paidFor={isPaidAndActive(t.title) || false}
                                     />
                                 </motion.div>
                             ),

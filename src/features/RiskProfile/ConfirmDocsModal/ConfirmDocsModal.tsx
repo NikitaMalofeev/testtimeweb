@@ -202,7 +202,28 @@ export const ConfirmDocsModal = memo(
         useEffect(() => {
             const code = smsCodeFirst.join("");
             if (code.length === codeLength) {
-                if (docsType === 'type_doc_agreement_investment_advisor_app_1') {
+                if (confirmationPurpose === 'payments') {
+                    dispatch(checkConfirmationCodeTariffThunk({
+                        tariff_id: paymentsTariffId,
+                        code,
+                        onSuccess: () => {
+                            dispatch(createOrderThunk({
+                                payload: {
+                                    // tariff_id: paymentsTariffId,
+                                    tariff_id: paymentsTariffId,
+                                    payment_system: 'ROBOKASSA',
+                                    payment_type: 'TARIFF_ACTIVATION',
+                                    currency: 'RUB'
+                                },
+                                onSuccess: () => {
+                                    dispatch(setCurrentOrderStatus('loading'))
+                                    navigate('/payments/loading')
+                                    dispatch(closeModal(ModalType.CONFIRM_DOCS))
+                                }
+                            }))
+                        }
+                    }))
+                } if (docsType === 'type_doc_agreement_investment_advisor_app_1' && confirmationPurpose != 'payments') {
                     dispatch(checkConfirmationCodeTariffThunk({
                         tariff_id: paymentsTariffId,
                         code,

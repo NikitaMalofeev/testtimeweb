@@ -35,7 +35,7 @@ const AnimateHeightWrapper: React.FC<AnimateHeightWrapperProps> = ({
 
     return (
         <motion.div
-            style={{ width: '100%', overflow: 'hidden', display: 'flex', alignItems: 'end' }}   // внешний div — как было
+            style={{ width: '100%', overflow: 'hidden', display: 'flex', alignItems: 'end', justifyContent: 'center' }}   // внешний div — как было
             animate={{ height }}
             initial={false}                                 // не нужен стартовый кадр
             transition={{ duration: 0.4, ease: 'easeInOut' }}

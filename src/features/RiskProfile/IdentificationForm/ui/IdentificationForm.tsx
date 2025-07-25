@@ -347,7 +347,7 @@ const IdentificationProfileForm: React.FC = () => {
                 {/* ───────────── выбор метода подтверждения ───────────── */}
                 <div>
                     <span className={styles.buttons__method__title}>
-                        Отправить код подтверждения на:
+                        Отправить код подтверждения через:
                     </span>
                     <div className={styles.buttons__method}>
                         <CheckboxGroup

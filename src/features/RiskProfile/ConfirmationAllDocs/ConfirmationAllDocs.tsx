@@ -56,6 +56,7 @@ export const ConfirmAllDocs: React.FC = () => {
     const isUserIP = !!useSelector(
         (s: RootState) => s.user.userPersonalAccountInfo?.is_individual_entrepreneur,
     );
+    const activeTariffs = useSelector((s: RootState) => s.payments.activeTariffs);
 
     // «карточка заполнена» / «сканы загружены»
     const isIdentityDataComplete = isUserIP
@@ -148,7 +149,7 @@ export const ConfirmAllDocs: React.FC = () => {
                 console.log(5)
             } else if (currentTypeDoc === "type_doc_agreement_investment_advisor_app_1") {
                 dispatch(confirmTariffRequestThunk({
-                    data: formik.values,
+                    data: { ...formik.values, tariff_id: activeTariffs[0].id },
                     onSuccess: () => {
                         dispatch(
                             openModal({

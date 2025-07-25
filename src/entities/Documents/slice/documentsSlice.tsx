@@ -9,6 +9,7 @@ import { setConfirmationDocsSuccess } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
 import { SendCodeCustomDocsConfirmPayload, SendCodeDocsConfirmPayload } from "entities/RiskProfile/model/types";
 import { postBrokerConfirmationDocsCode, postConfirmationCodeLegal, postConfirmationDocsCode } from "entities/RiskProfile/api/riskProfileApi";
+import { signingTariff } from "entities/Payments/api/paymentsApi";
 
 // Новый тип, соответствующий элементам из "confirmed_documents"
 export interface DocumentConfirmationInfo {
@@ -178,15 +179,15 @@ export const confirmTariffRequestThunk = createAsyncThunk<
 >(
     "documents/confirmTariffRequestThunk",
     async (
-        { data: { type_message, type_document, is_agree }, onSuccess },
+        { data: { type_message, type_document, is_agree, tariff_id }, onSuccess },
         { getState, dispatch, rejectWithValue }
     ) => {
         try {
             const token = getState().user.token;
             const currentConfirmableDoc = getState().documents.currentConfirmableDoc
-            if (currentConfirmableDoc === 'type_doc_agreement_investment_advisor_app_1') {
-                const responseDocs = await confirmTariffDocs(
-                    { type_message, is_agree, type_document: currentConfirmableDoc },
+            if (currentConfirmableDoc === 'type_doc_agreement_investment_advisor_app_1' && tariff_id) {
+                const responseDocs = await signingTariff(
+                    tariff_id, type_message, is_agree,
                     token
                 );
                 onSuccess?.();

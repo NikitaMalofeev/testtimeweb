@@ -254,6 +254,23 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         }} />;
     }
 
+    const mergedTariffs = useMemo(() => {
+    // если активных тарифов ещё нет – показываем обычный массив
+    if (activeTariffs.length === 0) return tariffs;
+
+    // Map<title, tariff> — позволяет быстро «перезаписать» совпадающие title
+    const byTitle = new Map<string, (typeof tariffs)[number]>(
+        tariffs.map(t => [t.title, t])
+    );
+
+    // активные тарифы заменяют/добавляют записи с тем же title
+    activeTariffs.forEach(at => {
+        byTitle.set(at.title, at);
+    });
+
+    return Array.from(byTitle.values());
+}, [tariffs, activeTariffs]);
+
     // if (isFetching && !currentOrderStatus && !statusParam) return <Loader />;
 
     /* Cards, списки отображаем только пока не в confirm-step */
@@ -261,7 +278,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         <>
             <AnimatePresence mode="popLayout">
 
-                {(currentOrderId ? tariffs.filter((t) => t.id === currentOrderId) : tariffs).map(
+                {(currentOrderId ? mergedTariffs.filter(t => t.id === currentOrderId) : mergedTariffs).map(
                     (t, index) => (
                         <motion.div
                             key={t.id}
@@ -360,7 +377,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                     </motion.span>
 
                     <AnimatePresence mode="popLayout">
-                        {(currentOrderId ? tariffs.filter((t) => t.id === currentOrderId) : tariffs).map(
+                        {(currentOrderId ? mergedTariffs.filter(t => t.id === currentOrderId) : mergedTariffs).map(
                             (t, index) => (
                                 <motion.div
                                     key={t.id}

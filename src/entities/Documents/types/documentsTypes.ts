@@ -3,6 +3,7 @@ export interface ConfirmDocsPayload {
     is_agree: boolean;
     type_document?: string;
     broker_id?: string;
+    tariff_id?: string
 }
 
 export interface ConfirmAllDocsPayload {

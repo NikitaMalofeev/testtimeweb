@@ -88,6 +88,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     }, [statusParam, dispatch]);
 
 
+
     // 2. Когда статус в сторе стал SUCCESS – грузим тарифы
     useEffect(() => {
         if (currentOrderStatus === 'success' && !tariffsRequestedRef.current) {
@@ -98,12 +99,13 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     }, [currentOrderStatus, dispatch]);
 
 
-    /* сброс статуса при уходе со страницы */
+    /* сброс статуса при уходе со страницы + запрос активных тарифов */
     useEffect(() => {
+        dispatch(getAllActiveTariffsThunk({ onSuccess() { } }));
         return () => {
             dispatch(setCurrentOrderStatus(''));
         };
-    }, [dispatch]);
+    }, []);
 
 
     useEffect(() => {

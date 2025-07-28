@@ -80,20 +80,27 @@ export const Header = ({ currentNotificationsCount, variant }: HeaderProps) => {
     return (
         <header className={classNames(styles.header, headerMods, [])} style={location.pathname === '/' ? {} : {}}>
             <Icon Svg={HeaderIcon} width={171} height={18.5} onClick={() => navigate('/')} />
-            {!haveUser && window.innerWidth > 750
+            {!haveUser
                 ?
                 <div className={styles.header__entry}>
-                    <div className={styles.header__contacts} >
+                    {/* <div className={styles.header__contacts} >
                         <Icon Svg={PhoneIcon} width={24} height={24} />
                         <a href="tel:+78432126778">+7 843 212 67 78</a>
-                    </div>
+                    </div> */}
                     <Button
+                        theme={ButtonTheme.UNDERLINE}
+                        children='Чат поддержки'
+                        padding='10px 22px'
+                        className={styles.header__button}
+                        onClick={() => navigate('/support')}
+                    />
+                    {/* <Button
                         theme={ButtonTheme.UNDERLINE}
                         children='Подключиться'
                         padding='10px 22px'
                         className={styles.header__button}
                     // onClick={() => navigate('/auth')} 
-                    />
+                    /> */}
                 </div>
                 // <div
                 //     className={classNames(styles.burger__container, burgerMods, [])}
@@ -117,7 +124,7 @@ export const Header = ({ currentNotificationsCount, variant }: HeaderProps) => {
                     dispatch(closeAllModals())
 
                 }}>
-                    <div className={styles.header__notifications}>{currentNotificationsCount}</div>
+                    {currentNotificationsCount ? <div className={styles.header__notifications}>{currentNotificationsCount}</div> : <span className={styles.header__notifications_empty}>Нет новых уведомлений</span>}
                     <Icon Svg={AccountIcon} width={24} height={24} />
                 </div>}
             {/* <div onClick={handleLogout}>Выйти</div> */}

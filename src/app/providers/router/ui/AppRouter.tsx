@@ -84,11 +84,9 @@ function AppRouter() {
             <Route
                 path="/support"
                 element={
-                    <RequireAuthRoute>
-                        <Suspense fallback={<PageLoader />}>
-                            <SupportChatPage />
-                        </Suspense>
-                    </RequireAuthRoute>
+                    <Suspense fallback={<PageLoader />}>
+                        <SupportChatPage />
+                    </Suspense>
 
                 }
             />

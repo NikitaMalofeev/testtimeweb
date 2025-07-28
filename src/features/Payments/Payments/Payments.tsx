@@ -79,7 +79,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
 
 
     const isPaidAndActive = (title: string): boolean =>
-        activeTariffs.some(t => t.title === title);
+        activeTariffs.some(t => t.title === title && t.is_active);
 
     useEffect(() => {
         if (statusParam && allowedStatus.includes(statusParam as any)) {

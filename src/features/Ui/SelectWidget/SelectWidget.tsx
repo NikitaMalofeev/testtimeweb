@@ -145,14 +145,14 @@ export const SelectWidget: React.FC<SelectModalProps> = ({
                     }`}
             >
                 <Button className={styles.button} theme={ButtonTheme.EMPTYBLUE} onClick={handleBack}>Отмена</Button>
-                <Button
+                {/* <Button
                     className={styles.button}
                     // onClick={handleChoose}
                     disabled={!localSelectedValue}
                     padding="18px 23px"
                 >
                     Выбрать
-                </Button>
+                </Button> */}
             </div>
         </div>
     );

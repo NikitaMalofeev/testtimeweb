@@ -93,9 +93,10 @@ export const AdditionalMenu: React.FC<AdditionalMenuProps> = ({ onClose, title, 
             )}
 
 
+
             <div ref={containerRef} className={`${styles.additionalMenu__container} ${hasScrolled ? styles.additionalMenu__container_scrolled : ""}`}>
                 {device !== 'mobile' && (
-                    <div className={styles.progressBar}>
+                    <div className={styles.progressBar__desktop}>
                         {steps.map((_, index) => (
                             <div
                                 key={index}

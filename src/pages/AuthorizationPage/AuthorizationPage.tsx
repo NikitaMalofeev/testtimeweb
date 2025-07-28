@@ -24,6 +24,7 @@ import BooleanTabs from "shared/ui/BooleanTabs/BooleanTabs";
 const AuthorizationPage = () => {
     const dispatch = useAppDispatch();
     const { loading } = useSelector((state: RootState) => state.user);
+    const device = useDevice();
     const [activeTab, setActiveTab] = useState<"login" | "registration">("login");
     const ModalState = useSelector((state: RootState) => state.modal.resetPassword)
     const navigate = useNavigate()
@@ -153,7 +154,8 @@ const AuthorizationPage = () => {
                             )}
 
                             {/* Элемент crutch всегда отрисовывается, но изначально скрыт */}
-                            <div ref={crutchRef} className={styles.crutch} style={{ display: "none" }}></div>
+                            {device !== 'desktop' && <div ref={crutchRef} className={styles.crutch} style={{ display: "none" }}></div>}
+
 
                             {activeTab === 'registration' && (
                                 <IdentificationProfileForm />

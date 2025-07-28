@@ -1,39 +1,31 @@
 import { useEffect, useState } from 'react';
 
 const BREAKPOINTS = {
-    mobile: [350, 1023],
-    tablet: [680, 1023],
-    desktop: [1024, 4000],
+    mobile: [350, 958],   // <= 958 — мобилка
+    desktop: [959, 4000], // >= 959 — десктоп (НО только если высота > 650)
 } as const;
 
-type Device = keyof typeof BREAKPOINTS;
+const MIN_DESKTOP_HEIGHT = 650;
 
-/** Определяем, к какому диапазону сейчас относится ширина */
-const pickDevice = (width: number): Device => {
-    if (width >= BREAKPOINTS.mobile[0] && width <= BREAKPOINTS.mobile[1]) return 'mobile';
-    if (width >= BREAKPOINTS.tablet[0] && width <= BREAKPOINTS.tablet[1]) return 'tablet';
-    return 'desktop'; // всё, что ≥1024 px
-};
+export type Device = 'mobile' | 'desktop';
 
-/**
- * Хук возвращает строку **'mobile' | 'tablet' | 'desktop'**  
- * и автоматически обновляется при ресайзе окна
- */
+const pickDevice = (w: number, h: number): Device =>
+    w >= BREAKPOINTS.desktop[0] && h > MIN_DESKTOP_HEIGHT ? 'desktop' : 'mobile';
+
 export const useDevice = (): Device => {
-    // При SSR fallback-значение -- 'desktop'
     const [device, setDevice] = useState<Device>(() =>
-        typeof window === 'undefined' ? 'desktop' : pickDevice(window.innerWidth),
+        typeof window === 'undefined' ? 'desktop' : pickDevice(window.innerWidth, window.innerHeight),
     );
 
     useEffect(() => {
         const onResize = () => {
-            const next = pickDevice(window.innerWidth);
-            setDevice(prev => (prev === next ? prev : next));
+            const next = pickDevice(window.innerWidth, window.innerHeight);
+            if (next !== device) setDevice(next);
         };
 
         window.addEventListener('resize', onResize);
         return () => window.removeEventListener('resize', onResize);
-    }, []);
+    }, [device]);
 
     return device;
 };

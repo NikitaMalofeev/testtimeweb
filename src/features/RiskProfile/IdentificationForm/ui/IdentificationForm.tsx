@@ -244,6 +244,8 @@ const IdentificationProfileForm: React.FC = () => {
                     <BooleanTabs
                         leftTitle="Физ.лицо"
                         rightTitle="ИП"
+                        size="small"
+                        description="выберите ваш тип клиента"
                         active={personTab !== false ? "right" : "left"}
                         onLeftClick={() => handlePersonTabChange(false)}
                         onRightClick={() => handlePersonTabChange(true)}
@@ -347,7 +349,7 @@ const IdentificationProfileForm: React.FC = () => {
                 {/* ───────────── выбор метода подтверждения ───────────── */}
                 <div>
                     <span className={styles.buttons__method__title}>
-                        Отправить код подтверждения через:
+                        отправить код подтверждения номера в:
                     </span>
                     <div className={styles.buttons__method}>
                         <CheckboxGroup

@@ -39,7 +39,7 @@ const withStepContent = (StepLayout: React.FC<StepLayoutProps>) =>
         /* ───── ждём данные ───── */
         const isIE = user?.is_individual_entrepreneur === true;
         const dataReady = user && user.is_individual_entrepreneur !== undefined;
-        if (!dataReady) return <Loader size={LoaderSize.LARGE} />;
+
 
         /* ───── заголовок + контент ───── */
         const { title, content } = useMemo(() => {
@@ -99,6 +99,7 @@ const withStepContent = (StepLayout: React.FC<StepLayoutProps>) =>
             return list[currentStep];
         }, [currentStep, maxRisk]);
 
+        if (!dataReady) return <Loader size={LoaderSize.LARGE} />;
         /* ───── рендер ───── */
         return (
             <StepLayout

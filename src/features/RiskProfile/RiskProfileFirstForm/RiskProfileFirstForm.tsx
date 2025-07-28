@@ -26,6 +26,8 @@ import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { TrustedPersonInfo } from "entities/RiskProfile/model/types";
 import { updateUserAllData } from "entities/User/slice/userSlice";
 import { useNavigate } from "react-router-dom";
+import CloseIcon from 'shared/assets/svg/close.svg'
+import { Icon } from "shared/ui/Icon/Icon";
 
 interface Question {
     name: string;
@@ -471,9 +473,12 @@ export const RiskProfileFirstForm: React.FC = () => {
     // ========================= 12. Рендер компонента =========================
     return (
         <div className={styles.form}>
-            <p className={styles.form__steps}>
-                Вопрос {currentStep + 1} из {totalSteps}
-            </p>
+            <div className={styles.form__header}>
+                <p className={styles.form__steps}>
+                    Вопрос {currentStep + 1} из {totalSteps}
+                </p>
+                <Icon Svg={CloseIcon} width={20} height={20} className={styles.form__close} onClick={() => dispatch(closeModal(ModalType.IDENTIFICATION))} />
+            </div>
 
             <form onSubmit={formik.handleSubmit} className={styles.form__form}>
                 <div className={styles.form__container}>

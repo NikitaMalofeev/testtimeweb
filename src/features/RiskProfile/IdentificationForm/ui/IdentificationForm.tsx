@@ -291,6 +291,7 @@ const IdentificationProfileForm: React.FC = () => {
                         onBlur={formik.handleBlur}
                         placeholder={numberPlaceholder}
                         onFocus={() => setNumberPlaceholder('+7 (___) ___-____')}
+                        withoutCloudyLabel
                         needValue
                         type="text"
                         error={formik.touched.phone && formik.errors.phone}

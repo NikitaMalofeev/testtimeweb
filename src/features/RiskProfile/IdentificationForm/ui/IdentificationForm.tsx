@@ -37,6 +37,7 @@ import { setActiveTariffs } from "entities/Payments/slice/paymentsSlice";
 const IdentificationProfileForm: React.FC = () => {
     const dispatch = useAppDispatch();
     const gcaptchaSiteKey = import.meta.env.VITE_RANKS_GRCAPTCHA_SITE_KEY;
+    const [numberPlaceholder, setNumberPlaceholder] = useState('Введите номер телефона')
 
     /* ───────────── вкладка «Физ/Юр лицо» ───────────── */
     const [personTab, setPersonTab] = useState<boolean>(false);
@@ -288,7 +289,8 @@ const IdentificationProfileForm: React.FC = () => {
                             formik.setFieldValue("phone", value);
                         }}
                         onBlur={formik.handleBlur}
-                        placeholder="Номер телефона +7"
+                        placeholder={numberPlaceholder}
+                        onFocus={() => setNumberPlaceholder('+7 (___) ___-____')}
                         needValue
                         type="text"
                         error={formik.touched.phone && formik.errors.phone}

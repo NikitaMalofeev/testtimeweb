@@ -79,7 +79,7 @@ export const Header = ({ currentNotificationsCount, variant }: HeaderProps) => {
 
     return (
         <header className={classNames(styles.header, headerMods, [])} style={location.pathname === '/' ? {} : {}}>
-            <Icon Svg={HeaderIcon} width={171} height={18.5} onClick={() => navigate('/')} />
+            <Icon Svg={HeaderIcon} width={171} height={18.5} onClick={() => navigate('/')} className={styles.header__logo} />
             {!haveUser
                 ?
                 <div className={styles.header__entry}>

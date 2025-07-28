@@ -36,6 +36,7 @@ interface InputProps extends CommonHTMLProps {
     name?: string;
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
     onBlur?: (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+    onFocus?: () => void;
     placeholder?: string;
     disabled?: boolean;
     needValue?: boolean;
@@ -90,6 +91,7 @@ export const Input: React.FC<InputProps> = ({
     name,
     onChange,
     onBlur,
+    onFocus,
     error,
     placeholder = "",
     disabled = false,
@@ -115,7 +117,10 @@ export const Input: React.FC<InputProps> = ({
             state.riskProfile.secondRiskProfileData?.min_amount_expected_replenishment || 200_000
     );
 
-    const handleFocus = () => setIsFocused(true);
+    const handleFocus = () => {
+        setIsFocused(true)
+        onFocus?.()
+    };
 
     const handleBlur = (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setIsFocused(!!value);

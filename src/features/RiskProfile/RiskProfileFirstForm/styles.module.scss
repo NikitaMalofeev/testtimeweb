@@ -85,6 +85,16 @@
     box-shadow: 0px -1px 13.4px 0px #00000026;
 }
 
+.currency_investment {
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-items: start;
+    gap: 20px;
+    font-size: 14px;
+    color: #989898;
+}
+
 
 
 @include mix.respond-to('tablet-desktop') {

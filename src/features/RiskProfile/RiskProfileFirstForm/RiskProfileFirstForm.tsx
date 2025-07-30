@@ -220,7 +220,7 @@ export const RiskProfileFirstForm: React.FC = () => {
         },
     });
 
-    //Пока работаем только с РФ брокерaми
+    //Пока работаем только с РФ брокерaм
     useEffect(() => {
         formik.setFieldValue("currency_investment", 'RUR');
         formik.setFieldTouched('currency_investment', true, false);

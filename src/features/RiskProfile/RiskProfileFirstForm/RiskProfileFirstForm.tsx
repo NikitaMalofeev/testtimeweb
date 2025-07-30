@@ -223,6 +223,7 @@ export const RiskProfileFirstForm: React.FC = () => {
     //Пока работаем только с РФ брокерами
     useEffect(() => {
         formik.setFieldValue("currency_investment", 'RUR');
+        formik.setFieldTouched('currency_investment', true, false);
     }, [])
 
     //Пока работаем только с РФ брокерами
@@ -411,8 +412,8 @@ export const RiskProfileFirstForm: React.FC = () => {
                         options={Object.entries(question.options).map(([value, label]) => ({ label, value }))}
                         value={'RUR'}
                         onChange={(name, selectedValue) => {
-                            formik.setFieldValue(name, selectedValue);
-                            dispatch(updateFieldValue({ name, value: selectedValue }));
+                            // formik.setFieldValue(name, selectedValue);
+                            // dispatch(updateFieldValue({ name, value: selectedValue }));
                         }}
                     />
                     <span>На данный момент мы работаем только с Российским рынком ценных бумаг</span>
@@ -477,7 +478,7 @@ export const RiskProfileFirstForm: React.FC = () => {
                 <p className={styles.form__steps}>
                     Вопрос {currentStep + 1} из {totalSteps}
                 </p>
-                <Icon Svg={CloseIcon} width={20} height={20} className={styles.form__close} onClick={() => dispatch(closeModal(ModalType.IDENTIFICATION))} />
+                <Icon Svg={CloseIcon} width={20} height={20} className={styles.form__close} onClick={() => dispatch(closeModal(ModalType.IDENTIFICATION))} pointer />
             </div>
 
             <form onSubmit={formik.handleSubmit} className={styles.form__form}>

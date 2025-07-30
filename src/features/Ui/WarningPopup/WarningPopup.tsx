@@ -69,6 +69,7 @@ export const WarningPopup = () => {
                     height={20}
                     className={styles.closeIcon}
                     onClick={handleClose}
+                    pointer
                 />
                 <Icon
                     Svg={WarningIcon}

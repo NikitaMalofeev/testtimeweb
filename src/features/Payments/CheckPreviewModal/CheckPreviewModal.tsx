@@ -87,7 +87,7 @@ export const CheckPreviewModal: React.FC<Props> = ({
             >
                 <div className={styles.modalHeader}>
                     <span className={styles.modalTitle}>{title}</span>
-                    <Icon Svg={CloseIcon} width={20} height={20} onClick={handleClose} />
+                    <Icon Svg={CloseIcon} width={20} height={20} onClick={handleClose} pointer/>
                 </div>
 
                 <div className={styles.modalContent}>

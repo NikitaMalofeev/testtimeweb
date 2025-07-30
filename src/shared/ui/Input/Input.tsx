@@ -15,6 +15,7 @@ import SearchIcon from "shared/assets/svg/searchIcon.svg";
 import { CustomSlider } from "../CustomSlider/CustomSlider";
 import { useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
+import { clamp } from "shared/lib/helpers/clamp";
 
 /**
  * Темы нашего инпута
@@ -130,6 +131,18 @@ export const Input: React.FC<InputProps> = ({
     const handleTogglePassword = () => {
         setIsPasswordVisible((prev) => !prev);
     };
+    const blockNumberSpin = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown'].includes(e.key)) {
+            e.preventDefault();
+        }
+    };
+
+    const blockWheel = (e: React.WheelEvent<HTMLInputElement>) => {
+        e.preventDefault();
+        e.currentTarget.blur();
+    };
+
+    //Если нужно запретить скролл и стрелки в намбер инпуте
 
     const parseToNumber = useCallback((str: string): number => {
         // Убираем пробелы, знак рубля и т.д.
@@ -142,10 +155,10 @@ export const Input: React.FC<InputProps> = ({
     // -------------------------------------------------------------------
     // 1) РЕЖИМ ОДНОГО «числового» СЛАЙДЕРА (type="swiper")
     // -------------------------------------------------------------------
-    const numericValueForSlider = useMemo(() => {
-        const parsed = parseToNumber(value);
-        return Math.min(Math.max(parsed, min), max);
-    }, [value, min, max, parseToNumber]);
+    const numericValueForSlider = useMemo(
+        () => clamp(parseToNumber(value), min, max),
+        [value, min, max, parseToNumber]
+    );
 
     // -------------------------------------------------------------------
     // 2) РЕЖИМ "swiperDiscrete" – ограниченный набор значений (discreteValues)
@@ -242,6 +255,7 @@ export const Input: React.FC<InputProps> = ({
 
             <div className={styles.inputContainer}>
                 {(() => {
+
                     switch (type) {
                         // -------------------------------------------
                         // 1) СЛАЙДЕР (type="swiper")
@@ -268,19 +282,20 @@ export const Input: React.FC<InputProps> = ({
                                                 onBlur={handleBlur}
                                                 className={styles.input}
                                                 onChange={(e) => {
-                                                    const numericVal = parseToNumber(e.target.value);
-                                                    // Округляем по логике наших шагов
+                                                    const raw = parseToNumber(e.target.value);
+                                                    const clamped = clamp(raw, min, max);
+
+                                                    // округляем по твоим шагам
                                                     const rounded = mapSliderIndexToValue(
-                                                        mapValueToSliderIndex(numericVal)
+                                                        clamp(mapValueToSliderIndex(clamped), 0, totalSteps)
                                                     );
+
                                                     const newEvent = {
                                                         ...e,
-                                                        target: {
-                                                            ...e.target,
-                                                            value: rounded.toString(),
-                                                        },
-                                                    };
-                                                    onChange(newEvent as React.ChangeEvent<HTMLInputElement>);
+                                                        target: { ...e.target, value: rounded.toString() },
+                                                    } as React.ChangeEvent<HTMLInputElement>;
+
+                                                    onChange(newEvent);
                                                 }}
                                             />
                                         )}
@@ -292,16 +307,13 @@ export const Input: React.FC<InputProps> = ({
                                             step={1}
                                             disabled={disabled}
                                             onChange={(val: number) => {
-                                                const newValue = mapSliderIndexToValue(val);
+                                                const safeIndex = clamp(val, 0, totalSteps);
+                                                const newValue = mapSliderIndexToValue(safeIndex);
                                                 const event = {
-                                                    target: {
-                                                        name: name || "",
-                                                        value: newValue.toString(),
-                                                    },
+                                                    target: { name: name || "", value: newValue.toString() },
                                                 } as React.ChangeEvent<HTMLInputElement>;
                                                 onChange(event);
                                             }}
-                                            sliderTheme={theme === "gradient" ? "gradient" : "default"}
                                         />
 
                                         {error && (
@@ -552,10 +564,8 @@ export const Input: React.FC<InputProps> = ({
                                             onChange(e);
                                         }}
                                         // ↓↓↓ блокируем колесо и стрелки ↓↓↓
-                                        onWheel={(e) => e.preventDefault()}
-                                        onKeyDown={(e) =>
-                                            (e.key === "ArrowUp" || e.key === "ArrowDown") && e.preventDefault()
-                                        }
+                                        onWheelCapture={blockWheel}          // <–– важнее, чем onWheel
+                                        onKeyDown={blockNumberSpin}
                                     />
                                     {error && (
                                         <div className={styles.input__error}>

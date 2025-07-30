@@ -40,7 +40,7 @@ export const RiskProfileAllData = () => {
                     <div className={styles.page__item}>
                         <h2 className={styles.page__subtitle}>Данные юридического лица</h2>
 
-                        {renderField('Название компании', legalFormData.company_name)}
+                        {renderField('Полное наименование организации', legalFormData.company_name)}
                         {renderField('Фамилия руководителя', legalFormData.last_name)}
                         {renderField('Имя руководителя', legalFormData.first_name)}
                         {renderField('Отчество руководителя', legalFormData.patronymic)}
@@ -61,7 +61,7 @@ export const RiskProfileAllData = () => {
                     <div className={styles.page__item}>
 
                         {/* Юридический адрес */}
-                        <h3 className={styles.page__subtitle}>Юридический адрес</h3>
+                        <h3 className={styles.page__subtitle}>Адрес организации</h3>
                         {renderField('Регион', legalFormData.company_region)}
                         {renderField('Город', legalFormData.company_city)}
                         {renderField('Улица', legalFormData.company_street)}

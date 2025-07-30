@@ -17,6 +17,7 @@ interface IconProps {
     maxHeight?: number; // Ограничение высоты
     onClick?: () => void;
     objectFit?: 'contain' | 'cover' | 'fill'; // Контроль за fit
+    pointer?: boolean;
 }
 
 export const Icon = memo(({
@@ -28,6 +29,7 @@ export const Icon = memo(({
     maxWidth,
     maxHeight,
     onClick,
+    pointer,
     objectFit = 'contain',
 }: IconProps) => {
 
@@ -42,7 +44,8 @@ export const Icon = memo(({
                     height,
                     maxWidth,
                     maxHeight,
-                    objectFit
+                    objectFit,
+                    cursor: pointer ? 'pointer' : 'default'
                 }}
                 onClick={onClick}
             />
@@ -58,7 +61,8 @@ export const Icon = memo(({
                 style={{
                     maxWidth,
                     maxHeight,
-                    objectFit
+                    objectFit,
+                    cursor: pointer ? 'pointer' : 'default'
                 }}
                 preserveAspectRatio={objectFit === 'cover' ? "none" : "xMidYMid meet"}
             />

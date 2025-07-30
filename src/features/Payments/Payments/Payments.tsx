@@ -348,6 +348,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                 setIsConfirming(false);
                                 isPaid(false);
                             }}
+                            pointer
                         />
                         Подключение тарифа
                     </motion.span>

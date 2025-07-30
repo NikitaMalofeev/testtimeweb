@@ -132,7 +132,7 @@ export const Modal = memo(({
             >
                 <div className={`${styles.header} ${isScrolled ? styles.shadow : ''}`}>
                     {withCloseIcon && (
-                        <Icon Svg={CloseIcon} className={styles.closeIcon} onClick={onClose} />
+                        <Icon Svg={CloseIcon} className={styles.closeIcon} onClick={onClose} pointer />
                     )}
                     {withTitle && (
                         <h2 className={styles.title} style={{ maxWidth: titleWidth }}>{withTitle}</h2>

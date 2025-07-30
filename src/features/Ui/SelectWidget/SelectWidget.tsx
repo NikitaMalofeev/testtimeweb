@@ -108,7 +108,7 @@ export const SelectWidget: React.FC<SelectModalProps> = ({
                 ref={contentRef}
                 style={{ overflow: "auto" }}>
                 <div className={styles.header}>
-                    <Icon Svg={CloseIcon} width={20} height={20} className={styles.header__close} onClick={onClose} />
+                    <Icon Svg={CloseIcon} width={20} height={20} className={styles.header__close} pointer onClick={onClose} />
                     <h2 className={styles.title}>{title}</h2>
                     <Input
                         type="search"

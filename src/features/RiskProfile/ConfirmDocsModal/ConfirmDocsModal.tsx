@@ -28,11 +28,12 @@ interface ConfirmInfoModalProps {
     docsType?: string;
     lastData: ConfirmDocsPayload;
     confirmationPurpose?: string;
+    title?: string;
     openSuccessModal?: (docsType?: string) => void;
 }
 
 export const ConfirmDocsModal = memo(
-    ({ isOpen, onClose, docsType, lastData, confirmationPurpose, openSuccessModal }: ConfirmInfoModalProps) => {
+    ({ isOpen, onClose, docsType, lastData, confirmationPurpose, title, openSuccessModal }: ConfirmInfoModalProps) => {
         const dispatch = useAppDispatch();
         const navigate = useNavigate()
         const modalState = useSelector((state: RootState) => state.modal);
@@ -216,6 +217,7 @@ export const ConfirmDocsModal = memo(
                                     currency: 'RUB'
                                 },
                                 onSuccess: () => {
+                                    dispatch(setConfirmationDocsSuccess("пройдено"));
                                     dispatch(setCurrentOrderStatus('loading'))
                                     navigate('/payments/loading')
                                     dispatch(closeModal(ModalType.CONFIRM_DOCS))
@@ -237,6 +239,7 @@ export const ConfirmDocsModal = memo(
                                     currency: 'RUB'
                                 },
                                 onSuccess: () => {
+                                    dispatch(setConfirmationDocsSuccess("пройдено"));
                                     dispatch(setCurrentOrderStatus('loading'))
                                     navigate('/payments/loading')
                                     dispatch(closeModal(ModalType.CONFIRM_DOCS))
@@ -316,7 +319,7 @@ export const ConfirmDocsModal = memo(
                 animation={modalState[ModalType.CONFIRM_CODE].animation}
                 size={modalState[ModalType.CONFIRM_CODE].size}
                 withCloseIcon
-                withTitle={<span>Подтверждение документов</span>}
+                withTitle={<span>Подтверждение документа: {title}</span>}
                 type={ModalType.CONFIRM_CODE}
             >
                 <div

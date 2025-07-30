@@ -473,7 +473,7 @@ const DocumentsPage: React.FC = () => {
                 colorClass = styles.button__gray;
                 additionalMessages =
                     `Для подписания${!hasPassport ? ' заполните паспорт,' : ''}` +
-                    `${!hasBroker ? ' подключите брокера' : ''}`.replace(/,\s*$/, '');
+                    `${!hasBroker ? ' подключите брокерский счет' : ''}` + `${!hasTariff ? ' и тариф' : ''}`.replace(/,\s*$/, '');
             } else if (!hasTariff) {                 // всё есть, кроме тарифа → красная
                 colorClass = styles.button__gray;
                 additionalMessages = 'Для подписания подключите тариф';
@@ -679,7 +679,7 @@ const DocumentsPage: React.FC = () => {
             {/* Шапка страницы */}
             <div className={styles.page__container}>
                 <div className={styles.page__title}>
-                    <Icon Svg={BackIcon} width={24} height={24} onClick={() => navigate("/lk")} />
+                    <Icon Svg={BackIcon} width={24} height={24} onClick={() => navigate("/lk")} pointer />
                     <h2 className={styles.page__title}>Список документов</h2>
                 </div>
 
@@ -809,6 +809,7 @@ const DocumentsPage: React.FC = () => {
                                                                                 onClick={() => handleDownloadPdf(doc.id)}
                                                                                 width={33}
                                                                                 height={33}
+                                                                                pointer
                                                                             />
                                                                         )}
                                                                     </>
@@ -935,6 +936,7 @@ const DocumentsPage: React.FC = () => {
                                                                             Svg={DownloadIcon}
                                                                             onClick={() => handleDownloadPdf(doc.id)}
                                                                             width={33}
+                                                                            pointer
                                                                             height={33}
                                                                         />
                                                                     )}

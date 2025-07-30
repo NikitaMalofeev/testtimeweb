@@ -156,7 +156,6 @@ const AuthorizationPage = () => {
                             {/* Элемент crutch всегда отрисовывается, но изначально скрыт */}
                             {device !== 'desktop' && <div ref={crutchRef} className={styles.crutch} style={{ display: "none" }}></div>}
 
-
                             {activeTab === 'registration' && (
                                 <IdentificationProfileForm />
                             )}

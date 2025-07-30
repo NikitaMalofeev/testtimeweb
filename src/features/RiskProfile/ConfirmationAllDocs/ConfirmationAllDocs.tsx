@@ -352,6 +352,7 @@ export const ConfirmAllDocs: React.FC = () => {
                 docsType={currentTypeDoc}
                 lastData={formik.values}
                 openSuccessModal={openSuccessModal}
+                title={`${docTypeLabels[currentTypeDoc] ?? ""}`}
             />
             <SuccessModal
                 isOpen={successModalOpen}

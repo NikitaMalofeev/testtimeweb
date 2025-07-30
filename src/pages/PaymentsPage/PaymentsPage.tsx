@@ -31,14 +31,14 @@ const PaymentsPage: React.FC = () => {
         <div className={styles.page}>
             {device === 'mobile' && !isPaid && !paymentStatus && (
                 <div className={styles.page__title}>
-                    <Icon Svg={BackIcon} width={24} height={24} onClick={() => navigate("/lk")} />
+                    <Icon Svg={BackIcon} width={24} height={24} onClick={() => navigate("/lk")} pointer />
                     <h2 className={styles.page__title}>Тарифы</h2>
                 </div>
             )}
             <div>
                 {device !== 'mobile' && !isPaid && !paymentStatus && (
                     <div className={styles.page__title}>
-                        <Icon Svg={BackIcon} width={24} height={24} onClick={() => navigate("/lk")} />
+                        <Icon Svg={BackIcon} width={24} height={24} onClick={() => navigate("/lk")} pointer />
                         <h2 className={styles.page__title}>Тарифы</h2>
                     </div>
                 )}

@@ -157,7 +157,7 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
             >
                 <div className={styles.modalHeader}>
                     <span className={styles.modalTitle}>{title || "Документ"}</span>
-                    <Icon Svg={CloseIcon} width={20} height={20} onClick={handleClose} />
+                    <Icon Svg={CloseIcon} width={20} height={20} onClick={handleClose} pointer />
                 </div>
                 <div className={styles.modalContent} >
                     {/* style={

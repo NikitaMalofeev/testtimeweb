@@ -99,6 +99,7 @@ export const Recomendations = () => {
                     width={24}
                     height={24}
                     onClick={() => navigate(-1)}
+                    pointer
                 />
                 <h2 className={styles.recomendations__title__title}>
                     Индивидуальные инвестиционные рекомендации

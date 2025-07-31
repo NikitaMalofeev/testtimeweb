@@ -84,6 +84,7 @@ const FAQPage: React.FC = () => {
                         width={24}
                         height={24}
                         onClick={() => navigate(-1)}
+                        pointer
                     />
                     <span className={styles.page__title}>FAQ</span>
                 </div>

@@ -57,7 +57,7 @@ export const ErrorPopup = () => {
             className={styles.errorModal}
         >
             <div className={styles.errorModal__content}>
-                <Icon Svg={CloseIcon} width={20} height={20} className={styles.closeIcon} onClick={handleClose} />
+                <Icon Svg={CloseIcon} width={20} height={20} className={styles.closeIcon} onClick={handleClose} pointer/>
                 {error}
                 {purpose === 'pasportScan' && (
                     <div className={styles.purpose}>

@@ -1,7 +1,7 @@
 @use "../../../app/styles/mixins" as mix;
 
 .tabs {
-            position: relative;
+  position: relative;
   display: flex;
   background-color: #ebebed;
   border-radius: 50px;
@@ -10,25 +10,24 @@
   padding: 3px;
   min-height: 56px;
   height: 56px;
-  margin: 0 auto;
-  margin-bottom: 10px;
+  margin: 0 auto 10px;
 
-    &__container {
-        position: relative;
-  display: flex;
-  background-color: #ebebed;
-  border-radius: 50px;
-  overflow: hidden;
-  max-width: 100%;
-  height: 50px;
-  margin: 0 auto;
-    }
+  &__container {
+    position: relative;
+    display: flex;
+    background-color: #ebebed;
+    border-radius: 50px;
+    overflow: hidden;
+    max-width: 100%;
+    height: 50px;
+    margin: 0 auto;
+  }
 }
 
 .tab {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex: 1;
   text-align: center;
   padding: 12px 29px;
@@ -39,32 +38,83 @@
   cursor: pointer;
   user-select: none;
   transition: color 0.3s;
+  z-index: 2;
 }
 
-
+.container {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
 
 .activeBg {
   position: absolute;
   top: 0;
   left: 0;
-  width: 50%; /* две вкладки → 50 % */
+  width: 50%;
   height: 100%;
   background-color: #0f0e0e;
   border-radius: 50px;
   z-index: 1;
 }
 
-/* медиабрейкпоинты, если нужны */
 @include mix.respond-to("tablet-desktop") {
   .tabs {
-     height: 56px;
+    height: 56px;
   }
   .tab {
-     min-height: 56px;
+    min-height: 56px;
   }
 }
 
 .tabActive {
   color: #fff;
-  z-index: 1000;
+  z-index: 3;
+}
+
+/* ===== SMALL ===== */
+.tabsSmall {
+  border-radius: 25px;
+  padding: 1.5px;
+  min-height: 40px;
+  height: 40px;
+  margin-bottom: 5px;
+  margin: 0;
+  margin-bottom: 10px;
+
+  & .tabs__container {
+    border-radius: 25px;
+    height: 40px;
+  }
+
+  & .tab {
+    padding: 6px 14.5px;
+    min-width: 30px;
+    border-radius: 25px;
+  font-size: 10px;
+  }
+
+  & .activeBg {
+    border-radius: 25px;
+  }
+}
+
+.tooltip {
+  position: absolute;
+  left: 135px;
+  bottom: 20px;
+}
+
+@include mix.respond-to("tablet-desktop") {
+  .tabsSmall {
+    height: 40px;
+  }
+  .tabsSmall .tab {
+    min-height: 40px;
+  }
+  .tooltip {
+  position: absolute;
+  left: 135px;
+  bottom: 25px;
+}
 }

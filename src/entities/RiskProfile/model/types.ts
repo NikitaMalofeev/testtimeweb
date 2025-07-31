@@ -48,14 +48,15 @@ export interface TrustedPersonInfo {
 
 export interface RiskProfileFormData {
     person_type?: "type_doc_person_natural" | "type_doc_person_legal" | "";
-    citizenship?: string;
-    residence_permit?: string;
-    trusted_person_fio?: string;
-    trusted_person_phone?: string;
-    trusted_person_other_contact?: string;
-    is_qualified_investor_status?: boolean;
-    expected_return_investment?: number;
-    max_allowable_drawdown?: number;
+    citizenship?: string | undefined;
+    residence_permit?: string | undefined;
+    trusted_person_fio?: string | undefined;
+    trusted_person_phone?: string | undefined;
+    trusted_person_other_contact?: string | undefined;
+    is_qualified_investor_status?: boolean | undefined;
+    expected_return_investment?: number | undefined;
+    max_allowable_drawdown?: number | undefined;
+    currency_investment: string | undefined;
     [key: string]: string | number | boolean | string[] | undefined; // Поддержка динамических полей
 }
 
@@ -63,6 +64,7 @@ export interface RiskProfileFormValues extends RiskProfileFormData {
     /** делаем person_type строго обязательным,
         чтобы Formik.values.person_type всегда существовал */
     person_type: "type_doc_person_natural" | "type_doc_person_legal" | "";
+    currency_investment: string;
     [key: string]: string | number | boolean | string[] | undefined;
 }
 

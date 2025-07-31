@@ -26,6 +26,8 @@ import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { TrustedPersonInfo } from "entities/RiskProfile/model/types";
 import { updateUserAllData } from "entities/User/slice/userSlice";
 import { useNavigate } from "react-router-dom";
+import CloseIcon from 'shared/assets/svg/close.svg'
+import { Icon } from "shared/ui/Icon/Icon";
 
 interface Question {
     name: string;
@@ -39,6 +41,9 @@ interface Question {
 export const RiskProfileFirstForm: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
+
+
+    const [numberPlaceholder, setNumberPlaceholder] = useState('Введите номер телефона')
 
     // ============ REDUX STATE ============
     const {
@@ -215,14 +220,14 @@ export const RiskProfileFirstForm: React.FC = () => {
         },
     });
 
-
+    //Пока работаем только с РФ брокерaм
     useEffect(() => {
-        console.log(formik.values)
+        formik.setFieldValue("currency_investment", 'RUR');
+        formik.setFieldTouched('currency_investment', true, false);
     }, [])
 
-    useEffect(() => {
-        console.log(formik.errors)
-    }, [formik.values.trusted_person_fio])
+    //Пока работаем только с РФ брокерами
+
 
     const handleChangeAndDispatch =
         (fieldName: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -338,11 +343,12 @@ export const RiskProfileFirstForm: React.FC = () => {
                     />
 
                     <Input
-                        placeholder="Введите номер телефона"
+                        placeholder={numberPlaceholder}
                         name="trusted_person_phone"
                         inputMode="numeric"
                         type="text"
                         value={formik.values.trusted_person_phone || ""}
+                        withoutCloudyLabel
                         onChange={(e) => {
                             let inputVal = e.target.value;
                             const onlyDigits = inputVal.replace(/\D/g, "");
@@ -350,6 +356,7 @@ export const RiskProfileFirstForm: React.FC = () => {
                             const formatted = limitedDigits.length > 0 ? "+" + limitedDigits : "";
                             formik.setFieldValue("trusted_person_phone", formatted);
                         }}
+                        onFocus={() => setNumberPlaceholder('+7 (___) ___-____')}
                         onBlur={formik.handleBlur}
                         needValue={formik.values?.trusted_person_fio?.length > 0}
                         error={formik.touched.trusted_person_phone && formik.errors.trusted_person_phone}
@@ -395,6 +402,25 @@ export const RiskProfileFirstForm: React.FC = () => {
             );
         }
 
+
+        // Пока работаем только с Российским рынком
+        if (question.name === "currency_investment" && question.options) {
+            return (
+                <div className={styles.currency_investment}>
+                    <CheckboxGroup
+                        name={question.name}
+                        options={Object.entries(question.options).map(([value, label]) => ({ label, value }))}
+                        value={'RUR'}
+                        onChange={(name, selectedValue) => {
+                            // formik.setFieldValue(name, selectedValue);
+                            // dispatch(updateFieldValue({ name, value: selectedValue }));
+                        }}
+                    />
+                    <span>На данный момент мы работаем только с Российским рынком ценных бумаг</span>
+                </div>
+            );
+        }
+
         if (question.fieldType === "checkboxGroup" && question.options) {
             return (
                 <CheckboxGroup
@@ -408,6 +434,7 @@ export const RiskProfileFirstForm: React.FC = () => {
                 />
             );
         }
+
 
         if (question.fieldType === "textarea") {
             return (
@@ -447,9 +474,12 @@ export const RiskProfileFirstForm: React.FC = () => {
     // ========================= 12. Рендер компонента =========================
     return (
         <div className={styles.form}>
-            <p className={styles.form__steps}>
-                Вопрос {currentStep + 1} из {totalSteps}
-            </p>
+            <div className={styles.form__header}>
+                <p className={styles.form__steps}>
+                    Вопрос {currentStep + 1} из {totalSteps}
+                </p>
+                <Icon Svg={CloseIcon} width={20} height={20} className={styles.form__close} onClick={() => dispatch(closeModal(ModalType.IDENTIFICATION))} pointer />
+            </div>
 
             <form onSubmit={formik.handleSubmit} className={styles.form__form}>
                 <div className={styles.form__container}>

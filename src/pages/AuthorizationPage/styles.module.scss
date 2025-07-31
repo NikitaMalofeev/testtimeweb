@@ -122,7 +122,12 @@ text-align: center;
 color: #045FDD;
 margin-bottom: 39px;
 margin-top: 5px;
+
+&:hover {
+    opacity: 0.7;
 }
+}
+
 
 
 @include mix.respond-to('tablet-desktop') {

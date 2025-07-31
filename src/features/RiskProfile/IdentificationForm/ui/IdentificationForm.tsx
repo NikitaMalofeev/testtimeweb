@@ -37,6 +37,7 @@ import { setActiveTariffs } from "entities/Payments/slice/paymentsSlice";
 const IdentificationProfileForm: React.FC = () => {
     const dispatch = useAppDispatch();
     const gcaptchaSiteKey = import.meta.env.VITE_RANKS_GRCAPTCHA_SITE_KEY;
+    const [numberPlaceholder, setNumberPlaceholder] = useState('Введите номер телефона')
 
     /* ───────────── вкладка «Физ/Юр лицо» ───────────── */
     const [personTab, setPersonTab] = useState<boolean>(false);
@@ -244,6 +245,8 @@ const IdentificationProfileForm: React.FC = () => {
                     <BooleanTabs
                         leftTitle="Физ.лицо"
                         rightTitle="ИП"
+                        size="small"
+                        description="выберите ваш тип клиента"
                         active={personTab !== false ? "right" : "left"}
                         onLeftClick={() => handlePersonTabChange(false)}
                         onRightClick={() => handlePersonTabChange(true)}
@@ -286,7 +289,9 @@ const IdentificationProfileForm: React.FC = () => {
                             formik.setFieldValue("phone", value);
                         }}
                         onBlur={formik.handleBlur}
-                        placeholder="Номер телефона +7"
+                        placeholder={numberPlaceholder}
+                        onFocus={() => setNumberPlaceholder('+7 (___) ___-____')}
+                        withoutCloudyLabel
                         needValue
                         type="text"
                         error={formik.touched.phone && formik.errors.phone}
@@ -347,7 +352,7 @@ const IdentificationProfileForm: React.FC = () => {
                 {/* ───────────── выбор метода подтверждения ───────────── */}
                 <div>
                     <span className={styles.buttons__method__title}>
-                        Отправить код подтверждения через:
+                        отправить код подтверждения номера в:
                     </span>
                     <div className={styles.buttons__method}>
                         <CheckboxGroup

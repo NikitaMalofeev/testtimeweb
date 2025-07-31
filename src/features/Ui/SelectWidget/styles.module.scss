@@ -44,8 +44,8 @@
 }
 
 .list {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    display: flex;
+   flex-direction: column;
     list-style: none;
     gap: 24px;
 
@@ -53,6 +53,14 @@
         display: flex;
         padding: 10px;
         justify-content: start;
+        cursor: pointer;
+            border-radius: 15px;
+
+        &:hover {
+            background-color: #f6f9ff;
+            
+            
+        }
     }
 }
 
@@ -75,7 +83,7 @@
 
 .activeItem {
     padding: 10px;
-    border-radius: 15px;
+
     background-color: #E1ECFB;
 }
 

@@ -23,6 +23,7 @@ import { riskProfiles } from "shared/static/riskProfiles";
 import { RiskProfileCard } from "../RiskProfileCard/RiskProfileCard";
 import { getUserDocumentsStateThunk } from "entities/Documents/slice/documentsSlice";
 import { useDevice } from "shared/hooks/useDevice";
+import * as Yup from "yup";
 
 interface SwiperParametrValues {
     risk_prof_conservative: string;
@@ -60,6 +61,23 @@ export const RiskProfileSecondForm: React.FC = () => {
     const goBack = () => dispatch(prevStep());
     const successModalOpen = useSelector((state: RootState) => state.modal.success.isOpen);
 
+    const profileKeys = Object.keys(SWIPER_PARAM_VALUES) as Array<keyof SwiperParametrValues>;
+    const recommendedKeys = Object.keys(
+        secondRiskProfileData?.recommended_risk_profiles || {}
+    );
+
+    const validationSchema = Yup.object({
+        amount_expected_replenishment: Yup.number()
+            .min(secondRiskProfileData?.min_amount_expected_replenishment || 0)
+            .required(),
+        portfolio_parameters: Yup.string().required(),
+        risk_profiling_final: Yup.string()
+            .oneOf(profileKeys, "Выберите риск-профиль")
+            .required("Выберите риск-профиль"),
+    });
+
+
+
     const formik = useFormik({
         enableReinitialize: true,
         initialValues: {
@@ -69,6 +87,7 @@ export const RiskProfileSecondForm: React.FC = () => {
                 : '',
             risk_profiling_final: ''
         },
+        validationSchema,
         onSubmit: async (values) => {
         },
     });
@@ -111,10 +130,6 @@ export const RiskProfileSecondForm: React.FC = () => {
     //     })
     // );
 
-    const profileKeys = Object.keys(SWIPER_PARAM_VALUES) as Array<keyof SwiperParametrValues>;
-    const recommendedKeys = Object.keys(
-        secondRiskProfileData?.recommended_risk_profiles || {}
-    );
 
     // 2) сам onChange-проход в Select
     const handleFinalProfileChange = (val: string) => {
@@ -248,7 +263,10 @@ export const RiskProfileSecondForm: React.FC = () => {
                                         {SWIPER_PARAM_VALUES[formik.values.portfolio_parameters as keyof SwiperParametrValues]}
                                     </span>
                                 </div>
-
+                                <div className={styles.information}>
+                                    <div className={styles.information__marker}></div>
+                                    <span className={styles.information__description}>Маркер рекомендуемого риск-профиля согласно Вашим ответам на вопросы</span>
+                                </div>
                                 <div className={styles.form__item}>
                                     <Input
                                         swiperDiscreteSubtitles={['меньше риск', 'меньше доход', 'больше риск', 'больше доход']}
@@ -273,10 +291,7 @@ export const RiskProfileSecondForm: React.FC = () => {
                                         onBlur={formik.handleBlur}
                                     />
                                 </div>
-                                <div className={styles.information}>
-                                    <div className={styles.information__marker}></div>
-                                    <span className={styles.information__description}>Маркер рекомендуемого риск-профиля согласно Вашим ответам на вопросы</span>
-                                </div>
+
                             </div>
                             <div className={styles.form__container} style={{ minHeight: '74px' }}>
                                 <div className={styles.form__item_potintial}>
@@ -450,7 +465,10 @@ export const RiskProfileSecondForm: React.FC = () => {
                                             {SWIPER_PARAM_VALUES[formik.values.portfolio_parameters as keyof SwiperParametrValues]}
                                         </span>
                                     </div>
-
+                                    <div className={styles.information}>
+                                        <div className={styles.information__marker}></div>
+                                        <span className={styles.information__description}>Маркер рекомендуемого риск-профиля согласно Вашим ответам на вопросы</span>
+                                    </div>
                                     <div className={styles.form__item}>
                                         <Input
                                             swiperDiscreteSubtitles={['меньше риск', 'меньше доход', 'больше риск', 'больше доход']}
@@ -475,10 +493,7 @@ export const RiskProfileSecondForm: React.FC = () => {
                                             onBlur={formik.handleBlur}
                                         />
                                     </div>
-                                    <div className={styles.information}>
-                                        <div className={styles.information__marker}></div>
-                                        <span className={styles.information__description}>Маркер рекомендуемого риск-профиля согласно Вашим ответам на вопросы</span>
-                                    </div>
+
                                 </div>
 
 

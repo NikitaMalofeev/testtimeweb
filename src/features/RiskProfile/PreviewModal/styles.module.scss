@@ -48,6 +48,18 @@
   
   .modalContent {
     height: 100%;
+    max-height: calc(100vh - 52px);
+    background-color: #E1ECFB;
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+
+    // overflow-y: auto; /* Чтобы прокручивался контент внутри модалки */
+  }
+
+  .modalContent_grid {
+       height: 100%;
+    max-height: calc(100vh - 52px);
     background-color: #E1ECFB;
     flex: 1;
     overflow-y: auto;
@@ -68,10 +80,9 @@
      .modalContent_grid {
       display: grid;
       gap: 8px;
+      max-height: calc(100vh - 102px);
       grid-template-columns: repeat(3, 1fr);
-    height: 100%;
-      max-width: 60%;
-      max-height: 80%;
+      max-width: 70%;
     flex: 1;
     overflow-y: auto;
     padding: 16px;

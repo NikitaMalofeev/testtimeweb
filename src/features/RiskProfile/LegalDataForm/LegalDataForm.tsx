@@ -73,7 +73,7 @@ export const LegalDataForm: React.FC = () => {
         company_name: Yup.string()
             .matches(CYRILLIC_TEXT, "Только кириллица, цифры и знаки ,.-")
             .min(2, "Минимум 2 символа")
-            .required("Название компании обязательно"),
+            .required("Полное наименование организации обязательно"),
 
         /* ФИО руководителя */
         first_name: Yup.string()
@@ -352,7 +352,7 @@ export const LegalDataForm: React.FC = () => {
 
             {/* 1. company block */}
             <Input
-                placeholder="Название организации"
+                placeholder="Полное наименование организации"
                 name="company_name"
                 value={formik.values.company_name || ''}
                 onChange={handleTextChange("company_name")}
@@ -509,7 +509,7 @@ export const LegalDataForm: React.FC = () => {
             />
 
             {/* 2. legal address */}
-            <h2 className="form__subtitle">Юридический адрес</h2>
+            <h2 className="form__subtitle">Адрес организации</h2>
             <Input
                 placeholder="Регион/район"
                 name="company_region"

@@ -210,13 +210,13 @@ export const ConfirmDocsModal = memo(
                         onSuccess: () => {
                             dispatch(createOrderThunk({
                                 payload: {
-                                    // tariff_id: paymentsTariffId,
                                     tariff_id: paymentsTariffId,
                                     payment_system: 'ROBOKASSA',
                                     payment_type: 'TARIFF_ACTIVATION',
                                     currency: 'RUB'
                                 },
                                 onSuccess: () => {
+                                    dispatch(closeModal(ModalType.CONFIRM_DOCS))
                                     dispatch(setConfirmationDocsSuccess("пройдено"));
                                     dispatch(setCurrentOrderStatus('loading'))
                                     navigate('/payments/loading')

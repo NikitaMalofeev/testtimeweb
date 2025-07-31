@@ -335,14 +335,14 @@ export const getAllTariffsThunk = createAsyncThunk<
 // 6. установить тариф пользователю
 export const setTariffIdThunk = createAsyncThunk<
     void,
-    { tariff_key: string; broker_id: string; onSuccess: () => void },
+    { tariff_key: string; broker_id: string; type_message: string; is_agree: boolean; onSuccess: () => void },
     { rejectValue: string; state: RootState }
 >(
     'payments/setTariffIdThunk',
-    async ({ tariff_key, broker_id, onSuccess }, { dispatch, rejectWithValue, getState }) => {
+    async ({ tariff_key, broker_id, type_message, is_agree, onSuccess }, { dispatch, rejectWithValue, getState }) => {
         try {
             const token = getState().user.token;
-            const res = await paymentsSetTariff(tariff_key, broker_id, token);
+            const res = await paymentsSetTariff(tariff_key, broker_id, type_message, is_agree, token);
             const key = res.tariff.key;
             /* ← добавляем key в “каталоговый” тариф */
             dispatch(updateTariffKey({ id: tariff_key, key }));

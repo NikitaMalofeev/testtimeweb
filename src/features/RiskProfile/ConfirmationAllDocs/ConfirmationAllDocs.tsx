@@ -35,7 +35,7 @@ import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
 import { useNavigate } from "react-router-dom";
 import ArrowBack from 'shared/assets/svg/ArrowBack.svg';
 import { SuccessModal } from "../SuccessModal/SuccessModal";
-import { getNotSignedTariffDocThunk } from "entities/Payments/slice/paymentsSlice";
+import { getNotSignedTariffDocThunk, setTariffIdThunk } from "entities/Payments/slice/paymentsSlice";
 import { useDevice } from "shared/hooks/useDevice";
 
 export const ConfirmAllDocs: React.FC = () => {
@@ -57,6 +57,8 @@ export const ConfirmAllDocs: React.FC = () => {
         (s: RootState) => s.user.userPersonalAccountInfo?.is_individual_entrepreneur,
     );
     const activeTariffs = useSelector((s: RootState) => s.payments.activeTariffs);
+    const currentOrderId = useSelector((s: RootState) => s.payments.currentOrderId);
+    const brokerId = useSelector((s: RootState) => s.documents.brokerIds[0]);
 
     // «карточка заполнена» / «сканы загружены»
     const isIdentityDataComplete = isUserIP
@@ -148,9 +150,8 @@ export const ConfirmAllDocs: React.FC = () => {
                 dispatch(setStepAdditionalMenuUI(5));
                 console.log(5)
             } else if (currentTypeDoc === "type_doc_agreement_investment_advisor_app_1") {
-                dispatch(confirmTariffRequestThunk({
-                    data: { ...formik.values, tariff_id: activeTariffs[0].id },
-                    onSuccess: () => {
+                currentOrderId && dispatch(setTariffIdThunk({
+                    tariff_key: currentOrderId, broker_id: brokerId, type_message: formik.values.type_message, is_agree: formik.values.is_agree, onSuccess: () => {
                         dispatch(
                             openModal({
                                 type: ModalType.CONFIRM_DOCS,
@@ -158,8 +159,20 @@ export const ConfirmAllDocs: React.FC = () => {
                                 animation: ModalAnimation.LEFT,
                             })
                         );
-                    },
-                }))
+                    }
+                }));
+                // dispatch(confirmTariffRequestThunk({
+                //     data: { ...formik.values, tariff_id: activeTariffs[0].id },
+                //     onSuccess: () => {
+                //         dispatch(
+                //             openModal({
+                //                 type: ModalType.CONFIRM_DOCS,
+                //                 size: ModalSize.MIDDLE,
+                //                 animation: ModalAnimation.LEFT,
+                //             })
+                //         );
+                //     },
+                // }))
             } else {
                 // При успешном запросе открываем ConfirmDocsModal
                 console.log(1)

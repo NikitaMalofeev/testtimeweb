@@ -3,7 +3,7 @@ import React, { useEffect, useCallback, useState, useMemo, useRef } from 'react'
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useSelector } from 'react-redux';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { RootState } from 'app/providers/store/config/store';
 import {
     getAllTariffsThunk,
@@ -25,12 +25,12 @@ import { PaymentsCard } from '../PaymentsCard/PaymentsCard';
 import { Checkbox } from 'shared/ui/Checkbox/Checkbox';
 import { CheckboxGroup } from 'shared/ui/CheckboxGroup/CheckboxGroup';
 import styles from './styles.module.scss';
-import { closeModal, openModal } from 'entities/ui/Modal/slice/modalSlice';
+import { closeAllModals, closeModal, openModal } from 'entities/ui/Modal/slice/modalSlice';
 import { ModalAnimation, ModalSize, ModalType } from 'entities/ui/Modal/model/modalTypes';
 import BackIcon from 'shared/assets/svg/ArrowBack.svg';
 import { Icon } from 'shared/ui/Icon/Icon';
 import { ConfirmDocsModal } from 'features/RiskProfile/ConfirmDocsModal/ConfirmDocsModal';
-import { getAllBrokersThunk, setCurrentConfirmationMethod } from 'entities/Documents/slice/documentsSlice';
+import { getAllBrokersThunk, setCurrentConfirmableDoc, setCurrentConfirmationMethod } from 'entities/Documents/slice/documentsSlice';
 import { PaymentsStatus } from '../PaymentsStatus/PaymentsStatus';
 import { SelectModal } from 'features/Ui/SelectModal/SelectModal';
 import { Select } from 'shared/ui/Select/Select';
@@ -52,6 +52,7 @@ export interface PaymentsProps {
 
 export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     const dispatch = useAppDispatch();
+    const navigate = useNavigate()
 
     /* ---------------- url параметр ---------------- */
     const device = useDevice()
@@ -76,6 +77,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     const paidTariffKeys = useSelector(
         (s: RootState) => s.payments.paidTariffKeys
     );
+    const brokerCount = useSelector((s: RootState) => s.documents.brokersCount)
 
 
     const isPaidAndActive = (title: string): boolean =>
@@ -177,6 +179,21 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     );
 
     const handleSetTariff = useCallback(() => {
+        if (brokerCount < 1) {
+            dispatch(setWarning({
+                active: true,
+                description:
+                    'Для оплаты тарифа пожалуйста подпишите все документы и подключите брокерский счет',
+                buttonLabel: 'Перейти к заполнению',
+                action: () => {
+                    dispatch(closeAllModals())
+                    navigate('/documents')
+                },
+            }))
+        } else {
+            dispatch(setCurrentConfirmableDoc('type_doc_agreement_investment_advisor_app_1'));
+            dispatch(openModal({ type: ModalType.IDENTIFICATION, size: ModalSize.FULL, animation: ModalAnimation.LEFT }));
+        }
         // if (!filledRiskProfileChapters.is_exist_scan_passport) {
         //     dispatch(
         //         setWarning({
@@ -219,12 +236,8 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         //     return;
         // }
 
-        currentOrderId && dispatch(setTariffIdThunk({
-            tariff_key: currentOrderId, broker_id: formik.values.broker_id, onSuccess: () => {
-                setIsConfirming(true);
-                isPaid(true);
-            }
-        }));
+
+
 
     }, [brokersCount, filledRiskProfileChapters, currentOrderId, isPaid, formik.values.broker_id]);
 

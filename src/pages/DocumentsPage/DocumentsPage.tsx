@@ -65,6 +65,7 @@ const DocumentsPage: React.FC = () => {
     const tariff = useSelector((s: RootState) => s.payments.payments_info);
     const activeTariffs = useSelector((s: RootState) => s.payments.activeTariffs);
     const user = useSelector((s: RootState) => s.user.userPersonalAccountInfo);
+    const isVip = useSelector((s: RootState) => s.user.is_vip);
     const currentUserTariffIdForPayments = useSelector((s: RootState) => s.payments.currentUserTariffIdForPayments);
     const targetTariffId = currentUserTariffIdForPayments || '';
     const isBulkEnabled = !!user?.is_confirm_all_documents_one_code;
@@ -94,8 +95,8 @@ const DocumentsPage: React.FC = () => {
     /** документы, недоступные для массовой подписи */
     const EXCLUDED_BULK = [
         "type_doc_agreement_investment_advisor_app_1",
-        "type_doc_passport",
-    ];
+        "type_doc_agreement_investment_advisor_app_1", // ← можно оставить; лишним не будет
+    ].filter(id => !isVip || id !== "type_doc_agreement_investment_advisor_app_1");
 
     /** клик по чек-боксу одного документа */
     const toggleDoc = (id: string) =>
@@ -154,8 +155,13 @@ const DocumentsPage: React.FC = () => {
     }, [modalState.documentsPreview.isOpen, isAnyModalOpen]);
 
 
-    const docOrder = useMemo(() => {
-        const baseOrder = [
+    // 1. Полное определение docOrder без каких-либо сокращений
+    const docOrder = useMemo<string[]>(() => {
+        /* ------------------------------------------------------------------
+           Базовый список всех возможных документов в «правильном» порядке.
+           В самом конце - «Договор ИС: Приложение 1».
+        ------------------------------------------------------------------ */
+        const baseOrder: string[] = [
             "type_doc_passport",
             "type_doc_EDS_agreement",
             "type_doc_RP_questionnairy",
@@ -165,23 +171,48 @@ const DocumentsPage: React.FC = () => {
             "type_doc_investment_profile_certificate",
             "type_doc_agreement_account_maintenance",
             "type_doc_broker_api_token",
-            "type_doc_agreement_investment_advisor_app_1",
+            "type_doc_agreement_investment_advisor_app_1", // ← будет удалён для VIP
         ];
 
-        return isBulkEnabled
-            ? [
-                // два нужных документа в нужном порядке
-                "type_doc_passport",
-                "type_doc_broker_api_token",
-                // «хвост» без дубликатов
-                ...baseOrder.filter(
-                    d =>
-                        d !== "type_doc_passport" &&
-                        d !== "type_doc_broker_api_token"
-                ),
-            ]
+        /* ------------------------------------------------------------------
+           Шаг 1. Если пользователь VIP - удаляем «Приложение 1» из baseOrder.
+        ------------------------------------------------------------------ */
+        const vipFiltered: string[] = isVip
+            ? baseOrder.filter(
+                (id) => id !== "type_doc_agreement_investment_advisor_app_1",
+            )
             : baseOrder;
-    }, [isBulkEnabled]);
+
+        /* ------------------------------------------------------------------
+           Шаг 2. Если массовая подпись (one-code) неактивна → просто возвращаем
+           полученный список (для VIP он уже без Приложения 1).
+        ------------------------------------------------------------------ */
+        if (!isBulkEnabled) {
+            return vipFiltered;
+        }
+
+        /* ------------------------------------------------------------------
+           Шаг 3. Массовая подпись активна (isBulkEnabled === true).
+      
+           Требование: паспорт + брокерский токен должны быть первыми
+           (они нужны, чтобы one-code заработал). Дальше идёт «хвост» без дублей.
+      
+           Для VIP «хвост» уже не содержит Приложения 1, а для обычного клиента
+           оно останется в списке после первых двух документов.
+        ------------------------------------------------------------------ */
+        const head: string[] = [
+            "type_doc_passport",
+            "type_doc_broker_api_token",
+        ];
+
+        const tail: string[] = vipFiltered.filter((id) => !head.includes(id));
+
+        /* ------------------------------------------------------------------
+           Итоговый порядок документов
+        ------------------------------------------------------------------ */
+        return [...head, ...tail];
+    }, [isBulkEnabled, isVip]);
+
 
     /** «Чистые» названия без нумерации  */
     const baseDocTitles: Record<string, string> = {
@@ -308,6 +339,7 @@ const DocumentsPage: React.FC = () => {
                 break
             }
             case 'type_doc_agreement_investment_advisor_app_1': {
+                if (isVip) return;
                 if (hasTariff) {
                     dispatch(setCurrentConfirmableDoc(docId));
                     dispatch(setStepAdditionalMenuUI(4));

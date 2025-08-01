@@ -188,11 +188,15 @@ export const RiskProfileFirstForm: React.FC = () => {
         return [citizenshipQuestion, ...extraTextQuestions, ...serverQuestions];
     }, [riskProfileSelectors]);
 
+    const preparedInitialValues = React.useMemo(() => ({
+        ...formValues,
+        currency_investment: formValues.currency_investment || 'RUR',
+    }), [formValues]);
 
     // enableReinitialize: true позволит обновлять форму, когда Redux-стейт меняется (например, после загрузки LS)
     const formik = useFormik({
         enableReinitialize: true,
-        initialValues: formValues,
+        initialValues: preparedInitialValues,
         validationSchema: Yup.object({
             // Условная валидация для phone: правило применяется только если trusted_person_fio заполнено
             phone: Yup.string()
@@ -408,12 +412,11 @@ export const RiskProfileFirstForm: React.FC = () => {
             return (
                 <div className={styles.currency_investment}>
                     <CheckboxGroup
-                        name={question.name}
-                        options={Object.entries(question.options).map(([value, label]) => ({ label, value }))}
-                        value={'RUR'}
+                        name="currency_investment"
+                        options={[{ label: 'Российский рубль (RUR)', value: 'RUR' }]}
+                        value="RUR"
                         onChange={(name, selectedValue) => {
-                            // formik.setFieldValue(name, selectedValue);
-                            // dispatch(updateFieldValue({ name, value: selectedValue }));
+                            formik.setFieldValue(name, 'RUR');
                         }}
                     />
                     <span>На данный момент мы работаем только с Российским рынком ценных бумаг</span>

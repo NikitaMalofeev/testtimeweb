@@ -1,7 +1,7 @@
 @use '../../../app/styles/mixins' as mix;
 
 .page {
-    padding-bottom: 88px;
+    padding-bottom: 48px;
     &__container{
 position: relative;
 
@@ -67,6 +67,13 @@ position: relative;
         margin-bottom: 10px;
 
     }
+
+     .close {
+    cursor: pointer;
+    position: absolute;
+    top: 60px;
+    right: 30px;
+  }
 }
 
 .button_preview {
@@ -218,4 +225,10 @@ position: relative;
         justify-content: space-between;
         padding-bottom: 4px;
     }
+      .close {
+    cursor: pointer;
+    position: absolute;
+    top: 70px;
+    right: 20px;
+  }
   }

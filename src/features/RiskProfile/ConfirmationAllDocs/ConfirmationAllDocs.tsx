@@ -37,6 +37,7 @@ import ArrowBack from 'shared/assets/svg/ArrowBack.svg';
 import { SuccessModal } from "../SuccessModal/SuccessModal";
 import { getNotSignedTariffDocThunk, setTariffIdThunk } from "entities/Payments/slice/paymentsSlice";
 import { useDevice } from "shared/hooks/useDevice";
+import CloseIcon from 'shared/assets/svg/close.svg'
 
 export const ConfirmAllDocs: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -295,6 +296,9 @@ export const ConfirmAllDocs: React.FC = () => {
                         dispatch(closeModal(ModalType.IDENTIFICATION))
                     }}>
                         <Icon Svg={ArrowBack} width={24} height={24} /> Назад
+                    </div>
+                    <div className={styles.close} onClick={() => dispatch(closeModal(ModalType.IDENTIFICATION))} title="Закрыть">
+                        <Icon Svg={CloseIcon} width={24} height={24} pointer />
                     </div>
                     <div className={styles.page__counter}>
                         Документ {currentIndex} из {totalDocs - 1}

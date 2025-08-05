@@ -225,10 +225,11 @@ export const RiskProfileFirstForm: React.FC = () => {
 
     //Пока работаем только с РФ брокерaм
     useEffect(() => {
-        formik.setFieldValue("currency_investment", 'RUR');
-        formik.setFieldTouched('currency_investment', true, false);
-    }, [])
-
+        const defaultCurrency = "RUR";
+        formik.setFieldValue("currency_investment", defaultCurrency, false);
+        // добавляем строку ↓
+        dispatch(updateFieldValue({ name: "currency_investment", value: defaultCurrency }));
+    }, [dispatch]);
     //Пока работаем только с РФ брокерами
 
 

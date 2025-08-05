@@ -125,7 +125,7 @@ export const Header = ({ currentNotificationsCount, variant }: HeaderProps) => {
 
                 }}>
                     {currentNotificationsCount ? <div className={styles.header__notifications}>{currentNotificationsCount}</div> : <span className={styles.header__notifications_empty}>Нет новых уведомлений</span>}
-                    <Icon Svg={AccountIcon} width={24} height={24} />
+                    <Icon Svg={AccountIcon} width={24} height={24} pointer />
                 </div>}
             {/* <div onClick={handleLogout}>Выйти</div> */}
         </header>

@@ -189,8 +189,7 @@ export const RiskProfileFirstForm: React.FC = () => {
     }, [riskProfileSelectors]);
 
     const preparedInitialValues = React.useMemo(() => ({
-        ...formValues,
-        currency_investment: formValues.currency_investment || 'RUR',
+        ...formValues
     }), [formValues]);
 
     // enableReinitialize: true позволит обновлять форму, когда Redux-стейт меняется (например, после загрузки LS)

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
@@ -60,6 +60,8 @@ export const ConfirmAllDocs: React.FC = () => {
     const activeTariffs = useSelector((s: RootState) => s.payments.activeTariffs);
     const currentOrderId = useSelector((s: RootState) => s.payments.currentOrderId);
     const brokerId = useSelector((s: RootState) => s.documents.brokerIds[0]);
+    const lastDocRef = useRef<string>();
+
 
     // «карточка заполнена» / «сканы загружены»
     const isIdentityDataComplete = isUserIP
@@ -77,23 +79,23 @@ export const ConfirmAllDocs: React.FC = () => {
 
     useEffect(() => {
         dispatch(getAllBrokersThunk({ is_confirmed_type_doc_agreement_transfer_broker: true, onSuccess: () => { } }));
-    }, [dispatch]);
+    }, []);
 
     useEffect(() => {
         dispatch(getUserDocumentsStateThunk());
-    }, [currentTypeDoc, isRPFilled, isRPFinalFilled, dispatch]);
+    }, [currentTypeDoc, isRPFilled, isRPFinalFilled]);
 
     useEffect(() => {
         if (isIdentityDataComplete) {
             dispatch(getUserDocumentsNotSignedThunk());
         }
-    }, [isIdentityDataComplete, dispatch]);
+    }, [isIdentityDataComplete]);
 
     useEffect(() => {
         if (isRPFinalFilled) {
             dispatch(getUserDocumentsNotSignedThunk());
         }
-    }, [isRPFinalFilled, dispatch]);
+    }, [isRPFinalFilled]);
 
     const handleMethodChange = (method: 'SMS' | 'EMAIL' | 'WHATSAPP') => {
         formik.setFieldValue("type_message", method);

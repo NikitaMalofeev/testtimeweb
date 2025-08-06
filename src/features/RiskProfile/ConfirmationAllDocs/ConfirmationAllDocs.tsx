@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
@@ -53,6 +53,7 @@ export const ConfirmAllDocs: React.FC = () => {
     const messageTypeOptions = { SMS: "SMS", EMAIL: "Email", WHATSAPP: "Whatsapp" };
     const successModalOpen = useSelector((state: RootState) => state.modal.success.isOpen)
     const currentTariffId = useSelector((state: RootState) => state.payments.currentTariffId)
+    const currentUserTariffIdForPayments = useSelector((state: RootState) => state.payments.currentUserTariffIdForPayments)
     const device = useDevice()
     const isUserIP = !!useSelector(
         (s: RootState) => s.user.userPersonalAccountInfo?.is_individual_entrepreneur,
@@ -60,6 +61,8 @@ export const ConfirmAllDocs: React.FC = () => {
     const activeTariffs = useSelector((s: RootState) => s.payments.activeTariffs);
     const currentOrderId = useSelector((s: RootState) => s.payments.currentOrderId);
     const brokerId = useSelector((s: RootState) => s.documents.brokerIds[0]);
+    const lastDocRef = useRef<string>();
+
 
     // «карточка заполнена» / «сканы загружены»
     const isIdentityDataComplete = isUserIP
@@ -77,23 +80,23 @@ export const ConfirmAllDocs: React.FC = () => {
 
     useEffect(() => {
         dispatch(getAllBrokersThunk({ is_confirmed_type_doc_agreement_transfer_broker: true, onSuccess: () => { } }));
-    }, [dispatch]);
+    }, []);
 
     useEffect(() => {
         dispatch(getUserDocumentsStateThunk());
-    }, [currentTypeDoc, isRPFilled, isRPFinalFilled, dispatch]);
+    }, [currentTypeDoc, isRPFilled, isRPFinalFilled]);
 
     useEffect(() => {
         if (isIdentityDataComplete) {
             dispatch(getUserDocumentsNotSignedThunk());
         }
-    }, [isIdentityDataComplete, dispatch]);
+    }, [isIdentityDataComplete]);
 
     useEffect(() => {
         if (isRPFinalFilled) {
             dispatch(getUserDocumentsNotSignedThunk());
         }
-    }, [isRPFinalFilled, dispatch]);
+    }, [isRPFinalFilled]);
 
     const handleMethodChange = (method: 'SMS' | 'EMAIL' | 'WHATSAPP') => {
         formik.setFieldValue("type_message", method);
@@ -102,20 +105,38 @@ export const ConfirmAllDocs: React.FC = () => {
 
     const currentIndex = docTypes.findIndex((d) => d === currentTypeDoc);
     const totalDocs = docTypes.length;
-
     const handleOpenPreview = async () => {
+        navigate('documents')
+        const tariffId = currentUserTariffIdForPayments || currentTariffId;
+        const previewId = `tariff_${tariffId}`;
+
+
         if (currentTypeDoc === 'type_doc_agreement_investment_advisor_app_1') {
-            await dispatch(getNotSignedTariffDocThunk({ tariff_id: currentTariffId }))
+            await dispatch(getNotSignedTariffDocThunk({ tariff_id: tariffId }));
+
+            dispatch(
+                openModal({
+                    type: ModalType.DOCUMENTS_PREVIEW,
+                    size: ModalSize.FULL,
+                    animation: ModalAnimation.LEFT,
+                    docId: previewId,
+                }),
+            );
+        } else {
+
+            dispatch(
+                openModal({
+                    type: ModalType.DOCUMENTS_PREVIEW,
+                    size: ModalSize.FULL,
+                    animation: ModalAnimation.LEFT,
+                    docId: currentTypeDoc,
+                }),
+            );
         }
-        dispatch(
-            openModal({
-                type: ModalType.DOCUMENTS_PREVIEW,
-                size: ModalSize.FULL,
-                animation: ModalAnimation.LEFT,
-                docId: currentTypeDoc,      // <-- кладём id
-            })
-        );
+
     };
+
+
 
 
 

@@ -230,6 +230,10 @@ export const ConfirmDocsModal = memo(
                         tariff_id: paymentsTariffId,
                         code,
                         onSuccess: () => {
+                            if (docsType === 'type_doc_agreement_investment_advisor_app_1') {
+                                dispatch(setCurrentConfirmableDoc(''));
+
+                            }
                             dispatch(createOrderThunk({
                                 payload: {
                                     // tariff_id: paymentsTariffId,
@@ -271,6 +275,7 @@ export const ConfirmDocsModal = memo(
                                 if (docsType === 'type_doc_broker_api_token') {
                                     dispatch(setCurrentConfirmableDoc('type_doc_agreement_investment_advisor_app_1'));
                                 }
+
                                 //бек не отправляет next_document на эти 2
 
 

@@ -205,18 +205,21 @@ export const BrokerConnectionForm: React.FC = () => {
                 description='Для предоставления услуги необходимо подписать документ «Согласие на передачу API ключа к брокерскому счету»'
                 buttonText='Перейти к подписи'
                 action={() => {
-                    if (isBulk) {
-                        navigate('/documents')
-                        dispatch(setCurrentConfirmableDoc('type_doc_broker_api_token'))
-                        dispatch(closeModal(ModalType.INFO));
-                        dispatch(closeModal(ModalType.IDENTIFICATION))
-                    } else {
-                        navigate('/documents')
-                        dispatch(setCurrentConfirmableDoc('type_doc_broker_api_token'))
-                        dispatch(setStepAdditionalMenuUI(4))
-                        dispatch(closeModal(ModalType.INFO));
-                    }
-
+                    // if (isBulk) {
+                    //     navigate('/documents')
+                    //     dispatch(setCurrentConfirmableDoc('type_doc_broker_api_token'))
+                    //     dispatch(closeModal(ModalType.INFO));
+                    //     dispatch(closeModal(ModalType.IDENTIFICATION))
+                    // } else {
+                    //     navigate('/documents')
+                    //     dispatch(setCurrentConfirmableDoc('type_doc_broker_api_token'))
+                    //     dispatch(setStepAdditionalMenuUI(4))
+                    //     dispatch(closeModal(ModalType.INFO));
+                    // }
+                    navigate('/documents')
+                    dispatch(setCurrentConfirmableDoc('type_doc_broker_api_token'))
+                    dispatch(setStepAdditionalMenuUI(4))
+                    dispatch(closeModal(ModalType.INFO));
 
                 }}
                 onClose={() => {

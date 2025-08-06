@@ -61,6 +61,10 @@ export const PasportScanForm: React.FC = () => {
 
     const isButtonDisabled = !(formik.values.file_scan_page_first && formik.values.file_scan_page_registration);
 
+    const openOrPreviewFirst = () => {
+        setIsPreviewOpenFirst(true);
+    };
+
     const handleClickFirst = () => fileInputFirstRef.current?.click();
     const handleClickReg = () => fileInputRegRef.current?.click();
 
@@ -341,7 +345,7 @@ export const PasportScanForm: React.FC = () => {
                 <div className={`${styles.uploadBlock} ${dragActiveFirst ? styles.uploadBlock_active : ""}`}>
                     <div
                         className={styles.uploadBlock__dropzone}
-                        onClick={handleClickFirst}
+
                         onDragEnter={(e) => handleDragEnter(e, setDragActiveFirst, dragCounterFirst)}
                         onDragOver={handleDragOver}
                         onDragLeave={(e) => handleDragLeave(e, setDragActiveFirst, dragCounterFirst)}
@@ -357,10 +361,13 @@ export const PasportScanForm: React.FC = () => {
                         <div className={styles.uploadBlock__content}>
                             {(previewFirst || formik.values.file_scan_page_first) && (
                                 <div className={styles.uploadBlock__preview_success}>
-                                    <Icon Svg={SuccessLabel} />
+                                    <Icon Svg={SuccessLabel} pointer />
                                 </div>
                             )}
-                            <div className={styles.uploadBlock__preview}>
+                            <div className={styles.uploadBlock__preview} onClick={(e) => {
+                                e.stopPropagation();          // <— не даём событию уйти выше
+                                if (previewFirst) toggleFullPreviewFirst();
+                            }}>
                                 {previewFirst && !isPdfFirst && (
                                     <img
                                         src={previewFirst}
@@ -369,10 +376,10 @@ export const PasportScanForm: React.FC = () => {
                                         onClick={toggleFullPreviewFirst}
                                     />
                                 )}
-                                {isPdfFirst && <Icon Svg={UploadPDFIcon} width={50} height={35} />}
-                                {!previewFirst && !isPdfFirst && <Icon Svg={UploadIcon} width={50} height={35} />}
+                                {isPdfFirst && <Icon Svg={UploadPDFIcon} width={50} height={35} pointer />}
+                                {!previewFirst && !isPdfFirst && <Icon Svg={UploadIcon} width={50} height={35} pointer />}
                             </div>
-                            <div className={styles.uploadBlock__text}>
+                            <div className={styles.uploadBlock__text} onClick={handleClickFirst}>
                                 перенесите изображение или <span>нажмите для загрузки</span> <br />
                                 PNG/JPG/PDF, не более 5 Мбайт
                             </div>

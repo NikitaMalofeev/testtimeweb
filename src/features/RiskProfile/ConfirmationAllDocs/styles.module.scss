@@ -233,3 +233,18 @@ position: relative;
     right: 20px;
   }
   }
+
+  @media (min-width: 800px) and (max-height: 600px) {
+    .page__image {
+        display: none;
+    }
+
+    .page {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .header {
+        margin-bottom: 20px;
+    }
+  }

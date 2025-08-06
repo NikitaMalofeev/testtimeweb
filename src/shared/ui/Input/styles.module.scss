@@ -1,6 +1,7 @@
 .inputWrapper {
     position: relative;
     width: 100%;
+    cursor: pointer;
     display: flex;
     flex-direction: column;
     margin-bottom: 20px;
@@ -38,6 +39,7 @@
 
 .input {
     width: 100%;
+    cursor: pointer;
     padding: 10px 30px 10px 0;
     border: none;
     border-bottom: 1px solid #cdcdd3;

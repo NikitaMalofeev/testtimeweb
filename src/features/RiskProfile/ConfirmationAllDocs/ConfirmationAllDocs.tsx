@@ -53,6 +53,7 @@ export const ConfirmAllDocs: React.FC = () => {
     const messageTypeOptions = { SMS: "SMS", EMAIL: "Email", WHATSAPP: "Whatsapp" };
     const successModalOpen = useSelector((state: RootState) => state.modal.success.isOpen)
     const currentTariffId = useSelector((state: RootState) => state.payments.currentTariffId)
+    const currentUserTariffIdForPayments = useSelector((state: RootState) => state.payments.currentUserTariffIdForPayments)
     const device = useDevice()
     const isUserIP = !!useSelector(
         (s: RootState) => s.user.userPersonalAccountInfo?.is_individual_entrepreneur,
@@ -104,20 +105,38 @@ export const ConfirmAllDocs: React.FC = () => {
 
     const currentIndex = docTypes.findIndex((d) => d === currentTypeDoc);
     const totalDocs = docTypes.length;
-
     const handleOpenPreview = async () => {
+        navigate('documents')
+        const tariffId = currentUserTariffIdForPayments || currentTariffId;
+        const previewId = `tariff_${tariffId}`;
+
+
         if (currentTypeDoc === 'type_doc_agreement_investment_advisor_app_1') {
-            await dispatch(getNotSignedTariffDocThunk({ tariff_id: currentTariffId }))
+            await dispatch(getNotSignedTariffDocThunk({ tariff_id: tariffId }));
+
+            dispatch(
+                openModal({
+                    type: ModalType.DOCUMENTS_PREVIEW,
+                    size: ModalSize.FULL,
+                    animation: ModalAnimation.LEFT,
+                    docId: previewId,
+                }),
+            );
+        } else {
+
+            dispatch(
+                openModal({
+                    type: ModalType.DOCUMENTS_PREVIEW,
+                    size: ModalSize.FULL,
+                    animation: ModalAnimation.LEFT,
+                    docId: currentTypeDoc,
+                }),
+            );
         }
-        dispatch(
-            openModal({
-                type: ModalType.DOCUMENTS_PREVIEW,
-                size: ModalSize.FULL,
-                animation: ModalAnimation.LEFT,
-                docId: currentTypeDoc,      // <-- кладём id
-            })
-        );
+
     };
+
+
 
 
 

@@ -655,7 +655,7 @@ export const LegalDataForm: React.FC = () => {
 
             </div>
             {/* captcha */}
-            <div className="captcha">
+            <div className={styles.captcha}>
                 <ReCAPTCHA
                     ref={recaptchaRef}
                     sitekey={gcaptchaSiteKey}

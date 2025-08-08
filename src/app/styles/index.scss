@@ -143,3 +143,15 @@ mark {
   color: white;
   /* или другой цвет подсветки */
 }
+
+.react-datepicker__day--outside-month {
+    color: #B0B0B0;         // серый
+    pointer-events: none;   // (опционально) запретить клик по ним
+  }
+
+  :global {
+  /* Тонкая настройка цвета, размера шрифта и т. д. */
+  .myDatepicker .react-datepicker__day--outside-month {
+    color: #B0B0B0;
+  }
+}

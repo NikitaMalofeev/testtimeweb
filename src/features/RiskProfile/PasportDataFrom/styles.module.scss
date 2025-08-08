@@ -43,6 +43,13 @@
   gap: 23px;
   width: 100%;
   z-index: 10;
+
+  &__desktop {
+            margin-bottom: 20px;
+    max-width:400px;
+    width: 100%;
+    margin: 0 auto ;
+  }
 }
 
 .button {
@@ -122,6 +129,7 @@
     gap: 32px;
     padding-top: 10px;
     overflow: auto;
+    overflow-x: hidden;
 
     &__subtitle {
         padding-top: 76px;
@@ -167,9 +175,17 @@
     left: 0;
     bottom: 0;
 
+
     & .button {
       max-width: max-content;
       padding: 18.5px 60px;
+    }
+
+
+
+    .captcha {
+        display: flex;
+        justify-content: center;
     }
   }
 

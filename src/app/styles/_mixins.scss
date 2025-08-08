@@ -12,7 +12,7 @@ $breakpoints: (
 
     @media (min-width: nth($range, 1))       // ≥ 1024 px
            and (max-width: nth($range, 2))   // ≤ 4000 px
-           and (min-height: 660px) {         // ≥ 660 px
+           and (min-height: 500px) {         // ≥ 660 px
       @content;
     }
 

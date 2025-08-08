@@ -83,6 +83,7 @@ text-align: center;
 .document__info__flex {
     display: flex;
     align-items: center;
+justify-content: start;
     gap: 16px;
 }
 
@@ -220,7 +221,7 @@ text-align: center;
          & .document__item {
              &:first-child {
            & .document__info__flex {
-                    
+                        justify-content: start;
             & .document__status {
                 display: flex;
                 justify-content: start;
@@ -243,6 +244,7 @@ text-align: center;
 
     .document__info__flex {
         width: 326px;
+        justify-content: end;
     }
 
     .document__button_success {

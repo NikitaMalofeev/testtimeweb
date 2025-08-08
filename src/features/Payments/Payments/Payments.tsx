@@ -91,6 +91,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
 
 
 
+
     // 2. Когда статус в сторе стал SUCCESS – грузим тарифы
     useEffect(() => {
         if (currentOrderStatus === 'success' && !tariffsRequestedRef.current) {
@@ -121,10 +122,15 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         dispatch(getAllTariffsThunk());
     }, []);
 
-    const brokersItems = [
+    const brokersItems = brokerIds[0] ? [
         {
             value: brokerIds[0],
-            label: 'Тинькофф инвестиции'
+            label: 'Тинькофф брокер'
+        }
+    ] : [
+        {
+            value: '',
+            label: 'Брокер еще не выбран'
         }
     ]
 
@@ -179,6 +185,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     );
 
     const handleSetTariff = useCallback(() => {
+        dispatch(closeModal(ModalType.SUCCESS))
         if (brokerCount < 1) {
             dispatch(setWarning({
                 active: true,

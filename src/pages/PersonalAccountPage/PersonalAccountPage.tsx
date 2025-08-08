@@ -136,7 +136,8 @@ const PersonalAccountMenu: React.FC = () => {
                         <div>Заполните анкету риск-профиля</div>
                     </div>
                 ),
-            disabled: !availableMenuItems?.documents,
+            disabled: !filledRiskProfileChapters.is_risk_profile_complete_final   // риск-профиль не завершён
+                || !availableMenuItems?.documents,
         },
         {
             icon: AccountBrokerIcon,
@@ -413,6 +414,7 @@ const PersonalAccountMenu: React.FC = () => {
                                         ...(item.disabled && { opacity: '0.5' })
                                     }}
                                     onClick={() => {
+                                        if (item.disabled) return;
                                         if (item.route) {
                                             if (item.route === '/documents') {
                                                 filledRiskProfileChapters.is_risk_profile_complete_final &&

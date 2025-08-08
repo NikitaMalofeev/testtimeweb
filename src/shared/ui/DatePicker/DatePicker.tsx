@@ -135,7 +135,7 @@ export const Datepicker = memo((props: DatepickerProps) => {
                             onChange={handleCalendarChange}
                             locale={ru}
                             inline
-                            showWeekNumbers
+                            fixedHeight
                             minDate={minDate}
                             popperPlacement="bottom"
                             maxDate={computedMaxDate}
@@ -182,7 +182,7 @@ export const Datepicker = memo((props: DatepickerProps) => {
                                                 disabled={currentYear <= lowerYear}
                                                 className={cls.button__arrow}
                                             >
-                                                <Icon Svg={ArrowLeft} />
+                                                <Icon Svg={ArrowLeft} pointer />
                                             </button>
                                             <select
                                                 className={cls.select}
@@ -203,7 +203,7 @@ export const Datepicker = memo((props: DatepickerProps) => {
                                                 disabled={currentYear >= upperYear}
                                                 className={cls.button__arrow}
                                             >
-                                                <Icon Svg={ArrowRight} />
+                                                <Icon Svg={ArrowRight} pointer />
                                             </button>
                                         </div>
 
@@ -215,7 +215,7 @@ export const Datepicker = memo((props: DatepickerProps) => {
                                                 onClick={decreaseMonth}
                                                 disabled={prevMonthButtonDisabled}
                                             >
-                                                <Icon Svg={ArrowLeft} />
+                                                <Icon Svg={ArrowLeft} pointer />
                                             </button>
                                             <select
                                                 className={cls.select}
@@ -238,7 +238,7 @@ export const Datepicker = memo((props: DatepickerProps) => {
                                                 onClick={increaseMonth}
                                                 disabled={nextMonthButtonDisabled}
                                             >
-                                                <Icon Svg={ArrowRight} />
+                                                <Icon Svg={ArrowRight} pointer />
                                             </button>
                                         </div>
                                     </div>

@@ -45,6 +45,7 @@ export function useVhFix(opts: Opts = { observeBody: true }) {
                 attributeFilter: ['class', 'style'],
             });
         }
+        //
 
         return () => {
             clearTimeout(t);

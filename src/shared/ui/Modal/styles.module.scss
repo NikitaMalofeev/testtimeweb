@@ -57,6 +57,7 @@
   .middle {
     position: fixed;
     top: 50.5px;
+    max-width: 380px;
     width: calc(100% - 32px);
     margin: 0 auto;
     height: 100%;
@@ -68,6 +69,7 @@
   .mini {
     position: fixed;
     height: 100%;
+      max-width: 380px;
     width: calc(100% - 32px);
     max-height: 60dvh;
     border-radius: 10px 10px 40px 40px;
@@ -78,6 +80,7 @@
   .xxs {
     position: fixed;
     height: 100%;
+      max-width: 500px;
     width: calc(100% - 32px);
     max-height: 30dvh;
     border-radius: 10px 10px 40px 40px;
@@ -88,6 +91,7 @@
   .mcsq {
     position: fixed;
     height: 100%;
+      max-width: 380px;
     width: calc(100% - 32px);
     max-height: max-content;
     border-radius: 10px;
@@ -97,6 +101,7 @@
 
   .mc {
     position: fixed;
+      max-width: 380px; 
     width: calc(100% - 32px);
     min-height: max-content;
     max-height: max-content;
@@ -128,6 +133,8 @@
     width: 100%;
   }
 
+  
+
   @include mix.respond-to('tablet-desktop') {
     .middle {
       max-width: 380px;
@@ -151,3 +158,9 @@
     }
   }
 
+
+  @include mix.respond-dims($min-w: 801px, $min-h: 500px, $max-h: 750px) {
+  .middle {
+      max-height: 500px;
+    }
+}

@@ -12,7 +12,7 @@ $breakpoints: (
 
     @media (min-width: nth($range, 1))       // ≥ 1024 px
            and (max-width: nth($range, 2))   // ≤ 4000 px
-           and (min-height: 500px) {         // ≥ 660 px
+           and (min-height: 800px) {         // ≥ 660 px
       @content;
     }
 
@@ -33,4 +33,16 @@ $breakpoints: (
   } @else {
     @warn "Брейкпоинт `#{$bp}` не определён.";
   }
+}
+
+// универсальный: задай любые min/max для width/height
+@mixin respond-dims($min-w: null, $max-w: null, $min-h: null, $max-h: null) {
+  $mq: "all";
+
+  @if $min-w != null { $mq: $mq + " and (min-width: #{$min-w})"; }
+  @if $max-w != null { $mq: $mq + " and (max-width: #{$max-w})"; }
+  @if $min-h != null { $mq: $mq + " and (min-height: #{$min-h})"; }
+  @if $max-h != null { $mq: $mq + " and (max-height: #{$max-h})"; }
+
+  @media #{unquote($mq)} { @content; }
 }

@@ -26,6 +26,7 @@ import { WarningPopup } from 'features/Ui/WarningPopup/WarningPopup';
 import { getAllUserTariffsThunk } from 'entities/Payments/slice/paymentsSlice';
 import { deleteUserTariffs } from 'entities/User/api/userApi';
 import { Loader } from 'shared/ui/Loader/Loader';
+import { useVhFix } from 'shared/hooks/useVhFix';
 
 function App() {
   const modalState = useSelector((state: RootState) => state.modal);
@@ -39,13 +40,14 @@ function App() {
 
   const isNeedScrollToTop = useSelector((state: RootState) => state.ui.isScrollToBottom);
 
+  useVhFix()
   useAuthTokenManagement();
   useModalsController();
   useAuthModalsController();
 
   useLayoutEffect(() => {
     const userVh = window.innerHeight;
-    document.documentElement.style.setProperty('--vh', `${userVh}px`);
+    document.documentElement.style.setProperty('--app-vh', `${userVh}px`);
   }, []);
 
   useEffect(() => {

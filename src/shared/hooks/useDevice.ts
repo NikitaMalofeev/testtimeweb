@@ -5,7 +5,7 @@ const BREAKPOINTS = {
     desktop: [959, 4000], // >= 959 — десктоп (НО только если высота > 650)
 } as const;
 
-const MIN_DESKTOP_HEIGHT = 650;
+const MIN_DESKTOP_HEIGHT = 800;
 
 export type Device = 'mobile' | 'desktop';
 

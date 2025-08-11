@@ -5,7 +5,7 @@
     width: 100%;
     overflow: hidden;
     flex-direction: column;
-    height: calc(var(--vh, 1vh) - 56px);
+    height: calc(var(--app-vh, 1vh) - 56px);
     background-color: #fff;
     position: relative;
     flex-grow: 1;
@@ -57,7 +57,7 @@
     /* Основная область чата занимает оставшуюся высоту */
     &__chat__container {
         width: 100%;
-        height: calc(var(--vh) - 110px);
+        height: calc(var(--app-vh) - 110px);
         display: flex;
         flex-direction: column;
         overflow-y: auto;

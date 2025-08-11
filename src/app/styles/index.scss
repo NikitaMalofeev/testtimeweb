@@ -3,7 +3,7 @@
 
 
 .page__wrapper {
-  height: var(--vh); 
+  height: var(--app-vh); 
 
   width: 100%;
     display: flex;
@@ -17,7 +17,7 @@
   flex-direction: column;
   position: relative;
   overflow-x: hidden;
-  height: var(--vh); 
+  height: var(--app-vh); 
 
   
 }
@@ -30,11 +30,11 @@
 }
 
 html {
-  height: var(--vh); 
+  height: var(--app-vh); 
 }
 
 body {
-  height: var(--vh); 
+  height: var(--app-vh); 
   width: 100%;
     font-family: var(--font-inter);
     overflow-y: hidden;

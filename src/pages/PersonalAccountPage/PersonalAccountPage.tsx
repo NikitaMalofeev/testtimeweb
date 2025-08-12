@@ -38,6 +38,7 @@ import { getAllBrokersThunk, getUserDocumentsStateThunk } from "entities/Documen
 import { checkPushNotificationsThunk } from "entities/ui/PushNotifications/slice/pushSlice";
 import BlueOk from 'shared/assets/svg/blueOk.svg'
 import { getAllActiveTariffsThunk } from "entities/Payments/slice/paymentsSlice";
+import { selectNotifications } from "entities/Notification/slice/notificationSlice";
 
 const PersonalAccountMenu: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -58,6 +59,7 @@ const PersonalAccountMenu: React.FC = () => {
     const isUserVip = useSelector((s: RootState) => s.user.is_vip)
     const isUserIP = useSelector((s: RootState) => s.user.userPersonalAccountInfo?.is_individual_entrepreneur)
     const hasActiveTariff = activeTariffs.some(tariff => tariff.is_active);
+    const notifications = useSelector((state: RootState) => selectNotifications(state));
     const isIdentityDataComplete = isUserIP
         ? filledRiskProfileChapters.is_complete_person_legal
         : filledRiskProfileChapters.is_complete_passport;
@@ -67,7 +69,7 @@ const PersonalAccountMenu: React.FC = () => {
         : filledRiskProfileChapters.is_exist_scan_passport;
 
     const hasIdentityDocs = isIdentityDataComplete && isIdentityScanExist;
-
+    const allNotificationsCount = unreadAnswersCount + notifications.length;
     useEffect(() => {
         dispatch(getUserPersonalAccountInfoThunk());
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -261,8 +263,8 @@ const PersonalAccountMenu: React.FC = () => {
         {
             icon: AccountNotificationIcon,
             title: "Уведомления",
-            action: () => dispatch(setCurrentTab("notifications")),
-            notificationsCount: 0,
+            route: "/notifications",
+            notificationsCount: allNotificationsCount,
             iconWidth: 25,
             iconHeight: 28,
         },
@@ -415,11 +417,13 @@ const PersonalAccountMenu: React.FC = () => {
                                     }}
                                     onClick={() => {
                                         if (item.disabled) return;
+                                        console.log('CLICK:', item.title);
                                         if (item.route) {
-                                            if (item.route === '/documents') {
-                                                filledRiskProfileChapters.is_risk_profile_complete_final &&
-                                                    navigate(item.route);
+                                            if (item.route === '/documents' && !filledRiskProfileChapters.is_risk_profile_complete_final) {
+                                                return;
                                             }
+                                            navigate(item.route);
+                                            return;
                                         } else if (item.action) {
                                             item.action();
                                         }

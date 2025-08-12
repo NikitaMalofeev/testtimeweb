@@ -21,12 +21,14 @@ import { useAuthTokenManagement } from 'shared/hooks/useAuthTokenManager';
 import { setError } from 'entities/Error/slice/errorSlice';
 import { useModalsController } from 'shared/hooks/useModalsController';
 import { useAuthModalsController } from 'shared/hooks/useAuthModalsController';
-import { setScrollToTop } from 'entities/ui/Ui/slice/uiSlice';
+import { setPushNotificationActive, setScrollToTop, setWarning } from 'entities/ui/Ui/slice/uiSlice';
 import { WarningPopup } from 'features/Ui/WarningPopup/WarningPopup';
 import { getAllUserTariffsThunk } from 'entities/Payments/slice/paymentsSlice';
 import { deleteUserTariffs } from 'entities/User/api/userApi';
 import { Loader } from 'shared/ui/Loader/Loader';
 import { useVhFix } from 'shared/hooks/useVhFix';
+import { selectNotifications } from 'entities/Notification/slice/notificationSlice';
+import { NotificationPopup } from 'features/Ui/NotificationPopup/NotificationPopup';
 
 function App() {
   const modalState = useSelector((state: RootState) => state.modal);
@@ -36,10 +38,11 @@ function App() {
   const { websocketId, messages, unreadAnswersCount } = useSelector(
     (state: RootState) => state.supportChat
   );
+  const notifications = useSelector((state: RootState) => selectNotifications(state));
   const { token, userId } = useSelector((state: RootState) => state.user);
 
   const isNeedScrollToTop = useSelector((state: RootState) => state.ui.isScrollToBottom);
-
+  const allNotificationsCount = unreadAnswersCount + notifications.length;
   useVhFix()
   useAuthTokenManagement();
   useModalsController();
@@ -136,7 +139,7 @@ function App() {
   return (
     <div className='page__wrapper'>
       <div className='page__content'>
-        <Header currentNotificationsCount={unreadAnswersCount} variant='main' />
+        <Header currentNotificationsCount={allNotificationsCount} variant='main' />
         <div className="page__scroll" ref={scrollRef}>
           {/* <button onClick={handleResetTariffs}>reset</button> */}
           <Cover />
@@ -148,6 +151,7 @@ function App() {
 
       <ErrorPopup />
       <WarningPopup />
+      <NotificationPopup />
       <SuccessPopup />
       <RiskProfileModal
         isOpen={modalState.identificationModal.isOpen}

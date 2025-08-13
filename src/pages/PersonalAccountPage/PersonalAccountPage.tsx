@@ -235,6 +235,7 @@ const PersonalAccountMenu: React.FC = () => {
             ) : null,
             disabled: !availableMenuItems?.broker,
         },
+        //
         // {
         //     icon: AccountTarifsIcon,
         //     title: "Тарифы",

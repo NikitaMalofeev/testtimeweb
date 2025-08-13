@@ -57,7 +57,7 @@ export const Recomendations = () => {
             dispatch(getUserNotSignedIirHtmlThunk({ uuid }));
         }
 
-        console.log(status)
+        // console.log(status)
 
 
         // dispatch(getSignedIirDocumentThunk({ payload: { uuid } }));

@@ -1,3 +1,11 @@
 .buttons__desktop {
     margin-bottom: 20px;
+    max-width:400px;
+    width: 100%;
+    margin: 0 auto 20px;
+}
+
+.captcha {
+    display: flex;
+    justify-content: center;
 }

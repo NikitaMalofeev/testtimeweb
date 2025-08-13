@@ -20,7 +20,14 @@ const PaymentsPage: React.FC = () => {
     const device = useDevice()
     const [isPaid, setIsPaid] = useState<boolean>(false)
     const paymentStatus = useSelector((state: RootState) => state.payments.currentOrderStatus)
+    const currentPaidTariffs = useSelector((s: RootState) => s.payments.paidTariffKeys)
 
+
+    // useEffect(() => {
+    //     if (currentPaidTsfdfariffs !== null) {
+    //         navigate('payments/loading')
+    //     }
+    // }, [currentPaidTariffs])
     // return loading ? (
     //     <Loader />
     // ) : (

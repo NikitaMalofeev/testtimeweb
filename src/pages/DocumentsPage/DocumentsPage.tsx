@@ -144,7 +144,7 @@ const DocumentsPage: React.FC = () => {
         } else {
             setTimeout(() => {
                 if (!isAnyModalOpen) {
-                    console.log("All modals closed, resetting styles.");
+                    // console.log("All modals closed, resetting styles.");
                     document.body.style.overflow = "";
                     document.body.style.position = "";
                     document.body.style.width = "";
@@ -171,7 +171,7 @@ const DocumentsPage: React.FC = () => {
             "type_doc_investment_profile_certificate",
             "type_doc_agreement_account_maintenance",
             "type_doc_broker_api_token",
-            "type_doc_agreement_investment_advisor_app_1", // ← будет удалён для VIP
+            // "type_doc_agreement_investment_advisor_app_1", // ← будет удалён для VIP
         ];
 
         /* ------------------------------------------------------------------
@@ -227,7 +227,7 @@ const DocumentsPage: React.FC = () => {
         type_doc_investment_profile_certificate: "Справка ИП",
         type_doc_agreement_account_maintenance: "Доверенность на управление счётом",
         type_doc_broker_api_token: "Согласие на передачу API-ключа к брокерскому счёту",
-        type_doc_agreement_investment_advisor_app_1: "Договор ИС: Приложение 1",
+        // type_doc_agreement_investment_advisor_app_1: "Договор ИС: Приложение 1",
     };
 
     /** Итоговые лейблы с корректной нумерацией */
@@ -376,7 +376,7 @@ const DocumentsPage: React.FC = () => {
                 );
                 break;
             default:
-                console.log("Неподдерживаемый тип документа");
+            // console.log("Неподдерживаемый тип документа");
         }
     };
 
@@ -563,7 +563,7 @@ const DocumentsPage: React.FC = () => {
     const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
 
     const handleOpenPreview = (docId: string) => {
-        console.log(docId);
+        // console.log(docId);
         if (docId === "type_doc_passport") {
             setSelectedDocId(docId);
             dispatch(

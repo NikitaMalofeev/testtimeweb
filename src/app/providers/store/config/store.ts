@@ -24,6 +24,7 @@ import supportChatReducer from 'entities/SupportChat/slice/supportChatSlice';
 import pushReducer from 'entities/ui/PushNotifications/slice/pushSlice';
 import paymentsReducer from 'entities/Payments/slice/paymentsSlice';
 import recomendationsReducer from 'entities/Recomendations/slice/recomendationsSlice';
+import notificationsReducer from 'entities/Notification/slice/notificationSlice';
 import { initBroadcastListener, broadcastSyncMiddleware } from 'shared/lib/middleware/broadcastChannelSyncMiddleware';
 import { Recomendations } from 'widgets/Recomendations/Recomendations';
 
@@ -38,13 +39,15 @@ const rootReducer = combineReducers({
     supportChat: supportChatReducer,
     push: pushReducer,
     payments: paymentsReducer,
-    recomendations: recomendationsReducer
+    recomendations: recomendationsReducer,
+    notifications: notificationsReducer
 });
 
 const persistConfig = getPersistConfig({
     key: 'root',
     storage,
     whitelist: [
+        'notifications',
         'ui.additionalMenu.currentStep',
         'ui.isPushNotificationActive.purpose',
 

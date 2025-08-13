@@ -48,7 +48,7 @@ export const Modal = memo(({
     const additionalOverlayVisibility = useSelector((state: RootState) => state.modal.additionalOverlayVisibility);
 
     useEffect(() => {
-        // console.log("Modal state changed:", { isOpen, isAnyModalOpen });
+        // // console.log("Modal state changed:", { isOpen, isAnyModalOpen });
         if (isOpen) {
             document.body.style.overflow = 'hidden';
             document.body.style.position = 'fixed';

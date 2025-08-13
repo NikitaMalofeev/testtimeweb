@@ -1,0 +1,85 @@
+@use '../../../app/styles/mixins' as mix;
+
+.warningModal {
+    position: fixed;
+    max-width: calc(100dvw - 48px);
+    width: 100%;
+    top: 0;
+    left: 24px;
+    height: auto; // Позволяет блоку расти по высоте
+    padding: 16px 25px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    z-index: 10000;
+    border: 2px solid rgba(6, 102, 235, 0.1);
+    word-wrap: break-word; // Гарантирует перенос длинных слов
+    overflow-wrap: break-word; // Дополнительно для современных браузеров
+    white-space: normal; // Разрешает перенос строк
+
+    &__content {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    &__sub {
+      font-family: Inter;
+      font-weight: 400;
+      font-size: 14px;
+      line-height: 100%;
+      letter-spacing: 0%;
+    }
+  }
+  
+
+  .button {
+    max-width: 127px;
+    font-family: Inter;
+font-weight: 500;
+font-size: 14px;
+line-height: 100%;
+letter-spacing: 0%;
+text-align: center;
+  }
+
+  .button__purpose {
+    max-width: max-content;
+    font-family: Inter;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 100%;
+    letter-spacing: 0%;
+    text-align: center;
+  }
+
+  .closeIcon {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+  }
+
+  .purpose {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+   @include mix.respond-to('tablet-desktop') {
+
+      .warningModal {
+         position: fixed;
+        max-width: 360px;
+        left: calc(50% - 180px);
+      }
+  }
+
+  .header {
+    display: flex;
+    gap: 10px;
+  }
+
+  .text {
+    color: #0F0E0E;
+    font-size: 12px;
+  }

@@ -335,19 +335,20 @@ export const RiskProfileSecondForm: React.FC = () => {
                                 {secondRiskProfileData && (
                                     <div className={styles.form__final}>
 
-                                        <Tooltip
-                                            className={styles.form__item__tooltip_report}
-                                            description={
-                                                RISK_PROFILE_DESCRIPTIONS[
-                                                Object.keys(secondRiskProfileData.recommended_risk_profiles)[Object.keys(secondRiskProfileData.recommended_risk_profiles).length - 1]
-                                                ]
-                                            }
-                                            topForCenteringIcons="24px"
-                                            direction='left'
-                                            positionBox={{ top: '12px', right: '32px' }}
-                                            squerePosition={{ right: '-4px' }}
-                                        />
+
                                         <div className={styles.report__container}>
+                                            <Tooltip
+                                                className={styles.form__item__tooltip_report}
+                                                description={
+                                                    RISK_PROFILE_DESCRIPTIONS[
+                                                    Object.keys(secondRiskProfileData.recommended_risk_profiles)[Object.keys(secondRiskProfileData.recommended_risk_profiles).length - 1]
+                                                    ]
+                                                }
+                                                topForCenteringIcons="24px"
+                                                direction='left'
+                                                positionBox={{ top: '12px', right: '32px' }}
+                                                squerePosition={{ right: '-4px' }}
+                                            />
                                             <p className={styles.report}>Рекомендуемый риск-профиль по результатам риск-профилирования </p>
                                             <b className={styles.report__value}>{Object.values(secondRiskProfileData.recommended_risk_profiles)[Object.keys(secondRiskProfileData.recommended_risk_profiles).length - 1]}</b>
                                         </div>

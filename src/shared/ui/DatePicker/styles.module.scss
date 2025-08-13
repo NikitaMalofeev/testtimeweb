@@ -80,9 +80,11 @@ left: 50%;
     height: 20px;
     display: flex;
     text-align: center;
+    cursor: pointer;
     align-items: center;
     justify-content: center;
 }
+
 
 .button_date {
     position: relative;
@@ -142,8 +144,7 @@ left: 50%;
     // любые дополнительные стили
   }
   
-  /* Остальное (calendarWrapper и т.п.) — без изменений */
-  
+
 
   .input__error {
     position: absolute;
@@ -162,4 +163,12 @@ left: 50%;
 .input__error__icon {
     width: 16px;
     height: 16px;
+}
+
+:global {
+  /* перекраска всех ячеек, не относящихся к текущему месяцу */
+  .react-datepicker__day--outside-month {
+    color: #b0b0b0 !important;
+    pointer-events: none;
+  }
 }

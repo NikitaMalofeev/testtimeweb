@@ -37,11 +37,11 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
     );
 
     useEffect(() => {
-        console.log(activePaidTariffs)
-        console.log(activeTariffs)
-        console.log(currentUserTariffIdForPayments)
-        console.log('targetTariffId:', targetTariffId);
-        console.log('activePaidTariffs:', activePaidTariffs);
+        // console.log(activePaidTariffs)
+        // console.log(activeTariffs)
+        // console.log(currentUserTariffIdForPayments)
+        // console.log('targetTariffId:', targetTariffId);
+        // console.log('activePaidTariffs:', activePaidTariffs);
     }, [])
 
 

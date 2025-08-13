@@ -134,6 +134,12 @@ const initialState: ExtendedModalState = {
         animation: ModalAnimation.BOTTOM,
         isScrolled: false,
     },
+    [ModalType.NOTIFICATION]: {
+        isOpen: false,
+        size: ModalSize.MC,
+        animation: ModalAnimation.BOTTOM,
+        isScrolled: false,
+    },
     [ModalType.CONFIRM_CONTACTS]: {
         isOpen: false,
         size: ModalSize.MIDDLE,

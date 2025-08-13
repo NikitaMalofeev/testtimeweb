@@ -3,7 +3,7 @@
 
 
 .page__wrapper {
-  height: var(--vh); 
+  height: var(--app-vh); 
 
   width: 100%;
     display: flex;
@@ -17,7 +17,7 @@
   flex-direction: column;
   position: relative;
   overflow-x: hidden;
-  height: var(--vh); 
+  height: var(--app-vh); 
 
   
 }
@@ -30,11 +30,11 @@
 }
 
 html {
-  height: var(--vh); 
+  height: var(--app-vh); 
 }
 
 body {
-  height: var(--vh); 
+  height: var(--app-vh); 
   width: 100%;
     font-family: var(--font-inter);
     overflow-y: hidden;
@@ -142,4 +142,16 @@ mark {
   background-color: #045FDD;
   color: white;
   /* или другой цвет подсветки */
+}
+
+.react-datepicker__day--outside-month {
+    color: #B0B0B0;         // серый
+    pointer-events: none;   // (опционально) запретить клик по ним
+  }
+
+  :global {
+  /* Тонкая настройка цвета, размера шрифта и т. д. */
+  .myDatepicker .react-datepicker__day--outside-month {
+    color: #B0B0B0;
+  }
 }

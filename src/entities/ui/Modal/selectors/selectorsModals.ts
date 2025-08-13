@@ -3,7 +3,7 @@ import { ModalType } from "../model/modalTypes";
 
 
 export const selectIsAnyModalOpen = (state: RootState) => {
-    // console.log("Current modal state:", state.modal);
+    // // console.log("Current modal state:", state.modal);
 
     return Object.values(state.modal)
         .filter((modal) => modal !== undefined) // Убираем undefined-модалки

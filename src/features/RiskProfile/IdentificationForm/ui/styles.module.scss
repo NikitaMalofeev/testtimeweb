@@ -53,8 +53,10 @@
     display: flex;
     justify-content: center;
     gap: 23px;
+    max-width: 400px;
     width: 100%;
     z-index: 10;
+    margin: 0 auto;
 
     &__title {
         display: block;
@@ -109,6 +111,23 @@
     }
 }
 
+.captcha {
+        display: flex;
+        position: relative;
+        z-index: 1;
+        justify-content: center;
+    }
+
+
+    @media screen and (min-width: 550px) {
+       .buttons__method {
+
+    &__title {
+       text-align: center;
+    }
+}
+        
+    }
 
 @include mix.respond-to('tablet-desktop') {
     .button {

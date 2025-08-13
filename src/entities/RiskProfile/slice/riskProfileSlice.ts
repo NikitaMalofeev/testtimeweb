@@ -186,17 +186,17 @@ export const postLegalInfoThunk = createAsyncThunk<
 >(
     "riskProfile/postLegalInfoThunk",
     async (data, { getState, rejectWithValue, dispatch }) => {
-        console.log('до try')
+        // // console.log('до try')
         try {
             const token = getState().user.token;
-            console.log('need contacts before')
+            // // console.log('need contacts before')
             const response = await postLegalInfoForm(data, token);
             dispatch(setLegalConfirmData(response));
-            console.log(JSON.stringify(null, response, 2) + 'need contacts')
+            // console.log(JSON.stringify(null, response, 2) + 'need contacts')
 
             const needContacts =
                 response.is_need_confirm_email || response.is_need_confirm_phone;
-            console.log(needContacts)
+            // console.log(needContacts)
             dispatch(
                 openModal({
                     type: needContacts
@@ -401,11 +401,10 @@ export const postPasportScanThunk = createAsyncThunk<
             await postPasportScanData(data, token);
             // Вызываем onSuccess после успешной отправки
             onSuccess();
-            dispatch(setTooltipActive({ active: true, message: 'Сканы паспортов успешно загружены' }))
         } catch (error: any) {
             const errorText = error.response?.data?.errorText;
-            console.log('Статус ошибки:', error.response?.status);
-            console.log('Текст ошибки:', errorText);
+            // console.log('Статус ошибки:', error.response?.status);
+            // console.log('Текст ошибки:', errorText);
 
             if (errorText && errorText.trim() === 'Сканы уже загружены. Для изменения сканов обратитесь в поддержку') {
                 dispatch(setError(errorText));
@@ -436,8 +435,8 @@ export const postINNScanThunk = createAsyncThunk<
             dispatch(setTooltipActive({ active: true, message: 'Скан ИИН успешно загружен' }))
         } catch (error: any) {
             const errorText = error.response?.data?.errorText;
-            console.log('Статус ошибки:', error.response?.status);
-            console.log('Текст ошибки:', errorText);
+            // console.log('Статус ошибки:', error.response?.status);
+            // console.log('Текст ошибки:', errorText);
 
             if (errorText && errorText.trim() === 'Сканы уже загружены. Для изменения сканов обратитесь в поддержку') {
                 dispatch(setError(errorText));
@@ -466,7 +465,7 @@ export const openPasportScanWebsocketThunk = createAsyncThunk<
                 const socket = new WebSocket(`wss://test.webbroker.ranks.pro/ws/upload_scans_progress/${socketId}/`);
 
                 socket.onopen = () => {
-                    console.log("WebSocket открыт в:", new Date());
+                    // console.log("WebSocket открыт в:", new Date());
                     // При необходимости можно отправить первоначальное сообщение
                     socket.send('Сообщение при подключении от клиента')
                 };
@@ -497,7 +496,7 @@ export const openPasportScanWebsocketThunk = createAsyncThunk<
                 };
 
                 socket.onclose = () => {
-                    console.log("WebSocket закрыт");
+                    // console.log("WebSocket закрыт");
                 };
             });
         } catch (error: any) {

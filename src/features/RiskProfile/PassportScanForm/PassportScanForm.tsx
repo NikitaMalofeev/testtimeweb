@@ -20,6 +20,7 @@ import { UploadProgressModal } from "features/Ui/UploadProgressModal/UploadProgr
 import { getUserDocumentsStateThunk, setIsRiksProfileComplete } from "entities/Documents/slice/documentsSlice";
 import { setError } from "entities/Error/slice/errorSlice";
 import { useNavigate } from "react-router-dom";
+import { addNotification } from "entities/Notification/slice/notificationSlice";
 
 export interface PasportScanData {
     file_scan_page_first: null | string;
@@ -120,6 +121,9 @@ export const PasportScanForm: React.FC = () => {
             postPasportScanThunk({
                 data: formData,
                 onSuccess: () => {
+                    dispatch(addNotification({ color: 'blue', createdAt: new Date(), status: 'unread', id: "pasport", description: "Данные вашего паспорта загружены и проходят проверку, мы сообщим об окончании" }));
+
+
                     dispatch(getUserDocumentsStateThunk())
                     dispatch(
                         setIsRiksProfileComplete({
@@ -249,12 +253,12 @@ export const PasportScanForm: React.FC = () => {
         };
     }, [previewReg]);
 
-    useEffect(() => {
-        console.log({
-            file_scan_page_first: formik.values.file_scan_page_first,
-            file_scan_page_registration: formik.values.file_scan_page_registration
-        });
-    }, [formik.values]);
+    //     useEffect(() => {
+    //         // console.log({
+    //         file_scan_page_first: formik.values.file_scan_page_first,
+    //             file_scan_page_registration: formik.values.file_scan_page_registration
+    //     });
+    // }, [formik.values]);
 
     return (
         <>

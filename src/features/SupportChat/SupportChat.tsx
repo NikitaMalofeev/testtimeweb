@@ -165,6 +165,7 @@ export const SupportChat = () => {
                         Svg={ArrowBack}
                         width={24}
                         height={24}
+                        pointer
                         onClick={() => navigate(-1)}
                     />
                     <h2 className={styles.chat__header__title}>Чат поддержки</h2>
@@ -222,6 +223,7 @@ export const SupportChat = () => {
                     Svg={ChatSendIcon}
                     width={24}
                     height={24}
+                    pointer
                     onClick={handleSendMessage}
                 />
             </div>

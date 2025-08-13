@@ -252,7 +252,7 @@ export const ConfirmDocsModal = memo(
                         }
                     }))
                 } else {
-                    console.log('отправляю код' + code)
+                    // // console.log('отправляю код' + code)
                     dispatch(
                         sendDocsConfirmationCode({
                             codeFirst: code,
@@ -285,7 +285,7 @@ export const ConfirmDocsModal = memo(
                                 dispatch(getUserDocumentsStateThunk());
                                 if (docsType === 'type_doc_passport') {
                                     dispatch(setStepAdditionalMenuUI(3));
-                                    console.log(1 + 'пробую перевести сразу в документы 4')
+                                    // console.log(1 + 'пробую перевести сразу в документы 4')
                                 }
 
                                 if (docsType === 'type_doc_EDS_agreement' && (isRPFilled && isRPFinalFilled)) {

@@ -37,9 +37,9 @@ export const CheckPreviewModal: React.FC<Props> = ({
     const loading = useSelector((s: RootState) => s.payments.error === null && !html);
 
     useEffect(() => {
-        console.log('html' + html)
-        console.log('checkid' + checkId)
-        console.log(loading)
+        // console.log('html' + html)
+        // console.log('checkid' + checkId)
+        // console.log(loading)
     }, [html, checkId, loading])
 
     /* блокировка скролла */
@@ -87,7 +87,7 @@ export const CheckPreviewModal: React.FC<Props> = ({
             >
                 <div className={styles.modalHeader}>
                     <span className={styles.modalTitle}>{title}</span>
-                    <Icon Svg={CloseIcon} width={20} height={20} onClick={handleClose} pointer/>
+                    <Icon Svg={CloseIcon} width={20} height={20} onClick={handleClose} pointer />
                 </div>
 
                 <div className={styles.modalContent}>

@@ -22,9 +22,6 @@ interface HeaderProps {
 }
 
 export const Header = ({ currentNotificationsCount, variant }: HeaderProps) => {
-
-
-
     if (variant === 'fallback') {
         return (
             <header className={styles.header}>
@@ -113,19 +110,24 @@ export const Header = ({ currentNotificationsCount, variant }: HeaderProps) => {
                 //     <div className={`${styles.hamburgerOne} ${styles.hamburger}`}></div>
                 // </div>
                 :
-                <div className={styles.header__account} onClick={() => {
-                    navigate('/lk')
+                <div className={styles.header__account} >
+                    {currentNotificationsCount ? <div className={styles.header__notifications} onClick={() => {
+                        dispatch(closeAllModals())
+                        navigate('/notifications')
 
-                    //костыль потом исправить FIXME
-                    document.body.style.overflow = "";
-                    document.body.style.position = "";
-                    document.body.style.width = "";
-                    document.documentElement.style.overflow = "";
-                    dispatch(closeAllModals())
 
-                }}>
-                    {currentNotificationsCount ? <div className={styles.header__notifications}>{currentNotificationsCount}</div> : <span className={styles.header__notifications_empty}>Нет новых уведомлений</span>}
-                    <Icon Svg={AccountIcon} width={24} height={24} pointer />
+                    }}>{currentNotificationsCount}</div> : <span className={styles.header__notifications_empty}>Нет новых уведомлений</span>}
+                    <Icon Svg={AccountIcon} width={24} height={24} pointer onClick={() => {
+                        navigate('/lk')
+
+                        //костыль потом исправить FIXME
+                        // document.body.style.overflow = "";
+                        // document.body.style.position = "";
+                        // document.body.style.width = "";
+                        // document.documentElement.style.overflow = "";
+                        dispatch(closeAllModals())
+
+                    }} />
                 </div>}
             {/* <div onClick={handleLogout}>Выйти</div> */}
         </header>

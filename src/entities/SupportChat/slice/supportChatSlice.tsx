@@ -68,7 +68,7 @@ export const openWebSocketConnection = createAsyncThunk<
             chatSocket = new WebSocket(`wss://test.webbroker.ranks.pro/ws/chat_support/${websocketId}/`);
 
             chatSocket.onopen = () => {
-                console.log("WebSocket opened:", websocketId);
+                // console.log("WebSocket opened:", websocketId);
             };
 
             chatSocket.onmessage = (evt) => {
@@ -77,7 +77,7 @@ export const openWebSocketConnection = createAsyncThunk<
                     if (data.type === "message_to_support_chat") {
                         dispatch(addMessage(data.data));
                     } else {
-                        console.log("Неизвестный тип:", data.type);
+                        // console.log("Неизвестный тип:", data.type);
                     }
                 } catch (e) {
                     console.error("Ошибка парсинга:", e);
@@ -85,7 +85,7 @@ export const openWebSocketConnection = createAsyncThunk<
             };
 
             chatSocket.onclose = () => {
-                console.log("WebSocket closed:", websocketId);
+                // console.log("WebSocket closed:", websocketId);
             };
 
             chatSocket.onerror = (err) => {

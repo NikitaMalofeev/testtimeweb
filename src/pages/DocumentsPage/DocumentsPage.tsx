@@ -144,7 +144,7 @@ const DocumentsPage: React.FC = () => {
         } else {
             setTimeout(() => {
                 if (!isAnyModalOpen) {
-                    console.log("All modals closed, resetting styles.");
+                    // console.log("All modals closed, resetting styles.");
                     document.body.style.overflow = "";
                     document.body.style.position = "";
                     document.body.style.width = "";
@@ -376,7 +376,7 @@ const DocumentsPage: React.FC = () => {
                 );
                 break;
             default:
-                console.log("Неподдерживаемый тип документа");
+            // console.log("Неподдерживаемый тип документа");
         }
     };
 
@@ -563,7 +563,7 @@ const DocumentsPage: React.FC = () => {
     const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
 
     const handleOpenPreview = (docId: string) => {
-        console.log(docId);
+        // console.log(docId);
         if (docId === "type_doc_passport") {
             setSelectedDocId(docId);
             dispatch(

@@ -64,7 +64,7 @@ export const PdfViewer: React.FC<MyPdfViewerProps> = ({
     }, [pdfUrl, pdfBase64, pdfBinary]);
 
     useEffect(() => {
-        console.log("📄 viewerSource:", viewerSource);
+        // console.log("📄 viewerSource:", viewerSource);
     }, [viewerSource])
 
     if (!viewerSource) {

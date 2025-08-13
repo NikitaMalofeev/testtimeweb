@@ -170,7 +170,7 @@ export const ConfirmAllDocs: React.FC = () => {
                 }
             } else if (currentTypeDoc === "type_doc_broker_api_token" && brokerIds.length === 0) {
                 dispatch(setStepAdditionalMenuUI(5));
-                console.log(5)
+                // console.log(5)
             } else if (currentTypeDoc === "type_doc_agreement_investment_advisor_app_1") {
                 currentOrderId && dispatch(setTariffIdThunk({
                     tariff_key: currentOrderId, broker_id: brokerId, type_message: formik.values.type_message, is_agree: formik.values.is_agree, onSuccess: () => {
@@ -197,7 +197,7 @@ export const ConfirmAllDocs: React.FC = () => {
                 // }))
             } else {
                 // При успешном запросе открываем ConfirmDocsModal
-                console.log(1)
+                // console.log(1)
                 dispatch(
                     confirmDocsRequestThunk({
                         data: formik.values,

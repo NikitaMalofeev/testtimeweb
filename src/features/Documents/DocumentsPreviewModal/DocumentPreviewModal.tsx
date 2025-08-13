@@ -53,10 +53,10 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
     const [isContentReady, setIsContentReady] = useState(false);
 
     useEffect(() => {
-        console.log(docId)
-        console.log(allDocumentsHtml)
-        console.log(isSignedDoc)
-        docId && console.log(allDocumentsHtml?.[docId])
+        // console.log(docId)
+        // console.log(allDocumentsHtml)
+        // console.log(isSignedDoc)
+        // docId && // console.log(allDocumentsHtml?.[docId])
     }, [docId, isContentReady])
 
     useEffect(() => {
@@ -103,9 +103,9 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
     ]);
 
     // useEffect(() => {
-    //     console.log(isSignedDoc)
-    //     console.log(isContentReady)
-    //     console.log('hasCurrentSighedDocument', hasCurrentSighedDocument);
+    //     // console.log(isSignedDoc)
+    //     // console.log(isContentReady)
+    //     // console.log('hasCurrentSighedDocument', hasCurrentSighedDocument);
     // }, [hasCurrentSighedDocument, isContentReady]);
 
     // Блокировка скролла, если модалка открыта

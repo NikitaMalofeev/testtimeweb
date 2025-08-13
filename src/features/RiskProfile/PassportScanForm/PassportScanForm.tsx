@@ -253,12 +253,12 @@ export const PasportScanForm: React.FC = () => {
         };
     }, [previewReg]);
 
-    useEffect(() => {
-        console.log({
-            file_scan_page_first: formik.values.file_scan_page_first,
-            file_scan_page_registration: formik.values.file_scan_page_registration
-        });
-    }, [formik.values]);
+    //     useEffect(() => {
+    //         // console.log({
+    //         file_scan_page_first: formik.values.file_scan_page_first,
+    //             file_scan_page_registration: formik.values.file_scan_page_registration
+    //     });
+    // }, [formik.values]);
 
     return (
         <>

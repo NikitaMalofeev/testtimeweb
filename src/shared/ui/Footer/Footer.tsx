@@ -47,7 +47,7 @@ export const Footer: React.FC = () => {
     useEffect(() => {
         if (currentDocForPreview) {
             dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW_PDF, animation: ModalAnimation.LEFT, size: ModalSize.FULL }));
-            console.log(currentDocForPreview + 'current')
+            // console.log(currentDocForPreview + 'current')
         }
     }, [currentDocForPreview, dispatch]);
 

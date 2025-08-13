@@ -219,7 +219,7 @@ export const LegalDataForm: React.FC = () => {
         onSubmit: values => {
             //@ts-ignore
             dispatch(updateLegalFormData(values));
-            console.log('отправляю фанк')
+            // console.log('отправляю фанк')
             dispatch(
                 postLegalInfoThunk(
                     //@ts-ignore
@@ -239,7 +239,7 @@ export const LegalDataForm: React.FC = () => {
     };
 
     useEffect(() => {
-        console.log(formik.errors)
+        // console.log(formik.errors)
     }, [formik.errors])
 
 

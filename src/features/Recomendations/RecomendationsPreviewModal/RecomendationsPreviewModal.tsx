@@ -42,10 +42,10 @@ export const RecomendationsPreviewModal: React.FC<RecomendationsPreviewModalProp
     const [ready, setReady] = useState(false);
 
     useEffect(() => {
-        console.log(uuid)
-        console.log(ready)
-        console.log(htmlKey)
-        console.log(pdfKey)
+        // console.log(uuid)
+        // console.log(ready)
+        // console.log(htmlKey)
+        // console.log(pdfKey)
     }, [uuid, ready, htmlKey, pdfKey])
 
     /* ───────── проверяем готовность контента ───────── */
@@ -115,7 +115,7 @@ export const RecomendationsPreviewModal: React.FC<RecomendationsPreviewModalProp
             >
                 <div className={styles.modalHeader}>
                     <span className={styles.modalTitle}>{title}</span>
-                    <Icon Svg={CloseIcon} width={20} height={20} onClick={handleClose} pointer/>
+                    <Icon Svg={CloseIcon} width={20} height={20} onClick={handleClose} pointer />
                 </div>
 
                 <>

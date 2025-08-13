@@ -107,7 +107,7 @@ export const userLoginThunk = createAsyncThunk<
     async ({ data, onSuccess }, { rejectWithValue, dispatch }) => {
         try {
             const response = await userLogin(data);
-            console.log("Токен из API:", response.token);
+            // console.log("Токен из API:", response.token);
 
             if (response.token) {
                 dispatch(setUserToken(response.token));
@@ -189,7 +189,7 @@ export const userSlice = createSlice({
             state.is_active = action.payload;
         },
         setUserToken: (state, action: PayloadAction<string>) => {
-            console.log("Устанавливаем токен в state:", action.payload);
+            // console.log("Устанавливаем токен в state:", action.payload);
             return {
                 ...state,
                 token: action.payload, // Обновляем state через return

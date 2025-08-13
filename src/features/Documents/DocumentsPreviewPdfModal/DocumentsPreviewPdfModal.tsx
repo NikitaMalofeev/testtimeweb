@@ -48,7 +48,7 @@ export const DocumentsPreviewPdfModal: React.FC<DocumentsPreviewPdfProps> = ({
     }, [isOpen, isAnyModalOpen]);
 
     useEffect(() => {
-        console.log(pdfUrl + 'url')
+        // console.log(pdfUrl + 'url')
     }, [pdfUrl])
 
     const handleClose = () => {
@@ -78,7 +78,7 @@ export const DocumentsPreviewPdfModal: React.FC<DocumentsPreviewPdfProps> = ({
             >
                 <div className={styles.modalHeader}>
                     <span className={styles.modalTitle}>{title || "Документ"}</span>
-                    <Icon Svg={CloseIcon} width={20} height={20} onClick={handleClose} pointer/>
+                    <Icon Svg={CloseIcon} width={20} height={20} onClick={handleClose} pointer />
                 </div>
 
                 <div className={styles.modalContent}>

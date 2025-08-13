@@ -26,7 +26,7 @@ export const PushNotification = ({ pushNotifications, activePush }: PushNotifica
             dispatch(markPushAsOpened(activePush.id));
 
         }
-        activePush && console.log(activePush.id)
+        activePush && // console.log(activePush.id)
     }, [activePush, dispatch]);
 
     const variants = {

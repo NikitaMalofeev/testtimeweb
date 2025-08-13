@@ -105,7 +105,7 @@ export const ConfirmCustomDocsModal = memo(
         }, [confirmationMethod, codeLength]);
 
         const handleInputChangeFirst = (value: string, index: number) => {
-            console.log("→ onChange", { value, index });
+            // console.log("→ onChange", { value, index });
             if (value.length > 1) {
                 const digits = value.slice(0, codeLength).split('');
                 const newCode = Array(codeLength).fill("");
@@ -188,11 +188,11 @@ export const ConfirmCustomDocsModal = memo(
         // При полном вводе кода отправляем запрос на подтверждение
         useEffect(() => {
             // Смотрим «сырые» цифры и длину строки для дебага
-            console.log("smsCodeFirst:", smsCodeFirst, "code:", smsCodeFirst.join(""), "length:", smsCodeFirst.join("").length);
+            // console.log("smsCodeFirst:", smsCodeFirst, "code:", smsCodeFirst.join(""), "length:", smsCodeFirst.join("").length);
 
             if (smsCodeFirst.every(digit => digit !== "") && custimId) {
                 const code = smsCodeFirst.join("");
-                console.log("ввод — отправляю код", code);
+                // console.log("ввод — отправляю код", code);
                 dispatch(sendCustomDocsConfirmationCode({
                     codeFirst: code,
                     docs: docsType || '',

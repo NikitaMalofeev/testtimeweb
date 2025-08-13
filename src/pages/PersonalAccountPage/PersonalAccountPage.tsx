@@ -419,7 +419,7 @@ const PersonalAccountMenu: React.FC = () => {
                                     }}
                                     onClick={() => {
                                         if (item.disabled) return;
-                                        console.log('CLICK:', item.title);
+                                        // console.log('CLICK:', item.title);
                                         if (item.route) {
                                             if (item.route === '/documents' && !filledRiskProfileChapters.is_risk_profile_complete_final) {
                                                 return;

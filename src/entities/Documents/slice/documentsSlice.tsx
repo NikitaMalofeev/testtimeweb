@@ -144,7 +144,7 @@ export const openUploadDocWebsocketThunk = createAsyncThunk<
                     `wss://test.webbroker.ranks.pro/ws/upload_docs_progress/${socketId}/`
                 );
 
-                ws.onopen = () => console.log("docs-WS open:", docId);
+                // ws.onopen = () => // console.log("docs-WS open:", docId);
 
                 ws.onmessage = evt => {
                     const msg = JSON.parse(evt.data);
@@ -198,7 +198,7 @@ export const confirmTariffRequestThunk = createAsyncThunk<
 
         } catch (error: any) {
             dispatch(setConfirmationDocsSuccess("не пройдено"));
-            console.log(error);
+            // console.log(error);
             const msg =
                 error.response?.data?.errorText
             dispatch(setError(msg));
@@ -263,7 +263,7 @@ export const confirmDocsRequestThunk = createAsyncThunk<
 
         } catch (error: any) {
             dispatch(setConfirmationDocsSuccess("не пройдено"));
-            console.log(error);
+            // console.log(error);
             const msg =
                 error.response?.data?.errorText
             dispatch(setError(msg));
@@ -415,7 +415,7 @@ export const sendDocsConfirmationCode = createAsyncThunk<
 
         } catch (error: any) {
             dispatch(setConfirmationDocsSuccess("не пройдено"));
-            console.log(error);
+            // console.log(error);
             const msg =
                 error.response?.data?.errorText
             dispatch(setError(msg));
@@ -436,7 +436,7 @@ export const sendDocsConfirmationAllDocuments = createAsyncThunk<
                 return rejectWithValue("Отсутствует токен авторизации");
             }
             if (codeFirst) {
-                // console.log('попытка отправить код легально' + person_type)
+                // // console.log('попытка отправить код легально' + person_type)
                 const responseDocs = await postConfirmationCodeAllDocuments(
                     { code: codeFirst, broker_id },
                     token
@@ -449,7 +449,7 @@ export const sendDocsConfirmationAllDocuments = createAsyncThunk<
         } catch (error: any) {
             dispatch(setConfirmationDocsSuccess("не пройдено"));
             onError()
-            console.log(error);
+            // console.log(error);
             const msg =
                 error.response?.data?.errorText
             dispatch(setError(msg));
@@ -473,7 +473,7 @@ export const sendDocsConfirmationCodeLegal = createAsyncThunk<
                 return rejectWithValue("Отсутствует токен авторизации");
             }
             if (codeFirst) {
-                // console.log('попытка отправить код легально' + person_type)
+                // // console.log('попытка отправить код легально' + person_type)
                 const responseDocs = postConfirmationCodeLegal(
                     { code: codeFirst, type_document: docs },
                     token
@@ -484,7 +484,7 @@ export const sendDocsConfirmationCodeLegal = createAsyncThunk<
 
         } catch (error: any) {
             dispatch(setConfirmationDocsSuccess("не пройдено"));
-            console.log(error);
+            // console.log(error);
             const msg =
                 error.response?.data?.errorText
             dispatch(setError(msg));
@@ -565,11 +565,11 @@ export const getUserDocumentsStateThunk = createAsyncThunk<
                     timeoutPending: 0,
                 });
             }
-            console.log(mergedDocs)
+            // // console.log(mergedDocs)
             currentBrokerIds[0] && dispatch(setBrokerIds({ brokerId: currentBrokerIds[0], count: response.confirmed_brokers_count }))
             dispatch(setUserDocuments(mergedDocs));
         } catch (error: any) {
-            console.log(error);
+            // console.log(error);
             const msg = error.response?.data?.errorText;
             dispatch(setError(msg));
         }
@@ -593,7 +593,7 @@ export const getUserDocumentsInfoThunk = createAsyncThunk<
             const response = await getDocumentsInfo(token);
             dispatch(setUserPasportData(response))
         } catch (error: any) {
-            console.log(error);
+            // console.log(error);
             const msg =
                 error.response?.data?.errorText
             dispatch(setError(msg));
@@ -722,11 +722,11 @@ export const getBrokerDocumentsSignedThunk = createAsyncThunk<
         try {
             const token = getState().user.token;
             const broker_id = getState().documents.brokerIds[0];
-            console.log('token in thunk:', token);
+            // // console.log('token in thunk:', token);
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");
             }
-            console.log('thunk broker')
+            // // console.log('thunk broker')
             // Запрашиваем PDF как бинарь (ArrayBuffer)
             const arrayBuffer = await getBrokerDocumentsSigned(broker_id, token);
             // Превращаем ArrayBuffer в Uint8Array
@@ -906,7 +906,7 @@ export const documentsSlice = createSlice({
             if (currentIndex < docTypes.length - 1) {
                 state.currentConfirmableDoc = docTypes[currentIndex + 1];
             } else {
-                console.log("Все документы подписаны!");
+                // // console.log("Все документы подписаны!");
             }
         },
         setUploadDocSocket(

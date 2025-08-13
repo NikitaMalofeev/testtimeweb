@@ -99,7 +99,7 @@ export const resetPassword = async (data: ResetPasswordConfirm) => {
     return response.data;
 };
 
-export const getUserId = async (data: { phone?: string; email?: string }) => {
+export const getUserId = async (data: { phone?: string; email?: string, whatsapp?: string }) => {
     const response = await axios.post(
         `${apiUrl}create_doc_user/get_user_id/`,
         data,

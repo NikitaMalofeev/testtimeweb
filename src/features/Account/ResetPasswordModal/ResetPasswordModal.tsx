@@ -5,7 +5,7 @@ import { Modal } from "shared/ui/Modal/Modal";
 import styles from "./styles.module.scss";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
 import { Input } from "shared/ui/Input/Input";
-import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
+import { ModalType } from "entities/ui/Modal/model/modalTypes";
 import { useSelector } from "react-redux";
 import { RootState } from "app/providers/store/config/store";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
@@ -27,13 +27,15 @@ interface ConfirmInfoModalProps {
     onClose: () => void;
 }
 
+const RESEND_INTERVAL = 60; // сек
+
 export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps) => {
     const dispatch = useAppDispatch();
     const modalState = useSelector((state: RootState) => state.modal);
     const loading = useSelector((state: RootState) => state.personalAccount.loading);
     const userIdForReset = useSelector((state: RootState) => state.personalAccount.user_id);
-    const [isBottom, setIsBottom] = useState(true);
 
+    const [isBottom, setIsBottom] = useState(true);
     const contentRef = useRef<HTMLDivElement>(null);
     const isScrolled = useSelector((state: RootState) =>
         selectModalState(state, ModalType.RESET_PASSWORD)?.isScrolled
@@ -59,14 +61,12 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
             handleScroll();
         }
         return () => {
-            if (content) {
-                content.removeEventListener("scroll", handleScroll);
-            }
+            if (content) content.removeEventListener("scroll", handleScroll);
         };
     }, [isOpen, dispatch]);
 
-    // Храним выбранный метод как строку, но для CheckboxGroup передаём массив
-    const [selectedMethod, setSelectedMethod] = useState<"email" | "phone">("email");
+    // выбранный метод (строка)
+    const [selectedMethod, setSelectedMethod] = useState<"email" | "phone" | "whatsapp">("email");
     const [activeTab, setActiveTab] = useState<"form" | "code">("form");
 
     const formik = useFormik({
@@ -85,63 +85,103 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
                         ? schema.email("Некорректный E-mail")
                         : schema.matches(/^[+\d]+$/, "Некорректный номер телефона");
                 }),
-            password: Yup.string()
-                .min(8, "Пароль минимум 8 символов")
-                .required("Пароль обязателен"),
+            password: Yup.string().min(8, "Пароль минимум 8 символов").required("Пароль обязателен"),
             password2: Yup.string()
                 .oneOf([Yup.ref("password")], "Пароли не совпадают")
                 .required("Подтверждение пароля обязательно"),
-            type_confirm: Yup.string().oneOf(["email", "phone"]).required(),
+            type_confirm: Yup.string().oneOf(["email", "phone", 'whatsapp']).required(),
         }),
-        onSubmit: () => {
-            // Логика отправки реализована в handleSubmit
-        },
+        onSubmit: () => { },
     });
 
     const handleContactChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const value = e.target.value.trim();
         formik.setFieldValue("contact", value);
-        if (value.includes("@")) {
-            handleMethodChange("email");
-        } else if (/^[+\d]+$/.test(value)) {
-            handleMethodChange("phone");
+
+        // Автодетект только если не выбран whatsapp вручную
+        if (selectedMethod !== "whatsapp") {
+            if (value.includes("@")) {
+                handleMethodChange("email");
+            } else if (/^[+\d]+$/.test(value)) {
+                handleMethodChange("phone");
+            }
         }
     };
 
-    const handleMethodChange = (method: "email" | "phone") => {
+
+    const handleMethodChange = (method: "email" | "phone" | "whatsapp") => {
         setSelectedMethod(method);
         formik.setFieldValue("type_confirm", method);
     };
 
-    const handleSubmit = () => {
-        if (activeTab === "form") {
-            if (!formik.isValid) return;
-            const userData =
-                selectedMethod === "phone"
-                    ? { phone: formik.values.contact }
-                    : { email: formik.values.contact };
-            dispatch(
-                getUserIdThunk({
-                    ...userData,
-                    onSuccess: () => {
-                        setActiveTab("code");
-                    },
-                })
-            );
-            dispatch(setPasswordResetData(formik.values));
+    // ===== resend timer =====
+    const [codeTimeLeft, setCodeTimeLeft] = useState(RESEND_INTERVAL);
+    const [codeTimerActive, setCodeTimerActive] = useState(false);
+
+    // тикер таймера
+    useEffect(() => {
+        if (!codeTimerActive) return;
+        if (codeTimeLeft <= 0) {
+            setCodeTimerActive(false);
+            return;
         }
-    };
+        const id = setInterval(() => {
+            setCodeTimeLeft((t) => t - 1);
+        }, 1000);
+        return () => clearInterval(id);
+    }, [codeTimerActive, codeTimeLeft]);
 
     useEffect(() => {
-        if (userIdForReset) {
+        console.log('formik.values.type_confirm', formik.values.type_confirm)
+    }, [formik.values.type_confirm])
+
+    // вход во вкладку "code" → отправляем код и запускаем таймер
+    useEffect(() => {
+        if (activeTab === "code" && userIdForReset) {
             dispatch(
                 resendConfirmationCode({
                     user_id: userIdForReset,
                     method: selectedMethod,
                 })
             );
+            setCodeTimeLeft(RESEND_INTERVAL);
+            setCodeTimerActive(true);
         }
-    }, [userIdForReset, dispatch, selectedMethod]);
+    }, [activeTab, userIdForReset, selectedMethod, dispatch]);
+
+    const handleResendClick = () => {
+        if (codeTimerActive || !userIdForReset) return;
+        dispatch(
+            resendConfirmationCode({
+                user_id: userIdForReset,
+                method: selectedMethod,
+            })
+        );
+        setCodeTimeLeft(RESEND_INTERVAL);
+        setCodeTimerActive(true);
+    };
+    // =======================
+
+    const handleSubmit = () => {
+        if (activeTab !== "form" || !formik.isValid) return;
+
+        const c = formik.values.contact;
+        const userData =
+            selectedMethod === "email"
+                ? { email: c }
+                : selectedMethod === "phone"
+                    ? { phone: c }
+                    : { whatsapp: c };
+        console.log(userData)
+        dispatch(
+            getUserIdThunk({
+                ...userData,
+                onSuccess: () => setActiveTab("code"),
+            })
+        );
+        dispatch(setPasswordResetData(formik.values));
+    };
+
 
     const codeLength = 4;
     const [codeDigits, setCodeDigits] = useState<string[]>(Array(codeLength).fill(""));
@@ -154,9 +194,7 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
             next[index] = cleanValue;
             return next;
         });
-        if (cleanValue && index < codeLength - 1) {
-            inputRefs.current[index + 1]?.focus();
-        }
+        if (cleanValue && index < codeLength - 1) inputRefs.current[index + 1]?.focus();
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
@@ -175,14 +213,10 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
         const pasteData = e.clipboardData.getData("text");
         const pasteValue = pasteData.slice(0, codeLength).split("");
         const newCode = [...codeDigits];
-        for (let i = 0; i < codeLength; i++) {
-            newCode[i] = pasteValue[i] || "";
-        }
+        for (let i = 0; i < codeLength; i++) newCode[i] = pasteValue[i] || "";
         setCodeDigits(newCode);
         const firstEmpty = pasteValue.length;
-        if (firstEmpty < codeLength) {
-            inputRefs.current[firstEmpty]?.focus();
-        }
+        if (firstEmpty < codeLength) inputRefs.current[firstEmpty]?.focus();
     };
 
     const handleCodeSubmit = () => {
@@ -205,6 +239,12 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
         }
     };
 
+    const formatTimer = (total: number) => {
+        const m = Math.floor(total / 60);
+        const s = total % 60;
+        return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    };
+
     return (
         <Modal
             isOpen={isOpen}
@@ -224,7 +264,8 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
                 {activeTab === "form" && (
                     <>
                         <span className={styles.subtitle}>
-                            Для восстановления пароля, пожалуйста, введите номер телефона или E-mail, которые были указаны Вами при регистрации, а также новый пароль.
+                            Для восстановления пароля, пожалуйста, введите номер телефона или E-mail, которые были
+                            указаны Вами при регистрации, а также новый пароль.
                         </span>
 
                         <Input
@@ -259,9 +300,7 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
                             error={formik.touched.password2 && formik.errors.password2}
                         />
 
-                        <span className={styles.methodTitle}>
-                            Код подтверждения будет отправлен
-                        </span>
+                        <span className={styles.methodTitle}>Код подтверждения будет отправлен</span>
                         <CheckboxGroup
                             name="type_confirm"
                             label=""
@@ -269,10 +308,13 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
                             options={[
                                 { label: "Email", value: "email" },
                                 { label: "SMS", value: "phone" },
+                                { label: "Whatsapp", value: "whatsapp" },
                             ]}
+                            greedOrFlex="flex"
                             value={selectedMethod}
-                            onChange={(name: string, clickedValue: string) => {
-                                handleMethodChange(clickedValue as "email" | "phone");
+                            onChange={(_name: string, next: string | string[]) => {
+                                const v = Array.isArray(next) ? next.at(-1) : next; // берём последнее выбранное
+                                if (v) handleMethodChange(v as "email" | "phone" | "whatsapp");
                             }}
                         />
 
@@ -285,11 +327,7 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
                                 disabled={!(formik.isValid && formik.dirty)}
                                 className={styles.submitButton}
                             >
-                                {loading ? (
-                                    <Loader size={LoaderSize.SMALL} theme={LoaderTheme.WHITE} />
-                                ) : (
-                                    "Отправить"
-                                )}
+                                {loading ? <Loader size={LoaderSize.SMALL} theme={LoaderTheme.WHITE} /> : "Отправить"}
                             </Button>
                         </div>
                     </>
@@ -323,16 +361,19 @@ export const ResetPasswordModal = memo(({ isOpen, onClose }: ConfirmInfoModalPro
                             ))}
                         </div>
 
-                        <Button
-                            theme={ButtonTheme.BLUE}
-                            onClick={handleCodeSubmit}
-                            className={styles.submitButton}
-                        >
-                            {loading ? (
-                                <Loader size={LoaderSize.SMALL} theme={LoaderTheme.WHITE} />
-                            ) : (
-                                "Подтвердить код"
-                            )}
+                        <div className={styles.modalContent__problems}>
+                            <span
+                                onClick={handleResendClick}
+                                style={!codeTimerActive ? { color: "#045FDD", marginBottom: '20px', display: 'block' } : { marginBottom: '20px', display: 'block' }}
+                            >
+                                {codeTimerActive
+                                    ? `Отправить код снова через: ${formatTimer(codeTimeLeft)}`
+                                    : "Отправить код снова"}
+                            </span>
+                        </div>
+
+                        <Button theme={ButtonTheme.BLUE} onClick={handleCodeSubmit} className={styles.submitButton}>
+                            {loading ? <Loader size={LoaderSize.SMALL} theme={LoaderTheme.WHITE} /> : "Подтвердить код"}
                         </Button>
                     </>
                 )}

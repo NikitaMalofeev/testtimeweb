@@ -48,6 +48,7 @@ export const PushNotification = ({ pushNotifications, activePush }: PushNotifica
             onClick={() => {
                 setTimeout(() => { activePush.route && navigate(activePush.route) }, 1000)
                 if (activePush.uiStep !== undefined && activePush.uiStep !== null) {
+                    if (activePush.route) navigate(activePush.route)
                     dispatch(setStepAdditionalMenuUI(activePush.uiStep));
                     dispatch(openModal({
                         type: ModalType.IDENTIFICATION,

@@ -401,7 +401,6 @@ export const postPasportScanThunk = createAsyncThunk<
             await postPasportScanData(data, token);
             // Вызываем onSuccess после успешной отправки
             onSuccess();
-            dispatch(setTooltipActive({ active: true, message: 'Сканы паспортов успешно загружены' }))
         } catch (error: any) {
             const errorText = error.response?.data?.errorText;
             console.log('Статус ошибки:', error.response?.status);

@@ -112,8 +112,9 @@ export const Header = ({ currentNotificationsCount, variant }: HeaderProps) => {
                 :
                 <div className={styles.header__account} >
                     {currentNotificationsCount ? <div className={styles.header__notifications} onClick={() => {
-                        navigate('/notifications')
                         dispatch(closeAllModals())
+                        navigate('/notifications')
+
 
                     }}>{currentNotificationsCount}</div> : <span className={styles.header__notifications_empty}>Нет новых уведомлений</span>}
                     <Icon Svg={AccountIcon} width={24} height={24} pointer onClick={() => {

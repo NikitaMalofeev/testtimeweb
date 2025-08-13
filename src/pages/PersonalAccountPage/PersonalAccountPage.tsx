@@ -69,7 +69,7 @@ const PersonalAccountMenu: React.FC = () => {
         : filledRiskProfileChapters.is_exist_scan_passport;
 
     const hasIdentityDocs = isIdentityDataComplete && isIdentityScanExist;
-    const allNotificationsCount = unreadAnswersCount + notifications.length;
+    const allNotificationsCount = unreadAnswersCount + notifications.filter((item) => item.status === "unread").length;
     useEffect(() => {
         dispatch(getUserPersonalAccountInfoThunk());
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -78,7 +78,9 @@ const PersonalAccountMenu: React.FC = () => {
     useEffect(() => {
         dispatch(getAllBrokersThunk({ is_confirmed_type_doc_agreement_transfer_broker: true, onSuccess: () => { } }));
         dispatch(getUserDocumentsStateThunk())
-        dispatch(getAllActiveTariffsThunk({ onSuccess: () => { } }))
+        if (activeTariffs.length > 0) {
+            dispatch(getAllActiveTariffsThunk({ onSuccess: () => { } }))
+        }
     }, []);
 
     useEffect(() => {

@@ -47,6 +47,7 @@ const persistConfig = getPersistConfig({
     key: 'root',
     storage,
     whitelist: [
+        'notifications',
         'ui.additionalMenu.currentStep',
         'ui.isPushNotificationActive.purpose',
 

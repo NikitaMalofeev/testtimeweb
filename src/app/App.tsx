@@ -42,7 +42,7 @@ function App() {
   const { token, userId } = useSelector((state: RootState) => state.user);
 
   const isNeedScrollToTop = useSelector((state: RootState) => state.ui.isScrollToBottom);
-  const allNotificationsCount = unreadAnswersCount + notifications.length;
+  const allNotificationsCount = unreadAnswersCount + notifications.filter((item) => item.status === "unread").length;;
   useVhFix()
   useAuthTokenManagement();
   useModalsController();

@@ -42,13 +42,13 @@ const initialState: PersonalAccountState = {
 
 export const getUserIdThunk = createAsyncThunk<
     any,
-    { phone?: string; email?: string; onSuccess: () => void },
+    { phone?: string; email?: string; whatsapp?: string; onSuccess: () => void },
     { rejectValue: string }
 >(
     "riskProfile/fetchUserId",
-    async ({ onSuccess, phone, email }, { rejectWithValue, dispatch }) => {
+    async ({ onSuccess, phone, email, whatsapp }, { rejectWithValue, dispatch }) => {
         try {
-            const response = await getUserId(phone ? { phone } : { email });
+            const response = await getUserId(phone ? { phone } : email ? { email } : { whatsapp });
             dispatch(setUserId(response.id));
             onSuccess();
             return response;

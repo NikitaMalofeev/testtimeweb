@@ -190,8 +190,8 @@ export const checkPushNotificationsThunk = createAsyncThunk<void, void, { state:
 
         const personBlock: PushPair[] = isIp
             ? [
-                { field: "is_complete_person_legal", id: "fillPersonLegalData" },
-                { field: "is_exist_scan_person_legal", id: "uploadPersonLegalDocs" },
+                { field: "is_complete_person_legal", id: "fillIPData" },
+                // { field: "is_exist_scan_person_legal", id: "uploadPersonLegalDocs" },
             ]
             : [
                 { field: "is_complete_passport", id: "fillPassportData" },
@@ -222,7 +222,7 @@ export const checkPushNotificationsThunk = createAsyncThunk<void, void, { state:
             'type_doc_risk_declarations',
             'type_doc_agreement_personal_data_policy',
             'type_doc_investment_profile_certificate',
-            'type_doc_agreement_investment_advisor_app_1',
+            // 'type_doc_agreement_investment_advisor_app_1',
             'type_doc_agreement_account_maintenance',
         ] as const;
 

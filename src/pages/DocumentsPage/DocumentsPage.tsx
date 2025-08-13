@@ -171,7 +171,7 @@ const DocumentsPage: React.FC = () => {
             "type_doc_investment_profile_certificate",
             "type_doc_agreement_account_maintenance",
             "type_doc_broker_api_token",
-            "type_doc_agreement_investment_advisor_app_1", // ← будет удалён для VIP
+            // "type_doc_agreement_investment_advisor_app_1", // ← будет удалён для VIP
         ];
 
         /* ------------------------------------------------------------------
@@ -227,7 +227,7 @@ const DocumentsPage: React.FC = () => {
         type_doc_investment_profile_certificate: "Справка ИП",
         type_doc_agreement_account_maintenance: "Доверенность на управление счётом",
         type_doc_broker_api_token: "Согласие на передачу API-ключа к брокерскому счёту",
-        type_doc_agreement_investment_advisor_app_1: "Договор ИС: Приложение 1",
+        // type_doc_agreement_investment_advisor_app_1: "Договор ИС: Приложение 1",
     };
 
     /** Итоговые лейблы с корректной нумерацией */

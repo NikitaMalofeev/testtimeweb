@@ -220,10 +220,10 @@ const DocumentsPage: React.FC = () => {
             ? "Паспортные данные"
             : "Данные об ИП",
         type_doc_EDS_agreement: "Соглашение об ЭДО",
-        type_doc_RP_questionnairy: "Анкета РП",
+        type_doc_RP_questionnairy: "Анкета Риск Профиля",
         type_doc_agreement_investment_advisor: "Договор ИС",
         type_doc_risk_declarations: "Декларация о рисках",
-        type_doc_agreement_personal_data_policy: "Политика перс. данных",
+        type_doc_agreement_personal_data_policy: "Политика персональных данных",
         type_doc_investment_profile_certificate: "Справка ИП",
         type_doc_agreement_account_maintenance: "Доверенность на управление счётом",
         type_doc_broker_api_token: "Согласие на передачу API-ключа к брокерскому счёту",

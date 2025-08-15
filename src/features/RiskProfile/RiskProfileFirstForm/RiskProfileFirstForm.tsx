@@ -359,6 +359,7 @@ export const RiskProfileFirstForm: React.FC = () => {
                             const limitedDigits = onlyDigits.slice(0, 14);
                             const formatted = limitedDigits.length > 0 ? "+" + limitedDigits : "";
                             formik.setFieldValue("trusted_person_phone", formatted);
+                            dispatch(updateFieldValue({ name: "trusted_person_phone", value: formatted }));
                         }}
                         onFocus={() => setNumberPlaceholder('+7 (___) ___-____')}
                         onBlur={formik.handleBlur}

@@ -1,0 +1,90 @@
+.container {
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.card {
+    position: relative;
+  padding: 16px;
+  border-radius: 12px;
+  background: white;
+  border: 1px solid #e6eef7;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: space-between; /* чтобы подсказка не прыгала */
+}
+
+.cardTitle {
+  font-weight: 600;
+}
+
+.fieldBlock {
+  margin-top: 12px;
+}
+
+.fieldLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.rows {
+  display: grid;
+  gap: 8px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  padding-bottom: 8px;
+
+  &:not(:last-child) {
+      border-bottom: 1px solid #e6eef7;
+  }
+}
+
+.label {
+  opacity: 0.8;
+}
+
+.value {
+    position: relative;
+  font-weight: 600;
+  color: #07B021;
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: -10px;
+    bottom: 3.5px;           /* насколько торчит вниз */
+    transform: translateX(-50%) rotate(180deg);
+    width: 10px;            /* ширина треугольника */
+    height: 7px;           /* высота треугольника */
+    background: #07B021;
+    clip-path: polygon(50% 100%, 0 0, 100% 0); /* сам треугольник */
+    border-radius: 4px;     /* скругления углов */
+  }
+}
+
+.error {
+  color: #d33;
+}
+
+
+.tooltip {
+    right: 16px;
+}

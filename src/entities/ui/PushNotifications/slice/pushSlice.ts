@@ -152,6 +152,14 @@ const initialState: PushState = {
             hasOpened: false,
         },
         {
+            id: "startWorkReady",
+            title: "Начать работу",
+            description: "Ваши документы успешно прошли проверку, вы можете подключить тариф для начала работы с вашим счетом",
+            active: false,
+            route: '/payments',
+            hasOpened: false,
+        },
+        {
             id: "contractExpiresSoon",
             title: "Заканчивается срок действия договора",
             description: "Обратите внимание, срок действия вашего договора скоро истечет",
@@ -168,14 +176,6 @@ const initialState: PushState = {
             hasOpened: false,
             route: '/documents',
             uiStep: 4
-        },
-        {
-            id: "startWork",
-            title: "Проверка документов",
-            description: "Ваши документы на проверке, уведомление о начале работы придет в Личный Кабинет",
-            active: false,
-            hasOpened: false,
-
         },
     ],
 };
@@ -246,6 +246,9 @@ export const checkPushNotificationsThunk = createAsyncThunk<void, void, { state:
                 } else if (waiting_manual_document_verification.type_doc_agreement_transfer_broker) {
                     // логика у тебя такая — оставляю как есть
                     nextId = 'startWork';
+                } else if (Object.values(waiting_manual_document_verification).length === 0 && brokersCount > 0) {
+                    // логика у тебя такая — оставляю как есть
+                    nextId = 'startWorkReady';
                 } else {
                     // 4) Старт работы
                     const confirmableCount = confirmableDocs.length;

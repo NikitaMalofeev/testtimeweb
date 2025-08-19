@@ -3,14 +3,18 @@ import styles from './styles.module.scss';
 import BackIcon from 'shared/assets/svg/ArrowBack.svg';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
-import { openModal } from 'entities/ui/Modal/slice/modalSlice';
-import { ModalAnimation, ModalSize, ModalType } from 'entities/ui/Modal/model/modalTypes';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from 'app/providers/store/config/store';
 
-import { markManyAsRead, selectNotifications } from 'entities/Notification/slice/notificationSlice';
+import {
+    markManyAsRead,
+    selectNotifications,
+} from 'entities/Notification/slice/notificationSlice';
+import { updateAllNotificationsThunk } from 'entities/Notification/slice/notificationSlice';
 import { NotificationCard } from '../NotificationCard/NotificationCard';
+import { current } from '@reduxjs/toolkit';
+import { Button, ButtonTheme } from 'shared/ui/Button/Button';
 
 export const Notifications = () => {
     const navigate = useNavigate();
@@ -20,20 +24,22 @@ export const Notifications = () => {
         (state: RootState) => state.supportChat
     );
     const notifications = useSelector((state: RootState) => selectNotifications(state));
-    const allNotificationsCount = unreadAnswersCount + notifications.filter((item) => item.status === "unread").length;;
 
-    useEffect(() => {
-        const unreadIds = notifications.filter(n => n.status === 'unread').map(n => n.id);
-        if (unreadIds.length === 0) return;
+    const allNotificationsCount =
+        unreadAnswersCount + notifications.filter((item) => !item.isRead).length;
 
-        const t = setTimeout(() => {
-            dispatch(markManyAsRead(unreadIds));
-            // тут же можно дернуть thunk для бэка, если нужен
-            // dispatch(updateNotificationThunk(...))
-        }, 3000);
+    // Notifications.tsx
+    const handleMarkAllRead = () => {
+        const unreadIds = notifications.filter(n => !n.isRead).map(n => n.id);
 
-        return () => clearTimeout(t);
-    }, [dispatch]);
+        if (unreadIds.length) {
+            dispatch(markManyAsRead(unreadIds)); // оптимистично меняем Redux
+        }
+
+        // запрос к бэку только для синхронизации; ответ игнорируем
+        dispatch(updateAllNotificationsThunk({ edit_is_read: true }));
+    };
+
 
     /* ----------------- render ----------------- */
 
@@ -48,19 +54,18 @@ export const Notifications = () => {
                     onClick={() => navigate(-1)}
                     pointer
                 />
-                <h2 className={styles.notifications__title__title}>
-                    Уведомления
-                </h2>
+                <h2 className={styles.notifications__title__title}>Уведомления</h2>
                 <span className={styles.notifications__title__count}>{allNotificationsCount}</span>
-                {/* <Tooltip
-                    positionBox={{ top: '68px', left: '-224px' }}
-                    squerePosition={{ top: '-4px', left: '228px' }}
-                    boxWidth={{ width: '280px' }}
-                    topForCenteringIcons="24px"
-                    className={styles.notifications__tooltip}
-                    description="Если ИИР не отклонено в течение суток,
-                то считается исполненным"
-                /> */}
+
+                {/* Кнопка "Просмотреть все" */}
+                <Button
+                    theme={ButtonTheme.UNDERLINE}
+                    type="button"
+                    className={styles.notifications__viewAllBtn}
+                    onClick={handleMarkAllRead}
+                >
+                    Просмотреть все
+                </Button>
             </div>
 
             <div className={styles.notifications__content}>
@@ -69,17 +74,14 @@ export const Notifications = () => {
                         key={n.id}
                         id={n.id}
                         title={n.title || ''}
-                        description={n.description}
-                        status={n.status}
+                        text={n.text}
+                        isActive={n.isActive}
+                        isRead={n.isRead}
                         color={n.color}
-                        date={n.createdAt}
+                        date={n.created}
                     />
                 ))}
             </div>
-
-
-
-
         </div>
     );
 };

@@ -10,18 +10,24 @@ import { Icon } from "shared/ui/Icon/Icon";
 import WarningIcon from "shared/assets/svg/warningIcon.svg";
 import {
     markNotificationShown,
+    selectFirstActiveUnshown,
     selectFirstUnreadUnshown,
     updateNotificationStatus, // используется только для архивирования крестиком
 } from "entities/Notification/slice/notificationSlice";
+import { updateAllNotificationsThunk } from "entities/Notification/slice/notificationSlice";
 
 export const NotificationPopup: React.FC = () => {
     const dispatch = useAppDispatch();
-
-    // Берём первое непрочитанное, которое ещё не показывали
-    const current = useSelector(selectFirstUnreadUnshown);
+    const current = useSelector(selectFirstActiveUnshown); // <— вот тут
+    const notifications = useSelector((s: RootState) => s.notifications.notifications)
 
     const [visible, setVisible] = useState(false);
     const autoHideMs = 10000;
+
+    useEffect(() => {
+        console.log('sfssdfds')
+
+    }, [])
 
     useEffect(() => {
         if (!current) {
@@ -29,25 +35,28 @@ export const NotificationPopup: React.FC = () => {
             return;
         }
 
-        // Сразу помечаем, что показали (чтобы больше не всплывало)
+        // Помечаем показанным
         dispatch(markNotificationShown({ id: current.id }));
-
         setVisible(true);
 
         const hideId = window.setTimeout(() => {
             setVisible(false);
-            // По ТЗ: в попапе НЕ переводим в read автоматически
-            // Только скрываем.
+            // Через 10 секунд деактивируем на бэке
+            dispatch(updateAllNotificationsThunk({
+                edit_status: 'notif_info',
+                edit_is_active: false,
+            }));
         }, autoHideMs);
 
         return () => window.clearTimeout(hideId);
-    }, [current?.id, dispatch]);
+    }, [current?.id]);
+
 
     const handleClose = () => {
         if (!current) return;
         setVisible(false);
-        // Крестик — архивируем (по желанию можно оставить как есть)
-        dispatch(updateNotificationStatus({ id: current.id, status: "archived" }));
+        // Если нужно деактивировать и при ручном закрытии — раскомментируй:
+        // dispatch(updateAllNotificationsThunk({ edit_status: 'notif_info', edit_is_active: false }));
     };
 
     if (!current) return null;
@@ -84,7 +93,7 @@ export const NotificationPopup: React.FC = () => {
                 </div>
 
                 <div className={styles.text}>
-                    <span>{current.description}</span>
+                    <span>{current.text}</span>
                 </div>
             </div>
         </motion.div>

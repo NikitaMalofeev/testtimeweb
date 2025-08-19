@@ -1,22 +1,26 @@
 import axios from "axios";
-import { PaymentsCreateOrderPayload } from "../types/paymentsTypes";
+import { CalculateProfitabilityPayload, CalculateProfitabilityResponse, PaymentsCreateOrderPayload } from "../types/paymentsTypes";
 
 const envEnviroment = import.meta.env.VITE_ENVIROMENT;
 
 let apiPaymentsUrl: string;
+let apiMainUrl: string;
 
 switch (envEnviroment) {
     case "PROD":
         apiPaymentsUrl = import.meta.env.VITE_RANKS_PROD_API_PAY_URL;
+        apiMainUrl = import.meta.env.VITE_RANKS_PROD_API_URL;
         break;
 
     case "LOCAL":
         apiPaymentsUrl = import.meta.env.VITE_RANKS_TEST_API_PAY_URL_LOCAL;
+        apiMainUrl = import.meta.env.VITE_RANKS_TEST_API_URL_LOCAL;
         break;
 
     case "TEST":
     default:
         apiPaymentsUrl = import.meta.env.VITE_RANKS_TEST_API_PAY_URL;
+        apiMainUrl = import.meta.env.VITE_RANKS_TEST_API_URL;
         break;
 }
 
@@ -36,6 +40,24 @@ export const createOrder = async (
         }
     );
     return data;
+};
+
+export const calculateProfitability = async (
+    payload: CalculateProfitabilityPayload,
+    token: string
+) => {
+    const { data } = await axios.post(
+        `${apiMainUrl}user_lk/calculator_profitability/`,
+        payload,
+        {
+            headers: {
+                "Accept-Language": "ru",
+                "Content-Type": "application/json",
+                Authorization: `Token ${token}`,
+            },
+        }
+    );
+    return data as CalculateProfitabilityResponse;
 };
 
 export const getAllTariffs = async (token: string) => {

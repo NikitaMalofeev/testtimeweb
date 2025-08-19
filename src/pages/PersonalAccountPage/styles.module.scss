@@ -186,6 +186,7 @@
     align-items: center;
     bottom: 16px;
     left: 52px;
+
     position: absolute;
     font-family: Inter;
     font-weight: 400;
@@ -198,6 +199,8 @@
         background-color: #D4E6FF;
         border-radius: 13.5px;
         color: black;
+          position: absolute;
+        right: 0;
         display: flex;
         gap: 1px;
         padding: 1.5px 8px 3.5px;

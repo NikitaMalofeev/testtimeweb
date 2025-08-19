@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import styles from './styles.module.scss';
 
 export type NotificationStatus = 'unread' | 'read' | 'archived';
@@ -7,8 +7,10 @@ export type NotificationColor = 'red' | 'blue' | 'green';
 export interface NotificationCardProps {
     id: string;
     title: string;
-    description?: string;
-    status: NotificationStatus;
+    text?: string;
+    status?: NotificationStatus;
+    isActive: boolean;
+    isRead: boolean;
     color: NotificationColor;
     date?: string | number | Date;
     className?: string;
@@ -26,24 +28,27 @@ function formatDate(d?: string | number | Date) {
 export const NotificationCard: React.FC<NotificationCardProps> = ({
     id,
     title,
-    description,
+    text,
     status,
     color,
     date,
+    isRead,
+    isActive,
     className,
 }) => {
-    const isUnread = status === 'unread';
 
-
+    useEffect(() => {
+        console.log(date)
+    }, [])
     return (
         <div className={styles.card}>
             <div className={styles.header}>
                 {date && <span className={styles.date}>{formatDate(date)}</span>}
-                {isUnread && <span className={styles.dot} aria-label="Непрочитано" />}
+                {!isRead && <span className={styles.dot} aria-label="Непрочитано" />}
             </div>
             <div className={styles.title}>{title && title}</div>
 
-            {description && <div className={styles.description} style={{ background: color === 'blue' ? '' : color === 'green' ? '#52C41733' : '#FF405333' }}>{description}</div>}
+            {text && <div className={styles.description} style={{ background: color === 'blue' ? '' : color === 'green' ? '#52C41733' : '#FF405333' }}>{text}</div>}
 
 
         </div>

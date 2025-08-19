@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from 'app/providers/store/config/store';
 import { setError } from 'entities/Error/slice/errorSlice';
 import {
+    calculateProfitability,
     checkConfirmationCodeTariff,
     createOrder,
     getAllActiveTariffs,
@@ -16,6 +17,8 @@ import {
     signingTariff,
 } from 'entities/Payments/api/paymentsApi';
 import {
+    CalculateProfitabilityPayload,
+    CalculateProfitabilityResponse,
     OrderStatusResponse,
     PaymentData,
     PaymentsCreateOrderPayload,
@@ -49,6 +52,7 @@ export interface PaymentInfo {
         broker: string;
         strategy: string | null;
     };
+
     payment_type: string | null;
     user_tariff_id: string;
     user_tariff_key: string | null;
@@ -65,6 +69,7 @@ export interface PaymentInfo {
     user_tariff_updated: string | null;
     created: string;
     updated: string;
+
 }
 
 /* -------------------------------------------------------------------------- */
@@ -78,7 +83,12 @@ interface PaymentsState {
     paidTariffKeys: Record<string, string>;
     orderStatus: OrderStatusResponse | null;
     robokassaData: RobokassaResultResponse | null;
-
+    calculator: {
+        min_deposit: number;
+        loading: boolean;
+        error: string | null;
+        result: CalculateProfitabilityResponse | null;
+    };
     currentTariffId: string;                 // выбранный тариф (back-id, нужен для API)
     currentUserTariffIdForPayments: string;  // тариф пользователя (ключ из ответа setTariff)
     currentOrderId: string;                  // выбранный заказ для UI
@@ -86,6 +96,7 @@ interface PaymentsState {
     currentOrderStatus: 'pay' | 'success' | 'loading' | 'failed' | 'exit' | '';
     payments_info: PaymentInfo[];            // <== НОВОЕ: список платежей / активных тарифов
     error: string | null;
+    currentBalance: number;
 }
 
 const initialState: PaymentsState = {
@@ -102,6 +113,7 @@ const initialState: PaymentsState = {
     currentOrderId: '',
     currentOrder: null,
     currentOrderStatus: '',
+    currentBalance: 0,
     payments_info: [{
         "order": {
             "description": "username: Пушкин Александр Сергеевич 1000.0",
@@ -131,6 +143,12 @@ const initialState: PaymentsState = {
         "created": "2025-04-21T19:46:31.919550+03:00",
         "updated": "2025-04-21T19:46:31.919561+03:00"
     }],                       // <== НОВОЕ
+    calculator: {
+        min_deposit: 1_000_000,  // как на скриншоте
+        loading: false,
+        error: null,
+        result: null,
+    },
     error: null,
 };
 
@@ -156,6 +174,26 @@ export const createOrderThunk = createAsyncThunk<
         return rejectWithValue(msg);
     }
 });
+
+export const calculateProfitabilityThunk = createAsyncThunk<
+    CalculateProfitabilityResponse,
+    CalculateProfitabilityPayload,
+    { state: RootState; rejectValue: string }
+>(
+    'payments/calculateProfitability',
+    async (payload, { getState, rejectWithValue }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) throw new Error('Нет токена пользователя');
+            const data = await calculateProfitability(payload, token);
+            return data;
+        } catch (err: any) {
+            const msg = err?.response?.data?.errorText || err?.message || 'Ошибка расчёта';
+            return rejectWithValue(msg);
+        }
+    }
+);
+
 
 export const getAllUserTariffsThunk = createAsyncThunk<
     PaymentInfo[],
@@ -493,18 +531,41 @@ export const paymentsSlice = createSlice({
         ) => {
             state.paidTariffKeys = { ...state.paidTariffKeys, [id]: key };
         },
+        setCalculatorDeposit: (state, action: PayloadAction<number>) => {
+            state.calculator.min_deposit = action.payload;
+        },
+        resetCalculator: (state) => {
+            state.calculator = { min_deposit: 1_000_000, loading: false, error: null, result: null };
+        },
+
         resetPaymentsState: () => initialState,
     },
     extraReducers: (builder) => {
         builder
+            .addCase(calculateProfitabilityThunk.pending, (state) => {
+                state.calculator.loading = true;
+                state.calculator.error = null;
+            })
+            .addCase(calculateProfitabilityThunk.fulfilled, (state, { payload }) => {
+                state.calculator.loading = false;
+                state.calculator.result = payload;
+            })
+            .addCase(calculateProfitabilityThunk.rejected, (state, { payload }) => {
+                state.calculator.loading = false;
+                state.calculator.error = payload || 'Ошибка расчёта';
+            });
+
     },
 });
 
 
 export const {
+
     clearPaymentsError,
+    setCalculatorDeposit,
     resetPaymentsState,
     setCurrentTariff,
+    resetCalculator,
     setCurrentUserTariff,
     setCurrentOrder,
     setCurrentOrderId,

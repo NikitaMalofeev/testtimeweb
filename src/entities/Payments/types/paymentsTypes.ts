@@ -74,3 +74,16 @@ export interface UserCheck {
     url_check: string;
     check_html: string;
 }
+
+export interface CalculateProfitabilityPayload {
+    tariff_key: string;
+    min_deposit: number;
+    risk_profile: string;
+}
+
+export interface CalculateProfitabilityResponse {
+    year_per: number;
+    year_money: number;
+    commission_365_days: number;
+    year_per_without_commission: number;
+}

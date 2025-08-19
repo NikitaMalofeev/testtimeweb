@@ -35,6 +35,7 @@ import { PaymentsStatus } from '../PaymentsStatus/PaymentsStatus';
 import { SelectModal } from 'features/Ui/SelectModal/SelectModal';
 import { Select } from 'shared/ui/Select/Select';
 import { useDevice } from 'shared/hooks/useDevice';
+import { TariffCalculator } from '../TariffCalculator/TariffCalculator';
 
 const messageTypeOptions = { SMS: 'SMS', EMAIL: 'Email', WHATSAPP: 'Whatsapp' } as const;
 type MessageKey = keyof typeof messageTypeOptions;
@@ -179,7 +180,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     const handleChooseTariff = useCallback(
         (id: string) => {
             if (currentOrderId === id) return;
-            dispatch(setCurrentOrderId(id));        // <== НОВОЕ
+            dispatch(setCurrentOrderId(id));       
         },
         [currentOrderId, dispatch],
     );
@@ -299,6 +300,9 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                 imageUrl={t.title === 'Базовый тариф' ? PaymentsBase : PaymentsActive}
                                 onMore={() => handleChooseTariff(t.id)}
                                 paidFor={isPaidAndActive(t.title) || false}
+                            />
+                            <TariffCalculator
+                                tariff_key={currentOrderId}
                             />
                         </motion.div>
                     ),

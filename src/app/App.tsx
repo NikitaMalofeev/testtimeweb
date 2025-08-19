@@ -27,8 +27,9 @@ import { getAllUserTariffsThunk } from 'entities/Payments/slice/paymentsSlice';
 import { deleteUserTariffs } from 'entities/User/api/userApi';
 import { Loader } from 'shared/ui/Loader/Loader';
 import { useVhFix } from 'shared/hooks/useVhFix';
-import { selectNotifications } from 'entities/Notification/slice/notificationSlice';
+import { getAllNotificationsThunk, selectNotifications, updateAllNotificationsThunk } from 'entities/Notification/slice/notificationSlice';
 import { NotificationPopup } from 'features/Ui/NotificationPopup/NotificationPopup';
+import { updateAllNotifications } from 'entities/Notification/api/notificationApi';
 
 function App() {
   const modalState = useSelector((state: RootState) => state.modal);
@@ -38,11 +39,12 @@ function App() {
   const { websocketId, messages, unreadAnswersCount } = useSelector(
     (state: RootState) => state.supportChat
   );
+  const { filledRiskProfileChapters, brokerIds } = useSelector((state: RootState) => state.documents);
   const notifications = useSelector((state: RootState) => selectNotifications(state));
   const { token, userId } = useSelector((state: RootState) => state.user);
 
   const isNeedScrollToTop = useSelector((state: RootState) => state.ui.isScrollToBottom);
-  const allNotificationsCount = unreadAnswersCount + notifications.filter((item) => item.status === "unread").length;;
+  const allNotificationsCount = unreadAnswersCount + notifications.filter((item) => !item.isRead).length;;
   useVhFix()
   useAuthTokenManagement();
   useModalsController();
@@ -119,6 +121,14 @@ function App() {
 
     dispatch(getAllUserTariffsThunk({ onSuccess: () => { } }))
   }, []);
+
+  useEffect(() => {
+    dispatch(getAllNotificationsThunk({
+      status: 'notif_info',
+      is_active: true,
+      is_read: false,
+    }));
+  }, [filledRiskProfileChapters.is_exist_scan_passport, filledRiskProfileChapters.is_complete_person_legal, brokerIds])
 
   useLayoutEffect(() => {
     if (location.pathname === '/lk') {

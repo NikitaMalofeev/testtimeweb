@@ -75,7 +75,7 @@ const persistConfig = getPersistConfig({
         'user.personalAccountInfo',
 
         'documents.userDocuments',
-        'documents.allNotSignedDocumentsHtml',
+        // 'documents.allNotSignedDocumentsHtml',
         'documents.confirmationMethod',
         'documents.currentConfirmableDoc',
         'documents.currentSugnedDocument',
@@ -124,7 +124,7 @@ export const store = configureStore({
             },
             immutableCheck: {
                 // говорим middleware не ходить в этот путь
-                ignoredPaths: ['recomendations.signedDocs', 'recomendations.notSignedHtmls'],
+                ignoredPaths: ['recomendations.signedDocs', 'recomendations.notSignedHtmls', 'documents.allNotSignedDocumentsHtml'],
             },
         }).concat(broadcastSyncMiddleware),
 });

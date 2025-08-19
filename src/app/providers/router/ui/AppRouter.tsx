@@ -14,6 +14,7 @@ import ConfirmCustomDocsPage from 'pages/ConfirmCustomDocsPage/ConfirmCustomDocs
 import LandingPage from 'pages/LandingPage/LandingPage.async';
 import RecomendationsPage from 'pages/RecomendationsPage/RecomendationsPage';
 import NotificationsPage from 'pages/NotificationsPage/NotificationsPage';
+import BalancePage from 'pages/BalancePage/BalancePage';
 
 
 // const PageLoader = () => <div>Loading...</div>;
@@ -101,11 +102,23 @@ function AppRouter() {
                 }
             />
             <Route
-                path="/robokassa"
+                path="/information"
                 element={
                     <Suspense fallback={<PageLoader />}>
-                        <LandingPage />
+                        <BalancePage />
                     </Suspense>
+
+                }
+            />
+            <Route
+                path="/balance"
+                element={
+                    <RequireAuthRoute>
+                        <Suspense fallback={<PageLoader />}>
+                            <BalancePage />
+                        </Suspense>
+                    </RequireAuthRoute>
+
                 }
             />
             <Route

@@ -60,6 +60,7 @@ export const ConfirmAllDocs: React.FC = () => {
     );
     const activeTariffs = useSelector((s: RootState) => s.payments.activeTariffs);
     const currentOrderId = useSelector((s: RootState) => s.payments.currentOrderId);
+    const deposit = useSelector((s: RootState) => s.payments.calculator.min_deposit);
     const brokerId = useSelector((s: RootState) => s.documents.brokerIds[0]);
     const lastDocRef = useRef<string>();
 
@@ -173,7 +174,7 @@ export const ConfirmAllDocs: React.FC = () => {
                 // console.log(5)
             } else if (currentTypeDoc === "type_doc_agreement_investment_advisor_app_1") {
                 currentOrderId && dispatch(setTariffIdThunk({
-                    tariff_key: currentOrderId, broker_id: brokerId, type_message: formik.values.type_message, is_agree: formik.values.is_agree, onSuccess: () => {
+                    tariff_key: currentOrderId, broker_id: brokerId, type_message: formik.values.type_message, manual_price: deposit, is_agree: formik.values.is_agree, onSuccess: () => {
                         dispatch(
                             openModal({
                                 type: ModalType.CONFIRM_DOCS,

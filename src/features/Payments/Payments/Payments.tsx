@@ -7,7 +7,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { RootState } from 'app/providers/store/config/store';
 import {
     getAllTariffsThunk,
-    setTariffIdThunk,
     signingTariffThunk,
     setCurrentOrderStatus,
     setCurrentOrderId,
@@ -180,7 +179,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     const handleChooseTariff = useCallback(
         (id: string) => {
             if (currentOrderId === id) return;
-            dispatch(setCurrentOrderId(id));       
+            dispatch(setCurrentOrderId(id));
         },
         [currentOrderId, dispatch],
     );
@@ -284,6 +283,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -20 }}
                             transition={{ duration: 0.3 }}
+                            className={styles.card__wrapper}
                         >
                             <PaymentsCard
                                 index={index}
@@ -301,9 +301,12 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                 onMore={() => handleChooseTariff(t.id)}
                                 paidFor={isPaidAndActive(t.title) || false}
                             />
-                            <TariffCalculator
-                                tariff_key={currentOrderId}
-                            />
+                            {currentOrderId && (
+                                <TariffCalculator
+                                    tariff_key={currentOrderId}
+                                    min_deposit_value={t.title === 'Базовый тариф' ? 1_000_000 : 5_000_000}
+                                />
+                            )}
                         </motion.div>
                     ),
                 )}

@@ -126,11 +126,12 @@ export const paymentsSetTariff = async (
     broker_id: string,
     type_message: string,
     is_agree: boolean,
+    manual_price: number,
     token: string
 ) => {
     const { data } = await axios.post(
         `${apiPaymentsUrl}set_tariff/`,
-        { tariff_key, broker_id, type_message, is_agree },
+        { tariff_key, broker_id, type_message, is_agree, manual_price },
         {
             headers: {
                 "Accept-Language": "ru",

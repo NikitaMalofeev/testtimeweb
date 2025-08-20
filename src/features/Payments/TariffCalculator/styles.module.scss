@@ -1,3 +1,5 @@
+@use '../../../app/styles/mixins' as mix;
+
 .container {
 
   display: grid;
@@ -11,6 +13,7 @@
     position: relative;
   padding: 16px;
   border-radius: 12px;
+  min-height: 189px;
   background: white;
   border: 1px solid #e6eef7;
   display: flex;
@@ -31,6 +34,7 @@
 
 .fieldBlock {
   margin-top: 12px;
+  max-height: 84px;
 }
 
 .fieldLabel {
@@ -55,6 +59,16 @@
   &:not(:last-child) {
       border-bottom: 1px solid #e6eef7;
   }
+
+  &:nth-of-type(3) {
+    .value {
+      color: black;
+
+      &::before {
+        display: none;
+      }
+    }
+  }
 }
 
 .label {
@@ -65,6 +79,8 @@
     position: relative;
   font-weight: 600;
   color: #07B021;
+
+  
 
   &::before {
     content: "";
@@ -88,3 +104,13 @@
 .tooltip {
     right: 16px;
 }
+
+
+  @include mix.respond-to('mobile') {
+      .container {
+        display: flex;
+        flex-direction: column;
+      } 
+    
+    }
+  

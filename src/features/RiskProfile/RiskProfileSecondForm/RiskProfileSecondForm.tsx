@@ -25,7 +25,7 @@ import { getUserDocumentsStateThunk } from "entities/Documents/slice/documentsSl
 import { useDevice } from "shared/hooks/useDevice";
 import * as Yup from "yup";
 
-interface SwiperParametrValues {
+export interface SwiperParametrValues {
     risk_prof_conservative: string;
     risk_prof_conservative_moderately: string;
     risk_prof_balanced: string;
@@ -33,7 +33,7 @@ interface SwiperParametrValues {
     risk_prof_aggressive: string;
     risk_prof_aggressive_super: string;
 }
-const SWIPER_PARAM_VALUES: SwiperParametrValues = {
+export const SWIPER_PARAM_VALUES: SwiperParametrValues = {
     risk_prof_conservative: 'Консервативный',
     risk_prof_conservative_moderately: 'Умеренно-консервативный',
     risk_prof_balanced: 'Сбалансированный',

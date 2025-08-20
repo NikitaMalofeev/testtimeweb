@@ -13,7 +13,7 @@
     position: relative;
   padding: 16px;
   border-radius: 12px;
-  min-height: 189px;
+  min-height: 222px;
   background: white;
   border: 1px solid #e6eef7;
   display: flex;
@@ -60,9 +60,9 @@
       border-bottom: 1px solid #e6eef7;
   }
 
-  &:nth-of-type(3) {
+  &:nth-of-type(4) {
     .value {
-      color: black;
+      color: #0F0E0E;
 
       &::before {
         display: none;
@@ -114,3 +114,4 @@
     
     }
   
+

@@ -1,5 +1,5 @@
 // TariffCalculator.tsx
-import React, { useEffect, useMemo, useCallback } from 'react';
+import React, { useEffect, useMemo, useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { debounce } from 'lodash';
 import { RootState } from 'app/providers/store/config/store';
@@ -8,12 +8,13 @@ import { Input } from 'shared/ui/Input/Input';
 import { Loader } from 'shared/ui/Loader/Loader';
 import { Tooltip } from 'shared/ui/Tooltip/Tooltip';
 import styles from './styles.module.scss';
-import { SWIPER_PARAM_VALUES } from 'features/RiskProfile/RiskProfileSecondForm/RiskProfileSecondForm';
+import { SWIPER_PARAM_VALUES, SwiperParametrValues } from 'features/RiskProfile/RiskProfileSecondForm/RiskProfileSecondForm';
 import {
     calculateProfitabilityThunk,
     setCalculatorDeposit,
 } from 'entities/Payments/slice/paymentsSlice';
 import { CalculateProfitabilityPayload } from 'entities/Payments/types/paymentsTypes';
+import { Select } from 'shared/ui/Select/Select';
 
 interface Props {
     tariff_key?: string;
@@ -39,7 +40,7 @@ export const TariffCalculator: React.FC<Props> = ({ tariff_key, min_deposit_valu
     const { min_deposit, loading, error, result } = useSelector(
         (s: RootState) => s.payments.calculator
     );
-    const riskProfile = useSelector(
+    const riskProfileFromUser = useSelector(
         (s: RootState) => s.user.userPersonalAccountInfo?.risk_profiling_text
     );
 
@@ -49,12 +50,33 @@ export const TariffCalculator: React.FC<Props> = ({ tariff_key, min_deposit_valu
         [min_deposit_value]
     );
 
+    // Опции риск-профилей как в RiskProfileSecondForm
+    const profileKeys = Object.keys(SWIPER_PARAM_VALUES) as Array<keyof SwiperParametrValues>;
+    const finalRiskProfileOptions = profileKeys.map((key) => ({
+        value: key,
+        label: SWIPER_PARAM_VALUES[key],
+    }));
+
+    // Локальный стейт выбранного риск-профиля
+    const [selectedProfile, setSelectedProfile] = useState<string>(
+        (riskProfileFromUser as string) || 'risk_prof_balanced'
+    );
+
+    // Если из стора пришёл профиль и локально ещё дефолт — синхронизируем один раз
+    useEffect(() => {
+        if (riskProfileFromUser && !selectedProfile) {
+            setSelectedProfile(riskProfileFromUser);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [riskProfileFromUser]);
+
+    // Дебаунс запроса расчёта
     const fire = useMemo(
         () =>
-            debounce((sum: number) => {
+            debounce((sum: number, profile: string) => {
                 const payload: CalculateProfitabilityPayload = {
                     min_deposit: sum,
-                    risk_profile: 'risk_prof_balanced',
+                    risk_profile: profile ? profile : selectedProfile,
                     tariff_key: tariff_key || '',
                 };
                 dispatch(calculateProfitabilityThunk(payload));
@@ -62,29 +84,34 @@ export const TariffCalculator: React.FC<Props> = ({ tariff_key, min_deposit_valu
         [dispatch, tariff_key]
     );
 
-    // Инициализация значения и запрос расчёта при маунте / смене минималки
+    // Инициализация депозита и первый расчёт
     useEffect(() => {
         const initial = clamp(roundToStep(min_deposit || min_deposit_value || 0));
         if (min_deposit !== initial) {
             dispatch(setCalculatorDeposit(initial));
-            fire(initial);
+            fire(initial, selectedProfile);
         } else if (min_deposit) {
-            fire(min_deposit);
+            fire(min_deposit, selectedProfile);
         }
-        // очищаем дебаунс при размонтировании
         return () => {
-
             if (typeof fire.cancel === 'function') fire.cancel();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [min_deposit_value]); // намеренно не включаем min_deposit, чтобы не зациклить
+    }, [min_deposit_value]);
+
+    // Пересчёт при смене риск-профиля
+    useEffect(() => {
+        const sum = clamp(roundToStep(min_deposit || min_deposit_value));
+        fire(sum, selectedProfile);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedProfile]);
 
     return (
         <div className={styles.container}>
             {/* Левая карточка — ввод */}
             <div className={styles.card}>
                 <div className={styles.cardHeader}>
-                    <span className={styles.cardTitle}>Калькулятор расчёта комиссии</span>
+                    <span className={styles.cardTitle}>Калькулятор комиссии</span>
                 </div>
 
                 <div className={styles.fieldBlock}>
@@ -111,14 +138,14 @@ export const TariffCalculator: React.FC<Props> = ({ tariff_key, min_deposit_valu
                             const num = parseMoneyStringToNumber(e.target.value);
                             const normalized = clamp(roundToStep(num));
                             dispatch(setCalculatorDeposit(normalized));
-                            fire(normalized);
+                            fire(normalized, selectedProfile);
                         }}
                         onBlur={(e) => {
                             const num = parseMoneyStringToNumber(e.target.value);
                             const normalized = clamp(roundToStep(num || min_deposit_value));
                             if (normalized !== min_deposit) {
                                 dispatch(setCalculatorDeposit(normalized));
-                                fire(normalized);
+                                fire(normalized, selectedProfile);
                             }
                         }}
                     />
@@ -127,9 +154,20 @@ export const TariffCalculator: React.FC<Props> = ({ tariff_key, min_deposit_valu
                 <div className={styles.cardHeader}>
                     <span className={styles.cardTitle}>Риск-профиль</span>
                 </div>
-                <span>
-                    {riskProfile && SWIPER_PARAM_VALUES[riskProfile as keyof typeof SWIPER_PARAM_VALUES]}
-                </span>
+
+                {riskProfileFromUser ? (
+                    <span>{riskProfileFromUser ? SWIPER_PARAM_VALUES[riskProfileFromUser as keyof typeof SWIPER_PARAM_VALUES] : ''}</span>
+                ) : (
+                    <Select
+                        value={selectedProfile}
+                        title="Выберите риск профиль"
+                        items={finalRiskProfileOptions}
+                        onChange={(val: string) => {
+                            // val — одно из значений ключей профилей
+                            setSelectedProfile(val);
+                        }}
+                    />
+                )}
             </div>
 
             {/* Правая карточка — результат */}
@@ -154,6 +192,10 @@ export const TariffCalculator: React.FC<Props> = ({ tariff_key, min_deposit_valu
                             <span className={styles.value}>{`${result.year_per} %`}</span>
                         </div>
                         <div className={styles.row}>
+                            <span className={styles.label}>Доходность с учетом комиссии, %</span>
+                            <span className={styles.value}>{`${result.year_per_without_commission} %`}</span>
+                        </div>
+                        <div className={styles.row}>
                             <span className={styles.label}>Годовой доход, ₽</span>
                             <span className={styles.value}>{`${result.year_money} ₽`}</span>
                         </div>
@@ -162,12 +204,14 @@ export const TariffCalculator: React.FC<Props> = ({ tariff_key, min_deposit_valu
                             <span className={styles.value}>{`${result.commission_365_days} ₽`}</span>
                         </div>
                         <div className={styles.row}>
-                            <span className={styles.label}>Доходность без комиссии, %</span>
-                            <span className={styles.value}>{`${result.year_per_without_commission} %`}</span>
+                            <span className={styles.label}>Годовой доход с учетом комиссии, ₽</span>
+                            <span className={styles.value}>{`${result.year_money_without_commission} ₽`}</span>
                         </div>
                     </div>
                 )}
             </div>
+
         </div>
+
     );
 };

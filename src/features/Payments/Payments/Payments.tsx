@@ -302,10 +302,15 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                 paidFor={isPaidAndActive(t.title) || false}
                             />
                             {currentOrderId && (
-                                <TariffCalculator
-                                    tariff_key={currentOrderId}
-                                    min_deposit_value={t.title === 'Базовый тариф' ? 1_000_000 : 5_000_000}
-                                />
+                                <>
+                                    <TariffCalculator
+                                        tariff_key={currentOrderId}
+                                        min_deposit_value={t.title === 'Базовый тариф' ? 1_000_000 : 5_000_000}
+                                    />
+                                    <div>
+                                        <span className={styles.disclaimer}>Указанная доходность носит исключительно справочный характер и не является гарантированной</span>
+                                    </div>
+                                </>
                             )}
                         </motion.div>
                     ),

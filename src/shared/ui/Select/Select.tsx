@@ -13,10 +13,10 @@ interface SelectItem {
 }
 
 interface CustomSelectProps {
-    label: string;
+    label?: string;
     value: string;
     title: string;
-    needValue: boolean;
+    needValue?: boolean;
     items: SelectItem[];
     onChange: (val: string) => void;
     error?: string | boolean;

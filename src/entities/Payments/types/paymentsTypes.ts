@@ -86,4 +86,5 @@ export interface CalculateProfitabilityResponse {
     year_money: number;
     commission_365_days: number;
     year_per_without_commission: number;
+    year_money_without_commission: number;
 }

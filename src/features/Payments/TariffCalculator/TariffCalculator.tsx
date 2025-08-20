@@ -119,7 +119,7 @@ export const TariffCalculator: React.FC<Props> = ({ tariff_key, min_deposit_valu
                         <Tooltip
                             description="Сумма, от которой будет считаться доходность"
                             positionBox={{ top: '26px', left: '-264px' }}
-                            squerePosition={{ top: '15px', left: '241px' }}
+                            squerePosition={{ top: '10px', left: '241px' }}
                             topForCenteringIcons="24px"
                             className={styles.tooltip}
                         />
@@ -151,23 +151,32 @@ export const TariffCalculator: React.FC<Props> = ({ tariff_key, min_deposit_valu
                     />
                 </div>
 
-                <div className={styles.cardHeader}>
-                    <span className={styles.cardTitle}>Риск-профиль</span>
-                </div>
-
-                {riskProfileFromUser ? (
-                    <span>{riskProfileFromUser ? SWIPER_PARAM_VALUES[riskProfileFromUser as keyof typeof SWIPER_PARAM_VALUES] : ''}</span>
-                ) : (
-                    <Select
-                        value={selectedProfile}
-                        title="Выберите риск профиль"
-                        items={finalRiskProfileOptions}
-                        onChange={(val: string) => {
-                            // val — одно из значений ключей профилей
-                            setSelectedProfile(val);
-                        }}
+                <div style={{ position: 'relative' }}>
+                    <div className={styles.cardHeader}>
+                        <span className={styles.cardTitle}>Риск-профиль</span>
+                    </div>
+                    <Tooltip
+                        positionBox={{ top: '16px', left: '-264px' }}
+                        squerePosition={{ top: '4px', left: '241px' }}
+                        topForCenteringIcons="24px"
+                        description={riskProfileFromUser ? 'Ваш текущий риск-профиль' : "Доходность и комиссия зависят напрямую от риск-профиля, который вы выберете"}
+                        className={styles.tooltip_rp}
                     />
-                )}
+
+                    {riskProfileFromUser ? (
+                        <span>{riskProfileFromUser ? SWIPER_PARAM_VALUES[riskProfileFromUser as keyof typeof SWIPER_PARAM_VALUES] : ''}</span>
+                    ) : (
+                        <Select
+                            value={selectedProfile}
+                            title="Выберите риск профиль"
+                            items={finalRiskProfileOptions}
+                            onChange={(val: string) => {
+                                // val — одно из значений ключей профилей
+                                setSelectedProfile(val);
+                            }}
+                        />
+                    )}
+                </div>
             </div>
 
             {/* Правая карточка — результат */}
@@ -188,23 +197,23 @@ export const TariffCalculator: React.FC<Props> = ({ tariff_key, min_deposit_valu
                 {!loading && !error && result && (
                     <div className={styles.rows}>
                         <div className={styles.row}>
-                            <span className={styles.label}>Годовая доходность, %</span>
+                            <span className={styles.label}>Годовая доходность</span>
                             <span className={styles.value}>{`${result.year_per} %`}</span>
                         </div>
                         <div className={styles.row}>
-                            <span className={styles.label}>Доходность с учетом комиссии, %</span>
+                            <span className={styles.label}>Доходность с учетом комиссии</span>
                             <span className={styles.value}>{`${result.year_per_without_commission} %`}</span>
                         </div>
                         <div className={styles.row}>
-                            <span className={styles.label}>Годовой доход, ₽</span>
+                            <span className={styles.label}>Годовой доход</span>
                             <span className={styles.value}>{`${result.year_money} ₽`}</span>
                         </div>
                         <div className={styles.row}>
-                            <span className={styles.label}>Комиссия за 365 дней, ₽</span>
+                            <span className={styles.label}>Комиссия за 365 дней</span>
                             <span className={styles.value}>{`${result.commission_365_days} ₽`}</span>
                         </div>
                         <div className={styles.row}>
-                            <span className={styles.label}>Годовой доход с учетом комиссии, ₽</span>
+                            <span className={styles.label}>Годовой доход с учетом комиссии</span>
                             <span className={styles.value}>{`${result.year_money_without_commission} ₽`}</span>
                         </div>
                     </div>

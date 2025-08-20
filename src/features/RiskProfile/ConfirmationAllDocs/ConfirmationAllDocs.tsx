@@ -111,7 +111,9 @@ export const ConfirmAllDocs: React.FC = () => {
         const tariffId = currentUserTariffIdForPayments || currentTariffId;
         const previewId = `tariff_${tariffId}`;
 
-
+        if (currentTypeDoc === "type_doc_broker_api_token" && brokerIds.length === 0) {
+            dispatch(setStepAdditionalMenuUI(5));
+        }
         if (currentTypeDoc === 'type_doc_agreement_investment_advisor_app_1') {
             await dispatch(getNotSignedTariffDocThunk({ tariff_id: tariffId }));
 

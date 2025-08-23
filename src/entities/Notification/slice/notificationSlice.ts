@@ -1,33 +1,51 @@
+// entities/Notification/slice/notificationSlice.ts
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from 'app/providers/store/config/store';
-import {
-  Notification,
-  NotificationsState,
-  LkNotificationStatus,
-} from '../types/types';
 import {
   getAllNotifications,
   GetAllNotificationsParams,
   updateAllNotifications,
   UpdateAllNotificationsParams,
 } from '../api/notificationApi';
-import { set } from 'lodash';
+import { NotificationColor } from 'features/Notifications/NotificationCard/NotificationCard';
 
-/* -------------------------------------------------------------------------- */
-/* THUNKS                                                                     */
-/* -------------------------------------------------------------------------- */
+/* ----------------------------- Типы ----------------------------- */
 
-/** Загрузка массива уведомлений и запись в Redux */
+// Ровно то, что приходит от бэка
+export type ApiNotification = {
+  id: string;
+  title?: string | null;
+  text?: string;                       // <- опционально, как у тебя с бэка
+  created?: string;
+  color?: NotificationColor;
+  isRead: boolean;                     // серверное "прочитано"
+  isActive?: boolean;                  // может прийти, может нет
+};
+
+// Клиентская (с локальными флагами попапа)
+export type Notification = ApiNotification & {
+  isActive: boolean; // локальный флаг участия во всплывающем попапе
+  shown: boolean;    // уже показали в этой сессии
+};
+
+export type NotificationsState = {
+  notifications: Notification[];
+  isLoading: boolean;
+  error: string | null;
+};
+
+/* ----------------------------- Thunks --------------------------- */
+
+// Возвращаем ТОЛЬКО серверную модель!
 export const getAllNotificationsThunk = createAsyncThunk<
-  Notification[],
+  ApiNotification[],
   GetAllNotificationsParams | void,
   { state: RootState; rejectValue: string }
->('notifications/getAll', async (_params = {}, { getState, dispatch, rejectWithValue }) => {
+>('notifications/getAll', async (_params = {}, { getState, rejectWithValue }) => {
   try {
-    const token = (getState() as RootState).user?.token;
+    const token = getState().user.token;
     if (!token) return rejectWithValue('Нет токена пользователя');
-    const list = await getAllNotifications(token); // параметры не нужны на бэке
-    dispatch(setNotifications(list));
+    const list = await getAllNotifications(token); // <-- должно быть Promise<ApiNotification[]>
     return list;
   } catch (err: any) {
     const msg =
@@ -38,17 +56,18 @@ export const getAllNotificationsThunk = createAsyncThunk<
   }
 });
 
+// Возвращаем ТОЛЬКО серверную модель!
 export const updateAllNotificationsThunk = createAsyncThunk<
-  Notification[],
+  ApiNotification[],
   UpdateAllNotificationsParams | undefined,
   { state: RootState; rejectValue: string }
 >(
-  'notifications/updateAllNotificationsThunk',
-  async (params = {}, { getState, rejectWithValue, dispatch }) => {
+  'notifications/updateAll',
+  async (params = {}, { getState, rejectWithValue }) => {
     try {
-      const token = (getState() as RootState).user?.token;
+      const token = getState().user.token;
       if (!token) return rejectWithValue('Нет токена пользователя');
-      const list = await updateAllNotifications(token, params);
+      const list = await updateAllNotifications(token, params); // Promise<ApiNotification[]>
       return list;
     } catch (err: any) {
       const msg =
@@ -60,52 +79,76 @@ export const updateAllNotificationsThunk = createAsyncThunk<
   }
 );
 
-/* -------------------------------------------------------------------------- */
-/* SLICE                                                                      */
-/* -------------------------------------------------------------------------- */
+/* ----------------------------- Helpers -------------------------- */
+
+function mergeServerIntoState(
+  oldList: Notification[],
+  serverList: ApiNotification[]
+): Notification[] {
+  return serverList.map((srv) => {
+    const prev = oldList.find((n) => n.id === srv.id);
+    return {
+      ...srv,
+      // если сервер прислал isActive — используем; иначе берём предыдущее значение, а если и его нет — !isRead
+      isActive:
+        typeof srv.isActive === 'boolean'
+          ? srv.isActive
+          : (prev?.isActive ?? !srv.isRead),
+      shown: prev?.shown ?? false,
+    } as Notification;
+  });
+}
+
+/* ------------------------------ Slice --------------------------- */
 
 const initialState: NotificationsState = {
   notifications: [],
-  error: null,
   isLoading: false,
+  error: null,
 };
 
 export const notificationSlice = createSlice({
   name: 'notifications',
   initialState,
   reducers: {
-    setNotifications: (state, action: PayloadAction<Notification[]>) => {
-      state.notifications = action.payload.map(n => ({ ...n, shown: false } as Notification));
-    },
-    addNotification: (state, action: PayloadAction<Notification>) => {
-      const incoming = { ...action.payload, shown: false } as Notification;
-      const i = state.notifications.findIndex(n => n.id === incoming.id);
-      if (i >= 0) state.notifications[i] = incoming;
-      else state.notifications.unshift(incoming);
+    // Если вручную кладёшь массив с бэка
+    setNotifications: (state, action: PayloadAction<ApiNotification[]>) => {
+      state.notifications = mergeServerIntoState(state.notifications, action.payload);
     },
 
-    updateNotificationStatus: (
-      state,
-      action: PayloadAction<{ id: string; status: LkNotificationStatus }>
-    ) => {
-      const { id, status } = action.payload;
-      const item = state.notifications.find((n) => n.id === id);
-      if (item) item.status = status;
+    // Пришло по сокету одиночное серверное уведомление
+    addNotification: (state, action: PayloadAction<ApiNotification>) => {
+      const srv = action.payload;
+      const idx = state.notifications.findIndex((n) => n.id === srv.id);
+      const next: Notification = {
+        ...srv,
+        isActive:
+          typeof srv.isActive === 'boolean'
+            ? srv.isActive
+            : (idx >= 0 ? state.notifications[idx].isActive : !srv.isRead),
+        shown: idx >= 0 ? state.notifications[idx].shown : false,
+      };
+      if (idx >= 0) state.notifications[idx] = next;
+      else state.notifications.unshift(next);
     },
 
-    /** Пометить "показано" (фронтовый флаг, чтобы повторно не всплывало) */
     markNotificationShown: (state, action: PayloadAction<{ id: string }>) => {
-      const item = state.notifications.find((n) => n.id === action.payload.id);
-      if (item) (item as any).shown = true;
+      const it = state.notifications.find((n) => n.id === action.payload.id);
+      if (it) it.shown = true;
     },
 
-    /** Массово пометить список id как прочитанные */
+    deactivateNotification: (state, action: PayloadAction<{ id: string }>) => {
+      const it = state.notifications.find((n) => n.id === action.payload.id);
+      if (it) it.isActive = false;
+    },
+
+    // "Просмотреть все" — локально ставим прочитанными и отключаем попапы
     markManyAsRead: (state, action: PayloadAction<string[]>) => {
       const ids = new Set(action.payload);
       state.notifications.forEach((n) => {
         if (ids.has(n.id)) {
-          (n as any).isRead = true;                  // <-- главное поле для UI
-          (n as any).status = 'read' as LkNotificationStatus; // если где-то нужно
+          n.isRead = true;
+          n.isActive = false;
         }
       });
     },
@@ -114,42 +157,49 @@ export const notificationSlice = createSlice({
       state.error = null;
     },
   },
+
   extraReducers: (builder) => {
     builder
+      .addCase(getAllNotificationsThunk.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(getAllNotificationsThunk.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.notifications = mergeServerIntoState(state.notifications, action.payload);
+      })
+      .addCase(getAllNotificationsThunk.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload || 'Ошибка загрузки';
+      })
+
+      .addCase(updateAllNotificationsThunk.fulfilled, (state, action) => {
+        // синхронизируем isRead c бэком, локальные флаги сохраняем
+        state.notifications = mergeServerIntoState(state.notifications, action.payload);
+      })
+      .addCase(updateAllNotificationsThunk.rejected, (state, action) => {
+        state.error = action.payload || 'Ошибка обновления';
+      });
   },
 });
 
 export const {
   setNotifications,
   addNotification,
-  updateNotificationStatus,
   markNotificationShown,
+  deactivateNotification,
   markManyAsRead,
   clearNotificationsError,
 } = notificationSlice.actions;
 
 export default notificationSlice.reducer;
 
-/* ---------------------------- Selectors ---------------------------- */
+/* --------------------------- Селекторы -------------------------- */
 export const selectNotifications = (state: RootState) =>
   state.notifications.notifications;
 
-export const selectNotificationsLoading = (state: RootState) =>
-  state.notifications.isLoading;
-
-export const selectNotificationsError = (state: RootState) =>
-  state.notifications.error;
-
-export const selectNotificationById =
-  (id: string) => (state: RootState) =>
-    state.notifications.notifications.find((n) => n.id === id);
-
-/** Первое уведомление, которое не прочитано и ещё не показывалось во всплывашке */
-export const selectFirstUnreadUnshown = (state: RootState) =>
-  state.notifications.notifications.find((n: any) => !n.isRead);
-
-/** Кол-во непрочитанных */
-export const selectUnreadCount = (state: RootState) =>
-  state.notifications.notifications.filter((n) => n.isRead).length;
 export const selectFirstActiveUnshown = (state: RootState) =>
-  state.notifications.notifications.find((n: any) => n.isActive);
+  state.notifications.notifications.find((n) => n.isActive && !n.shown);
+
+export const selectUnreadCount = (state: RootState) =>
+  state.notifications.notifications.filter((n) => !n.isRead).length;

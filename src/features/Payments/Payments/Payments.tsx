@@ -11,7 +11,8 @@ import {
     setCurrentOrderStatus,
     setCurrentOrderId,
     getAllUserTariffsThunk,
-    getAllActiveTariffsThunk,     // <== НОВОЕ
+    getAllActiveTariffsThunk,
+    setCurrentTariff,     // <== НОВОЕ
 } from 'entities/Payments/slice/paymentsSlice';
 import { setStepAdditionalMenuUI, setWarning } from 'entities/ui/Ui/slice/uiSlice';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
@@ -176,13 +177,12 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     });
 
 
-    const handleChooseTariff = useCallback(
-        (id: string) => {
-            if (currentOrderId === id) return;
-            dispatch(setCurrentOrderId(id));
-        },
-        [currentOrderId, dispatch],
-    );
+    const handleChooseTariff = (id: string) => {
+        dispatch(setCurrentTariff(id))
+        dispatch(setCurrentOrderId(id))
+    }
+
+
 
     const handleSetTariff = useCallback(() => {
         dispatch(closeModal(ModalType.SUCCESS))

@@ -12,32 +12,24 @@ export type LkNotificationStatus =
     | 'notif_success';
 
 /** Что реально приходит от бэка (snake_case, флаги из БД) */
-export interface ApiNotification {
+export type ApiNotification = {
     id: string;
-    title?: string;
-    description?: string;
-    status: LkNotificationStatus;
-    is_active: boolean;
+    title?: string | null;
+    text?: string;
+    created?: string;
+    color?: NotificationColor;
     is_read: boolean;
-    created?: string;   // сервер обычно шлёт строку
-    route?: string;
-}
+    status: LkNotificationStatus;
+};
+
 
 /** Цвета для UI (производные от статуса) */
 export type UiColor = 'blue' | 'yellow' | 'red' | 'green';
 
 /** Нормализованный объект, который храним в Redux */
-export interface Notification {
-    id: string;
-    title?: string;
-    text?: string;
-    status: LkNotificationStatus;
-    isActive: boolean;
-    isRead: boolean;
-    created?: string;    // ISO string (как пришло)
-    route?: string;
-    color: NotificationColor;
-}
+export type Notification = ApiNotification & {
+    is_active: boolean;
+};
 
 /** Состояние редьюсера уведомлений */
 export interface NotificationsState {

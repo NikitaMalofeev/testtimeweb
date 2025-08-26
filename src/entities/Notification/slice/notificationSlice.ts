@@ -8,25 +8,14 @@ import {
   UpdateAllNotificationsParams,
 } from '../api/notificationApi';
 import { NotificationColor } from 'features/Notifications/NotificationCard/NotificationCard';
+import { ApiNotification, Notification } from '../types/types';
 
 /* ----------------------------- Типы ----------------------------- */
 
 // Ровно то, что приходит от бэка
-export type ApiNotification = {
-  id: string;
-  title?: string | null;
-  text?: string;                       // <- опционально, как у тебя с бэка
-  created?: string;
-  color?: NotificationColor;
-  isRead: boolean;                     // серверное "прочитано"
-  isActive?: boolean;                  // может прийти, может нет
-};
 
-// Клиентская (с локальными флагами попапа)
-export type Notification = ApiNotification & {
-  isActive: boolean; // локальный флаг участия во всплывающем попапе
-  shown: boolean;    // уже показали в этой сессии
-};
+// Клиентская модель (добавляем только is_active)
+
 
 export type NotificationsState = {
   notifications: Notification[];
@@ -45,7 +34,7 @@ export const getAllNotificationsThunk = createAsyncThunk<
   try {
     const token = getState().user.token;
     if (!token) return rejectWithValue('Нет токена пользователя');
-    const list = await getAllNotifications(token); // <-- должно быть Promise<ApiNotification[]>
+    const list = await getAllNotifications(token); // Promise<ApiNotification[]>
     return list;
   } catch (err: any) {
     const msg =
@@ -81,6 +70,7 @@ export const updateAllNotificationsThunk = createAsyncThunk<
 
 /* ----------------------------- Helpers -------------------------- */
 
+// Массовая загрузка/синхронизация
 function mergeServerIntoState(
   oldList: Notification[],
   serverList: ApiNotification[]
@@ -89,23 +79,20 @@ function mergeServerIntoState(
     const prev = oldList.find((n) => n.id === srv.id);
     const isNew = !prev;
 
-    const isActive =
-      typeof srv.isActive === 'boolean'
-        ? srv.isActive
-        : (isNew
-          ? !srv.isRead   // ← для новых авто-включаем (или поставь true, если хочешь всегда)
-          : (prev?.isActive ?? false));
-
-    const shown = isNew ? false : (prev?.shown ?? false);
-
-    return { ...srv, isActive, shown } as Notification;
+    return {
+      ...srv,
+      // сервер is_active не присылает; для новых — активируем, если не прочитано
+      // для существующих — сохраняем локальное значение
+      is_active: isNew ? !srv.is_read : (prev?.is_active ?? false),
+    } as Notification;
   });
 }
 
 /* ------------------------------ Slice --------------------------- */
 
 const initialState: NotificationsState = {
-  notifications: [],
+  notifications: [
+  ],
   isLoading: false,
   error: null,
 };
@@ -119,44 +106,40 @@ export const notificationSlice = createSlice({
       state.notifications = mergeServerIntoState(state.notifications, action.payload);
     },
 
-    // Пришло по сокету одиночное серверное уведомление
+    // Пришло по сокету одиночное серверное уведомление — всплыть немедленно
     addNotification: (state, action: PayloadAction<ApiNotification>) => {
       const srv = action.payload;
       const idx = state.notifications.findIndex((n) => n.id === srv.id);
 
       const next: Notification = {
         ...srv,
-        // если сервер явно прислал isActive — уважаем, иначе для realtime-события включаем попап
-        isActive: (typeof srv.isActive === 'boolean')
-          ? srv.isActive
-          : true,
-        shown: idx >= 0 ? state.notifications[idx].shown : false,
+        // хотим всегда всплывать на realtime—событии:
+        // если предпочитаешь уважать прочитанность, поставь !srv.is_read
+        is_active: true,
       };
 
       if (idx >= 0) state.notifications[idx] = next;
       else state.notifications.unshift(next);
     },
-    markNotificationShown: (state, action: PayloadAction<{ id: string }>) => {
-      const it = state.notifications.find((n) => n.id === action.payload.id);
-      if (it) it.shown = true;
-    },
 
+    // Локально выключить попап (не трогаем прочитанность)
     deactivateNotification: (state, action: PayloadAction<{ id: string }>) => {
       const it = state.notifications.find((n) => n.id === action.payload.id);
-      if (it) it.isActive = false;
+      if (it) it.is_active = false;
     },
 
-    // "Просмотреть все" — локально ставим прочитанными и отключаем попапы
+    // Пометить прочитанным локально (удобно для "прочитать всё")
+    markAsRead: (state, action: PayloadAction<{ id: string }>) => {
+      const it = state.notifications.find((n) => n.id === action.payload.id);
+      if (it) it.is_read = true;
+    },
+
     markManyAsRead: (state, action: PayloadAction<string[]>) => {
       const ids = new Set(action.payload);
       state.notifications.forEach((n) => {
-        if (ids.has(n.id)) {
-          n.isRead = true;
-          n.isActive = false;
-        }
+        if (ids.has(n.id)) n.is_read = true;
       });
     },
-
 
     clearNotificationsError: (state) => {
       state.error = null;
@@ -175,15 +158,12 @@ export const notificationSlice = createSlice({
       })
       .addCase(getAllNotificationsThunk.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload || 'Ошибка загрузки';
       })
 
       .addCase(updateAllNotificationsThunk.fulfilled, (state, action) => {
-        // синхронизируем isRead c бэком, локальные флаги сохраняем
         state.notifications = mergeServerIntoState(state.notifications, action.payload);
       })
       .addCase(updateAllNotificationsThunk.rejected, (state, action) => {
-        state.error = action.payload || 'Ошибка обновления';
       });
   },
 });
@@ -191,8 +171,8 @@ export const notificationSlice = createSlice({
 export const {
   setNotifications,
   addNotification,
-  markNotificationShown,
   deactivateNotification,
+  markAsRead,
   markManyAsRead,
   clearNotificationsError,
 } = notificationSlice.actions;
@@ -200,11 +180,13 @@ export const {
 export default notificationSlice.reducer;
 
 /* --------------------------- Селекторы -------------------------- */
+
 export const selectNotifications = (state: RootState) =>
   state.notifications.notifications;
 
-export const selectFirstActiveUnshown = (state: RootState) =>
-  state.notifications.notifications.find((n) => n.isActive && !n.shown);
+// Текущее всплывающее уведомление: активно и не прочитано
+export const selectFirstActive = (state: RootState) =>
+  state.notifications.notifications.find((n) => n.is_active && !n.is_read);
 
 export const selectUnreadCount = (state: RootState) =>
-  state.notifications.notifications.filter((n) => !n.isRead).length;
+  state.notifications.notifications.filter((n) => !n.is_read).length;

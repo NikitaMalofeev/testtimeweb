@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import styles from './styles.module.scss';
 
@@ -10,93 +10,80 @@ import { useSelector } from 'react-redux';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
 import {
     deactivateNotification,
-    markNotificationShown,
-    selectFirstActiveUnshown,
+    selectFirstActive,
 } from 'entities/Notification/slice/notificationSlice';
 
 /**
- * Popup показывает по одному уведомлению за раз.
- * Критерии показа:
- *  - локальный флаг `isActive === true`
- *  - локальный флаг `shown === false` (значит ещё не показывали в этой сессии)
+ * Попап показывает по одному уведомлению:
+ * критерий: is_active === true && is_read === false
  *
- * При автозакрытии/крестике:
- *  - `isActive` выключается локально (что исключает повторный показ)
+ * Автозакрытие/крестик:
+ *  - is_active = false (локально, чтобы не повторялся показ)
  *  - бэку ничего не отправляем
+ *  - is_read не трогаем (при желании можешь пометить прочитанным)
  */
 export const NotificationPopup: React.FC = () => {
     const dispatch = useAppDispatch();
-    const current = useSelector(selectFirstActiveUnshown);
+    const current = useSelector(selectFirstActive);
+    const isOpen = Boolean(current);
+    const autoHideMs = 10000; // поставь 3000 для "пара секунд"
 
-    const [visible, setVisible] = useState(false);
-    const autoHideMs = 10000;
-
-    // NotificationPopup.tsx
+    // таймер живет пока есть открытое уведомление
     useEffect(() => {
-        if (!current) {
-            setVisible(false);
-            return;
-        }
-
-        setVisible(true);
-
-        const id = current.id; // зафиксируем id, чтобы не потерять его в cleanup
-        const hideId = window.setTimeout(() => {
-            setVisible(false);
-            // Помечаем как показанное ТОЛЬКО при закрытии
-            dispatch(markNotificationShown({ id }));
-            // И отключаем от повторных показов (локально)
+        if (!current) return;
+        const id = current.id;
+        const t = window.setTimeout(() => {
             dispatch(deactivateNotification({ id }));
+            // если хочешь считать просмотр попапа "прочитанным":
+            // dispatch(markAsRead({ id }));
         }, autoHideMs);
-
-        return () => window.clearTimeout(hideId);
+        return () => window.clearTimeout(t);
     }, [current?.id, dispatch]);
 
     const handleClose = () => {
         if (!current) return;
-        setVisible(false);
-        dispatch(markNotificationShown({ id: current.id }));
         dispatch(deactivateNotification({ id: current.id }));
+        // если нужно: dispatch(markAsRead({ id: current.id }));
     };
 
-
-    if (!current) return null;
+    const bg =
+        (current?.color === 'blue' && '#C3D7F5') ||
+        (current?.color === 'green' && '#dcf3d1') ||
+        '#ffd9dd';
 
     return (
         <motion.div
             initial={{ y: -50, opacity: 0 }}
-            animate={visible ? { y: 24, opacity: 1 } : { y: -124, opacity: 0 }}
+            animate={isOpen ? { y: 24, opacity: 1 } : { y: -124, opacity: 0 }}
             transition={{ duration: 0.5, ease: 'easeInOut' }}
             className={styles.warningModal}
             style={{
-                background:
-                    current.color === 'blue'
-                        ? '#C3D7F5'
-                        : current.color === 'green'
-                            ? '#dcf3d1'
-                            : '#ffd9dd',
+                background: bg,
+                pointerEvents: isOpen ? 'auto' : 'none',
             }}
             role="alert"
             aria-live="polite"
+            aria-hidden={!isOpen}
         >
-            <div className={styles.warningModal__content}>
-                <Icon
-                    Svg={CloseIcon}
-                    width={20}
-                    height={20}
-                    className={styles.closeIcon}
-                    onClick={handleClose}
-                    pointer
-                />
-                <div className={styles.header}>
-                    <Icon Svg={WarningIcon} width={20} height={20} />
-                    {current.title && <strong>{current.title}</strong>}
+            {isOpen && (
+                <div className={styles.warningModal__content}>
+                    <Icon
+                        Svg={CloseIcon}
+                        width={20}
+                        height={20}
+                        className={styles.closeIcon}
+                        onClick={handleClose}
+                        pointer
+                    />
+                    <div className={styles.header}>
+                        <Icon Svg={WarningIcon} width={20} height={20} />
+                        {current?.title && <strong>{current.title}</strong>}
+                    </div>
+                    <div className={styles.text}>
+                        <span>{current?.text}</span>
+                    </div>
                 </div>
-
-                <div className={styles.text}>
-                    <span>{current.text}</span>
-                </div>
-            </div>
+            )}
         </motion.div>
     );
 };

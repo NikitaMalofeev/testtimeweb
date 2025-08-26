@@ -108,7 +108,7 @@ export const ConfirmAllDocs: React.FC = () => {
     const totalDocs = docTypes.length;
     const handleOpenPreview = async () => {
         navigate('documents')
-        const tariffId = currentUserTariffIdForPayments || currentTariffId;
+        const tariffId = currentTariffId || currentUserTariffIdForPayments;
         const previewId = `tariff_${tariffId}`;
 
         if (currentTypeDoc === "type_doc_broker_api_token" && brokerIds.length === 0) {

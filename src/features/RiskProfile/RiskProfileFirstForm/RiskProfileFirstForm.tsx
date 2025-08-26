@@ -28,6 +28,7 @@ import { updateUserAllData } from "entities/User/slice/userSlice";
 import { useNavigate } from "react-router-dom";
 import CloseIcon from 'shared/assets/svg/close.svg'
 import { Icon } from "shared/ui/Icon/Icon";
+import { Tooltip } from "shared/ui/Tooltip/Tooltip";
 
 interface Question {
     name: string;
@@ -36,6 +37,7 @@ interface Question {
     needTextField?: boolean;
     options?: Record<string, string>;
     fieldType?: "text" | "textarea" | "checkboxGroup" | "customSelect" | "numberinput";
+    tooltip?: string;
 }
 
 export const RiskProfileFirstForm: React.FC = () => {
@@ -176,6 +178,7 @@ export const RiskProfileFirstForm: React.FC = () => {
                 needTextField: true,
                 placeholder: "Ответ",
                 fieldType: "textarea",
+                tooltip: "Доверенное лицо — это физическое или юридическое лицо, которому вы предоставляете право действовать от вашего имени в следующих вопросах:  управления вашими инвестициями, получения информации или принятия решений, связанных с вашим финансовым состоянием. Указание доверенного лица помогает обеспечить более эффективное взаимодействие и защиту ваших интересов в случае, если вы не сможете самостоятельно принимать решения или участвовать в управлении своими активами. Пожалуйста, убедитесь, что вы доверяете этому лицу, так как оно будет иметь доступ к важной информации о ваших финансах."
             },
             {
                 name: "is_qualified_investor_status",
@@ -490,6 +493,18 @@ export const RiskProfileFirstForm: React.FC = () => {
                     <label htmlFor={currentQuestion.name} className={styles.form__question}>
                         {currentQuestion.label}
                     </label>
+                    {currentQuestion.tooltip && (
+                        <Tooltip
+                            description={currentQuestion.tooltip}
+                            positionBox={{ top: '140px', left: '-312px' }}
+                            squerePosition={{ top: '44px', left: '294px' }}
+                            topForCenteringIcons="24px"
+                            boxWidth={{ width: '304px' }}
+                            className={styles.tooltip}
+                        />
+
+                    )}
+
 
                     <div style={{ marginBottom: "32px" }}>
                         {renderQuestionField(currentQuestion)}

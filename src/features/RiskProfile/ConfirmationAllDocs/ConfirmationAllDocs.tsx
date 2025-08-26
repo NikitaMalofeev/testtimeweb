@@ -339,9 +339,13 @@ export const ConfirmAllDocs: React.FC = () => {
                 <div className={styles.page__container}>
                     <div className={styles.page__preview}>
                         <span className={styles.page__doctype}>{renderDocLabel()}</span>
+                        {/* {currentTypeDoc !== "type_doc_agreement_investment_advisor_app_1" && (
+                            
+                        )} */}
                         <Button onClick={handleOpenPreview} theme={ButtonTheme.UNDERLINE} className={styles.button_preview}>
                             Просмотр
                         </Button>
+
                     </div>
                 </div>
                 <div className={styles.desktop__container}>
@@ -407,6 +411,9 @@ export const ConfirmAllDocs: React.FC = () => {
                     </div>
                 }
                 action={() => {
+                    if (currentTypeDoc === 'type_doc_broker_api_token' && brokerIds.length === 0) {
+                        dispatch(setStepAdditionalMenuUI(5))
+                    }
                     dispatch(closeModal(ModalType.SUCCESS));
                     dispatch(closeModal(ModalType.CONFIRM_DOCS));
                 }}

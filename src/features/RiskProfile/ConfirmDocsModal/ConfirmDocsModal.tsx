@@ -304,6 +304,7 @@ export const ConfirmDocsModal = memo(
                                     dispatch(setDocumentTimeoutPending({ docKey: docsType, timeout: 10000 }));
                                 }
                                 if (openSuccessModal) {
+                                    dispatch(closeModal(ModalType.CONFIRM_DOCS))
                                     openSuccessModal(docsType);
                                 } else {
                                     onClose();

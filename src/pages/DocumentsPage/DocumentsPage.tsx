@@ -508,7 +508,7 @@ const DocumentsPage: React.FC = () => {
                     `${!hasBroker ? ' подключите брокерский счет' : ''}` + `${!hasTariff ? ' и тариф' : ''}`.replace(/,\s*$/, '');
             } else if (!hasTariff) {                 // всё есть, кроме тарифа → красная
                 colorClass = styles.button__gray;
-                additionalMessages = 'Для подписания подключите тариф';
+                additionalMessages = 'Для подписания оплатите тариф';
             }
         }
 

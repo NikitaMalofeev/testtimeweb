@@ -9,6 +9,7 @@ import { Icon } from 'shared/ui/Icon/Icon';
 import { useSelector } from 'react-redux';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
 import {
+    deactivateNotification,
     markNotificationShown,
     selectFirstActiveUnshown,
 } from 'entities/Notification/slice/notificationSlice';
@@ -30,20 +31,22 @@ export const NotificationPopup: React.FC = () => {
     const [visible, setVisible] = useState(false);
     const autoHideMs = 10000;
 
+    // NotificationPopup.tsx
     useEffect(() => {
         if (!current) {
             setVisible(false);
             return;
         }
 
-        // Помечаем как показанное (чтобы не дёргалось повторно в эту же сессию)
-        dispatch(markNotificationShown({ id: current.id }));
         setVisible(true);
 
+        const id = current.id; // зафиксируем id, чтобы не потерять его в cleanup
         const hideId = window.setTimeout(() => {
             setVisible(false);
-            // Локально выключаем показ этого уведомления в popup
-            // dispatch(setLocalActive({ id: current.id, isActive: false }));
+            // Помечаем как показанное ТОЛЬКО при закрытии
+            dispatch(markNotificationShown({ id }));
+            // И отключаем от повторных показов (локально)
+            dispatch(deactivateNotification({ id }));
         }, autoHideMs);
 
         return () => window.clearTimeout(hideId);
@@ -52,9 +55,10 @@ export const NotificationPopup: React.FC = () => {
     const handleClose = () => {
         if (!current) return;
         setVisible(false);
-        // Локально выключаем показ в popup
-        // dispatch(setLocalActive({ id: current.id, isActive: false }));
+        dispatch(markNotificationShown({ id: current.id }));
+        dispatch(deactivateNotification({ id: current.id }));
     };
+
 
     if (!current) return null;
 

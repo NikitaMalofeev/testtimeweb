@@ -87,15 +87,18 @@ function mergeServerIntoState(
 ): Notification[] {
   return serverList.map((srv) => {
     const prev = oldList.find((n) => n.id === srv.id);
-    return {
-      ...srv,
-      // если сервер прислал isActive — используем; иначе берём предыдущее значение, а если и его нет — !isRead
-      isActive:
-        typeof srv.isActive === 'boolean'
-          ? srv.isActive
-          : (prev?.isActive ?? !srv.isRead),
-      shown: prev?.shown ?? false,
-    } as Notification;
+    const isNew = !prev;
+
+    const isActive =
+      typeof srv.isActive === 'boolean'
+        ? srv.isActive
+        : (isNew
+          ? !srv.isRead   // ← для новых авто-включаем (или поставь true, если хочешь всегда)
+          : (prev?.isActive ?? false));
+
+    const shown = isNew ? false : (prev?.shown ?? false);
+
+    return { ...srv, isActive, shown } as Notification;
   });
 }
 
@@ -120,18 +123,19 @@ export const notificationSlice = createSlice({
     addNotification: (state, action: PayloadAction<ApiNotification>) => {
       const srv = action.payload;
       const idx = state.notifications.findIndex((n) => n.id === srv.id);
+
       const next: Notification = {
         ...srv,
-        isActive:
-          typeof srv.isActive === 'boolean'
-            ? srv.isActive
-            : (idx >= 0 ? state.notifications[idx].isActive : !srv.isRead),
+        // если сервер явно прислал isActive — уважаем, иначе для realtime-события включаем попап
+        isActive: (typeof srv.isActive === 'boolean')
+          ? srv.isActive
+          : true,
         shown: idx >= 0 ? state.notifications[idx].shown : false,
       };
+
       if (idx >= 0) state.notifications[idx] = next;
       else state.notifications.unshift(next);
     },
-
     markNotificationShown: (state, action: PayloadAction<{ id: string }>) => {
       const it = state.notifications.find((n) => n.id === action.payload.id);
       if (it) it.shown = true;
@@ -152,6 +156,7 @@ export const notificationSlice = createSlice({
         }
       });
     },
+
 
     clearNotificationsError: (state) => {
       state.error = null;

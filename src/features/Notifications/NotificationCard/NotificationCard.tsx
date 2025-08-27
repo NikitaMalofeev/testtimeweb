@@ -56,7 +56,7 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({
 
             <div className={styles.title}>{title || ''}</div>
 
-            {text && (
+            {/* {text && (
                 <div
                     className={styles.description}
                     style={{
@@ -66,7 +66,7 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({
                 >
                     {text}
                 </div>
-            )}
+            )} */}
         </div>
     );
 };

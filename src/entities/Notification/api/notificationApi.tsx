@@ -48,7 +48,7 @@ function extractArray<T = unknown>(data: any): T[] {
 }
 
 /** Нормализация api -> ui-модель (snake_case; локальный is_active = false) */
-export function normalizeNotifications(list: ApiNotification[]): Notification[] {
+export function normalizeNotifications(list: ApiNotification[]): any[] {
     return list.map((n) => ({
         id: n.id,
         title: n.title ?? '',

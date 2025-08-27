@@ -130,7 +130,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     }, [dispatch]);
 
     const brokersItems = brokerIds[0]
-        ? [{ value: brokerIds[0], label: 'Т брокер' }]
+        ? [{ value: brokerIds[0], label: 'Т-брокер' }]
         : [{ value: '', label: 'Брокер ещё не выбран' }];
 
     /* Локальный UI */

@@ -1,9 +1,13 @@
+@use '../../app/styles/mixins' as mix;
+
 .page {
     display: flex;
     flex-direction: column;
     padding: 24px;
     height: 100%;
+    background-color: white;
     flex-grow: 1;
+
     &__container{
 position: relative;
 
@@ -98,7 +102,10 @@ position: relative;
 }
 
 .buttons {
-    // position: fixed;
+
+    bottom: 0;
+    max-width: 500px;
+    margin: 0 auto;
     background-color: white;
     padding: 16px 20px;
     display: flex;
@@ -125,6 +132,7 @@ position: relative;
 
 .method {
     display: flex;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
     width: 100%;
@@ -162,4 +170,15 @@ position: relative;
     align-items: center;
     width: 100%;
     margin: 5% auto 0 ;
+}
+
+@include mix.respond-to('tablet-desktop') {
+    .page {
+            padding-bottom: 180px;
+    }
+
+    .buttons {
+        position: absolute;
+            max-width: 310px;
+    }
 }

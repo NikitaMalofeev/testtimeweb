@@ -9,7 +9,7 @@ import { Button, ButtonTheme } from 'shared/ui/Button/Button';
 import PaymentsBase from 'shared/assets/images/paymentsBase.png';
 import PaymentsActive from 'shared/assets/images/paymentsActive.png';
 import SuccessIcon from 'shared/assets/svg/SuccessLabel.svg';
-import ErrorIcon from 'shared/assets/svg/errorCircle.svg'
+import ErrorIcon from 'shared/assets/svg/errorCircle.svg';
 import { Loader } from 'shared/ui/Loader/Loader';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
@@ -19,31 +19,23 @@ interface PaymentsStatusProps {
     status: PaymentStatus;
     paymentId: string;
     payAction: () => void;
+    /** НОВОЕ: колбэк для кнопки «Назад к тарифам» на экране loading (снимает замок и уводит на /payments) */
+    onBack?: () => void;
 }
 
-export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentId, payAction }) => {
-    // достаём список тарифов и текущий заказ
+export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentId, payAction, onBack }) => {
     const activeTariffs = useSelector((s: RootState) => s.payments.activeTariffs);
     const currentUserTariffIdForPayments = useSelector((s: RootState) => s.payments.currentUserTariffIdForPayments);
-    const navigate = useNavigate()
-    const dispatch = useAppDispatch()
+    const navigate = useNavigate();
+    const dispatch = useAppDispatch();
     const targetTariffId = paymentId || currentUserTariffIdForPayments || '';
 
     const normalize = (id: string) => id.replace(/-/g, '');
 
     const activePaidTariffs = useMemo(
-        () => activeTariffs.filter(t => normalize(t.id) === normalize(targetTariffId)),
-        [activeTariffs, targetTariffId]
+        () => activeTariffs.filter((t) => normalize(t.id) === normalize(targetTariffId)),
+        [activeTariffs, targetTariffId],
     );
-
-    useEffect(() => {
-        // console.log(activePaidTariffs)
-        // console.log(activeTariffs)
-        // console.log(currentUserTariffIdForPayments)
-        // console.log('targetTariffId:', targetTariffId);
-        // console.log('activePaidTariffs:', activePaidTariffs);
-    }, [])
-
 
     const { title, subtitle, subtitleColor, statusColor, statusName, icon } = useMemo(() => {
         switch (status) {
@@ -54,7 +46,7 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
                     subtitleColor: '#DCF3D1',
                     statusColor: '#52C417',
                     statusName: 'подключен',
-                    icon: SuccessIcon
+                    icon: SuccessIcon,
                 };
             case 'loading':
                 return {
@@ -63,7 +55,7 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
                     subtitleColor: '#E1ECFB',
                     statusColor: '#0666EB',
                     statusName: 'ожидание',
-                    icon: 'loader'
+                    icon: 'loader' as const,
                 };
             case 'failed':
                 return {
@@ -72,24 +64,22 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
                     subtitleColor: '#FF3C53',
                     statusColor: '#EA3C4E',
                     statusName: 'ошибка',
-                    icon: ErrorIcon
+                    icon: ErrorIcon,
                 };
             default:
-                return { title: '', subtitle: '', subtitleColor: 'transparent' };
+                return { title: '', subtitle: '', subtitleColor: 'transparent', statusColor: '#000000', statusName: '' };
         }
     }, [status]);
-
 
     return (
         <div className={styles.status__wrapper}>
             {/* Иконка и заголовок */}
-            <div className={styles.status__header} style={status === 'success' ? { marginBottom: '55px' } : { marginBottom: '75px' }}>
+            <div
+                className={styles.status__header}
+                style={status === 'success' ? { marginBottom: '55px' } : { marginBottom: '75px' }}
+            >
                 <div className={styles.status__status}>
-                    {icon === 'loader' ? (
-                        <Loader />
-                    ) : (
-                        <Icon Svg={icon} width={36} height={36} />
-                    )}
+                    {icon === 'loader' ? <Loader /> : <Icon Svg={icon as any} width={36} height={36} />}
                     <span className={styles.status__title}>{title}</span>
                 </div>
                 <div
@@ -100,22 +90,19 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
                 </div>
             </div>
 
-            {activePaidTariffs
-                .map((t) => (
-                    <div key={t.id} className={styles.status__details}>
-                        <Icon
-                            Svg={t.title === 'Долгосрочный инвестор' ? PaymentsBase : PaymentsActive}
-                            width={64}
-                            height={46}
-                        />
-                        <div className={styles.status__cardInfo}>
-                            <span className={styles.status__cardStatus} style={{ backgroundColor: statusColor }}>{statusName}</span>
-                            <span className={styles.status__cardTitle}>{t.title}</span>
-                        </div>
+            {activePaidTariffs.map((t) => (
+                <div key={t.id} className={styles.status__details}>
+                    <Icon Svg={t.title === 'Долгосрочный инвестор' ? PaymentsBase : PaymentsActive} width={64} height={46} />
+                    <div className={styles.status__cardInfo}>
+                        <span className={styles.status__cardStatus} style={{ backgroundColor: statusColor }}>
+                            {statusName}
+                        </span>
+                        <span className={styles.status__cardTitle}>{t.title}</span>
                     </div>
-                ))}
+                </div>
+            ))}
 
-            {/* Анимированный блок кнопок только при успехе */}
+            {/* SUCCESS */}
             {status === 'success' && (
                 <motion.div
                     className={styles.status__actions}
@@ -130,10 +117,10 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
                             theme={ButtonTheme.UNDERLINE}
                             padding="20px 25px"
                             onClick={() => {
-                                navigate('/documents')
+                                navigate('/documents');
                                 setTimeout(() => {
-                                    dispatch(setCurrentOrderStatus(''))
-                                }, 1000)
+                                    dispatch(setCurrentOrderStatus(''));
+                                }, 1000);
                             }}
                         >
                             Перейти в документы
@@ -142,10 +129,10 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
                             theme={ButtonTheme.BLUE}
                             padding="20px 25px"
                             onClick={() => {
-                                navigate('/lk')
+                                navigate('/lk');
                                 setTimeout(() => {
-                                    dispatch(setCurrentOrderStatus(''))
-                                }, 1000)
+                                    dispatch(setCurrentOrderStatus(''));
+                                }, 1000);
                             }}
                         >
                             Вернуться в учётную запись
@@ -153,6 +140,8 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
                     </div>
                 </motion.div>
             )}
+
+            {/* LOADING */}
             {status === 'loading' && (
                 <motion.div
                     className={styles.status__actions}
@@ -165,18 +154,30 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
                         <Button
                             theme={ButtonTheme.UNDERLINE}
                             padding="20px 25px"
-                            onClick={() => {
-                                payAction()
-                            }}
+                            onClick={payAction}
                             className={styles.button}
                         >
                             Перейти к оплате
                         </Button>
+
+                        {/* НОВОЕ: «Назад к тарифам» — явное снятие гейта */}
+                        {onBack && (
+                            <Button
+                                theme={ButtonTheme.UNDERLINE}
+                                padding="20px 25px"
+                                onClick={onBack}
+                                className={styles.button}
+                            >
+                                Назад к тарифам
+                            </Button>
+                        )}
+
                         <Button
                             theme={ButtonTheme.BLUE}
                             padding="20px 25px"
                             onClick={() => {
-                                navigate('/lk')
+                                // Возврат в ЛК без снятия гейта — это ок: при возврате в /payments снова удержим на /payments/loading
+                                navigate('/lk');
                             }}
                             className={styles.button}
                         >
@@ -185,6 +186,8 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
                     </div>
                 </motion.div>
             )}
+
+            {/* FAILED */}
             {status === 'failed' && (
                 <motion.div
                     className={styles.status__actions}
@@ -194,14 +197,17 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
                     transition={{ duration: 0.5 }}
                 >
                     <div className={styles.status__buttons}>
-                        <span className={styles.status__actionsTitle}>Что-то пошло не так, пожалуйста попробуйте оплатить снова</span>
+                        <span className={styles.status__actionsTitle}>
+                            Что-то пошло не так, пожалуйста попробуйте оплатить снова
+                        </span>
                         <div className={styles.status__buttons}>
                             <Button
                                 theme={ButtonTheme.UNDERLINE}
                                 padding="20px 25px"
                                 onClick={() => {
-                                    navigate('/payments')
-                                    dispatch(setCurrentOrderStatus(''))
+                                    // На ошибке гейт не активируется, можно просто вернуться к тарифам
+                                    navigate('/payments');
+                                    dispatch(setCurrentOrderStatus(''));
                                 }}
                             >
                                 Перейти к тарифам
@@ -210,8 +216,8 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
                                 theme={ButtonTheme.BLUE}
                                 padding="20px 25px"
                                 onClick={() => {
-                                    navigate('/lk')
-                                    dispatch(setCurrentOrderStatus(''))
+                                    navigate('/lk');
+                                    dispatch(setCurrentOrderStatus(''));
                                 }}
                             >
                                 Вернуться в учётную запись

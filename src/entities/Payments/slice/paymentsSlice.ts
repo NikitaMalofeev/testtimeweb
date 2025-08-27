@@ -33,7 +33,6 @@ import {
 import { setStepAdditionalMenuUI, setWarning } from 'entities/ui/Ui/slice/uiSlice';
 import { closeModal, openModal } from 'entities/ui/Modal/slice/modalSlice';
 import { ModalAnimation, ModalSize, ModalType } from 'entities/ui/Modal/model/modalTypes';
-import { useNavigate } from 'react-router-dom';
 
 /* -------------------------------------------------------------------------- */
 /* TYPES */
@@ -69,7 +68,6 @@ export interface PaymentInfo {
     user_tariff_updated: string | null;
     created: string;
     updated: string;
-
 }
 
 /* -------------------------------------------------------------------------- */
@@ -94,9 +92,12 @@ interface PaymentsState {
     currentOrderId: string;                  // выбранный заказ для UI
     currentOrder: PaymentData | null;
     currentOrderStatus: 'pay' | 'success' | 'loading' | 'failed' | 'exit' | '';
-    payments_info: PaymentInfo[];            // <== НОВОЕ: список платежей / активных тарифов
+    payments_info: PaymentInfo[];            // список платежей / активных тарифов
     error: string | null;
     currentBalance: number;
+
+    /** НОВОЕ: гейт, удерживающий маршрут на /payments/loading */
+    lockToLoading: boolean;
 }
 
 const initialState: PaymentsState = {
@@ -114,42 +115,47 @@ const initialState: PaymentsState = {
     currentOrder: null,
     currentOrderStatus: '',
     currentBalance: 0,
-    payments_info: [{
-        "order": {
-            "description": "username: Пушкин Александр Сергеевич 1000.0",
-            "payment_system": "ROBOKASSA",
-            "amount": "1000.00",
-            "currency": "RUB",
-            "paid": false
+    payments_info: [
+        {
+            order: {
+                description: 'username: Пушкин Александр Сергеевич 1000.0',
+                payment_system: 'ROBOKASSA',
+                amount: '1000.00',
+                currency: 'RUB',
+                paid: false,
+            },
+            broker: {
+                broker: 'tinkoff_brokers',
+                strategy: null,
+            },
+            payment_type: null,
+            user_tariff_id: '1663f09a-496b-40e2-bece-4f0f80f7ae0c',
+            user_tariff_key: null,
+            user_tariff_is_active: false,
+            user_tariff_title: null,
+            user_tariff_description: null,
+            user_tariff_days_service_validity: null,
+            user_tariff_commission_deposit: null,
+            user_tariff_commission_asset: null,
+            user_tariff_commission_asset_days: null,
+            user_tariff_date_activated: null,
+            user_tariff_expiry: null,
+            user_tariff_created: null,
+            user_tariff_updated: null,
+            created: '2025-04-21T19:46:31.919550+03:00',
+            updated: '2025-04-21T19:46:31.919561+03:00',
         },
-        "broker": {
-            "broker": "tinkoff_brokers",
-            "strategy": null
-        },
-        "payment_type": null,
-        "user_tariff_id": "1663f09a-496b-40e2-bece-4f0f80f7ae0c",
-        "user_tariff_key": null,
-        "user_tariff_is_active": false,
-        "user_tariff_title": null,
-        "user_tariff_description": null,
-        "user_tariff_days_service_validity": null,
-        "user_tariff_commission_deposit": null,
-        "user_tariff_commission_asset": null,
-        "user_tariff_commission_asset_days": null,
-        "user_tariff_date_activated": null,
-        "user_tariff_expiry": null,
-        "user_tariff_created": null,
-        "user_tariff_updated": null,
-        "created": "2025-04-21T19:46:31.919550+03:00",
-        "updated": "2025-04-21T19:46:31.919561+03:00"
-    }],                       // <== НОВОЕ
+    ],
     calculator: {
-        min_deposit: 1_000_000,  // как на скриншоте
+        min_deposit: 1_000_000, // как на скриншоте
         loading: false,
         error: null,
         result: null,
     },
     error: null,
+
+    // НОВОЕ
+    lockToLoading: false,
 };
 
 /* -------------------------------------------------------------------------- */
@@ -179,305 +185,267 @@ export const calculateProfitabilityThunk = createAsyncThunk<
     CalculateProfitabilityResponse,
     CalculateProfitabilityPayload,
     { state: RootState; rejectValue: string }
->(
-    'payments/calculateProfitability',
-    async (payload, { getState, rejectWithValue }) => {
-        try {
-            const token = getState().user.token;
-            if (!token) throw new Error('Нет токена пользователя');
-            const data = await calculateProfitability(payload, token);
-            return data;
-        } catch (err: any) {
-            const msg = err?.response?.data?.errorText || err?.message || 'Ошибка расчёта';
-            return rejectWithValue(msg);
-        }
+>('payments/calculateProfitability', async (payload, { getState, rejectWithValue }) => {
+    try {
+        const token = getState().user.token;
+        if (!token) throw new Error('Нет токена пользователя');
+        const data = await calculateProfitability(payload, token);
+        return data;
+    } catch (err: any) {
+        const msg = err?.response?.data?.errorText || err?.message || 'Ошибка расчёта';
+        return rejectWithValue(msg);
     }
-);
-
+});
 
 export const getAllUserTariffsThunk = createAsyncThunk<
     PaymentInfo[],
     { onSuccess?: () => void },
     { rejectValue: string; state: RootState }
->('payments/getAllUserTariffsThunk',
-    async ({ onSuccess }, { dispatch, rejectWithValue, getState }) => {
-        try {
-            const token = getState().user.token;
-            const response = token && await getAllUserTariffs('RUB', token);
-            // кладём массив в стейт
-            // dispatch(setPaymentsInfo(response.payments_info));
-            onSuccess?.();
-            return response.payments_info;
-        } catch (err: any) {
-            const msg = err.response?.data?.info || err.message;
-            dispatch(setError(msg));
-            return rejectWithValue(msg);
-        }
-    },
-);
+>('payments/getAllUserTariffsThunk', async ({ onSuccess }, { dispatch, rejectWithValue, getState }) => {
+    try {
+        const token = getState().user.token;
+        const response = token && (await getAllUserTariffs('RUB', token));
+        onSuccess?.();
+        return response.payments_info;
+    } catch (err: any) {
+        const msg = err.response?.data?.info || err.message;
+        dispatch(setError(msg));
+        return rejectWithValue(msg);
+    }
+});
 
 export const getAllUserChecksThunk = createAsyncThunk<
     UserCheck[],
     { onSuccess?: () => void },
     { rejectValue: string; state: RootState }
->(
-    'payments/getAllUserChecksThunk',
-    async ({ onSuccess }, { dispatch, rejectWithValue, getState }) => {
-        try {
-            const token = getState().user.token;
-            const data = token && await getChecksUser(token);
-            dispatch(setUserChecks(data));
-            onSuccess?.();
-            return data;
-        } catch (err: any) {
-            const msg = err.response?.data?.info || err.message;
-            dispatch(setError(msg));
-            return rejectWithValue(msg);
-        }
-    },
-);
+>('payments/getAllUserChecksThunk', async ({ onSuccess }, { dispatch, rejectWithValue, getState }) => {
+    try {
+        const token = getState().user.token;
+        const data = token && (await getChecksUser(token));
+        dispatch(setUserChecks(data));
+        onSuccess?.();
+        return data;
+    } catch (err: any) {
+        const msg = err.response?.data?.info || err.message;
+        dispatch(setError(msg));
+        return rejectWithValue(msg);
+    }
+});
 
 export const getAllActiveTariffsThunk = createAsyncThunk<
-    PaymentInfo[],                                       // <== НОВОЕ
+    PaymentInfo[],
     { onSuccess?: () => void },
     { rejectValue: string; state: RootState }
->('payments/getAllUserTariffsThunk',
-    async ({ onSuccess }, { dispatch, rejectWithValue, getState }) => {
-        try {
-            const token = getState().user.token;
-            const response = token && await getAllActiveTariffs(token);
-            dispatch(setActiveTariffs(response.tariffs))
-            onSuccess?.();
-            return response.payments_info;
-        } catch (err: any) {
-            const msg = err.response?.data?.errorText || err.message;
-            msg !== 'Тарифы для данного пользователя не найдены!' && dispatch(setError(msg));
-            return rejectWithValue(msg);
-        }
-    },
-);
+>('payments/getAllActiveTariffsThunk', async ({ onSuccess }, { dispatch, rejectWithValue, getState }) => {
+    try {
+        const token = getState().user.token;
+        const response = token && (await getAllActiveTariffs(token));
+        dispatch(setActiveTariffs(response.tariffs));
+        onSuccess?.();
+        return response.payments_info;
+    } catch (err: any) {
+        const msg = err.response?.data?.errorText || err.message;
+        msg !== 'Тарифы для данного пользователя не найдены!' && dispatch(setError(msg));
+        return rejectWithValue(msg);
+    }
+});
 
 // 1. проверка кода подтверждения тарифа
 export const checkConfirmationCodeTariffThunk = createAsyncThunk<
     void,
     { tariff_id: string; code: string; onSuccess?: () => void },
     { rejectValue: string; state: RootState }
->(
-    'payments/checkConfirmationCodeTariff',
-    async ({ tariff_id, code, onSuccess }, { dispatch, getState, rejectWithValue }) => {
-        try {
-            const token = getState().user.token;
-            await checkConfirmationCodeTariff(tariff_id, code, token);
-            onSuccess?.();
-        } catch (err: any) {
-            const msg = err.response?.data?.errorText || err.message;
-            dispatch(setError(msg));
-            return rejectWithValue(msg);
-        }
-    },
-);
+>('payments/checkConfirmationCodeTariff', async ({ tariff_id, code, onSuccess }, { dispatch, getState, rejectWithValue }) => {
+    try {
+        const token = getState().user.token;
+        await checkConfirmationCodeTariff(tariff_id, code, token);
+        onSuccess?.();
+    } catch (err: any) {
+        const msg = err.response?.data?.errorText || err.message;
+        dispatch(setError(msg));
+        return rejectWithValue(msg);
+    }
+});
 
 // 2. получить подписанный PDF по тарифу
 export const getSignedTariffDocThunk = createAsyncThunk<
     Uint8Array,
     { tariff_id: string; purpose?: 'download' | 'preview'; onSuccess?: () => void },
     { rejectValue: string; state: RootState }
->(
-    'payments/getSignedTariffDoc',
-    async ({ tariff_id, purpose = 'preview', onSuccess }, { dispatch, getState, rejectWithValue }) => {
-        try {
-            const token = getState().user.token;
-            const arrayBuf = await getSignedTariffDoc(tariff_id, token);
-            const pdfBytes = new Uint8Array(arrayBuf);
-            dispatch(
-                setCurrentSignedDocuments({
-                    type: `tariff_${tariff_id}`,
-                    document: pdfBytes,
-                }),
-            );
-            if (purpose === 'download') onSuccess?.();
-            return pdfBytes;
-        } catch (err: any) {
-            const msg = err.response?.data?.errorText || err.message;
-            dispatch(setError(msg));
-            return rejectWithValue(msg);
-        }
-    },
-);
+>('payments/getSignedTariffDoc', async ({ tariff_id, purpose = 'preview', onSuccess }, { dispatch, getState, rejectWithValue }) => {
+    try {
+        const token = getState().user.token;
+        const arrayBuf = await getSignedTariffDoc(tariff_id, token);
+        const pdfBytes = new Uint8Array(arrayBuf);
+        dispatch(
+            setCurrentSignedDocuments({
+                type: `tariff_${tariff_id}`,
+                document: pdfBytes,
+            }),
+        );
+        if (purpose === 'download') onSuccess?.();
+        return pdfBytes;
+    } catch (err: any) {
+        const msg = err.response?.data?.errorText || err.message;
+        dispatch(setError(msg));
+        return rejectWithValue(msg);
+    }
+});
 
 // 3. получить HTML неподписанного тарифа и сохранить в documentsSlice
 export const getNotSignedTariffDocThunk = createAsyncThunk<
     void,
     { tariff_id: string },
     { rejectValue: string; state: RootState }
->(
-    'payments/getNotSignedTariffDoc',
-    async ({ tariff_id }, { dispatch, getState, rejectWithValue }) => {
-        try {
-            const token = getState().user.token;
-            const { not_signed_document_html } = await getNotSignedTariffDoc(tariff_id, token);
-            dispatch(
-                setNotSignedDocumentsHtmls({
-                    [`tariff_${tariff_id}`]: not_signed_document_html,
-                }),
-            );
-        } catch (err: any) {
-            const msg = err.response?.data?.errorText || err.message;
-            dispatch(setError(msg));
-            return rejectWithValue(msg);
-        }
-    },
-);
+>('payments/getNotSignedTariffDoc', async ({ tariff_id }, { dispatch, getState, rejectWithValue }) => {
+    try {
+        const token = getState().user.token;
+        const { not_signed_document_html } = await getNotSignedTariffDoc(tariff_id, token);
+        dispatch(
+            setNotSignedDocumentsHtmls({
+                [`tariff_${tariff_id}`]: not_signed_document_html,
+            }),
+        );
+    } catch (err: any) {
+        const msg = err.response?.data?.errorText || err.message;
+        dispatch(setError(msg));
+        return rejectWithValue(msg);
+    }
+});
 
 // 4. инициировать подписание тарифа
 export const signingTariffThunk = createAsyncThunk<
     void,
     { tariff_id: string; type_message: string; is_agree: boolean; onSuccess?: () => void },
     { rejectValue: string; state: RootState }
->(
-    'payments/signingTariff',
-    async ({ tariff_id, type_message, is_agree, onSuccess }, { dispatch, getState, rejectWithValue }) => {
-        try {
-            const token = getState().user.token;
-            await signingTariff(tariff_id, type_message, is_agree, token);
-            onSuccess?.();
-        } catch (err: any) {
-            const msg = err.response?.data?.errorText || err.message;
-            dispatch(setError(msg));
-            return rejectWithValue(msg);
-        }
-    },
-);
+>('payments/signingTariff', async ({ tariff_id, type_message, is_agree, onSuccess }, { dispatch, getState, rejectWithValue }) => {
+    try {
+        const token = getState().user.token;
+        await signingTariff(tariff_id, type_message, is_agree, token);
+        onSuccess?.();
+    } catch (err: any) {
+        const msg = err.response?.data?.errorText || err.message;
+        dispatch(setError(msg));
+        return rejectWithValue(msg);
+    }
+});
 
 // 5. получить все тарифы
 export const getAllTariffsThunk = createAsyncThunk<
     Tariff[],
     void,
     { rejectValue: string; state: RootState }
->(
-    'payments/getAllTariffsThunk',
-    async (_, { dispatch, rejectWithValue, getState }) => {
-        try {
-            const token = getState().user.token;
-            const data = await getAllTariffs(token);
-            dispatch(setAllTariffs(data))
-            return data;
-        } catch (err: any) {
-            const msg = err.response?.data?.errorText || err.message;
-            dispatch(setError(msg));
-            return rejectWithValue(msg);
-        }
-    },
-);
+>('payments/getAllTariffsThunk', async (_, { dispatch, rejectWithValue, getState }) => {
+    try {
+        const token = getState().user.token;
+        const data = await getAllTariffs(token);
+        dispatch(setAllTariffs(data));
+        return data;
+    } catch (err: any) {
+        const msg = err.response?.data?.errorText || err.message;
+        dispatch(setError(msg));
+        return rejectWithValue(msg);
+    }
+});
 
 // 6. установить тариф пользователю
 export const setTariffIdThunk = createAsyncThunk<
     void,
     { tariff_key: string; broker_id: string; type_message: string; is_agree: boolean; manual_price: number; onSuccess: () => void },
     { rejectValue: string; state: RootState }
->(
-    'payments/setTariffIdThunk',
-    async ({ tariff_key, broker_id, type_message, is_agree, manual_price, onSuccess }, { dispatch, rejectWithValue, getState }) => {
-        try {
-            const token = getState().user.token;
-            const res = await paymentsSetTariff(tariff_key, broker_id, type_message, is_agree, manual_price, token);
-            const key = res.tariff.key;
-            /* ← добавляем key в “каталоговый” тариф */
-            dispatch(updateTariffKey({ id: tariff_key, key }));
+>('payments/setTariffIdThunk', async ({ tariff_key, broker_id, type_message, is_agree, manual_price, onSuccess }, { dispatch, rejectWithValue, getState }) => {
+    try {
+        const token = getState().user.token;
+        const res = await paymentsSetTariff(tariff_key, broker_id, type_message, is_agree, manual_price, token);
+        const key = res.tariff.key;
+        /* ← добавляем key в “каталоговый” тариф */
+        dispatch(updateTariffKey({ id: tariff_key, key }));
 
-            /* а это — id уже «юзер-тарифа» */
-            dispatch(setCurrentUserTariff(key));
-            onSuccess();
-        } catch (err: any) {
-            const msg = err.response.data.broker_id ? `Перед подключением тарифа необходимо предоставить api-ключ брокера` : err.response?.data?.errorText;
-            const riskProfileFilled = getState().documents.filledRiskProfileChapters.is_risk_profile_complete_final
-            const riskProfileFinall = getState().documents.filledRiskProfileChapters.is_risk_profile_complete_final
-            const hasBroker = getState().documents.brokersCount > 0
-            dispatch(
-                setWarning({
-                    active: true,
-                    description: msg,
-                    buttonLabel: "Перейти к заполнению",
-                    action: () => {
-                        if (!hasBroker) {
-                            dispatch(setStepAdditionalMenuUI(5));
-                            dispatch(
-                                openModal({
-                                    type: ModalType.IDENTIFICATION,
-                                    size: ModalSize.FULL,
-                                    animation: ModalAnimation.LEFT,
-                                })
-                            );
-                        } else if (riskProfileFinall) {
-                            window.location.href = '/documents';
-                            dispatch(setWarning(
-                                {
-                                    active: false
-                                }
-                            ))
-                        } else if (!riskProfileFinall && riskProfileFilled) {
-                            dispatch(setStepAdditionalMenuUI(1));
-                            dispatch(
-                                openModal({
-                                    type: ModalType.IDENTIFICATION,
-                                    size: ModalSize.FULL,
-                                    animation: ModalAnimation.LEFT,
-                                })
-                            );
-                        } else {
-                            dispatch(setStepAdditionalMenuUI(0));
-                            dispatch(
-                                openModal({
-                                    type: ModalType.IDENTIFICATION,
-                                    size: ModalSize.FULL,
-                                    animation: ModalAnimation.LEFT,
-                                })
-                            );
-                        }
-                    },
-                }),
-            );
-            // dispatch(setError(msg));
-            return rejectWithValue(msg);
-        }
-    },
-);
+        /* а это — id уже «юзер-тарифа» */
+        dispatch(setCurrentUserTariff(key));
+        onSuccess();
+    } catch (err: any) {
+        const msg = err.response?.data?.broker_id
+            ? 'Перед подключением тарифа необходимо предоставить api-ключ брокера'
+            : err.response?.data?.errorText;
+        const riskProfileFilled = getState().documents.filledRiskProfileChapters.is_risk_profile_complete_final;
+        const riskProfileFinall = getState().documents.filledRiskProfileChapters.is_risk_profile_complete_final;
+        const hasBroker = getState().documents.brokersCount > 0;
+        dispatch(
+            setWarning({
+                active: true,
+                description: msg,
+                buttonLabel: 'Перейти к заполнению',
+                action: () => {
+                    if (!hasBroker) {
+                        dispatch(setStepAdditionalMenuUI(5));
+                        dispatch(
+                            openModal({
+                                type: ModalType.IDENTIFICATION,
+                                size: ModalSize.FULL,
+                                animation: ModalAnimation.LEFT,
+                            }),
+                        );
+                    } else if (riskProfileFinall) {
+                        window.location.href = '/documents';
+                        dispatch(setWarning({ active: false }));
+                    } else if (!riskProfileFinall && riskProfileFilled) {
+                        dispatch(setStepAdditionalMenuUI(1));
+                        dispatch(
+                            openModal({
+                                type: ModalType.IDENTIFICATION,
+                                size: ModalSize.FULL,
+                                animation: ModalAnimation.LEFT,
+                            }),
+                        );
+                    } else {
+                        dispatch(setStepAdditionalMenuUI(0));
+                        dispatch(
+                            openModal({
+                                type: ModalType.IDENTIFICATION,
+                                size: ModalSize.FULL,
+                                animation: ModalAnimation.LEFT,
+                            }),
+                        );
+                    }
+                },
+            }),
+        );
+        return rejectWithValue(msg);
+    }
+});
 
 // 7. статус заказа
 export const getOrderStatusThunk = createAsyncThunk<
     OrderStatusResponse,
     { orderId: string; token: string },
     { rejectValue: string }
->('payments/getOrderStatus',
-    async ({ orderId, token }, { dispatch, rejectWithValue }) => {
-        try {
-            const data = await getOrderStatus(orderId, token);
-            return data;
-        } catch (err: any) {
-            const msg = err.response?.data?.errorText || err.message;
-            dispatch(setError(msg));
-            return rejectWithValue(msg);
-        }
-    },
-);
+>('payments/getOrderStatus', async ({ orderId, token }, { dispatch, rejectWithValue }) => {
+    try {
+        const data = await getOrderStatus(orderId, token);
+        return data;
+    } catch (err: any) {
+        const msg = err.response?.data?.errorText || err.message;
+        dispatch(setError(msg));
+        return rejectWithValue(msg);
+    }
+});
 
 // 8. приём результата от Robokassa
 export const robokassaResultThunk = createAsyncThunk<
     RobokassaResultResponse,
     { payload: RobokassaResultResponse },
     { rejectValue: string }
->('payments/robokassaResult',
-    async ({ payload }, { dispatch, rejectWithValue }) => {
-        try {
-            const data = await robokassaResult(payload);
-            return data;
-        } catch (err: any) {
-            const msg = err.response?.data?.errorText || err.message;
-            dispatch(setError(msg));
-            return rejectWithValue(msg);
-        }
-    },
-);
+>('payments/robokassaResult', async ({ payload }, { dispatch, rejectWithValue }) => {
+    try {
+        const data = await robokassaResult(payload);
+        return data;
+    } catch (err: any) {
+        const msg = err.response?.data?.errorText || err.message;
+        dispatch(setError(msg));
+        return rejectWithValue(msg);
+    }
+});
 
 /* -------------------------------------------------------------------------- */
 /* SLICE */
@@ -519,7 +487,7 @@ export const paymentsSlice = createSlice({
                 return acc;
             }, {});
         },
-        setPaymentsInfo: (state, action: PayloadAction<PaymentInfo[]>) => { // <== НОВОЕ
+        setPaymentsInfo: (state, action: PayloadAction<PaymentInfo[]>) => {
             state.payments_info = action.payload;
         },
         setActiveTariffs: (state, action: PayloadAction<Tariff[]>) => {
@@ -527,7 +495,7 @@ export const paymentsSlice = createSlice({
         },
         updateTariffKey: (
             state,
-            { payload: { id, key } }: PayloadAction<{ id: string; key: string }>
+            { payload: { id, key } }: PayloadAction<{ id: string; key: string }>,
         ) => {
             state.paidTariffKeys = { ...state.paidTariffKeys, [id]: key };
         },
@@ -536,6 +504,11 @@ export const paymentsSlice = createSlice({
         },
         resetCalculator: (state) => {
             state.calculator = { min_deposit: 1_000_000, loading: false, error: null, result: null };
+        },
+
+        /** НОВОЕ: вкл/выкл гейт на /payments/loading */
+        setLockToLoading: (state, action: PayloadAction<boolean>) => {
+            state.lockToLoading = action.payload;
         },
 
         resetPaymentsState: () => initialState,
@@ -553,14 +526,20 @@ export const paymentsSlice = createSlice({
             .addCase(calculateProfitabilityThunk.rejected, (state, { payload }) => {
                 state.calculator.loading = false;
                 state.calculator.error = payload || 'Ошибка расчёта';
-            });
+            })
 
+            // по желанию можно наполнять payments_info из ответов:
+            .addCase(getAllUserTariffsThunk.fulfilled, (state, { payload }) => {
+                state.payments_info = payload || [];
+            })
+            .addCase(getAllActiveTariffsThunk.fulfilled, (state, { payload }) => {
+                // backend присылает payments_info — сохраним для отображений, если нужно
+                if (payload) state.payments_info = payload;
+            });
     },
 });
 
-
 export const {
-
     clearPaymentsError,
     setCalculatorDeposit,
     resetPaymentsState,
@@ -574,7 +553,9 @@ export const {
     setActiveTariffs,
     updateTariffKey,
     setUserChecks,
-    setAllTariffs
+    setAllTariffs,
+    // НОВОЕ:
+    setLockToLoading,
 } = paymentsSlice.actions;
 
 export default paymentsSlice.reducer;

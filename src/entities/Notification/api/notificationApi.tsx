@@ -22,22 +22,23 @@ switch (envEnviroment) {
         break;
 }
 
-/* ----------------------------- Запросы к API ------------------------------ */
+/* ----------------------------- Параметры API ------------------------------ */
 
-/** Параметры из сваггера для POST body */
 export interface GetAllNotificationsParams {
-    status?: LkNotificationStatus; // notif_info | notif_warning | notif_error | notif_success
-    is_active?: boolean;
+    status?: LkNotificationStatus;
+    is_active?: boolean; // серверное — но мы им не пользуемся в UI
     is_read?: boolean;
 }
 
 export interface UpdateAllNotificationsParams {
-    edit_status?: LkNotificationStatus; // notif_info | notif_warning | notif_error | notif_success
-    edit_is_active?: boolean;
-    edit_is_read?: boolean;
+    // Фильтры и «что поменять» — как в сваггере
+    status?: LkNotificationStatus;
+    is_read?: boolean;       // критерий (на что смотреть)
+    edit_is_read?: boolean;  // что проставить
 }
 
-/** Универсальный экстрактор массива из ответа (на случай разных обёрток) */
+/* ----------------------------- Утилиты ------------------------------------ */
+
 function extractArray<T = unknown>(data: any): T[] {
     if (Array.isArray(data)) return data as T[];
     if (Array.isArray(data?.results)) return data.results as T[];
@@ -46,30 +47,31 @@ function extractArray<T = unknown>(data: any): T[] {
     return [];
 }
 
-/** Нормализация api -> ui-модель для Redux */
-export function normalizeNotifications(list: ApiNotification[]): any[] {
+/** Нормализация api -> ui-модель (snake_case; локальный is_active = false) */
+export function normalizeNotifications(list: ApiNotification[]): Notification[] {
     return list.map((n) => ({
         id: n.id,
-        title: n.title,
-        description: n.description,
+        title: n.title ?? '',
+        text: n.text ?? '',
         status: n.status,
-        isActive: !!n.is_active,
-        isRead: !!n.is_read,
+        color: n.color ?? statusToColor(n.status),
         created: n.created,
-        route: n.route,
-        color: statusToColor(n.status),
-        shown: false,
+        is_read: !!n.is_read,
+        // ВАЖНО: флаг «круга» (попап) — чисто локальный.
+        // Игнорируем все, что пришло с бэка:
+        is_active: false,
     }));
 }
 
-/** Получить все уведомления (POST body как на скрине) */
+/* ----------------------------- Запросы ------------------------------------ */
+
 export const getAllNotifications = async (
     token: string,
-    params: GetAllNotificationsParams = {}
+    _params: GetAllNotificationsParams = {}
 ): Promise<Notification[]> => {
     const { data } = await axios.post(
         `${apiUrl}user_lk/get_all_notifications/`,
-        {}, // <— body по сваггеру
+        {}, // по сваггеру — без тела/или с фильтрами, если понадобятся
         {
             headers: {
                 'Accept-Language': 'ru',

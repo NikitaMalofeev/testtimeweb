@@ -19,6 +19,7 @@ export type ApiNotification = {
     created?: string;
     color?: NotificationColor;
     is_read: boolean;
+    is_active?: boolean;
     status: LkNotificationStatus;
 };
 

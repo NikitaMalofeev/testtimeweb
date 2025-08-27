@@ -79,9 +79,9 @@ export const NotificationPopup: React.FC = () => {
                         <Icon Svg={WarningIcon} width={20} height={20} />
                         {current?.title && <strong>{current.title}</strong>}
                     </div>
-                    <div className={styles.text}>
+                    {/* <div className={styles.text}>
                         <span>{current?.text}</span>
-                    </div>
+                    </div> */}
                 </div>
             )}
         </motion.div>

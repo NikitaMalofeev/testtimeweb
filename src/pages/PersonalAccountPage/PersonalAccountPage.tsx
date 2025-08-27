@@ -69,7 +69,7 @@ const PersonalAccountMenu: React.FC = () => {
         : filledRiskProfileChapters.is_exist_scan_passport;
 
     const hasIdentityDocs = isIdentityDataComplete && isIdentityScanExist;
-    const allNotificationsCount = unreadAnswersCount + notifications.filter((item) => !item.isRead).length;
+    const allNotificationsCount = unreadAnswersCount + notifications.filter((item) => !item.is_read).length;
     useEffect(() => {
         dispatch(getUserPersonalAccountInfoThunk());
         window.scrollTo({ top: 0, behavior: "smooth" });

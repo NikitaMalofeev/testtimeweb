@@ -30,6 +30,7 @@ export type UiColor = 'blue' | 'yellow' | 'red' | 'green';
 /** Нормализованный объект, который храним в Redux */
 export type Notification = ApiNotification & {
     is_active: boolean;
+    id?: string;
 };
 
 /** Состояние редьюсера уведомлений */

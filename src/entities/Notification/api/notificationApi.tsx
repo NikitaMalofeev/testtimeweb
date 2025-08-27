@@ -33,6 +33,7 @@ export interface GetAllNotificationsParams {
 export interface UpdateAllNotificationsParams {
     // Фильтры и «что поменять» — как в сваггере
     status?: LkNotificationStatus;
+    id?: string;
     is_read?: boolean;       // критерий (на что смотреть)
     edit_is_read?: boolean;  // что проставить
 }

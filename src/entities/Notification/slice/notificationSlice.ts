@@ -14,18 +14,21 @@ export type NotificationsState = {
   notifications: Notification[];
   isLoading: boolean;
   error: string | null;
+  hydrated: boolean; // <- уже делали хотя бы одну полную загрузку?
 };
 
 const initialState: NotificationsState = {
   notifications: [],
   isLoading: false,
   error: null,
+  hydrated: false,
 };
 
 /* ------------------------------ Thunks ------------------------------- */
 
+// Возвращаем НОРМАЛИЗОВАННЫЕ Notification[] из api (там is_active всегда false)
 export const getAllNotificationsThunk = createAsyncThunk<
-  Notification[], // <-- уже нормализованные в API
+  Notification[],
   GetAllNotificationsParams | void,
   { state: RootState; rejectValue: string }
 >('notifications/getAll', async (_params = {}, { getState, rejectWithValue }) => {
@@ -43,8 +46,9 @@ export const getAllNotificationsThunk = createAsyncThunk<
   }
 });
 
+// Массовые апдейты. Сервер обычно возвращает ПАТЧ (часть списка)
 export const updateAllNotificationsThunk = createAsyncThunk<
-  Notification[], // <-- тоже нормализованные
+  Notification[],
   UpdateAllNotificationsParams | undefined,
   { state: RootState; rejectValue: string }
 >(
@@ -66,23 +70,28 @@ export const updateAllNotificationsThunk = createAsyncThunk<
 );
 
 /* ----------------------------- Helpers --------------------------------
- * mergeReplaceFromServer: сервер прислал ПОЛНЫЙ список — замещаем UI-данные,
- *   НО сохраняем локальный is_active (кружок) у уже известных элементов,
- *   а у новых всегда is_active = false.
- * applyServerPatch: сервер прислал ЧАСТИЧНЫЙ список — аккуратно патчим поля,
- *   is_active НЕ трогаем; для новых — is_active = false.
+ * mergeReplaceFromServerHydrateAware:
+ *   - если это ПЕРВАЯ загрузка (hydrated=false) → новые is_active=false (не вспыхиваем)
+ *   - если НЕ первая (hydrated=true) → новые is_active = !is_read (вспыхиваем только для непрочитанных)
+ *   - существующим сохраняем их локальный is_active
+ * applyServerPatch:
+ *   - существующим патчим поля, но is_active сохраняем
+ *   - НОВЫЕ из патча делаем is_active = !is_read (вспыхнуть)
  * ---------------------------------------------------------------------*/
 
-function mergeReplaceFromServer(
+function mergeReplaceFromServerHydrateAware(
   oldList: Notification[],
-  serverList: Notification[]
+  serverList: Notification[],
+  wasHydrated: boolean
 ): Notification[] {
-  return serverList.map((srv) => {
-    const prev = oldList.find((n) => n.id === srv.id);
-    return {
-      ...srv,
-      is_active: prev?.is_active ?? false, // НИКОГДА не поднимаем с бэка
-    };
+  const byId = new Map(oldList.map(n => [n.id, n]));
+  return serverList.map(srv => {
+    const prev = byId.get(srv.id);
+    if (prev) {
+      return { ...srv, is_active: prev.is_active };
+    }
+    // Новый элемент: активируем только после первого гидрата
+    return { ...srv, is_active: wasHydrated ? !srv.is_read : false };
   });
 }
 
@@ -90,17 +99,19 @@ function applyServerPatch(
   oldList: Notification[],
   patchList: Notification[]
 ): Notification[] {
-  const byId = new Map(patchList.map((x) => [x.id, x]));
+  const byId = new Map(patchList.map(x => [x.id, x]));
 
-  const updated = oldList.map((prev) => {
+  // патчим существующие
+  const updated = oldList.map(prev => {
     const srv = byId.get(prev.id);
     if (!srv) return prev;
-    return { ...prev, ...srv, is_active: prev.is_active }; // сохраняем локальный кружок
+    return { ...prev, ...srv, is_active: prev.is_active };
   });
 
-  patchList.forEach((srv) => {
-    if (!oldList.find((p) => p.id === srv.id)) {
-      updated.push({ ...srv, is_active: false }); // новые без кружков
+  // добавляем новые из патча и СРАЗУ активируем (если они непрочитанные)
+  patchList.forEach(srv => {
+    if (!oldList.find(p => p.id === srv.id)) {
+      updated.unshift({ ...srv, is_active: !srv.is_read });
     }
   });
 
@@ -114,14 +125,19 @@ export const notificationSlice = createSlice({
   initialState,
   reducers: {
     setNotifications: (state, action: PayloadAction<Notification[]>) => {
-      state.notifications = mergeReplaceFromServer(state.notifications, action.payload);
+      state.notifications = mergeReplaceFromServerHydrateAware(
+        state.notifications,
+        action.payload,
+        state.hydrated
+      );
+      state.hydrated = true;
     },
 
-    // Реалтайм-уведомление: хотим всплыть → is_active = true
+    // Реалтайм-событие (вебсокет/ SSE) — сразу вспыхиваем
     addNotification: (state, action: PayloadAction<Notification | ApiNotification>) => {
       const raw: any = action.payload;
       const id = raw.id;
-      const idx = state.notifications.findIndex((n) => n.id === id);
+      const idx = state.notifications.findIndex(n => n.id === id);
       const next: Notification = {
         id,
         title: raw.title ?? '',
@@ -130,41 +146,36 @@ export const notificationSlice = createSlice({
         color: raw.color,
         created: raw.created,
         is_read: !!(raw.is_read ?? raw.isRead),
-        is_active: true, // кружок только локально
+        is_active: true, // <-- ВАЖНО: всплыть
       };
       if (idx >= 0) state.notifications[idx] = { ...state.notifications[idx], ...next, is_active: true };
       else state.notifications.unshift(next);
     },
 
-    // Выключить попап по id
+    // Закрыть попап у конкретной карточки
     deactivateNotification: (state, action: PayloadAction<{ id: string }>) => {
-      const it = state.notifications.find((n) => n.id === action.payload.id);
+      const it = state.notifications.find(n => n.id === action.payload.id);
       if (it) it.is_active = false;
     },
 
+    // Снять попап со многих
     deactivateMany: (state, action: PayloadAction<string[]>) => {
       const ids = new Set(action.payload);
-      state.notifications.forEach((n) => {
-        if (ids.has(n.id)) n.is_active = false;
-      });
+      state.notifications.forEach(n => { if (ids.has(n.id)) n.is_active = false; });
     },
 
-    // Локально пометить как прочитанное
+    // Локально пометить прочитанным
     markAsRead: (state, action: PayloadAction<{ id: string }>) => {
-      const it = state.notifications.find((n) => n.id === action.payload.id);
+      const it = state.notifications.find(n => n.id === action.payload.id);
       if (it) it.is_read = true;
     },
 
     markManyAsRead: (state, action: PayloadAction<string[]>) => {
       const ids = new Set(action.payload);
-      state.notifications.forEach((n) => {
-        if (ids.has(n.id)) n.is_read = true;
-      });
+      state.notifications.forEach(n => { if (ids.has(n.id)) n.is_read = true; });
     },
 
-    clearNotificationsError: (state) => {
-      state.error = null;
-    },
+    clearNotificationsError: (state) => { state.error = null; },
   },
 
   extraReducers: (builder) => {
@@ -175,17 +186,22 @@ export const notificationSlice = createSlice({
       })
       .addCase(getAllNotificationsThunk.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.notifications = mergeReplaceFromServer(state.notifications, action.payload);
+        state.notifications = mergeReplaceFromServerHydrateAware(
+          state.notifications,
+          action.payload,
+          state.hydrated
+        );
+        state.hydrated = true;
       })
       .addCase(getAllNotificationsThunk.rejected, (state) => {
         state.isLoading = false;
       })
 
-      // update_all может вернуть только патч
+      // Сервер вернул ПАТЧ — новые должны вспыхнуть
       .addCase(updateAllNotificationsThunk.fulfilled, (state, action) => {
         state.notifications = applyServerPatch(state.notifications, action.payload);
       })
-      .addCase(updateAllNotificationsThunk.rejected, (state) => { });
+      .addCase(updateAllNotificationsThunk.rejected, () => { });
   },
 });
 
@@ -206,8 +222,9 @@ export default notificationSlice.reducer;
 export const selectNotifications = (state: RootState) =>
   state.notifications.notifications;
 
+// Попап выводим по одному: активно и непрочитано
 export const selectFirstActive = (state: RootState) =>
-  state.notifications.notifications.find((n) => n.is_active && !n.is_read);
+  state.notifications.notifications.find(n => n.is_active && !n.is_read);
 
 export const selectUnreadCount = (state: RootState) =>
-  state.notifications.notifications.filter((n) => !n.is_read).length;
+  state.notifications.notifications.filter(n => !n.is_read).length;

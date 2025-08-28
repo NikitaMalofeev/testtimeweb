@@ -171,7 +171,7 @@ const DocumentsPage: React.FC = () => {
             "type_doc_investment_profile_certificate",
             "type_doc_agreement_account_maintenance",
             "type_doc_broker_api_token",
-            // "type_doc_agreement_investment_advisor_app_1", // ← будет удалён для VIP
+            "type_doc_agreement_investment_advisor_app_1", // ← будет удалён для VIP
         ];
 
         /* ------------------------------------------------------------------
@@ -220,14 +220,14 @@ const DocumentsPage: React.FC = () => {
             ? "Паспортные данные"
             : "Данные об ИП",
         type_doc_EDS_agreement: "Соглашение об ЭДО",
-        type_doc_RP_questionnairy: "Анкета РП",
+        type_doc_RP_questionnairy: "Анкета Риск Профиля",
         type_doc_agreement_investment_advisor: "Договор ИС",
         type_doc_risk_declarations: "Декларация о рисках",
-        type_doc_agreement_personal_data_policy: "Политика перс. данных",
+        type_doc_agreement_personal_data_policy: "Политика персональных данных",
         type_doc_investment_profile_certificate: "Справка ИП",
         type_doc_agreement_account_maintenance: "Доверенность на управление счётом",
         type_doc_broker_api_token: "Согласие на передачу API-ключа к брокерскому счёту",
-        // type_doc_agreement_investment_advisor_app_1: "Договор ИС: Приложение 1",
+        type_doc_agreement_investment_advisor_app_1: "Договор ИС: Приложение 1",
     };
 
     /** Итоговые лейблы с корректной нумерацией */
@@ -508,7 +508,7 @@ const DocumentsPage: React.FC = () => {
                     `${!hasBroker ? ' подключите брокерский счет' : ''}` + `${!hasTariff ? ' и тариф' : ''}`.replace(/,\s*$/, '');
             } else if (!hasTariff) {                 // всё есть, кроме тарифа → красная
                 colorClass = styles.button__gray;
-                additionalMessages = 'Для подписания подключите тариф';
+                additionalMessages = 'Для подписания оплатите тариф';
             }
         }
 

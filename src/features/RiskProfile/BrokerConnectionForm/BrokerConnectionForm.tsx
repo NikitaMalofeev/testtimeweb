@@ -45,7 +45,7 @@ export const BrokerConnectionForm: React.FC = () => {
     const brokersItems = [
         {
             value: 'tinkoff_brokers',
-            label: 'Тинькофф инвестиции'
+            label: 'Т-инвестиции'
         }
     ]
 

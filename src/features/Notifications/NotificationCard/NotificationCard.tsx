@@ -7,11 +7,14 @@ export type NotificationColor = 'red' | 'blue' | 'green';
 export interface NotificationCardProps {
     id: string;
     title: string;
-    description?: string;
-    status: NotificationStatus;
+    text?: string;
+    status?: NotificationStatus;
+    isActive: boolean;  // локальный флаг участия во всплывающем попапе
+    isRead: boolean;    // серверное "прочитано"
     color: NotificationColor;
     date?: string | number | Date;
     className?: string;
+    onClick?: (id: string) => void; // клик по карточке = «прочитать одно»
 }
 
 function formatDate(d?: string | number | Date) {
@@ -26,26 +29,44 @@ function formatDate(d?: string | number | Date) {
 export const NotificationCard: React.FC<NotificationCardProps> = ({
     id,
     title,
-    description,
+    text,
     status,
     color,
     date,
+    isRead,    // true = прочитано (точки не должно быть)
+    isActive,  // локальный попап-флаг (в списке не влияет на рендер)
     className,
+    onClick,
 }) => {
-    const isUnread = status === 'unread';
-
+    // точка показывается только если уведомление НЕ прочитано
+    const showDot = !isRead;
 
     return (
-        <div className={styles.card}>
+        <div
+            className={`${styles.card} ${className ?? ''}`}
+            role="button"
+            tabIndex={0}
+            onClick={() => onClick?.(id)}
+            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onClick?.(id)}
+        >
             <div className={styles.header}>
                 {date && <span className={styles.date}>{formatDate(date)}</span>}
-                {isUnread && <span className={styles.dot} aria-label="Непрочитано" />}
+                {showDot && <span className={styles.dot} aria-label="Непрочитано" />}
             </div>
-            <div className={styles.title}>{title && title}</div>
 
-            {description && <div className={styles.description} style={{ background: color === 'blue' ? '' : color === 'green' ? '#52C41733' : '#FF405333' }}>{description}</div>}
+            <div className={styles.title}>{title || ''}</div>
 
-
+            {/* {text && (
+                <div
+                    className={styles.description}
+                    style={{
+                        background:
+                            color === 'blue' ? '' : color === 'green' ? '#52C41733' : '#FF405333',
+                    }}
+                >
+                    {text}
+                </div>
+            )} */}
         </div>
     );
 };

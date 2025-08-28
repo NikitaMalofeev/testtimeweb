@@ -82,7 +82,7 @@ const initialState: PushState = {
         },
         {
             id: "type_doc_RP_questionnairy",
-            title: "Подписать анкету РП",
+            title: "Подписать анкету Риск Профиля",
             description: "Подпишите анкету риск-профилирования в разделе \n\"Документы\"\n Личного Кабинета",
             active: false,
             hasOpened: false,
@@ -109,7 +109,7 @@ const initialState: PushState = {
         },
         {
             id: "type_doc_agreement_personal_data_policy",
-            title: "Подписать политику перс. данных",
+            title: "Подписать политику персональных данных",
             description: "Подпишите политику обработки персональных данных в разделе \n\"Документы\"\n Личного Кабинета",
             active: false,
             hasOpened: false,
@@ -152,6 +152,14 @@ const initialState: PushState = {
             hasOpened: false,
         },
         {
+            id: "startWorkReady",
+            title: "Начать работу",
+            description: "Ваши документы успешно прошли проверку, вы можете подключить тариф для начала работы с вашим счетом",
+            active: false,
+            route: '/payments',
+            hasOpened: false,
+        },
+        {
             id: "contractExpiresSoon",
             title: "Заканчивается срок действия договора",
             description: "Обратите внимание, срок действия вашего договора скоро истечет",
@@ -176,86 +184,91 @@ const initialState: PushState = {
 export const checkPushNotificationsThunk = createAsyncThunk<void, void, { state: RootState }>(
     'push/checkNotifications',
     (_, { dispatch, getState }) => {
+        const state = getState();
         const {
             filledRiskProfileChapters,
             brokerIds,
             brokersCount,
-            userDocuments
-        } = getState().documents;
+            userDocuments,
+            is_waiting_manual_verification_broker,
+            waiting_manual_document_verification
+        } = state.documents;
 
-        const isIp = !!getState().user.userPersonalAccountInfo?.is_individual_entrepreneur;
+        // важно: отличать "undefined" от false
+        const isIpRaw = state.user.userPersonalAccountInfo?.is_individual_entrepreneur;
+        if (typeof isIpRaw === 'undefined') return;
+        const isIp = !!isIpRaw;
 
-        // 2. Типизированный helper, чтобы не писать as каждый раз
         type PushPair = { field: keyof FilledRiskProfileChapters; id: string };
 
         const personBlock: PushPair[] = isIp
-            ? [
-                { field: "is_complete_person_legal", id: "fillIPData" },
-                // { field: "is_exist_scan_person_legal", id: "uploadPersonLegalDocs" },
-            ]
+            ? [{ field: 'is_complete_person_legal', id: 'fillIPData' }]
             : [
-                { field: "is_complete_passport", id: "fillPassportData" },
-                { field: "is_exist_scan_passport", id: "uploadDocuments" },
+                { field: 'is_complete_passport', id: 'fillPassportData' },
+                { field: 'is_exist_scan_passport', id: 'uploadDocuments' },
             ];
 
         const pushMapping: PushPair[] = [
-            { field: "is_risk_profile_complete", id: "fillRiskProfiling" },
-            { field: "is_risk_profile_complete_final", id: "confirmRiskProfile" },
+            { field: 'is_risk_profile_complete', id: 'fillRiskProfiling' },
+            { field: 'is_risk_profile_complete_final', id: 'confirmRiskProfile' },
             ...personBlock,
         ];
 
-        /** 3) Старая логика — без изменений */
-        const firstRisk = pushMapping.find(
-            ({ field }) => !filledRiskProfileChapters[field]
-        );
+        // 1) Блок риск-профиля
+        const firstRisk = pushMapping.find(({ field }) => !filledRiskProfileChapters[field]);
+        let nextId: string | null = null;
+
         if (firstRisk) {
-            dispatch(activatePush(firstRisk.id));
-            return;
-        }
-        pushMapping.forEach(({ id }) => dispatch(deactivatePush(id)));
+            nextId = firstRisk.id;
+        } else {
+            // 2) Подписание документов
+            const confirmableDocs = [
+                'type_doc_EDS_agreement',
+                'type_doc_RP_questionnairy',
+                'type_doc_agreement_investment_advisor',
+                'type_doc_risk_declarations',
+                'type_doc_agreement_personal_data_policy',
+                'type_doc_investment_profile_certificate',
+                'type_doc_agreement_account_maintenance',
+            ] as const;
 
-        // 2. Подписание документов
-        const confirmableDocs = [
-            'type_doc_EDS_agreement',
-            'type_doc_RP_questionnairy',
-            'type_doc_agreement_investment_advisor',
-            'type_doc_risk_declarations',
-            'type_doc_agreement_personal_data_policy',
-            'type_doc_investment_profile_certificate',
-            // 'type_doc_agreement_investment_advisor_app_1',
-            'type_doc_agreement_account_maintenance',
-        ] as const;
-
-        const firstDocToSign = confirmableDocs.find(docId =>
-            !Object.values(userDocuments).some(doc => doc.key === docId)
-        );
-        if (firstDocToSign) {
-            dispatch(activatePush(firstDocToSign));
-            return;
+            const firstDocToSign = confirmableDocs.find(
+                (docId) => !Object.values(userDocuments).some((doc) => doc.key === docId)
+            );
+            if (firstDocToSign) {
+                nextId = firstDocToSign as string;
+            } else {
+                // 3) Подключение брокера
+                if (brokerIds.length === 0) {
+                    nextId = 'type_doc_broker_api_token_fill';
+                } else if (brokerIds.length > 0 && brokersCount === 0) {
+                    nextId = 'type_doc_broker_api_token_sign';
+                } else if (waiting_manual_document_verification.type_doc_agreement_transfer_broker) {
+                    // логика у тебя такая — оставляю как есть
+                    nextId = 'startWork';
+                } else if (Object.values(waiting_manual_document_verification).length === 0 && brokersCount > 0) {
+                    // логика у тебя такая — оставляю как есть
+                    nextId = 'startWorkReady';
+                } else {
+                    // 4) Старт работы
+                    const confirmableCount = confirmableDocs.length;
+                    const allDocsSigned = Object.values(userDocuments).length === confirmableCount;
+                    if (allDocsSigned && brokersCount > 0) {
+                        nextId = 'startWork';
+                    }
+                }
+            }
         }
-        // Уже все подписано — сбросим их
-        confirmableDocs.forEach(id => dispatch(deactivatePush(id)));
 
-        // 3. Подключение брокера
-        if (brokerIds.length === 0) {
-            dispatch(activatePush('type_doc_broker_api_token_fill'));
-            return;
-        }
-        dispatch(deactivatePush('type_doc_broker_api_token_fill'));
+        // Если активный не меняется — ничего не диспатчим (лишние ререндеры/экшены не нужны)
+        const currentActiveId = state.push.notifications.find((n) => n.active)?.id ?? null;
+        if (nextId === currentActiveId) return;
 
-        if (brokerIds.length > 0 && brokersCount === 0) {
-            dispatch(activatePush('type_doc_broker_api_token_sign'));
-            return;
+        if (nextId) {
+            dispatch(activatePush(nextId));
+        } else {
+            dispatch(resetPushNotifications());
         }
-        dispatch(deactivatePush('type_doc_broker_api_token_sign'));
-
-        // 4. Старт работы
-        const allDocsSigned = Object.values(userDocuments).length === confirmableDocs.length;
-        if (allDocsSigned && brokersCount > 0) {
-            dispatch(activatePush('startWork'));
-            return;
-        }
-        dispatch(deactivatePush('startWork'));
     }
 );
 
@@ -280,10 +293,8 @@ const pushSlice = createSlice({
         /** Деактивирует конкретный пуш (не затрагивая остальные) */
         deactivatePush(state, action: PayloadAction<string>) {
             const id = action.payload;
-            const notification = state.notifications.find((n) => n.id === id);
-            if (notification) {
-                notification.active = false;
-            }
+            const n = state.notifications.find(n => n.id === id);
+            if (n) n.active = false;
         },
         markPushAsOpened(state, action: PayloadAction<string>) {
             const id = action.payload;

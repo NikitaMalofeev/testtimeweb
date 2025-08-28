@@ -26,6 +26,7 @@ export interface UserPersonalAccount {
     market: string | null;
     tariff_info: string | null;
     tariff_is_active: boolean;
+    risk_profiling_text_name: string;
     tariff_created: string | null;
     tariff_expiry: string | null;
 }

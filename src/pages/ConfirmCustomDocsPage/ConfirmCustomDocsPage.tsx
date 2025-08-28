@@ -56,11 +56,25 @@ const ConfirmCustomDocsPage: React.FC = () => {
 
     useEffect(() => {
         if (step === 1) {
-            dispatch(getUserDocumentNotSignedThunk({ custom: true, customId: id, type: 'type_doc_custom' }));
+            // ЭДО — не кастомный документ
+            dispatch(
+                getUserDocumentNotSignedThunk({
+                    custom: false,
+                    type: 'type_doc_EDS_agreement',
+                })
+            );
         } else {
-            dispatch(getUserDocumentNotSignedThunk({ custom: true, customId: id, type: 'type_doc_custom' }));
+            // Кастомный документ по id
+            dispatch(
+                getUserDocumentNotSignedThunk({
+                    custom: true,
+                    customId: id,
+                    type: 'type_doc_custom',
+                })
+            );
         }
     }, [dispatch, step, id]);
+
 
     // Formik for shared fields (agreement checkbox and message method)
     const formik = useFormik({
@@ -204,6 +218,7 @@ const ConfirmCustomDocsPage: React.FC = () => {
                     <div className={styles.page__container}>
                         <div className={styles.page__checkbox}>
                             <Checkbox
+
                                 name="is_agree"
                                 value={formik.values.is_agree}
                                 onChange={formik.handleChange}
@@ -217,6 +232,7 @@ const ConfirmCustomDocsPage: React.FC = () => {
                     <div className={styles.method}>
                         <CheckboxGroup
                             name="type_message"
+                            greedOrFlex="flex"
                             direction="row"
                             options={[
                                 { value: "SMS", label: "SMS" },

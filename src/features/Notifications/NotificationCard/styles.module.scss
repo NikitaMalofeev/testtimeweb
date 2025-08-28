@@ -46,8 +46,15 @@
   font-size: 13px;
   color: #334155;
   line-height: 1.4;
+  min-height: max-content;
   margin-bottom: 10px;
+  max-width: 50%;
   border-radius: 15px;
+  white-space: normal;        /* отменяем запрет переносов */
+  overflow-wrap: anywhere;    /* можно рвать в любом месте, если нужно */
+  /* фоллбеки: */
+  word-wrap: break-word;      /* старое имя overflow-wrap */
+  word-break: break-word;
   padding: 10px;
   max-width: max-content;
 }

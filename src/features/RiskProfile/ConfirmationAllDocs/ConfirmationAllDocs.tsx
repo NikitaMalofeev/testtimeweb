@@ -60,6 +60,7 @@ export const ConfirmAllDocs: React.FC = () => {
     );
     const activeTariffs = useSelector((s: RootState) => s.payments.activeTariffs);
     const currentOrderId = useSelector((s: RootState) => s.payments.currentOrderId);
+    const deposit = useSelector((s: RootState) => s.payments.calculator.min_deposit);
     const brokerId = useSelector((s: RootState) => s.documents.brokerIds[0]);
     const lastDocRef = useRef<string>();
 
@@ -107,10 +108,12 @@ export const ConfirmAllDocs: React.FC = () => {
     const totalDocs = docTypes.length;
     const handleOpenPreview = async () => {
         navigate('documents')
-        const tariffId = currentUserTariffIdForPayments || currentTariffId;
+        const tariffId = currentTariffId || currentUserTariffIdForPayments;
         const previewId = `tariff_${tariffId}`;
 
-
+        if (currentTypeDoc === "type_doc_broker_api_token" && brokerIds.length === 0) {
+            dispatch(setStepAdditionalMenuUI(5));
+        }
         if (currentTypeDoc === 'type_doc_agreement_investment_advisor_app_1') {
             await dispatch(getNotSignedTariffDocThunk({ tariff_id: tariffId }));
 
@@ -173,7 +176,7 @@ export const ConfirmAllDocs: React.FC = () => {
                 // console.log(5)
             } else if (currentTypeDoc === "type_doc_agreement_investment_advisor_app_1") {
                 currentOrderId && dispatch(setTariffIdThunk({
-                    tariff_key: currentOrderId, broker_id: brokerId, type_message: formik.values.type_message, is_agree: formik.values.is_agree, onSuccess: () => {
+                    tariff_key: currentOrderId, broker_id: brokerId, type_message: formik.values.type_message, manual_price: deposit, is_agree: formik.values.is_agree, onSuccess: () => {
                         dispatch(
                             openModal({
                                 type: ModalType.CONFIRM_DOCS,
@@ -336,9 +339,13 @@ export const ConfirmAllDocs: React.FC = () => {
                 <div className={styles.page__container}>
                     <div className={styles.page__preview}>
                         <span className={styles.page__doctype}>{renderDocLabel()}</span>
+                        {/* {currentTypeDoc !== "type_doc_agreement_investment_advisor_app_1" && (
+                            
+                        )} */}
                         <Button onClick={handleOpenPreview} theme={ButtonTheme.UNDERLINE} className={styles.button_preview}>
                             Просмотр
                         </Button>
+
                     </div>
                 </div>
                 <div className={styles.desktop__container}>
@@ -404,6 +411,9 @@ export const ConfirmAllDocs: React.FC = () => {
                     </div>
                 }
                 action={() => {
+                    if (currentTypeDoc === 'type_doc_broker_api_token' && brokerIds.length === 0) {
+                        dispatch(setStepAdditionalMenuUI(5))
+                    }
                     dispatch(closeModal(ModalType.SUCCESS));
                     dispatch(closeModal(ModalType.CONFIRM_DOCS));
                 }}

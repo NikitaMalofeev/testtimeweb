@@ -65,14 +65,14 @@ export const docTypes = [
 export const docTypeLabels: Record<string, string> = {
     type_doc_passport: "Паспорт",
     type_doc_EDS_agreement: "Соглашение об ЭДО",
-    type_doc_RP_questionnairy: "Анкета РП",
+    type_doc_RP_questionnairy: "Анкета Риск Профиля",
     type_doc_agreement_investment_advisor: "Договор ИС",
     type_doc_risk_declarations: "Декларация о рисках",
-    type_doc_agreement_personal_data_policy: "Политика перс. данных",
+    type_doc_agreement_personal_data_policy: "Политика персональных данных",
     type_doc_investment_profile_certificate: "Справка ИП",
     type_doc_agreement_account_maintenance: 'Доверенность на управление счетом',
     type_doc_broker_api_token: 'Согласие на передачу API ключа к брокерскому счету',
-    // type_doc_agreement_investment_advisor_app_1: 'Договор ИС: Приложение 1',
+    type_doc_agreement_investment_advisor_app_1: 'Договор ИС: Приложение 1',
 
 };
 
@@ -97,6 +97,12 @@ interface DocumentsState {
     customDocumentsData: CustomDocData | null;
     uploadDocs: Record<string, UploadDocState>;
     availabilityPersonalAccountMenuItems: AvailabilityPersonalAccountMenuItems | null;
+    documentsChecked: boolean;
+    is_waiting_manual_verification_broker: boolean;
+    waiting_manual_document_verification: {
+        type_doc_agreement_transfer_broker: string,
+        type_doc_passport: string
+    };
 }
 
 const initialState: DocumentsState = {
@@ -125,7 +131,13 @@ const initialState: DocumentsState = {
     userPassportData: null,
     customDocumentsData: null,
     uploadDocs: {},
-    availabilityPersonalAccountMenuItems: null
+    availabilityPersonalAccountMenuItems: null,
+    documentsChecked: false,
+    is_waiting_manual_verification_broker: false,
+    waiting_manual_document_verification: {
+        type_doc_agreement_transfer_broker: '',
+        type_doc_passport: ''
+    }
 };
 
 export const openUploadDocWebsocketThunk = createAsyncThunk<
@@ -764,6 +776,7 @@ export const getAllBrokersThunk = createAsyncThunk<
                 return rejectWithValue("Отсутствует токен авторизации");
             }
             const response = await getAllBrokers(token, is_confirmed_type_doc_agreement_transfer_broker);
+            dispatch(setIsWaitingBrokerVerification(response.is_waiting_manual_verification_broker))
             dispatch(setBrokerIds({ brokerId: response.data[0].id, count: response.count }))
         } catch (error: any) {
             const msg =
@@ -935,6 +948,19 @@ export const documentsSlice = createSlice({
         ) {
             state.availabilityPersonalAccountMenuItems = action.payload;
         },
+
+        setIsWaitingBrokerVerification(
+            state,
+            action: PayloadAction<boolean>
+        ) {
+            state.is_waiting_manual_verification_broker = action.payload;
+        },
+        setIsWaitingDocumentsVerification(
+            state,
+            action: PayloadAction<{ type_doc_agreement_transfer_broker: string, type_doc_passport: string }>
+        ) {
+            state.waiting_manual_document_verification = action.payload;
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -1014,7 +1040,9 @@ export const {
     setUploadDocSocket,
     setUploadDocStatus,
     resetBrokerIds,
-    setAvailabilityPersonalAccountMenuItems
+    setAvailabilityPersonalAccountMenuItems,
+    setIsWaitingBrokerVerification,
+    setIsWaitingDocumentsVerification
 } = documentsSlice.actions;
 
 export default documentsSlice.reducer;

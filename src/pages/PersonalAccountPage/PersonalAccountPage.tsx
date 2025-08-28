@@ -69,7 +69,7 @@ const PersonalAccountMenu: React.FC = () => {
         : filledRiskProfileChapters.is_exist_scan_passport;
 
     const hasIdentityDocs = isIdentityDataComplete && isIdentityScanExist;
-    const allNotificationsCount = unreadAnswersCount + notifications.filter((item) => item.status === "unread").length;
+    const allNotificationsCount = unreadAnswersCount + notifications.filter((item) => !item.is_read).length;
     useEffect(() => {
         dispatch(getUserPersonalAccountInfoThunk());
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -111,6 +111,7 @@ const PersonalAccountMenu: React.FC = () => {
                     dispatch(openModal({ type: ModalType.IDENTIFICATION, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))
                 }
             },
+            message: filledRiskProfileChapters.is_risk_profile_complete_final && 'пройдено',
             iconWidth: 28,
             iconHeight: 28,
             disabled: !availableMenuItems?.risk_profile,
@@ -127,7 +128,7 @@ const PersonalAccountMenu: React.FC = () => {
             iconWidth: 28,
             iconHeight: 28,
             warningMessage: filledRiskProfileChapters.is_risk_profile_complete_final
-                ? (9 - userDocuments.length !== 0 ? (
+                ? (10 - userDocuments.length !== 0 ? (
                     <div className={styles.warning}>
                         <Icon Svg={WarningIcon} width={16} height={16} />
                         <div>Есть неподписанные документы ({10 - userDocuments.length} шт.)</div>
@@ -235,15 +236,23 @@ const PersonalAccountMenu: React.FC = () => {
             ) : null,
             disabled: !availableMenuItems?.broker,
         },
-        // {
-        //     icon: AccountTarifsIcon,
-        //     title: "Тарифы",
-        //     message: hasActiveTariff && 'подключен',
-        //     // action: () => availableMenuItems?.tariffs && navigate("/payments"),
-        //     action: () => navigate("/payments"),
-        //     iconWidth: 24.54,
-        //     iconHeight: 24.24,
-        // },
+
+        {
+            icon: AccountTarifsIcon,
+            title: "Тарифы",
+            message: hasActiveTariff && 'подключен',
+            // action: () => availableMenuItems?.tariffs && navigate("/payments"),
+            action: () => navigate("/payments"),
+            iconWidth: 24.54,
+            iconHeight: 24.24,
+        },
+        {
+            icon: AccountBalanceIcon,
+            title: "Баланс",
+            route: '/balance',
+            iconWidth: 28,
+            iconHeight: 25,
+        },
         {
             icon: AccountChatIcon,
             title: "Чат поддержки",
@@ -256,20 +265,21 @@ const PersonalAccountMenu: React.FC = () => {
             notificationsCount: unreadAnswersCount,
         },
         {
+            icon: AccountNotificationIcon,
+            title: "Уведомления",
+            route: "/notifications",
+            notificationsCount: allNotificationsCount,
+            iconWidth: 25,
+            iconHeight: 28,
+        },
+        {
             icon: faqBlue,
             title: "FAQ",
             action: () => navigate("/faq"),
             iconWidth: 26,
             iconHeight: 26,
         },
-        // {
-        //     icon: AccountNotificationIcon,
-        //     title: "Уведомления",
-        //     route: "/notifications",
-        //     notificationsCount: allNotificationsCount,
-        //     iconWidth: 25,
-        //     iconHeight: 28,
-        // },
+
         // {
         //     icon: AccountSettingsIcon,
         //     title: "Настройки",
@@ -284,13 +294,7 @@ const PersonalAccountMenu: React.FC = () => {
         //     iconWidth: 23,
         //     iconHeight: 23,
         // },
-        // {
-        //     icon: AccountBalanceIcon,
-        //     title: "Баланс",
-        //     action: () => dispatch(setCurrentTab("balance")),
-        //     iconWidth: 28,
-        //     iconHeight: 25,
-        // },
+
 
         {
             icon: AccountLogoutIcon,

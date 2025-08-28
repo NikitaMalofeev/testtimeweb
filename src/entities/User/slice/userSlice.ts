@@ -4,6 +4,7 @@ import { sendProblemsRequest, sendProblemsRequestNotAuth, setPersonType } from "
 import { getAllUserInfo, getUserPersonalAccountInfo, userLogin } from "../api/userApi";
 import { setError } from "entities/Error/slice/errorSlice";
 import { RootState } from "app/providers/store/config/store";
+import { setIsWaitingDocumentsVerification } from "entities/Documents/slice/documentsSlice";
 
 interface UserState {
     is_active: boolean;
@@ -166,6 +167,7 @@ export const getUserPersonalAccountInfoThunk = createAsyncThunk<
                 return
             }
             const response = await getUserPersonalAccountInfo(token);
+            dispatch(setIsWaitingDocumentsVerification(response.waiting_manual_document_verification))
             dispatch(setUserPersonalAccountInfo(response))
             return response;
         } catch (error: any) {

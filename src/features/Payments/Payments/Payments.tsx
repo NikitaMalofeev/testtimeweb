@@ -14,7 +14,7 @@ import {
     setCurrentTariff,
     setLockToLoading, // НОВОЕ
 } from 'entities/Payments/slice/paymentsSlice';
-import { setWarning } from 'entities/ui/Ui/slice/uiSlice';
+import { setStepAdditionalMenuUI, setWarning } from 'entities/ui/Ui/slice/uiSlice';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
 import PaymentsBase from 'shared/assets/images/paymentsBase.png';
 import PaymentsActive from 'shared/assets/images/paymentsActive.png';
@@ -35,6 +35,8 @@ import { Select } from 'shared/ui/Select/Select';
 import { useDevice } from 'shared/hooks/useDevice';
 import { TariffCalculator } from '../TariffCalculator/TariffCalculator';
 import { Loader } from 'shared/ui/Loader/Loader';
+import { set } from 'lodash';
+import { setStep } from 'entities/RiskProfile/slice/riskProfileSlice';
 
 const messageTypeOptions = { SMS: 'SMS', EMAIL: 'Email', WHATSAPP: 'Whatsapp' } as const;
 type MessageKey = keyof typeof messageTypeOptions;
@@ -192,8 +194,10 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                 }),
             );
         } else {
+            dispatch(setStepAdditionalMenuUI(4));
             dispatch(setCurrentConfirmableDoc('type_doc_agreement_investment_advisor_app_1'));
             dispatch(openModal({ type: ModalType.IDENTIFICATION, size: ModalSize.FULL, animation: ModalAnimation.LEFT }));
+
         }
     }, [dispatch, brokersCount, navigate]);
 

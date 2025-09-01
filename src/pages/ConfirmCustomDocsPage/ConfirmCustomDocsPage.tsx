@@ -197,7 +197,7 @@ const ConfirmCustomDocsPage: React.FC = () => {
             </div>
             <div className={styles.page__container}>
                 <div className={styles.page__preview}>
-                    <span className={styles.page__doctype}>{step === 1 ? 'Соглашение об ЭДО' : `${customData?.title}`}</span>
+                    <span className={styles.page__doctype}>{step === 1 ? 'Соглашение об ЭЦП' : `${customData?.title}`}</span>
                     <Button
                         onClick={handleOpenPreview}
                         theme={ButtonTheme.UNDERLINE}
@@ -272,7 +272,7 @@ const ConfirmCustomDocsPage: React.FC = () => {
                 title="Документ подписан"
                 description={
                     <div style={{ textAlign: "center" }}>
-                        Документ “<strong>{step === 1 ? 'Соглашение об ЭДО' : `${customData?.title}`}</strong>” успешно подписан.
+                        Документ “<strong>{step === 1 ? 'Соглашение об ЭЦП' : `${customData?.title}`}</strong>” успешно подписан.
                     </div>
                 }
                 customSuccessModal

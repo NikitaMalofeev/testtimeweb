@@ -15,6 +15,7 @@ import {
     getUserDocumentNotSignedThunk,
     getAllBrokersThunk,
     decrementDocumentTimeout,
+    getUserDocumentsInfoThunk,
     // Удалён старый setNotConfirmedDocuments
 } from "entities/Documents/slice/documentsSlice";
 
@@ -219,12 +220,12 @@ const DocumentsPage: React.FC = () => {
         type_doc_passport: user?.is_individual_entrepreneur === false
             ? "Паспортные данные"
             : "Данные об ИП",
-        type_doc_EDS_agreement: "Соглашение об ЭДО",
+        type_doc_EDS_agreement: "Соглашение об ЭЦП",
         type_doc_RP_questionnairy: "Анкета Риск Профиля",
         type_doc_agreement_investment_advisor: "Договор ИС",
         type_doc_risk_declarations: "Декларация о рисках",
         type_doc_agreement_personal_data_policy: "Политика персональных данных",
-        type_doc_investment_profile_certificate: "Справка ИП",
+        type_doc_investment_profile_certificate: "Справка Инвестиционного профиля",
         type_doc_agreement_account_maintenance: "Доверенность на управление счётом",
         type_doc_broker_api_token: "Согласие на передачу API-ключа к брокерскому счёту",
         type_doc_agreement_investment_advisor_app_1: "Договор ИС: Приложение 1",
@@ -516,13 +517,14 @@ const DocumentsPage: React.FC = () => {
         else if (isBroker) {
             if (brokerDisabledByFlag && brokerIds.length === 0) {
                 // НОВОЕ правило — всегда серый и задизейблен
-                colorClass = styles.button__gray;
+                colorClass = styles.button__red;
                 additionalMessages = 'Для подписания подключите брокерский счёт';
             } else if (brokerIds.length === 0) {
                 colorClass = styles.button__gray;
                 additionalMessages = 'Для подписания подключите брокерский счёт';
             } else {
-                colorClass = styles.button__red; // активный брокер
+                colorClass = styles.button__gray;
+                // активный брокер
             }
         }
 
@@ -566,12 +568,17 @@ const DocumentsPage: React.FC = () => {
         // console.log(docId);
         if (docId === "type_doc_passport") {
             setSelectedDocId(docId);
+
+            // всегда подтягиваем свежие данные перед превью
+            dispatch(getAllUserInfoThunk());
+            dispatch(getUserDocumentsInfoThunk());
+
             dispatch(
                 openModal({
                     type: ModalType.DOCUMENTS_PREVIEW,
-                    animation: ModalAnimation.LEFT,
                     size: ModalSize.FULL,
-                    docId: docId
+                    animation: ModalAnimation.LEFT,
+                    docId
                 })
             );
         } else if (docId === "type_doc_broker_api_token") {

@@ -321,7 +321,13 @@ export const ConfirmAllDocs: React.FC = () => {
                     }}>
                         <Icon Svg={ArrowBack} width={24} height={24} /> Назад
                     </div>
-                    <div className={styles.close} onClick={() => dispatch(closeModal(ModalType.IDENTIFICATION))} title="Закрыть">
+                    <div className={styles.close} onClick={() => {
+                        if (currentTypeDoc === '  type_doc_EDS_agreement') {
+                            dispatch(getUserDocumentsStateThunk())
+                        }
+                        dispatch(closeModal(ModalType.IDENTIFICATION))
+                    }
+                    } title="Закрыть">
                         <Icon Svg={CloseIcon} width={24} height={24} pointer />
                     </div>
                     <div className={styles.page__counter}>
@@ -392,6 +398,7 @@ export const ConfirmAllDocs: React.FC = () => {
             <ConfirmDocsModal
                 isOpen={useSelector((state: RootState) => state.modal.confirmDocsModal.isOpen)}
                 onClose={() => {
+
                     dispatch(closeModal(ModalType.CONFIRM_DOCS));
                 }}
                 docsType={currentTypeDoc}

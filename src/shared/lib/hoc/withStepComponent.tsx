@@ -94,7 +94,7 @@ const withStepContent = (StepLayout: React.FC<StepLayoutProps>) =>
                 ),
                 'Данные вводимые в форму должны совпадать с паспортом и ИНН',
                 'Данные вводимые в форму должны совпадать с паспортом и ИНН',
-                'Подписание документов по «ЭДО»',
+                'Подписание документов по «ЭЦП»',
             ];
             return list[currentStep];
         }, [currentStep, maxRisk]);

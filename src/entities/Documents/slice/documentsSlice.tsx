@@ -64,12 +64,12 @@ export const docTypes = [
 // Лейблы для UI.
 export const docTypeLabels: Record<string, string> = {
     type_doc_passport: "Паспорт",
-    type_doc_EDS_agreement: "Соглашение об ЭДО",
+    type_doc_EDS_agreement: "Соглашение об ЭЦП",
     type_doc_RP_questionnairy: "Анкета Риск Профиля",
     type_doc_agreement_investment_advisor: "Договор ИС",
     type_doc_risk_declarations: "Декларация о рисках",
     type_doc_agreement_personal_data_policy: "Политика персональных данных",
-    type_doc_investment_profile_certificate: "Справка ИП",
+    type_doc_investment_profile_certificate: "Справка Инвестиционного профиля",
     type_doc_agreement_account_maintenance: 'Доверенность на управление счетом',
     type_doc_broker_api_token: 'Согласие на передачу API ключа к брокерскому счету',
     type_doc_agreement_investment_advisor_app_1: 'Договор ИС: Приложение 1',

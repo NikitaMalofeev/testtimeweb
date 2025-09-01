@@ -61,6 +61,7 @@ export type AllUserInfo = {
     age_parameters: string;
     apartment: string;
     birth_date: string;
+    birth_place: string;
     citizenship: string;
     city: string;
     currency_investment: string;

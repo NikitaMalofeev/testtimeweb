@@ -22,6 +22,15 @@ export interface PaymentData {
     payment_url: string;
 }
 
+export interface BrokerBalance {
+    total_amount_currencies: number;
+    total_amount_bonds: number;
+    total_amount_etf: number;
+    total_amount_shares: number;
+    all_total: number;
+    currency: string; // e.g. "rub"
+}
+
 export type PaymentStatus = 'success' | 'loading' | 'failed';
 
 /* -------------------------------------------------------------------------- */

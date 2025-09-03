@@ -148,7 +148,7 @@ const PersonalAccountMenu: React.FC = () => {
             icon: AccountBrokerIcon,
             title: "Брокер",
             action: () => {
-                if (availableMenuItems?.broker) {
+                if (availableMenuItems?.broker && brokersCount === 0) {
                     const hasBrokerKey = brokerIds.length > 0;
                     const hasPassport = hasIdentityDocs
                     const hasTariff = hasActiveTariff;

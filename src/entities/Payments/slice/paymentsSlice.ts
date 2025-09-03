@@ -15,8 +15,11 @@ import {
     paymentsSetTariff,
     robokassaResult,
     signingTariff,
+    /** NEW: */
+    getBalanceBroker,
 } from 'entities/Payments/api/paymentsApi';
 import {
+    BrokerBalance,
     CalculateProfitabilityPayload,
     CalculateProfitabilityResponse,
     OrderStatusResponse,
@@ -94,7 +97,12 @@ interface PaymentsState {
     currentOrderStatus: 'pay' | 'success' | 'loading' | 'failed' | 'exit' | '';
     payments_info: PaymentInfo[];            // список платежей / активных тарифов
     error: string | null;
+
+    /** Старое поле — оставляем без изменений */
     currentBalance: number;
+
+    /** NEW: полный баланс пользователя от брокера */
+    balance: BrokerBalance | null;
 
     /** НОВОЕ: гейт, удерживающий маршрут на /payments/loading */
     lockToLoading: boolean;
@@ -115,6 +123,7 @@ const initialState: PaymentsState = {
     currentOrder: null,
     currentOrderStatus: '',
     currentBalance: 0,
+    balance: null,
     payments_info: [
         {
             order: {
@@ -447,6 +456,28 @@ export const robokassaResultThunk = createAsyncThunk<
     }
 });
 
+/** -------------------- NEW: BALANCE THUNK -------------------- */
+/**
+ * Получить баланс по брокеру и сохранить в payments.balance
+ * payload: { broker_id }
+ */
+export const getBrokerBalanceThunk = createAsyncThunk<
+    BrokerBalance,
+    { broker_id: string },
+    { state: RootState; rejectValue: string }
+>('payments/getBrokerBalance', async ({ broker_id }, { getState, dispatch, rejectWithValue }) => {
+    try {
+        const token = getState().user.token;
+        if (!token) throw new Error('Нет токена пользователя');
+        const data = await getBalanceBroker(broker_id, token);
+        return data;
+    } catch (err: any) {
+        const msg = err?.response?.data?.errorText || err?.message || 'Не удалось получить баланс';
+        dispatch(setError(msg));
+        return rejectWithValue(msg);
+    }
+});
+
 /* -------------------------------------------------------------------------- */
 /* SLICE */
 /* -------------------------------------------------------------------------- */
@@ -511,6 +542,11 @@ export const paymentsSlice = createSlice({
             state.lockToLoading = action.payload;
         },
 
+        /** NEW: вручную установить баланс (если нужно из вне) */
+        setBalance: (state, action: PayloadAction<BrokerBalance | null>) => {
+            state.balance = action.payload;
+        },
+
         resetPaymentsState: () => initialState,
     },
     extraReducers: (builder) => {
@@ -525,7 +561,7 @@ export const paymentsSlice = createSlice({
             })
             .addCase(calculateProfitabilityThunk.rejected, (state, { payload }) => {
                 state.calculator.loading = false;
-                state.calculator.error = payload || 'Ошибка расчёта';
+                state.calculator.error = (payload as string) || 'Ошибка расчёта';
             })
 
             // по желанию можно наполнять payments_info из ответов:
@@ -535,6 +571,11 @@ export const paymentsSlice = createSlice({
             .addCase(getAllActiveTariffsThunk.fulfilled, (state, { payload }) => {
                 // backend присылает payments_info — сохраним для отображений, если нужно
                 if (payload) state.payments_info = payload;
+            })
+
+            /** NEW: сохранить полученный баланс */
+            .addCase(getBrokerBalanceThunk.fulfilled, (state, { payload }) => {
+                state.balance = payload;
             });
     },
 });
@@ -556,6 +597,8 @@ export const {
     setAllTariffs,
     // НОВОЕ:
     setLockToLoading,
+    // NEW:
+    setBalance,
 } = paymentsSlice.actions;
 
 export default paymentsSlice.reducer;

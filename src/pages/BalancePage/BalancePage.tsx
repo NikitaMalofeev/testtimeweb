@@ -32,8 +32,10 @@ const BalancePage = () => {
                 <span className={styles.content__title}>Ваш баланс</span>
                 <span className={styles.content__value}>{balance?.all_total} ₽</span>
                 <div className={styles.content__actions}>
-                    <div className={styles.content__actions__button} onClick={() => window.location.href = "https://www.tbank.ru/"}><div className={styles.content__actions__button__icon}><Icon Svg={WithdrawIcon} width={11} height={11} pointer /></div><span>Пополнить</span></div>
-                    <div className={styles.content__actions__button} onClick={() => window.location.href = "https://www.tbank.ru/"}><div className={styles.content__actions__button__icon}><Icon Svg={RefillIcon} width={11} height={11} pointer /> </div><span>Вывести</span></div>
+                    <div className={styles.content__actions__button} onClick={() => window.open("https://www.tbank.ru/", "_blank", "noopener,noreferrer")}
+                    ><div className={styles.content__actions__button__icon}><Icon Svg={WithdrawIcon} width={11} height={11} pointer /></div><span>Пополнить</span></div>
+                    <div className={styles.content__actions__button} onClick={() => window.open("https://www.tbank.ru/", "_blank", "noopener,noreferrer")}
+                    ><div className={styles.content__actions__button__icon}><Icon Svg={RefillIcon} width={11} height={11} pointer /> </div><span>Вывести</span></div>
                 </div>
             </div>
 

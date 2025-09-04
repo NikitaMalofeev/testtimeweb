@@ -381,7 +381,7 @@ export const ConfirmDocsModal = memo(
                             }}
                         >
                             <div className={styles.timer} style={!phoneTimerActive ? { color: "#045FDD" } : {}}>
-                                {phoneTimerActive
+                                {phoneTimerActive 
                                     ? `Отправить код снова через: 0${Math.floor(phoneTimeLeft / 60)}:${String(phoneTimeLeft % 60).padStart(2, "0")}`
                                     : "Отправить код снова"}
                             </div>

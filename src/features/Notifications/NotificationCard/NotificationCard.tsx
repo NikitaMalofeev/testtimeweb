@@ -54,7 +54,7 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({
                 {showDot && <span className={styles.dot} aria-label="Непрочитано" />}
             </div>
 
-            <div className={styles.title}>{title || ''}</div>
+            <div className={styles.title} style={isRead ? { color: '#464646' } : {}}>{title || ''}</div>
 
             {/* {text && (
                 <div
@@ -67,6 +67,6 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({
                     {text}
                 </div>
             )} */}
-        </div>
+        </div >
     );
 };

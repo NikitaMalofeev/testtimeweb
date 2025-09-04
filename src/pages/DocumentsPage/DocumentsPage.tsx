@@ -73,7 +73,7 @@ const DocumentsPage: React.FC = () => {
     const brokerConfirmation = userDocuments.find(
         d => d.is_confirmed_type_doc_agreement_transfer_broker === true,
     );
-    const isBrokerSigned = !!brokerConfirmation;
+    const isBrokerSigned = !!brokerDoc;
 
     const isIp = !!user?.is_individual_entrepreneur;
 
@@ -105,7 +105,7 @@ const DocumentsPage: React.FC = () => {
         setSelectedDocs(selectableDocIds);
         setBulkOpen(true);
     };
-    
+
     //Логика с подписанием всех документов 
 
 
@@ -419,11 +419,18 @@ const DocumentsPage: React.FC = () => {
     );
 
     // Показать кнопку "Подписать все" только после того, как подписан брокерский документ
-    const showSignAllButton = 
-        isBulkEnabled && 
-        bulkSelectableDocs.length > 0 && 
-        brokerIds.length > 0 && 
-        isBrokerSigned; // брокер должен быть подписан
+    const showSignAllButton =
+        isBulkEnabled &&
+        bulkSelectableDocs.length > 0 &&
+        brokerIds.length > 0 &&
+        isBrokerSigned;
+
+    useEffect(() => {
+        console.log(isBulkEnabled)
+        console.log(bulkSelectableDocs.length)
+        console.log(brokerIds.length > 0)
+        console.log(isBrokerSigned)
+    }, [])
 
     // Не показываем индивидуальные чекбоксы
     const showBulkToolbar = false;

@@ -17,7 +17,7 @@ import {
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { selectModalState } from "entities/ui/Modal/selectors/selectorsModals";
 import { setTooltipActive, setConfirmationDocsSuccess, setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
-import { clearDocumentTimeout, confirmDocsRequestThunk, getUserDocumentNotSignedThunk, getUserDocumentsStateThunk, sendCustomDocsConfirmationCode, sendDocsConfirmationCode, setDocumentTimeoutPending } from "entities/Documents/slice/documentsSlice";
+import { confirmDocsRequestThunk, getUserDocumentNotSignedThunk, getUserDocumentsStateThunk, sendCustomDocsConfirmationCode, sendDocsConfirmationCode } from "entities/Documents/slice/documentsSlice";
 import { ConfirmDocsPayload } from "entities/Documents/types/documentsTypes";
 
 interface ConfirmCustomDocsModalProps {

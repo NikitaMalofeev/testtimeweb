@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:*)",
+      "Read(/C:\\Users\\admin\\Desktop\\WORK\\Ranks\\Ranks.autopilot\\src\\features\\RiskProfile\\ConfirmationAllDocs/**)",
+      "Read(/C:\\Users\\admin\\Desktop\\WORK\\Ranks\\Ranks.autopilot\\src\\features\\RiskProfile\\ConfirmAllDocsOneCode/**)",
+      "Read(/C:\\Users\\admin\\Desktop\\WORK\\Ranks\\Ranks.autopilot\\src\\pages\\DocumentsPage/**)",
+      "Read(/C:\\Users\\admin\\Desktop\\WORK\\Ranks\\Ranks.autopilot\\src\\features\\Documents\\BulkSignModal/**)",
+      "Read(/C:\\Users\\admin\\Desktop\\WORK\\Ranks\\Ranks.autopilot\\src\\pages\\DocumentsPage/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

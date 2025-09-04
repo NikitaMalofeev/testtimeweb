@@ -17,7 +17,7 @@ import {
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { selectModalState } from "entities/ui/Modal/selectors/selectorsModals";
 import { setTooltipActive, setConfirmationDocsSuccess, setStepAdditionalMenuUI, nextStep } from "entities/ui/Ui/slice/uiSlice";
-import { clearDocumentTimeout, confirmDocsRequestThunk, getUserDocumentsStateThunk, sendDocsConfirmationCode, setCurrentConfirmableDoc, setDocumentTimeoutPending } from "entities/Documents/slice/documentsSlice";
+import { confirmDocsRequestThunk, getUserDocumentsStateThunk, sendDocsConfirmationCode, setCurrentConfirmableDoc, startDocTimeout, docTypes, docTimeoutMap } from "entities/Documents/slice/documentsSlice";
 import { ConfirmDocsPayload } from "entities/Documents/types/documentsTypes";
 import { checkConfirmationCodeTariffThunk, setCurrentOrderStatus, createOrderThunk } from "entities/Payments/slice/paymentsSlice";
 import { useNavigate } from "react-router-dom";
@@ -268,15 +268,22 @@ export const ConfirmDocsModal = memo(
                             },
                             onSuccess: (data: any) => {
 
-                                //бек не отправляет next_document на эти 2
+                                // переход к следующему документу и запуск таймера
                                 if (docsType === 'type_doc_agreement_account_maintenance') {
-                                    dispatch(setCurrentConfirmableDoc('type_doc_broker_api_token'));
+                                    const nextDoc = 'type_doc_broker_api_token';
+                                    dispatch(setCurrentConfirmableDoc(nextDoc));
+                                    dispatch(startDocTimeout({ docKey: nextDoc, duration: docTimeoutMap[nextDoc] || 5 }));
                                 }
                                 if (docsType === 'type_doc_broker_api_token') {
-                                    dispatch(setCurrentConfirmableDoc('type_doc_agreement_investment_advisor_app_1'));
+                                    const nextDoc = 'type_doc_agreement_investment_advisor_app_1';
+                                    dispatch(setCurrentConfirmableDoc(nextDoc));
+                                    dispatch(startDocTimeout({ docKey: nextDoc, duration: docTimeoutMap[nextDoc] || 5 }));
                                 }
-
-                                //бек не отправляет next_document на эти 2
+                                // для остальных документов используем логику с data.next_document
+                                if (data && data.next_document && data.next_document !== docsType) {
+                                    dispatch(setCurrentConfirmableDoc(data.next_document));
+                                    dispatch(startDocTimeout({ docKey: data.next_document, duration: docTimeoutMap[data.next_document] || 5 }));
+                                }
 
 
                                 if ((docsType === 'type_doc_EDS_agreement' || docsType === 'type_doc_person_legal') && confirmOneCode) {
@@ -300,9 +307,6 @@ export const ConfirmDocsModal = memo(
                                 }
                                 setSmsCodeFirst(Array(codeLength).fill(""));
 
-                                if (docsType) {
-                                    dispatch(setDocumentTimeoutPending({ docKey: docsType, timeout: 10000 }));
-                                }
                                 if (openSuccessModal) {
                                     dispatch(closeModal(ModalType.CONFIRM_DOCS))
                                     openSuccessModal(docsType);

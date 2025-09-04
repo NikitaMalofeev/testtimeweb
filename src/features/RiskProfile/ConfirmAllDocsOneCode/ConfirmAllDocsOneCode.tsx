@@ -17,7 +17,7 @@ import {
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { selectModalState } from "entities/ui/Modal/selectors/selectorsModals";
 import { setTooltipActive, setConfirmationDocsSuccess, setStepAdditionalMenuUI, nextStep } from "entities/ui/Ui/slice/uiSlice";
-import { clearDocumentTimeout, confirmDocsRequestThunk, getUserDocumentsStateThunk, sendDocsConfirmationAllDocuments, sendDocsConfirmationCode, setCurrentConfirmableDoc, setDocumentTimeoutPending } from "entities/Documents/slice/documentsSlice";
+import { confirmDocsRequestThunk, getUserDocumentsStateThunk, sendDocsConfirmationAllDocuments, sendDocsConfirmationCode, setCurrentConfirmableDoc } from "entities/Documents/slice/documentsSlice";
 import { ConfirmDocsPayload } from "entities/Documents/types/documentsTypes";
 import { checkConfirmationCodeTariffThunk, setCurrentOrderStatus, createOrderThunk } from "entities/Payments/slice/paymentsSlice";
 import { useNavigate } from "react-router-dom";

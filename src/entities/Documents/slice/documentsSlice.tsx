@@ -42,8 +42,8 @@ import { signingTariff } from "entities/Payments/api/paymentsApi";
  */
 export const docTimeoutMap: Record<string, number> = {
     type_doc_passport: 7,
-    type_doc_EDS_agreement: 8,              // ЭЦП — 8 сек
-    type_doc_RP_questionnairy: 12,          // Анкета РП — 12 сек
+    type_doc_EDS_agreement: 8,
+    type_doc_RP_questionnairy: 12,
     type_doc_agreement_investment_advisor: 7,
     type_doc_risk_declarations: 7,
     type_doc_agreement_personal_data_policy: 7,
@@ -53,7 +53,6 @@ export const docTimeoutMap: Record<string, number> = {
     type_doc_agreement_investment_advisor_app_1: 7,
 };
 
-const DEFAULT_TIMEOUT_FALLBACK = 5;
 
 // Новый тип, соответствующий элементам из "confirmed_documents"
 export interface DocumentConfirmationInfo {
@@ -133,8 +132,6 @@ interface DocumentsState {
 
     userDocuments: DocumentConfirmationInfo[];
 
-    /** legacy поле — сохранено для обратной совместимости, UI его больше не использует */
-    timeoutBetweenConfirmation: number;
 
     allNotSignedDocumentsHtml: Record<string, string> | null;
     currentSugnedDocument: {
@@ -173,7 +170,6 @@ const initialState: DocumentsState = {
     currentConfirmableDoc: docTypes[0],
     confirmationMethod: "EMAIL",
 
-    timeoutBetweenConfirmation: 0,
 
     allNotSignedDocumentsHtml: null,
     currentSugnedDocument: {
@@ -210,14 +206,6 @@ const initialState: DocumentsState = {
     nowTs: Date.now(),
 };
 
-// ============ helpers ============
-export const normalizeDocKey = (k: string) =>
-    k === "type_doc_RP_questionary" ? "type_doc_RP_questionnairy" : k;
-const defaultTimeoutFor = (docKey: string) =>
-    docTimeoutMap[docKey] ?? DEFAULT_TIMEOUT_FALLBACK;
-
-const resolveTimeout = (docKey: string, server?: number) =>
-    (docTimeoutMap[docKey] ?? server ?? DEFAULT_TIMEOUT_FALLBACK);
 // ============ thunks ============
 
 export const openUploadDocWebsocketThunk = createAsyncThunk<
@@ -265,13 +253,9 @@ export const confirmTariffRequestThunk = createAsyncThunk<
 
             if (currentConfirmableDoc === "type_doc_agreement_investment_advisor_app_1" && tariff_id) {
                 const responseDocs = await signingTariff(tariff_id, type_message, is_agree, token);
-                // если бэкенд прислал интервал — запускаем таймер (или дефолт)
-                const duration = resolveTimeout(currentConfirmableDoc, (responseDocs as any)?.timeinterval_sms);
+                // простой таймер из маппинга
+                const duration = docTimeoutMap[currentConfirmableDoc] || 5;
                 dispatch(startDocTimeout({ docKey: currentConfirmableDoc, duration }));
-                // legacy
-                if ((responseDocs as any)?.timeinterval_sms) {
-                    dispatch(setTimeoutBetweenConfirmation((responseDocs as any).timeinterval_sms));
-                }
                 onSuccess?.();
                 return responseDocs as any;
             }
@@ -298,12 +282,8 @@ export const confirmDocsRequestThunk = createAsyncThunk<
 
             if (currentConfirmableDoc === "type_doc_broker_api_token") {
                 const responseDocs = await confirmBrokerDocsRequest({ type_message, is_agree, broker_id: currentBrokerId }, token);
-                const duration = resolveTimeout(currentConfirmableDoc, (responseDocs as any)?.timeinterval_sms);
+                const duration = docTimeoutMap[currentConfirmableDoc] || 5;
                 dispatch(startDocTimeout({ docKey: currentConfirmableDoc, duration }));
-                // legacy
-                if ((responseDocs as any)?.timeinterval_sms) {
-                    dispatch(setTimeoutBetweenConfirmation((responseDocs as any).timeinterval_sms));
-                }
                 onSuccess?.();
                 if ((responseDocs as any).group_ws) {
                     const socketId = (responseDocs as any).group_ws;
@@ -312,12 +292,8 @@ export const confirmDocsRequestThunk = createAsyncThunk<
                 return responseDocs as any;
             } else if (currentConfirmableDoc !== "type_doc_broker_api_token" && type_document && type_message) {
                 const responseDocs = await confirmDocsRequest({ type_message, type_document, is_agree }, token);
-                const duration = (responseDocs as any)?.timeinterval_sms ?? defaultTimeoutFor(currentConfirmableDoc);
+                const duration = docTimeoutMap[currentConfirmableDoc] || 5;
                 dispatch(startDocTimeout({ docKey: currentConfirmableDoc, duration }));
-                // legacy
-                if ((responseDocs as any)?.timeinterval_sms) {
-                    dispatch(setTimeoutBetweenConfirmation((responseDocs as any).timeinterval_sms));
-                }
                 if ((responseDocs as any).group_ws) {
                     const socketId = (responseDocs as any).group_ws;
                     dispatch(openUploadDocWebsocketThunk({ docId: currentConfirmableDoc, socketId }));
@@ -346,8 +322,8 @@ export const confirmAllDocsRequestThunk = createAsyncThunk<
         const response = await confirmAllDocsRequest(data, token);
         dispatch(setConfirmationDocsSuccess("пройдено"));
 
-        // Стартуем таймер для текущего документа (если пришёл с сервера — используем его)
-        const duration = resolveTimeout(currentConfirmableDoc, (response as any)?.timeinterval_sms);
+        // Стартуем таймер для текущего документа из маппинга
+        const duration = docTimeoutMap[currentConfirmableDoc] || 5;
         dispatch(startDocTimeout({ docKey: currentConfirmableDoc, duration }));
 
         if ((response as any).group_ws) {
@@ -377,7 +353,8 @@ export const confirmCustomDocsRequestThunk = createAsyncThunk<
 
         // Стартуем таймаут ТОЛЬКО если doc указан
         if (type_document) {
-            dispatch(startDocTimeout({ docKey: type_document, duration: defaultTimeoutFor(type_document) }));
+            const duration = docTimeoutMap[type_document] || 5;
+            dispatch(startDocTimeout({ docKey: type_document, duration }));
         }
         onSuccess?.();
         return responseDocs as any;
@@ -726,10 +703,6 @@ export const documentsSlice = createSlice({
             state.brokerIds = [action.payload.brokerId];
             state.brokersCount = action.payload.count;
         },
-        // legacy, чтобы не падали другие места
-        setTimeoutBetweenConfirmation(state, action: PayloadAction<number>) {
-            state.timeoutBetweenConfirmation = action.payload;
-        },
 
         // HTML не подписанных документов
         setNotSignedDocumentsHtmls(state, action: PayloadAction<Record<string, string>>) {
@@ -755,9 +728,8 @@ export const documentsSlice = createSlice({
             state,
             action: PayloadAction<{ docKey: string; duration?: number; startedAtMs?: number }>
         ) {
-            const raw = action.payload.docKey;
-            const docKey = normalizeDocKey(raw);                 // ← нормализация
-            const dur = (action.payload.duration ?? defaultTimeoutFor(docKey)) | 0;
+            const { docKey } = action.payload;
+            const dur = action.payload.duration ?? docTimeoutMap[docKey] ?? 5;
             state.timersByDoc[docKey] = {
                 startedAt: action.payload.startedAtMs ?? Date.now(),
                 duration: dur,
@@ -778,38 +750,6 @@ export const documentsSlice = createSlice({
             state.nowTs = Date.now();
         },
 
-        // ===== Ниже — legacy для совместимости (можно удалить позже) =====
-        setDocumentTimeoutPending(
-            state,
-            action: PayloadAction<{ docKey: string; timeout: number }>
-        ) {
-            const { docKey, timeout } = action.payload;
-            const doc = state.userDocuments.find((d) => d.key === docKey);
-            if (doc) {
-                doc.timeoutPending = timeout;
-            } else {
-                state.userDocuments.push({
-                    key: docKey,
-                    date_last_confirmed: null,
-                    timeoutPending: timeout,
-                });
-            }
-        },
-        decrementDocumentTimeout(
-            state,
-            action: PayloadAction<{ docKey: string; decrement: number }>
-        ) {
-            const { docKey, decrement } = action.payload;
-            const doc = state.userDocuments.find((d) => d.key === docKey);
-            if (doc && typeof doc.timeoutPending === "number" && doc.timeoutPending > 0) {
-                doc.timeoutPending = Math.max(0, doc.timeoutPending - decrement);
-            }
-        },
-        clearDocumentTimeout(state, action: PayloadAction<string>) {
-            const docKey = action.payload;
-            const doc = state.userDocuments.find((d) => d.key === docKey);
-            if (doc) doc.timeoutPending = 0;
-        },
 
         nextDocType(state) {
             const currentIndex = docTypes.findIndex((doc) => doc === state.currentConfirmableDoc);
@@ -926,11 +866,10 @@ export const documentsSlice = createSlice({
  * Сколько секунд осталось для конкретного документа.
  * Если таймер не активен — 0.
  */
-export const selectRemainingTimeoutByDoc = (state: RootState, rawKey: string): number => {
-    const docKey = normalizeDocKey(rawKey);             // ← нормализация
+export const selectRemainingTimeoutByDoc = (state: RootState, docKey: string): number => {
     const entry = state.documents.timersByDoc[docKey];
     if (!entry || !entry.active || !entry.startedAt) return 0;
-    const now = Date.now();                             // ← реальное время, не зависим от tickNow
+    const now = Date.now();
     const elapsed = Math.floor((now - entry.startedAt) / 1000);
     return Math.max(0, entry.duration - elapsed);
 };
@@ -941,16 +880,12 @@ export const {
     setCurrentConfirmationMethod,
     setUserDocuments,
     nextDocType,
-    setTimeoutBetweenConfirmation, // legacy
     setNotSignedDocumentsHtmls,
     setCurrentSignedDocuments,
     setIsRiksProfileComplete,
     setUserPasportData,
     setBrokerSuccessResponseInfo,
     setBrokerIds,
-    setDocumentTimeoutPending, // legacy
-    decrementDocumentTimeout, // legacy
-    clearDocumentTimeout, // legacy
     setCustomDocumentData,
     setUploadDocSocket,
     setUploadDocStatus,

@@ -32,6 +32,7 @@ import {
     selectRemainingTimeoutByDoc,
     startDocTimeout,
     tickNow,
+    docTimeoutMap,
 } from "entities/Documents/slice/documentsSlice";
 import DocsImage from "shared/assets/svg/docsImage.svg";
 import { Icon } from "shared/ui/Icon/Icon";
@@ -105,11 +106,10 @@ export const ConfirmAllDocs: React.FC = () => {
 
     // Состояние для хранения последнего подписанного документа (для описания в successModal)
     const [lastConfirmedDoc, setLastConfirmedDoc] = React.useState<string>("");
-    const normalizeDocKey = (k: string) =>
-        k === "type_doc_RP_questionary" ? "type_doc_RP_questionnairy" : k;
+    
     // ⏱ оставшееся время по текущему документу — теперь из Redux
     const remainingSeconds = useSelector((s: RootState) =>
-        selectRemainingTimeoutByDoc(s, normalizeDocKey(currentTypeDoc))
+        selectRemainingTimeoutByDoc(s, currentTypeDoc)
     );
 
     // один общий тикающий интервал для обновления nowTs в Redux

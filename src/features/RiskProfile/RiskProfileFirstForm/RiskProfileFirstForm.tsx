@@ -30,6 +30,7 @@ import CloseIcon from 'shared/assets/svg/close.svg'
 import { Icon } from "shared/ui/Icon/Icon";
 import { Tooltip } from "shared/ui/Tooltip/Tooltip";
 import { useCapitalizeName } from "shared/hooks/useCapitalizeName";
+import { usePhoneFormat } from "shared/hooks/usePhoneFormat";
 
 interface Question {
     name: string;
@@ -50,6 +51,9 @@ export const RiskProfileFirstForm: React.FC = () => {
 
     /* ───────────── хук для капитализации ФИО ───────────── */
     const { handleNameChange: handleCapitalizedNameChange } = useCapitalizeName();
+
+    /* ───────────── хук для форматирования телефона ───────────── */
+    const { handlePhoneChange } = usePhoneFormat();
 
     // ============ REDUX STATE ============
     const {
@@ -206,7 +210,7 @@ export const RiskProfileFirstForm: React.FC = () => {
         validationSchema: Yup.object({
             // Условная валидация для phone: правило применяется только если trusted_person_fio заполнено
             phone: Yup.string()
-                .matches(/^\+\d{11}$/, "Неверный формат")
+                .matches(/^\+7\d{10}$/, "Неверный формат")
                 .when(
                     ["trusted_person_fio"],
                     ([trustedPersonFio], schema) =>
@@ -216,7 +220,7 @@ export const RiskProfileFirstForm: React.FC = () => {
                 ),
             trusted_person_fio: Yup.string().min(3, "Минимум 3 символа"),
             trusted_person_phone: Yup.string()
-                .matches(/^\+\d{11}$/, "Неверный формат")
+                .matches(/^\+7\d{10}$/, "Неверный формат")
                 .when(
                     ["trusted_person_fio"],
                     ([trustedPersonFio], schema) =>
@@ -355,14 +359,10 @@ export const RiskProfileFirstForm: React.FC = () => {
                         type="text"
                         value={formik.values.trusted_person_phone || ""}
                         withoutCloudyLabel
-                        onChange={(e) => {
-                            let inputVal = e.target.value;
-                            const onlyDigits = inputVal.replace(/\D/g, "");
-                            const limitedDigits = onlyDigits.slice(0, 14);
-                            const formatted = limitedDigits.length > 0 ? "+" + limitedDigits : "";
-                            formik.setFieldValue("trusted_person_phone", formatted);
-                            dispatch(updateFieldValue({ name: "trusted_person_phone", value: formatted }));
-                        }}
+                        onChange={handlePhoneChange((value) => {
+                            formik.setFieldValue("trusted_person_phone", value);
+                            dispatch(updateFieldValue({ name: "trusted_person_phone", value }));
+                        })}
                         onFocus={() => setNumberPlaceholder('+7 (___) ___-____')}
                         onBlur={formik.handleBlur}
                         needValue={formik.values?.trusted_person_fio?.length > 0}

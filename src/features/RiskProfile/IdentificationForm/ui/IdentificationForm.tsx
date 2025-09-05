@@ -30,6 +30,7 @@ import PrivacyPdf from "shared/assets/documents/PersonalPolicy.pdf";
 import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { useScrollShadow } from "shared/hooks/useScrollShadow";
 import { useCapitalizeName } from "shared/hooks/useCapitalizeName";
+import { usePhoneFormat } from "shared/hooks/usePhoneFormat";
 import BooleanTabs from "shared/ui/BooleanTabs/BooleanTabs";
 import { DocumentsPreviewPdfModal } from "features/Documents/DocumentsPreviewPdfModal/DocumentsPreviewPdfModal";
 import { resetBrokerIds, setBrokerIds } from "entities/Documents/slice/documentsSlice";
@@ -53,6 +54,9 @@ const IdentificationProfileForm: React.FC = () => {
 
     /* ───────────── хук для капитализации ФИО ───────────── */
     const { handleNameChange: handleCapitalizedNameChange } = useCapitalizeName();
+
+    /* ───────────── хук для форматирования телефона ───────────── */
+    const { handlePhoneChange } = usePhoneFormat();
 
     const { loading } = useSelector((s: RootState) => s.riskProfile);
     const modalState = useSelector((s: RootState) => s.modal);
@@ -95,7 +99,7 @@ const IdentificationProfileForm: React.FC = () => {
                 .required("E-mail обязательно")
                 .matches(EMAIL_REGEX, "Некорректный email"),
             phone: Yup.string()
-                .matches(/^\+\d{11}$/, "Неверный формат номера телефона")
+                .matches(/^\+7\d{10}$/, "Неверный формат номера телефона")
                 .required("Номер телефона обязателен"),
             password: Yup.string()
                 .min(8, "Пароль минимум 8 символов")
@@ -286,11 +290,7 @@ const IdentificationProfileForm: React.FC = () => {
                     <Input
                         name="phone"
                         value={formik.values.phone}
-                        onChange={(e) => {
-                            let value = e.target.value.replace(/[^\d+]/g, "");
-                            if (!value.startsWith("+")) value = "+" + value;
-                            formik.setFieldValue("phone", value);
-                        }}
+                        onChange={handlePhoneChange((value) => formik.setFieldValue("phone", value))}
                         onBlur={formik.handleBlur}
                         placeholder={numberPlaceholder}
                         onFocus={() => setNumberPlaceholder('+7 (___) ___-____')}

@@ -6,7 +6,10 @@
       "Read(/C:\\Users\\admin\\Desktop\\WORK\\Ranks\\Ranks.autopilot\\src\\features\\RiskProfile\\ConfirmAllDocsOneCode/**)",
       "Read(/C:\\Users\\admin\\Desktop\\WORK\\Ranks\\Ranks.autopilot\\src\\pages\\DocumentsPage/**)",
       "Read(/C:\\Users\\admin\\Desktop\\WORK\\Ranks\\Ranks.autopilot\\src\\features\\Documents\\BulkSignModal/**)",
-      "Read(/C:\\Users\\admin\\Desktop\\WORK\\Ranks\\Ranks.autopilot\\src\\pages\\DocumentsPage/**)"
+      "Read(/C:\\Users\\admin\\Desktop\\WORK\\Ranks\\Ranks.autopilot\\src\\pages\\DocumentsPage/**)",
+      "Read(/C:\\Users\\admin\\Desktop\\WORK\\Ranks\\Ranks.autopilot\\src\\features\\RiskProfile\\IdentificationForm\\ui/**)",
+      "Read(/C:\\Users\\admin\\Desktop\\WORK\\Ranks\\Ranks.autopilot\\src\\features\\RiskProfile\\LegalDataForm/**)",
+      "Read(/C:\\Users\\admin\\Desktop\\WORK\\Ranks\\Ranks.autopilot\\src\\features\\RiskProfile\\RiskProfileFirstForm/**)"
     ],
     "deny": [],
     "ask": []

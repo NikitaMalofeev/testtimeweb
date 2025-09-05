@@ -29,6 +29,7 @@ import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/D
 import PrivacyPdf from "shared/assets/documents/PersonalPolicy.pdf";
 import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { useScrollShadow } from "shared/hooks/useScrollShadow";
+import { useCapitalizeName } from "shared/hooks/useCapitalizeName";
 import BooleanTabs from "shared/ui/BooleanTabs/BooleanTabs";
 import { DocumentsPreviewPdfModal } from "features/Documents/DocumentsPreviewPdfModal/DocumentsPreviewPdfModal";
 import { resetBrokerIds, setBrokerIds } from "entities/Documents/slice/documentsSlice";
@@ -49,6 +50,9 @@ const IdentificationProfileForm: React.FC = () => {
     /* ───────────── скролл-тень формы ───────────── */
     const formContentRef = useRef<HTMLFormElement>(null);
     const { isScrolled, isBottom } = useScrollShadow(formContentRef, true);
+
+    /* ───────────── хук для капитализации ФИО ───────────── */
+    const { handleNameChange: handleCapitalizedNameChange } = useCapitalizeName();
 
     const { loading } = useSelector((s: RootState) => s.riskProfile);
     const modalState = useSelector((s: RootState) => s.modal);
@@ -138,13 +142,12 @@ const IdentificationProfileForm: React.FC = () => {
         recaptchaRef.current?.reset();
     };
 
-    /* ───────────── ввод ФИО только кириллицей ───────────── */
-    const handleNameChange =
-        (field: string) =>
-            (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-                const sanitized = e.target.value.replace(/[^А-Яа-яЁё\s-]/g, "");
-                formik.setFieldValue(field, sanitized);
-            };
+    /* ───────────── ввод ФИО только кириллицей с капитализацией ───────────── */
+    const handleNameChange = (field: string) =>
+        handleCapitalizedNameChange(
+            (value: string) => formik.setFieldValue(field, value),
+            /[^А-Яа-яЁё\s-]/g
+        );
 
     /* ───────────── открыть политику конфиденциальности ───────────── */
     const handleOpenPrivacy = (e: React.MouseEvent) => {

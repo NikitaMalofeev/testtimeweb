@@ -22,6 +22,7 @@ import { Button, ButtonTheme } from "shared/ui/Button/Button";
 import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
 import { useDevice } from "shared/hooks/useDevice";
 import { useScrollShadow } from "shared/hooks/useScrollShadow";
+import { useCapitalizeName } from "shared/hooks/useCapitalizeName";
 
 /* Модалки */
 import { closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
@@ -51,6 +52,9 @@ export const LegalDataForm: React.FC = () => {
     const formRef = useRef<HTMLFormElement>(null);
     const { isScrolled, isBottom } = useScrollShadow(formRef, true);
     const device = useDevice();
+
+    /* ───────────── хук для капитализации ФИО ───────────── */
+    const { handleNameChange: handleCapitalizedNameChange } = useCapitalizeName();
 
     /* env */
     const gcaptchaSiteKey = import.meta.env.VITE_RANKS_GRCAPTCHA_SITE_KEY;
@@ -288,10 +292,10 @@ export const LegalDataForm: React.FC = () => {
 
     /* sanitizers / onChange */
     const handleNameChange = (field: keyof typeof formik.values) =>
-        (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-            const sanitized = e.target.value.replace(/[^А-Яа-яЁё\s-]/g, "");
-            formik.setFieldValue(field, sanitized);
-        };
+        handleCapitalizedNameChange(
+            (value: string) => formik.setFieldValue(field, value),
+            /[^А-Яа-яЁё\s-]/g
+        );
 
     const handleTextChange = (field: keyof typeof formik.values) =>
         (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

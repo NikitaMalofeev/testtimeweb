@@ -29,6 +29,7 @@ import { useNavigate } from "react-router-dom";
 import CloseIcon from 'shared/assets/svg/close.svg'
 import { Icon } from "shared/ui/Icon/Icon";
 import { Tooltip } from "shared/ui/Tooltip/Tooltip";
+import { useCapitalizeName } from "shared/hooks/useCapitalizeName";
 
 interface Question {
     name: string;
@@ -46,6 +47,9 @@ export const RiskProfileFirstForm: React.FC = () => {
 
 
     const [numberPlaceholder, setNumberPlaceholder] = useState('Введите номер телефона')
+
+    /* ───────────── хук для капитализации ФИО ───────────── */
+    const { handleNameChange: handleCapitalizedNameChange } = useCapitalizeName();
 
     // ============ REDUX STATE ============
     const {
@@ -332,18 +336,13 @@ export const RiskProfileFirstForm: React.FC = () => {
                         type="text"
                         minLength={2}
                         value={formik.values.trusted_person_fio || ""}
-                        onChange={(e) => {
-                            let value = e.target.value;
-                            value = value.replace(/[^A-Za-zА-Яа-яЁё\s-]/g, ""); // Оставляем только буквы, пробелы и дефисы
-                            const newEvent = {
-                                ...e,
-                                target: {
-                                    ...e.target,
-                                    value,
-                                },
-                            } as React.ChangeEvent<HTMLInputElement>;
-                            handleChangeAndDispatch("trusted_person_fio")(newEvent);
-                        }}
+                        onChange={handleCapitalizedNameChange(
+                            (value: string) => {
+                                formik.setFieldValue("trusted_person_fio", value);
+                                dispatch(updateFieldValue({ name: "trusted_person_fio", value }));
+                            },
+                            /[^A-Za-zА-Яа-яЁё\s-]/g
+                        )}
                         onBlur={formik.handleBlur}
                         needValue={formik.values?.trusted_person_phone?.length > 0}
                         error={formik.touched.trusted_person_fio && formik.errors.trusted_person_fio}

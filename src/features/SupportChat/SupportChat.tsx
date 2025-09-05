@@ -15,6 +15,8 @@ import {
     openWebSocketConnection,
     postMessage,
     setUnreadAnswersCount,
+    addMessage,
+    closeWebSocketConnection,
 } from "entities/SupportChat/slice/supportChatSlice";
 import { Loader } from "shared/ui/Loader/Loader";
 import { closeAllModals } from "entities/ui/Modal/slice/modalSlice";
@@ -67,7 +69,7 @@ export const SupportChat = () => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
 
-    const { websocketId, messages, loading, unreadAnswersCount } = useSelector(
+    const { websocketId, messages, loading, unreadAnswersCount, isWsConnected } = useSelector(
         (state: RootState) => state.supportChat
     );
     const token = useSelector((state: RootState) => state.user.token);
@@ -80,8 +82,23 @@ export const SupportChat = () => {
 
     // Получение ID веб-сокета и всех сообщений
     useEffect(() => {
-        dispatch(getAllMessagesThunk());
-    }, [token]);
+        if (token) {
+            dispatch(getAllMessagesThunk());
+            // Получаем websocket ID и сразу открываем соединение
+            dispatch(fetchWebsocketId()).then((result) => {
+                if (result.payload) {
+                    dispatch(openWebSocketConnection(result.payload));
+                }
+            });
+        }
+    }, [token, dispatch]);
+
+    // Переоткрываем WebSocket если он закрылся
+    useEffect(() => {
+        if (websocketId && !isWsConnected) {
+            dispatch(openWebSocketConnection(websocketId));
+        }
+    }, [websocketId, isWsConnected, dispatch]);
 
     // Закрываем любые модалки при открытии чата
     useEffect(() => {
@@ -123,21 +140,49 @@ export const SupportChat = () => {
         setMessageText(e.target.value);
     };
 
-    // Отправка сообщения
-    const handleSendMessage = () => {
-        if (!messageText.trim()) return;
-        dispatch(postMessage({ text: messageText }));
-        setMessageText("");
+    // Обработчик нажатия Enter для отправки сообщения
+    const handleKeyPress = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSendMessage();
+        }
     };
 
-    // Отключаем прокрутку страницы при открытом чате
+    // Отправка сообщения
+    const handleSendMessage = async () => {
+        if (!messageText.trim()) return;
+        
+        const messageToSend = messageText.trim();
+        const newMessage: ChatMessage = {
+            text: messageToSend,
+            created: new Date().toISOString(),
+            is_answer: false,
+            user_id: 'current_user', // или получить из состояния пользователя
+        };
+
+        // Сразу добавляем сообщение в состояние для мгновенного отображения
+        dispatch(addMessage(newMessage));
+        setMessageText("");
+        
+        // Отправляем на сервер
+        try {
+            await dispatch(postMessage({ text: messageToSend }));
+        } catch (error) {
+            console.error('Ошибка отправки сообщения:', error);
+            // Можно добавить логику удаления сообщения из состояния в случае ошибки
+        }
+    };
+
+    // Отключаем прокрутку страницы при открытом чате и очищаем WebSocket
     useEffect(() => {
         const originalOverflow = document.body.style.overflow;
         document.body.style.overflow = "hidden";
         return () => {
             document.body.style.overflow = originalOverflow;
+            // Закрываем WebSocket при размонтировании компонента
+            dispatch(closeWebSocketConnection());
         };
-    }, []);
+    }, [dispatch]);
 
 
     // --- ВАЖНО: по дисфокусу отправляем в Redux флаг, что надо проскроллить всё вверх ---
@@ -215,6 +260,7 @@ export const SupportChat = () => {
                     value={messageText}
                     onChange={handleChange}
                     onBlur={handleBlur}
+                    onKeyPress={handleKeyPress}
                     withoutCloudyLabel
                     error={false}
                 />

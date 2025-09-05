@@ -55,6 +55,11 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
     const [searchQuery, setSearchQuery] = useState<string>('');
     const { handlePhoneChange, getPhoneValidationRegex } = usePhoneFormat();
 
+    // Простая маска для всех стран
+    const getPhonePlaceholder = (countryCode: string) => {
+        return `${countryCode} ________________`;
+    };
+
     // Загружаем коды стран при монтировании компонента
     useEffect(() => {
         console.log("useEffect trigger - countryCodes:", countryCodes);
@@ -71,18 +76,15 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
         };
     }, [dispatch]);
 
+
     // Обработчик изменения кода страны
     const handleCountryCodeChange = (code: string) => {
         setSelectedCountryCode(code);
         setIsDropdownOpen(false);
         setSearchQuery(''); // Очищаем поиск при выборе страны
-
-        // Переформатируем текущий номер с новым кодом страны
-        if (value) {
-            const digitsOnly = value.replace(/\D/g, "");
-            const newFormattedValue = code + digitsOnly.slice(digitsOnly.indexOf(selectedCountryCode.slice(1)) === 0 ? selectedCountryCode.slice(1).length : 0);
-            onChange(newFormattedValue);
-        }
+        
+        // Просто устанавливаем новый код страны
+        onChange(code);
     };
 
     // Обработчик переключения выпадающего списка
@@ -93,8 +95,15 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
         setIsDropdownOpen(!isDropdownOpen);
     };
 
-    // Обработчик изменения номера телефона
-    const handlePhoneInputChange = handlePhoneChange(onChange, selectedCountryCode);
+    // Простой обработчик изменения номера телефона
+    const handlePhoneInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const inputValue = e.target.value;
+        
+        // Разрешаем только цифры, плюс и пробелы
+        const cleanValue = inputValue.replace(/[^\d+ ]/g, "");
+        
+        onChange(cleanValue);
+    };
 
     // Фильтрация стран по поисковому запросу
     const filteredCountries = Array.isArray(countryCodes)
@@ -185,7 +194,7 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
                         value={value}
                         onChange={handlePhoneInputChange}
 
-                        placeholder={placeholder}
+                        placeholder={getPhonePlaceholder(selectedCountryCode)}
                         onFocus={onFocus}
                         withoutCloudyLabel={withoutCloudyLabel}
                         needValue={needValue}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import ReCAPTCHA from "react-google-recaptcha";
@@ -59,6 +59,16 @@ const IdentificationProfileForm: React.FC = () => {
     /* ───────────── хук для форматирования телефона ───────────── */
     const { handlePhoneChange, getPhoneValidationRegex } = usePhoneFormat();
 
+    /* ───────────── простая валидация телефона ───────────── */
+    const validatePhoneNumber = (value: string) => {
+        if (!value) return false;
+        // Простая проверка: начинается с + и содержит не менее 10 цифр
+        const phoneRegex = /^\+\d{10,15}$/;
+        const isValid = phoneRegex.test(value);
+        console.log('Phone validation:', { value, isValid });
+        return isValid;
+    };
+
     const { loading } = useSelector((s: RootState) => s.riskProfile);
     const modalState = useSelector((s: RootState) => s.modal);
     const systemError = useSelector((s: RootState) => s.error.error);
@@ -68,6 +78,35 @@ const IdentificationProfileForm: React.FC = () => {
 
     const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@([A-Za-z0-9-]+\.)+[A-Za-z]{2,}$/;
     const NAME_REGEX = /^[А-Яа-яЁё\s-]+$/;
+
+    /* ───────────── схема валидации с доступом к validatePhoneNumber ───────────── */
+    const validationSchema = useMemo(() => Yup.object({
+        lastName: Yup.string()
+            .matches(NAME_REGEX, "Допустимы только буквы, пробел и дефис")
+            .min(2, "Минимум 2 символа")
+            .required("Фамилия обязательна"),
+        firstName: Yup.string()
+            .matches(NAME_REGEX, "Допустимы только буквы, пробел и дефис")
+            .min(2, "Минимум 2 символа")
+            .required("Имя обязательно"),
+        patronymic: Yup.string()
+            .matches(NAME_REGEX, "Допустимы только буквы, пробел и дефис")
+            .min(2, "Минимум 2 символа")
+            .nullable(),
+        email: Yup.string()
+            .required("E-mail обязательно")
+            .matches(EMAIL_REGEX, "Некорректный email"),
+        phone: Yup.string()
+            .test('phone-format', 'Неверный формат номера телефона', validatePhoneNumber)
+            .required("Номер телефона обязателен"),
+        password: Yup.string()
+            .min(8, "Пароль минимум 8 символов")
+            .required("Пароль обязателен"),
+        password2: Yup.string()
+            .oneOf([Yup.ref("password")], "Пароли не совпадают")
+            .required("Подтверждение обязательно"),
+        g_recaptcha: Yup.string().required("Подтвердите, что вы не робот"),
+    }), [validatePhoneNumber]);
 
     const formik = useFormik({
         initialValues: {
@@ -83,39 +122,7 @@ const IdentificationProfileForm: React.FC = () => {
             is_individual_entrepreneur: false,
             type_sms_message: "SMS",
         },
-        validationSchema: Yup.object({
-            lastName: Yup.string()
-                .matches(NAME_REGEX, "Допустимы только буквы, пробел и дефис")
-                .min(2, "Минимум 2 символа")
-                .required("Фамилия обязательна"),
-            firstName: Yup.string()
-                .matches(NAME_REGEX, "Допустимы только буквы, пробел и дефис")
-                .min(2, "Минимум 2 символа")
-                .required("Имя обязательно"),
-            patronymic: Yup.string()
-                .matches(NAME_REGEX, "Допустимы только буквы, пробел и дефис")
-                .min(2, "Минимум 2 символа")
-                .nullable(),
-            email: Yup.string()
-                .required("E-mail обязательно")
-                .matches(EMAIL_REGEX, "Некорректный email"),
-            phone: Yup.string()
-                .test('phone-format', 'Неверный формат номера телефона', function(value) {
-                    if (!value) return false;
-                    // Проверяем с помощью динамического regex в зависимости от кода страны
-                    const countryCode = value.match(/^\+\d{1,4}/)?.[0] || '+7';
-                    const regex = getPhoneValidationRegex(countryCode);
-                    return regex.test(value);
-                })
-                .required("Номер телефона обязателен"),
-            password: Yup.string()
-                .min(8, "Пароль минимум 8 символов")
-                .required("Пароль обязателен"),
-            password2: Yup.string()
-                .oneOf([Yup.ref("password")], "Пароли не совпадают")
-                .required("Подтверждение обязательно"),
-            g_recaptcha: Yup.string().required("Подтвердите, что вы не робот"),
-        }),
+        validationSchema: validationSchema,
         validateOnMount: true,
         onSubmit: () => { },
     });
@@ -123,6 +130,13 @@ const IdentificationProfileForm: React.FC = () => {
     /* ───────────── разблокировка кнопки ───────────── */
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
     useEffect(() => {
+        console.log('Button disabled check:', {
+            isValid: formik.isValid,
+            dirty: formik.dirty,
+            captchaVerified,
+            agreement: formik.values.is_agreement,
+            errors: formik.errors
+        });
         setIsButtonDisabled(
             !(
                 formik.isValid &&

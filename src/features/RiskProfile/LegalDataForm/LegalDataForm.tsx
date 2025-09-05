@@ -129,13 +129,7 @@ export const LegalDataForm: React.FC = () => {
             .required("Корреспондентский счёт обязателен"),
 
         phone: Yup.string()
-            .test('phone-format', 'Неверный формат телефона', function(value) {
-                if (!value) return false;
-                // Проверяем с помощью динамического regex в зависимости от кода страны
-                const countryCode = value.match(/^\+\d{1,4}/)?.[0] || '+7';
-                const regex = getPhoneValidationRegex(countryCode);
-                return regex.test(value);
-            })
+            .matches(/^\+\d{10,15}$/, "Неверный формат телефона")
             .required("Рабочий телефон обязателен"),
 
         email: Yup.string()

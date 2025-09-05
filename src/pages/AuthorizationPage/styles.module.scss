@@ -60,6 +60,7 @@
     }
 
     &__form {
+        overflow-y: hidden;   
         position: relative;
         padding: 0 27px;
         z-index: 5;
@@ -166,6 +167,7 @@ margin-top: 5px;
         &__form {
             height: 100%;
             padding-bottom: 32px;
+
         }
 
 

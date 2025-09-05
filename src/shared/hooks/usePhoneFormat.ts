@@ -33,37 +33,26 @@ const PHONE_LENGTHS: Record<string, number> = {
  */
 export const usePhoneFormat = () => {
     const formatPhone = useCallback((value: string, countryCode: string = '+7') => {
-        // Убираем все не цифры
-        const digitsOnly = value.replace(/\D/g, "");
-        
-        // Если пустая строка, возвращаем пустую строку
-        if (digitsOnly.length === 0) return "";
-        
-        // Получаем ожидаемую длину номера без кода страны
-        const expectedLength = PHONE_LENGTHS[countryCode] || 10;
-        
-        // Если это россия и начинается с 8, заменяем на 7
-        if (countryCode === '+7' && digitsOnly.startsWith("8")) {
-            const processedDigits = "7" + digitsOnly.slice(1);
-            const limitedDigits = processedDigits.slice(0, expectedLength + 1); // +1 для цифры 7
-            return "+" + limitedDigits;
+        // Если значение уже начинается с кода страны, возвращаем как есть
+        if (value.startsWith(countryCode)) {
+            return value;
         }
         
-        // Убираем код страны из начала если он есть
-        const codeWithoutPlus = countryCode.slice(1);
-        let phoneDigits = digitsOnly;
+        // Убираем все символы кроме цифр и плюса
+        let cleanValue = value.replace(/[^\d+]/g, "");
         
-        if (phoneDigits.startsWith(codeWithoutPlus)) {
-            phoneDigits = phoneDigits.slice(codeWithoutPlus.length);
+        // Если начинается с плюса, оставляем как есть
+        if (cleanValue.startsWith('+')) {
+            return cleanValue;
         }
         
-        // Ограничиваем до ожидаемой длины
-        if (phoneDigits.length > expectedLength) {
-            phoneDigits = phoneDigits.slice(0, expectedLength);
+        // Если пустое значение, возвращаем код страны
+        if (cleanValue.length === 0) {
+            return countryCode;
         }
         
-        // Возвращаем с кодом страны
-        return countryCode + phoneDigits;
+        // Добавляем код страны к цифрам
+        return countryCode + cleanValue;
     }, []);
 
     const handlePhoneChange = useCallback(

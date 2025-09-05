@@ -211,12 +211,7 @@ export const RiskProfileFirstForm: React.FC = () => {
         validationSchema: Yup.object({
             // Условная валидация для phone: правило применяется только если trusted_person_fio заполнено
             phone: Yup.string()
-                .test('phone-format', 'Неверный формат', function(value) {
-                    if (!value) return true; // позволяем пустые значения
-                    const countryCode = value.match(/^\+\d{1,4}/)?.[0] || '+7';
-                    const regex = getPhoneValidationRegex(countryCode);
-                    return regex.test(value);
-                })
+                .matches(/^\+\d{10,15}$/, "Неверный формат")
                 .when(
                     ["trusted_person_fio"],
                     ([trustedPersonFio], schema) =>
@@ -226,12 +221,7 @@ export const RiskProfileFirstForm: React.FC = () => {
                 ),
             trusted_person_fio: Yup.string().min(3, "Минимум 3 символа"),
             trusted_person_phone: Yup.string()
-                .test('phone-format', 'Неверный формат', function(value) {
-                    if (!value) return true; // позволяем пустые значения
-                    const countryCode = value.match(/^\+\d{1,4}/)?.[0] || '+7';
-                    const regex = getPhoneValidationRegex(countryCode);
-                    return regex.test(value);
-                })
+                .matches(/^\+\d{10,15}$/, "Неверный формат")
                 .when(
                     ["trusted_person_fio"],
                     ([trustedPersonFio], schema) =>

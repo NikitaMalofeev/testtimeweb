@@ -169,9 +169,19 @@ export const supportChatSlice = createSlice({
         },
         addMessage: (state, action: PayloadAction<ChatMessage>) => {
             const msg = action.payload;
-            state.messages.unshift(msg);
-            if (msg.is_answer) {
-                state.unreadAnswersCount += 1;
+            
+            // Проверяем, есть ли уже такое сообщение (предотвращаем дублирование)
+            const exists = state.messages.some(existingMsg => 
+                existingMsg.text === msg.text && 
+                existingMsg.created === msg.created &&
+                existingMsg.is_answer === msg.is_answer
+            );
+            
+            if (!exists) {
+                state.messages.unshift(msg);
+                if (msg.is_answer) {
+                    state.unreadAnswersCount += 1;
+                }
             }
         },
         setUnreadAnswersCount: (state, action: PayloadAction<number>) => {

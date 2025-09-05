@@ -7,6 +7,7 @@ import styles from "./styles.module.scss";
 import { createRiskProfile } from "entities/RiskProfile/slice/riskProfileSlice";
 import { IdentificationProfileData } from "entities/RiskProfile/model/types";
 import { Input } from "shared/ui/Input/Input";
+import { PhoneInput } from "shared/ui/PhoneInput/PhoneInput";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { Checkbox } from "shared/ui/Checkbox/Checkbox";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
@@ -56,7 +57,7 @@ const IdentificationProfileForm: React.FC = () => {
     const { handleNameChange: handleCapitalizedNameChange } = useCapitalizeName();
 
     /* ───────────── хук для форматирования телефона ───────────── */
-    const { handlePhoneChange } = usePhoneFormat();
+    const { handlePhoneChange, getPhoneValidationRegex } = usePhoneFormat();
 
     const { loading } = useSelector((s: RootState) => s.riskProfile);
     const modalState = useSelector((s: RootState) => s.modal);
@@ -99,7 +100,13 @@ const IdentificationProfileForm: React.FC = () => {
                 .required("E-mail обязательно")
                 .matches(EMAIL_REGEX, "Некорректный email"),
             phone: Yup.string()
-                .matches(/^\+7\d{10}$/, "Неверный формат номера телефона")
+                .test('phone-format', 'Неверный формат номера телефона', function(value) {
+                    if (!value) return false;
+                    // Проверяем с помощью динамического regex в зависимости от кода страны
+                    const countryCode = value.match(/^\+\d{1,4}/)?.[0] || '+7';
+                    const regex = getPhoneValidationRegex(countryCode);
+                    return regex.test(value);
+                })
                 .required("Номер телефона обязателен"),
             password: Yup.string()
                 .min(8, "Пароль минимум 8 символов")
@@ -287,16 +294,15 @@ const IdentificationProfileForm: React.FC = () => {
                         type="text"
                         error={formik.touched.patronymic && formik.errors.patronymic}
                     />
-                    <Input
+                    <PhoneInput
                         name="phone"
                         value={formik.values.phone}
-                        onChange={handlePhoneChange((value) => formik.setFieldValue("phone", value))}
+                        onChange={(value) => formik.setFieldValue("phone", value)}
                         onBlur={formik.handleBlur}
                         placeholder={numberPlaceholder}
                         onFocus={() => setNumberPlaceholder('+7 (___) ___-____')}
                         withoutCloudyLabel
                         needValue
-                        type="text"
                         error={formik.touched.phone && formik.errors.phone}
                     />
                     <Input

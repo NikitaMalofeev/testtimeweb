@@ -131,3 +131,9 @@ export interface ResetPasswordConfirm {
     password: string; // Новый пароль (обязательный)
     password2: string; // Подтверждение пароля (обязательный)
 }
+
+export interface CountryCode {
+    code: string; // код страны (например, "+7")
+    code_iso: string; // ISO код страны (например, "RU")
+    flag: string; // URL или path к флагу
+}

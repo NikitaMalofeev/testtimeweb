@@ -16,6 +16,7 @@ import { setError } from "entities/Error/slice/errorSlice";
 
 /* UI-kit */
 import { Input } from "shared/ui/Input/Input";
+import { PhoneInput } from "shared/ui/PhoneInput/PhoneInput";
 import { Checkbox } from "shared/ui/Checkbox/Checkbox";
 import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
@@ -58,7 +59,7 @@ export const LegalDataForm: React.FC = () => {
     const { handleNameChange: handleCapitalizedNameChange } = useCapitalizeName();
 
     /* ───────────── хук для форматирования телефона ───────────── */
-    const { handlePhoneChange } = usePhoneFormat();
+    const { handlePhoneChange, getPhoneValidationRegex } = usePhoneFormat();
 
     /* env */
     const gcaptchaSiteKey = import.meta.env.VITE_RANKS_GRCAPTCHA_SITE_KEY;
@@ -128,7 +129,13 @@ export const LegalDataForm: React.FC = () => {
             .required("Корреспондентский счёт обязателен"),
 
         phone: Yup.string()
-            .matches(/^\+7\d{10}$/, "Неверный формат телефона (+7XXXXXXXXXX)")
+            .test('phone-format', 'Неверный формат телефона', function(value) {
+                if (!value) return false;
+                // Проверяем с помощью динамического regex в зависимости от кода страны
+                const countryCode = value.match(/^\+\d{1,4}/)?.[0] || '+7';
+                const regex = getPhoneValidationRegex(countryCode);
+                return regex.test(value);
+            })
             .required("Рабочий телефон обязателен"),
 
         email: Yup.string()
@@ -494,12 +501,11 @@ export const LegalDataForm: React.FC = () => {
                 }
             />
 
-            <Input
+            <PhoneInput
                 placeholder="Рабочий телефон"
                 name="phone"
-                inputMode="tel"
                 value={formik.values.phone || ''}
-                onChange={handlePhoneChange((value) => formik.setFieldValue("phone", value))}
+                onChange={(value) => formik.setFieldValue("phone", value)}
                 onBlur={formik.handleBlur}
                 needValue
                 error={formik.touched.phone && formik.errors.phone}

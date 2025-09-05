@@ -552,7 +552,7 @@ export const RiskProfileSecondForm: React.FC = () => {
                             disabled={!(formik.isValid && formik.dirty)}
                             onClick={handlePostRiskProfileDetailedInfo}
                         >
-                            Продолжить
+                            Подтвердить риск профиль
                         </Button>
                     </div>
                 </form>

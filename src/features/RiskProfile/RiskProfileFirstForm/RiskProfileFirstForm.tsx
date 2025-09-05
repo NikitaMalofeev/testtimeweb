@@ -19,6 +19,7 @@ import { closeModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalType } from "entities/ui/Modal/model/modalTypes";
 import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { Input } from "shared/ui/Input/Input";
+import { PhoneInput } from "shared/ui/PhoneInput/PhoneInput";
 import { Loader, LoaderTheme } from "shared/ui/Loader/Loader";
 import { Select } from "shared/ui/Select/Select";
 import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
@@ -53,7 +54,7 @@ export const RiskProfileFirstForm: React.FC = () => {
     const { handleNameChange: handleCapitalizedNameChange } = useCapitalizeName();
 
     /* ───────────── хук для форматирования телефона ───────────── */
-    const { handlePhoneChange } = usePhoneFormat();
+    const { handlePhoneChange, getPhoneValidationRegex } = usePhoneFormat();
 
     // ============ REDUX STATE ============
     const {
@@ -210,7 +211,12 @@ export const RiskProfileFirstForm: React.FC = () => {
         validationSchema: Yup.object({
             // Условная валидация для phone: правило применяется только если trusted_person_fio заполнено
             phone: Yup.string()
-                .matches(/^\+7\d{10}$/, "Неверный формат")
+                .test('phone-format', 'Неверный формат', function(value) {
+                    if (!value) return true; // позволяем пустые значения
+                    const countryCode = value.match(/^\+\d{1,4}/)?.[0] || '+7';
+                    const regex = getPhoneValidationRegex(countryCode);
+                    return regex.test(value);
+                })
                 .when(
                     ["trusted_person_fio"],
                     ([trustedPersonFio], schema) =>
@@ -220,7 +226,12 @@ export const RiskProfileFirstForm: React.FC = () => {
                 ),
             trusted_person_fio: Yup.string().min(3, "Минимум 3 символа"),
             trusted_person_phone: Yup.string()
-                .matches(/^\+7\d{10}$/, "Неверный формат")
+                .test('phone-format', 'Неверный формат', function(value) {
+                    if (!value) return true; // позволяем пустые значения
+                    const countryCode = value.match(/^\+\d{1,4}/)?.[0] || '+7';
+                    const regex = getPhoneValidationRegex(countryCode);
+                    return regex.test(value);
+                })
                 .when(
                     ["trusted_person_fio"],
                     ([trustedPersonFio], schema) =>
@@ -352,17 +363,15 @@ export const RiskProfileFirstForm: React.FC = () => {
                         error={formik.touched.trusted_person_fio && formik.errors.trusted_person_fio}
                     />
 
-                    <Input
+                    <PhoneInput
                         placeholder={numberPlaceholder}
                         name="trusted_person_phone"
-                        inputMode="numeric"
-                        type="text"
                         value={formik.values.trusted_person_phone || ""}
                         withoutCloudyLabel
-                        onChange={handlePhoneChange((value) => {
+                        onChange={(value) => {
                             formik.setFieldValue("trusted_person_phone", value);
                             dispatch(updateFieldValue({ name: "trusted_person_phone", value }));
-                        })}
+                        }}
                         onFocus={() => setNumberPlaceholder('+7 (___) ___-____')}
                         onBlur={formik.handleBlur}
                         needValue={formik.values?.trusted_person_fio?.length > 0}

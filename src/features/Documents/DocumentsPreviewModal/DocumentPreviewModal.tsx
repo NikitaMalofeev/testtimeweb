@@ -184,7 +184,7 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                     ) : !isSignedDoc && docId && (allDocumentsHtml && allDocumentsHtml.hasOwnProperty(docId)) ? (
                         <div
                             className={styles.htmlContainer}
-                            style={{ padding: '10px' }}
+                            style={docId === 'type_doc_RP_questionnairy' ? { minWidth: 'min-content', padding: '10px' } : { padding: '10px' }}
                             dangerouslySetInnerHTML={{ __html: allDocumentsHtml[docId] }}
                         />
                     ) : (

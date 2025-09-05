@@ -38,6 +38,7 @@ interface InputProps extends CommonHTMLProps {
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
     onBlur?: (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
     onFocus?: () => void;
+    onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
     placeholder?: string;
     disabled?: boolean;
     needValue?: boolean;
@@ -93,6 +94,7 @@ export const Input: React.FC<InputProps> = ({
     onChange,
     onBlur,
     onFocus,
+    onKeyDown,
     error,
     placeholder = "",
     disabled = false,
@@ -280,6 +282,7 @@ export const Input: React.FC<InputProps> = ({
                                                 disabled={disabled}
                                                 onFocus={handleFocus}
                                                 onBlur={handleBlur}
+                                                onKeyDown={onKeyDown}
                                                 className={styles.input}
                                                 onChange={(e) => {
                                                     const raw = parseToNumber(e.target.value);
@@ -375,6 +378,7 @@ export const Input: React.FC<InputProps> = ({
                                                 disabled={disabled}
                                                 onFocus={handleFocus}
                                                 onBlur={handleBlur}
+                                                onKeyDown={onKeyDown}
                                                 className={styles.input}
                                                 readOnly
                                             />
@@ -481,6 +485,7 @@ export const Input: React.FC<InputProps> = ({
                                     onChange={onChange}
                                     onFocus={handleFocus}
                                     onBlur={handleBlur}
+                                    onKeyDown={onKeyDown}
                                     disabled={disabled}
                                     className={`${styles.textarea} ${needValue && !value.length ? styles.error : ""
                                         }`}
@@ -501,6 +506,7 @@ export const Input: React.FC<InputProps> = ({
                                         onChange={onChange}
                                         onFocus={handleFocus}
                                         onBlur={handleBlur}
+                                        onKeyDown={onKeyDown}
                                         disabled={disabled}
                                         className={`${styles.input} ${needValue && !value.length ? styles.error : ""
                                             }`}
@@ -548,6 +554,7 @@ export const Input: React.FC<InputProps> = ({
                                         disabled={disabled}
                                         onFocus={handleFocus}
                                         onBlur={handleBlur}
+                                        onKeyDown={onKeyDown}
                                         className={`${styles.input} ${needValue && !value.length ? styles.error : ""
                                             }`}
                                         onChange={(e) => {
@@ -565,7 +572,10 @@ export const Input: React.FC<InputProps> = ({
                                         }}
                                         // ↓↓↓ блокируем колесо и стрелки ↓↓↓
                                         onWheelCapture={blockWheel}          // <–– важнее, чем onWheel
-                                        onKeyDown={blockNumberSpin}
+                                        onKeyDown={(e) => {
+                                            blockNumberSpin(e);
+                                            onKeyDown?.(e);
+                                        }}
                                     />
                                     {error && (
                                         <div className={styles.input__error}>
@@ -595,6 +605,7 @@ export const Input: React.FC<InputProps> = ({
                                         onChange={onChange}
                                         onFocus={handleFocus}
                                         onBlur={handleBlur}
+                                        onKeyDown={onKeyDown}
                                         disabled={disabled}
                                         className={`${styles.input} ${needValue && !value.length ? styles.error : ""
                                             }`}

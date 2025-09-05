@@ -141,7 +141,7 @@ export const SupportChat = () => {
     };
 
     // Обработчик нажатия Enter для отправки сообщения
-    const handleKeyPress = (e: React.KeyboardEvent) => {
+    const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             handleSendMessage();
@@ -260,7 +260,7 @@ export const SupportChat = () => {
                     value={messageText}
                     onChange={handleChange}
                     onBlur={handleBlur}
-                    onKeyPress={handleKeyPress}
+                    onKeyDown={handleKeyDown}
                     withoutCloudyLabel
                     error={false}
                 />

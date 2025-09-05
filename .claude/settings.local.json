@@ -38,7 +38,9 @@
       "Read(/C:\\Users\\admin\\Desktop\\WORK\\Ranks\\Ranks.autopilot\\src\\features\\RiskProfile\\RiskProfileFirstForm/**)",
       "Read(/C:\\Users\\admin\\Desktop\\WORK\\Ranks\\Ranks.autopilot\\src\\features\\RiskProfile\\IdentificationForm\\ui/**)",
       "Read(/C:\\Users\\admin\\Desktop\\WORK\\Ranks\\Ranks.autopilot\\src\\features\\RiskProfile\\LegalDataForm/**)",
-      "Read(/C:\\Users\\admin\\Desktop\\WORK\\Ranks\\Ranks.autopilot\\src\\features\\RiskProfile\\RiskProfileFirstForm/**)"
+      "Read(/C:\\Users\\admin\\Desktop\\WORK\\Ranks\\Ranks.autopilot\\src\\features\\RiskProfile\\RiskProfileFirstForm/**)",
+      "Read(/C:\\Users\\admin\\Desktop\\WORK\\Ranks\\Ranks.autopilot\\src\\features\\SupportChat/**)",
+      "Read(/C:\\Users\\admin\\Desktop\\WORK\\Ranks\\Ranks.autopilot\\src\\shared\\ui\\Input/**)"
     ],
     "deny": [],
     "ask": []

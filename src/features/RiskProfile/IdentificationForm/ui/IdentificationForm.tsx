@@ -68,6 +68,7 @@ const IdentificationProfileForm: React.FC = () => {
         console.log('Phone validation:', { value, isValid });
         return isValid;
     };
+    //деплой timeweb
 
     const { loading } = useSelector((s: RootState) => s.riskProfile);
     const modalState = useSelector((s: RootState) => s.modal);

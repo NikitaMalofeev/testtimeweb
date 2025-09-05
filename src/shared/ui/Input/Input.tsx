@@ -554,7 +554,6 @@ export const Input: React.FC<InputProps> = ({
                                         disabled={disabled}
                                         onFocus={handleFocus}
                                         onBlur={handleBlur}
-                                        onKeyDown={onKeyDown}
                                         className={`${styles.input} ${needValue && !value.length ? styles.error : ""
                                             }`}
                                         onChange={(e) => {

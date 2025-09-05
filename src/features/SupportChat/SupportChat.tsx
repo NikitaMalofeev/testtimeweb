@@ -157,7 +157,7 @@ export const SupportChat = () => {
             text: messageToSend,
             created: new Date().toISOString(),
             is_answer: false,
-            user_id: 'current_user', // или получить из состояния пользователя
+            user_id: 1, // или получить из состояния пользователя
         };
 
         // Сразу добавляем сообщение в состояние для мгновенного отображения

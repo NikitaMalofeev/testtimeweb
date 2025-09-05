@@ -60,7 +60,7 @@ const IdentificationProfileForm: React.FC = () => {
     const { handlePhoneChange, getPhoneValidationRegex } = usePhoneFormat();
 
     /* ───────────── простая валидация телефона ───────────── */
-    const validatePhoneNumber = (value: string) => {
+    const validatePhoneNumber = (value: string | undefined) => {
         if (!value) return false;
         // Простая проверка: начинается с + и содержит не менее 10 цифр
         const phoneRegex = /^\+\d{10,15}$/;

@@ -11,6 +11,7 @@ import {
     getUserDocumentsSignedThunk,
     confirmAllDocsRequestThunk,
     getUserDocumentsStateThunk,
+    setCurrentConfirmationMethod,
 } from "entities/Documents/slice/documentsSlice";
 import styles from "./styles.module.scss";
 import { useSelector } from "react-redux";
@@ -149,7 +150,10 @@ export const BulkSignModal: React.FC<Props> = ({ docs, onClose }) => {
                             { label: "Whatsapp", value: "WHATSAPP" },
                         ]}
                         value={channel}
-                        onChange={(_, v) => setChannel(v as any)}
+                        onChange={(_, v) => {
+                            setChannel(v as any)
+                            dispatch(setCurrentConfirmationMethod(v as any))
+                        }}
                     />
                 </div>
 

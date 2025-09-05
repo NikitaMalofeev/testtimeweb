@@ -21,8 +21,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 18.5px 23px;
-    max-width: 40vw;
+    padding: 18.5px 10px;
+    max-width: 80vw;
     width: 100%;
 }
 
@@ -31,7 +31,7 @@
     align-items: center;
     justify-content: center;
     padding: 18.5px 23px;
-    max-width: 40vw;
+    max-width: 20vw;
     width: 100%;
     font-weight: 500;
     color: #045FDD;
@@ -415,4 +415,10 @@
         right: 200px;
     }
     
+ }
+
+ .risk_profiles__container {
+    min-height: max-content;
+    padding-bottom: 16px;
+    height: 100%;
  }

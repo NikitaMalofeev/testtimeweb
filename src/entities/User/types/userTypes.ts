@@ -18,6 +18,7 @@ export interface UserPersonalAccount {
     is_confirmed_phone: boolean;
     gender: string | null | undefined;
     birth_date: Date | null;
+    birth_place: string | null;
     is_confirm_all_documents_one_code: boolean;
     is_individual_entrepreneur?: boolean;
     risk_profiling_summ: number | null;
@@ -60,6 +61,7 @@ export type AllUserInfo = {
     age_parameters: string;
     apartment: string;
     birth_date: string;
+    birth_place: string;
     citizenship: string;
     city: string;
     currency_investment: string;
@@ -128,4 +130,10 @@ export interface ResetPasswordConfirm {
     type?: string; // Способ подтверждения (необязательный, может быть только "phone" или "email")
     password: string; // Новый пароль (обязательный)
     password2: string; // Подтверждение пароля (обязательный)
+}
+
+export interface CountryCode {
+    code: string; // код страны (например, "+7")
+    code_iso: string; // ISO код страны (например, "RU")
+    flag: string; // URL или path к флагу
 }

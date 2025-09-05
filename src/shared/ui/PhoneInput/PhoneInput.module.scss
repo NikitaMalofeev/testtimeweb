@@ -1,0 +1,201 @@
+.phoneInput {
+    position: relative;
+    width: 100%;
+    max-height: 40px;
+    margin-bottom: 20px;
+}
+
+.phoneInput__container {
+    display: flex;
+    width: 100%;
+    gap: 8px;
+}
+
+.phoneInput__countrySelector {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.phoneInput__countrySelectorButton {
+    display: flex;
+    max-height: 40px;
+    align-items: center;
+    gap: 6px;
+    padding: 0px 8px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 80px;
+    height: 48px;
+
+    &:hover {
+        border-color: #3b82f6;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+.phoneInput__flag {
+    width: 20px;
+    height: 15px;
+    object-fit: cover;
+    border-radius: 2px;
+}
+
+.phoneInput__countryCode {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.phoneInput__arrow {
+    font-size: 10px;
+    color: #6b7280;
+    transition: transform 0.2s ease;
+}
+
+.phoneInput__dropdown {
+    position: absolute;
+    min-width: min-content;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    max-height: 200px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    margin-top: 4px;
+}
+
+.phoneInput__loading {
+    padding: 12px 16px;
+    text-align: center;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.phoneInput__searchContainer {
+    padding: 8px 12px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+}
+
+.phoneInput__searchInputWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.phoneInput__searchIcon {
+    position: absolute;
+    left: 12px;
+    z-index: 1;
+    color: #9ca3af;
+    pointer-events: none;
+}
+
+.phoneInput__search {
+    width: 100%;
+    padding: 8px 12px 8px 36px; /* отступ слева для иконки */
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s ease;
+
+    &:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 1px #3b82f6;
+    }
+
+    &::placeholder {
+        color: #9ca3af;
+    }
+}
+
+.phoneInput__dropdownItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    text-align: left;
+
+    &:hover {
+        background-color: #f3f4f6;
+    }
+
+    &_selected {
+        background-color: #dbeafe;
+        
+        .phoneInput__countryCode {
+            color: #3b82f6;
+            font-weight: 600;
+        }
+    }
+}
+
+.phoneInput__countryName {
+    font-size: 12px;
+    color: #6b7280;
+    margin-left: auto;
+}
+
+.phoneInput__inputContainer {
+    flex: 1;
+}
+
+// Адаптация под мобильные устройства
+@media (max-width: 768px) {
+    .phoneInput__dropdown {
+        max-height: 150px;
+    }
+    
+    .phoneInput__countrySelectorButton {
+        min-width: 70px;
+        padding: 12px 6px;
+    }
+    
+    .phoneInput__flag {
+        width: 18px;
+        height: 13px;
+    }
+}
+
+// Темная тема (если нужна)
+@media (prefers-color-scheme: dark) {
+    .phoneInput__countrySelectorButton {
+        background: #1f2937;
+        border-color: #374151;
+        color: white;
+    }
+    
+    .phoneInput__dropdown {
+        background: #1f2937;
+        border-color: #374151;
+    }
+    
+    .phoneInput__dropdownItem {
+        color: white;
+        
+        &:hover {
+            background-color: #374151;
+        }
+        
+        &_selected {
+            background-color: #1e40af;
+        }
+    }
+}

@@ -123,7 +123,7 @@ export const PasportScanForm: React.FC = () => {
                 onSuccess: () => {
                     // dispatch(addNotification({ color: 'blue', createdAt: new Date(), status: 'unread', id: "pasport", description: "Данные вашего паспорта загружены и проходят проверку, мы сообщим об окончании" }));
 
-
+                    
                     dispatch(getUserDocumentsStateThunk())
                     dispatch(
                         setIsRiksProfileComplete({

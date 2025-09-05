@@ -14,7 +14,7 @@ import {
     getUserDocumentsNotSignedThunk,
     getUserDocumentNotSignedThunk,
     getAllBrokersThunk,
-    decrementDocumentTimeout,
+    getUserDocumentsInfoThunk,
     // Удалён старый setNotConfirmedDocuments
 } from "entities/Documents/slice/documentsSlice";
 
@@ -73,7 +73,7 @@ const DocumentsPage: React.FC = () => {
     const brokerConfirmation = userDocuments.find(
         d => d.is_confirmed_type_doc_agreement_transfer_broker === true,
     );
-    const isBrokerSigned = !!brokerConfirmation;
+    const isBrokerSigned = !!brokerDoc;
 
     const isIp = !!user?.is_individual_entrepreneur;
 
@@ -95,22 +95,17 @@ const DocumentsPage: React.FC = () => {
     /** документы, недоступные для массовой подписи */
     const EXCLUDED_BULK = [
         "type_doc_agreement_investment_advisor_app_1",
-        "type_doc_agreement_investment_advisor_app_1", // ← можно оставить; лишним не будет
+        "type_doc_broker_api_token", // исключаем брокера из массового выбора
+        "type_doc_passport", // исключаем паспорт из массового выбора
     ].filter(id => !isVip || id !== "type_doc_agreement_investment_advisor_app_1");
 
-    /** клик по чек-боксу одного документа */
-    const toggleDoc = (id: string) =>
-        setSelectedDocs((prev) =>
-            prev.includes(id) ? prev.filter((d) => d !== id) : [...prev, id]
-        );
-
-    /** «выбрать все» / «снять все» */
-    const toggleAll = () => {
-        const selectable = bulkSelectableDocs.map(d => d.id);
-
-        const allSelected = selectable.every(id => selectedDocs.includes(id));
-        setSelectedDocs(allSelected ? [] : selectable);
+    /** обработчик подписания всех документов - автоматически выбираются все документы */
+    const handleSignAllDocs = () => {
+        const selectableDocIds = bulkSelectableDocs.map(d => d.id);
+        setSelectedDocs(selectableDocIds);
+        setBulkOpen(true);
     };
+
     //Логика с подписанием всех документов 
 
 
@@ -132,6 +127,7 @@ const DocumentsPage: React.FC = () => {
         dispatch(getUserDocumentsStateThunk());
         dispatch(getUserDocumentsNotSignedThunk());
     }, [currentConfirmableDocument, PasportScanForm, brokersCount, isIdentityScanExist]);
+    //
 
     const isAnyModalOpen = useSelector(selectIsAnyModalOpen);
 
@@ -219,12 +215,12 @@ const DocumentsPage: React.FC = () => {
         type_doc_passport: user?.is_individual_entrepreneur === false
             ? "Паспортные данные"
             : "Данные об ИП",
-        type_doc_EDS_agreement: "Соглашение об ЭДО",
+        type_doc_EDS_agreement: "Соглашение об ЭЦП",
         type_doc_RP_questionnairy: "Анкета Риск Профиля",
         type_doc_agreement_investment_advisor: "Договор ИС",
         type_doc_risk_declarations: "Декларация о рисках",
         type_doc_agreement_personal_data_policy: "Политика персональных данных",
-        type_doc_investment_profile_certificate: "Справка ИП",
+        type_doc_investment_profile_certificate: "Справка Инвестиционного профиля",
         type_doc_agreement_account_maintenance: "Доверенность на управление счётом",
         type_doc_broker_api_token: "Согласие на передачу API-ключа к брокерскому счёту",
         type_doc_agreement_investment_advisor_app_1: "Договор ИС: Приложение 1",
@@ -422,8 +418,23 @@ const DocumentsPage: React.FC = () => {
             ),
         [documents]
     );
-    const showBulkToolbar =
-        isBulkEnabled && bulkSelectableDocs.length > 0 && brokerIds.length > 0;
+
+    // Показать кнопку "Подписать все" только после того, как подписан брокерский документ
+    const showSignAllButton =
+        isBulkEnabled &&
+        bulkSelectableDocs.length > 0 &&
+        brokerIds.length > 0 &&
+        isBrokerSigned;
+
+    useEffect(() => {
+        console.log(isBulkEnabled)
+        console.log(bulkSelectableDocs.length)
+        console.log(brokerIds.length > 0)
+        console.log(isBrokerSigned)
+    }, [])
+
+    // Не показываем индивидуальные чекбоксы
+    const showBulkToolbar = false;
 
     useEffect(() => {
         setSelectedDocs(prev => {
@@ -483,14 +494,12 @@ const DocumentsPage: React.FC = () => {
         const isMaintenanceAgree = doc.id === "type_doc_agreement_account_maintenance";
 
         /* --- НОВОЕ: блокируем брокера, если нет one‑code и открыт не он --- */
-        const brokerDisabledByFlag =
-            isBroker && !isBulkEnabled && currentConfirmableDocument !== "type_doc_broker_api_token";
 
         /* ───────── isDisabled ───────── */
         const isDisabled = isAdvisorAgreement
             ? !(hasPassport && hasBroker)                         // «Приложение 1»
             : isBroker
-                ? !hasPassport || brokerDisabledByFlag                         // брокер: паспорта нет ИЛИ выключен one‑code
+                ? !hasPassport                                         // брокер: нужен паспорт
                 : isPassport
                     ? false                                                     // паспорт всегда активен
                     : doc.id !== firstNotConfirmed || !hasPassport;             // прочие
@@ -514,15 +523,12 @@ const DocumentsPage: React.FC = () => {
 
         /* 2) Брокерский токен */
         else if (isBroker) {
-            if (brokerDisabledByFlag && brokerIds.length === 0) {
-                // НОВОЕ правило — всегда серый и задизейблен
-                colorClass = styles.button__gray;
-                additionalMessages = 'Для подписания подключите брокерский счёт';
-            } else if (brokerIds.length === 0) {
+            if (brokerIds.length === 0) {
                 colorClass = styles.button__gray;
                 additionalMessages = 'Для подписания подключите брокерский счёт';
             } else {
-                colorClass = styles.button__red; // активный брокер
+                colorClass = styles.button__gray;
+                // активный брокер
             }
         }
 
@@ -566,12 +572,17 @@ const DocumentsPage: React.FC = () => {
         // console.log(docId);
         if (docId === "type_doc_passport") {
             setSelectedDocId(docId);
+
+            // всегда подтягиваем свежие данные перед превью
+            dispatch(getAllUserInfoThunk());
+            dispatch(getUserDocumentsInfoThunk());
+
             dispatch(
                 openModal({
                     type: ModalType.DOCUMENTS_PREVIEW,
-                    animation: ModalAnimation.LEFT,
                     size: ModalSize.FULL,
-                    docId: docId
+                    animation: ModalAnimation.LEFT,
+                    docId
                 })
             );
         } else if (docId === "type_doc_broker_api_token") {
@@ -684,17 +695,6 @@ const DocumentsPage: React.FC = () => {
     }
 
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            // Пройдём по каждому документу, если таймер активен, уменьшаем его на 1000 мс
-            documents.forEach((doc) => {
-                if (doc.status === "signed" && typeof doc.timeoutPending === "number" && doc.timeoutPending > 0) {
-                    dispatch(decrementDocumentTimeout({ docKey: doc.id, decrement: 1000 }));
-                }
-            });
-        }, 1000);
-        return () => clearInterval(interval);
-    }, [userDocuments, dispatch]);
 
 
     const handleClosePreview = () => {
@@ -716,23 +716,15 @@ const DocumentsPage: React.FC = () => {
                 </div>
 
                 {/* Список документов */}
-                {showBulkToolbar && (
+                {showSignAllButton && (
                     <div className={styles.bulkToolbar}>
-                        <Checkbox
-                            name="selectAll"
-                            value={bulkSelectableDocs.every(d => selectedDocs.includes(d.id))}
-                            onChange={toggleAll}
-                            label={<span>Выбрать все</span>}
-                        />
-
                         <Button
                             theme={ButtonTheme.BLUE}
-                            disabled={!selectedDocs.length}
-                            onClick={() => setBulkOpen(true)}
+                            onClick={handleSignAllDocs}
                             className={styles.bulkButton}
                             padding="10px"
                         >
-                            Подписать выбранные&nbsp;({selectedDocs.length})
+                            Подписать все документы
                         </Button>
                     </div>
                 )}
@@ -740,7 +732,7 @@ const DocumentsPage: React.FC = () => {
     ${styles.documents__list}
   `}>
                     {renderedDocuments.map((doc) => {
-                        const isInBulk = isBulkEnabled && !EXCLUDED_BULK.includes(doc.id) && doc.id !== "type_doc_broker_api_token";
+                        const isInBulk = false; // убираем возможность выбора отдельных документов
 
 
                         // Вынесем логику определения отображения кнопки/статуса
@@ -785,25 +777,12 @@ const DocumentsPage: React.FC = () => {
 
 
 
-                        const showCheckbox =
-                            showBulkToolbar &&
-                            !EXCLUDED_BULK.includes(doc.id) &&
-                            doc.status === 'signable';
+                        const showCheckbox = false; // убираем все чекбоксы
                         return (
 
                             <>
                                 {device === 'mobile' ? (
                                     <div style={{ display: 'flex', gap: '10px' }}>
-                                        <div>
-                                            {showCheckbox && (
-                                                <Checkbox
-                                                    name={doc.id}
-                                                    value={selectedDocs.includes(doc.id)}
-                                                    onChange={() => toggleDoc(doc.id)}
-                                                    label={<></>}
-                                                />
-                                            )}
-                                        </div>
                                         <div key={doc.id} className={styles.document__item}>
                                             <div>
 
@@ -904,17 +883,6 @@ const DocumentsPage: React.FC = () => {
                                 ) : (
 
                                     <div style={{ display: 'flex', gap: '10px' }}>
-                                        {showCheckbox && (
-                                            <div>
-                                                <Checkbox
-                                                    name={doc.id}
-                                                    value={selectedDocs.includes(doc.id)}
-                                                    onChange={() => toggleDoc(doc.id)}
-                                                    label={<></>}
-                                                />
-                                            </div>
-                                        )}
-
                                         <div key={doc.id} className={styles.document__item}>
                                             <div className={styles.document__info}>
                                                 {/* Показываем дату, если документ подписан */}

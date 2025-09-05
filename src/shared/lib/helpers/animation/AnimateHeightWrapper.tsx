@@ -18,7 +18,7 @@ type AnimateHeightWrapperProps = {
 const AnimateHeightWrapper: React.FC<AnimateHeightWrapperProps> = ({
     isOpen,
     children,
-    minHeight = 500,
+    minHeight = 600,
     style
 }) => {
     const contentRef = useRef<HTMLDivElement | null>(null);

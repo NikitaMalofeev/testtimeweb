@@ -1,5 +1,10 @@
 import axios from "axios";
-import { CalculateProfitabilityPayload, CalculateProfitabilityResponse, PaymentsCreateOrderPayload } from "../types/paymentsTypes";
+import {
+    BrokerBalance,
+    CalculateProfitabilityPayload,
+    CalculateProfitabilityResponse,
+    PaymentsCreateOrderPayload,
+} from "../types/paymentsTypes";
 
 const envEnviroment = import.meta.env.VITE_ENVIROMENT;
 
@@ -24,9 +29,11 @@ switch (envEnviroment) {
         break;
 }
 
+/** -------------------- PAYMENTS API -------------------- */
+
 export const createOrder = async (
     payload: PaymentsCreateOrderPayload,
-    token: string
+    token: string,
 ) => {
     const { data } = await axios.post(
         `${apiPaymentsUrl}create_order/`,
@@ -37,14 +44,14 @@ export const createOrder = async (
                 "Content-Type": "application/json",
                 Authorization: `Token ${token}`,
             },
-        }
+        },
     );
     return data;
 };
 
 export const calculateProfitability = async (
     payload: CalculateProfitabilityPayload,
-    token: string
+    token: string,
 ) => {
     const { data } = await axios.post(
         `${apiMainUrl}user_lk/calculator_profitability/`,
@@ -55,7 +62,7 @@ export const calculateProfitability = async (
                 "Content-Type": "application/json",
                 Authorization: `Token ${token}`,
             },
-        }
+        },
     );
     return data as CalculateProfitabilityResponse;
 };
@@ -80,21 +87,21 @@ export const getChecksUser = async (token: string) => {
     return data;
 };
 
-
 export const getAllActiveTariffs = async (token: string) => {
-    const { data } = await axios.post(`${apiPaymentsUrl}get_tariffs_user/`, {}, {
-        headers: {
-            "Accept-Language": "ru",
-            Authorization: `Token ${token}`,
+    const { data } = await axios.post(
+        `${apiPaymentsUrl}get_tariffs_user/`,
+        {},
+        {
+            headers: {
+                "Accept-Language": "ru",
+                Authorization: `Token ${token}`,
+            },
         },
-    });
+    );
     return data;
 };
 
-export const getOrderStatus = async (
-    orderId: string,
-    token: string
-) => {
+export const getOrderStatus = async (orderId: string, token: string) => {
     const { data } = await axios.get(`${apiPaymentsUrl}order-status/`, {
         params: { order_id: orderId },
         headers: {
@@ -105,9 +112,7 @@ export const getOrderStatus = async (
     return data;
 };
 
-export const robokassaResult = async (
-    payload: Record<string, any>
-) => {
+export const robokassaResult = async (payload: Record<string, any>) => {
     const { data } = await axios.post(
         `${apiPaymentsUrl}robokassa-result/`,
         payload,
@@ -116,7 +121,7 @@ export const robokassaResult = async (
                 "Accept-Language": "ru",
                 "Content-Type": "application/x-www-form-urlencoded",
             },
-        }
+        },
     );
     return data;
 };
@@ -127,7 +132,7 @@ export const paymentsSetTariff = async (
     type_message: string,
     is_agree: boolean,
     manual_price: number,
-    token: string
+    token: string,
 ) => {
     const { data } = await axios.post(
         `${apiPaymentsUrl}set_tariff/`,
@@ -138,7 +143,7 @@ export const paymentsSetTariff = async (
                 "Content-Type": "application/x-www-form-urlencoded",
                 Authorization: `Token ${token}`,
             },
-        }
+        },
     );
     return data;
 };
@@ -146,7 +151,7 @@ export const paymentsSetTariff = async (
 export const checkConfirmationCodeTariff = async (
     tariff_id: string,
     code: string,
-    token: string
+    token: string,
 ) => {
     const { data } = await axios.post(
         `${apiPaymentsUrl}check_confirmation_code_tariff/`,
@@ -157,15 +162,12 @@ export const checkConfirmationCodeTariff = async (
                 "Content-Type": "application/x-www-form-urlencoded",
                 Authorization: `Token ${token}`,
             },
-        }
+        },
     );
     return data;
 };
 
-export const getSignedTariffDoc = async (
-    tariff_id: string,
-    token: string
-) => {
+export const getSignedTariffDoc = async (tariff_id: string, token: string) => {
     const { data } = await axios.post(
         `${apiPaymentsUrl}get_signed_tariff_document/`,
         { tariff_id },
@@ -175,15 +177,14 @@ export const getSignedTariffDoc = async (
                 "Content-Type": "application/x-www-form-urlencoded",
                 Authorization: `Token ${token}`,
             },
-        }
+        },
     );
     return data;
 };
 
-
 export const getNotSignedTariffDoc = async (
     tariff_id: string,
-    token: string
+    token: string,
 ) => {
     const { data } = await axios.post(
         `${apiPaymentsUrl}get_user_not_signed_tariff_html/`,
@@ -194,14 +195,14 @@ export const getNotSignedTariffDoc = async (
                 "Content-Type": "application/x-www-form-urlencoded",
                 Authorization: `Token ${token}`,
             },
-        }
+        },
     );
     return data;
 };
 
 export const getAllUserTariffs = async (
-    order__currency: 'RUB',
-    token: string
+    order__currency: "RUB",
+    token: string,
 ) => {
     const { data } = await axios.post(
         `${apiPaymentsUrl}get_orders_payments_info_user/`,
@@ -212,17 +213,16 @@ export const getAllUserTariffs = async (
                 "Content-Type": "application/x-www-form-urlencoded",
                 Authorization: `Token ${token}`,
             },
-        }
+        },
     );
     return data;
 };
-
 
 export const signingTariff = async (
     tariff_id: string,
     type_message: string,
     is_agree: boolean,
-    token: string
+    token: string,
 ) => {
     const { data } = await axios.post(
         `${apiPaymentsUrl}signing_tariff/`,
@@ -233,7 +233,34 @@ export const signingTariff = async (
                 "Content-Type": "application/x-www-form-urlencoded",
                 Authorization: `Token ${token}`,
             },
-        }
+        },
     );
     return data;
+};
+
+/** -------------------- NEW: BALANCE API -------------------- */
+
+
+
+/**
+ * POST /main/user_lk/get_balance_broker/
+ * Body: { broker_id }
+ * Headers: Authorization: Token <token>, Content-Type: application/json
+ */
+export const getBalanceBroker = async (
+    broker_id: string,
+    token: string,
+): Promise<BrokerBalance> => {
+    const { data } = await axios.post(
+        `${apiMainUrl}user_lk/get_balance_broker/`,
+        { broker_id },
+        {
+            headers: {
+                "Accept-Language": "ru",
+                "Content-Type": "application/json",
+                Authorization: `Token ${token}`,
+            },
+        },
+    );
+    return data as BrokerBalance;
 };

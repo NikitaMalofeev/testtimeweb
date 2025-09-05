@@ -1,23 +1,66 @@
-// documentsSlice.ts
-
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "app/providers/store/config/store";
-import { AvailabilityPersonalAccountMenuItems, ConfirmAllDocsPayload, ConfirmCustomDocsPayload, ConfirmDocsPayload, FilledRiskProfileChapters, SetHtmlsPayload } from "../types/documentsTypes";
-import { confirmAllDocsRequest, confirmBrokerDocsRequest, confirmCustomDocsRequest, confirmDocsRequest, confirmTariffDocs, getAllBrokers, getBrokerDocumentsSigned, getCustomDocumentsNotSigned, getCustomDocumentsSigned, getDocumentNotSigned, getDocumentsInfo, getDocumentsNotSigned, getDocumentsSigned, getDocumentsState, postConfirmationCodeAllDocuments, postConfirmationCodeCustom } from "../api/documentsApi";
+import {
+    AvailabilityPersonalAccountMenuItems,
+    ConfirmAllDocsPayload,
+    ConfirmCustomDocsPayload,
+    ConfirmDocsPayload,
+    FilledRiskProfileChapters,
+} from "../types/documentsTypes";
+import {
+    confirmAllDocsRequest,
+    confirmBrokerDocsRequest,
+    confirmCustomDocsRequest,
+    confirmDocsRequest,
+    confirmTariffDocs,
+    getAllBrokers,
+    getBrokerDocumentsSigned,
+    getCustomDocumentsNotSigned,
+    getCustomDocumentsSigned,
+    getDocumentNotSigned,
+    getDocumentsInfo,
+    getDocumentsNotSigned,
+    getDocumentsSigned,
+    getDocumentsState,
+    postConfirmationCodeAllDocuments,
+    postConfirmationCodeCustom,
+} from "../api/documentsApi";
 import { setCurrentConfirmingDoc } from "entities/RiskProfile/slice/riskProfileSlice";
 import { setConfirmationDocsSuccess } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
 import { SendCodeCustomDocsConfirmPayload, SendCodeDocsConfirmPayload } from "entities/RiskProfile/model/types";
-import { postBrokerConfirmationDocsCode, postConfirmationCodeLegal, postConfirmationDocsCode } from "entities/RiskProfile/api/riskProfileApi";
+import {
+    postBrokerConfirmationDocsCode,
+    postConfirmationCodeLegal,
+    postConfirmationDocsCode,
+} from "entities/RiskProfile/api/riskProfileApi";
 import { signingTariff } from "entities/Payments/api/paymentsApi";
+
+/**
+ * Таймауты по умолчанию для каждого документа (секунды).
+ * Если бэкенд вернёт timeinterval_sms — он имеет приоритет.
+ */
+export const docTimeoutMap: Record<string, number> = {
+    type_doc_passport: 7,
+    type_doc_EDS_agreement: 8,
+    type_doc_RP_questionnairy: 12,
+    type_doc_agreement_investment_advisor: 7,
+    type_doc_risk_declarations: 7,
+    type_doc_agreement_personal_data_policy: 7,
+    type_doc_investment_profile_certificate: 7,
+    type_doc_agreement_account_maintenance: 12,
+    type_doc_broker_api_token: 10,
+    type_doc_agreement_investment_advisor_app_1: 7,
+};
+
 
 // Новый тип, соответствующий элементам из "confirmed_documents"
 export interface DocumentConfirmationInfo {
     key: string;
     date_last_confirmed: string | null; // null, если документ не подписан
     date_last_confirmed_type_doc_agreement_transfer_broker?: string | null;
-    timeoutPending?: number;
-    is_confirmed_type_doc_agreement_transfer_broker?: boolean
+    timeoutPending?: number; // legacy
+    is_confirmed_type_doc_agreement_transfer_broker?: boolean;
 }
 
 export interface UserPassportData {
@@ -25,7 +68,7 @@ export interface UserPassportData {
     passport_series: string;
     passport_number: string;
     department_code: string;
-    issue_date: string;    // лучше хранить в формате ISO-строки
+    issue_date: string;
     issue_whom: string;
     inn: string;
 }
@@ -45,8 +88,7 @@ export interface CustomDocData {
     title: string;
 }
 
-// Массив с последовательностью типов документов,
-// которые необходимо подписать по порядку (меняется редко).
+// Массив очередности документов
 export const docTypes = [
     "type_doc_passport",
     "type_doc_EDS_agreement",
@@ -58,64 +100,81 @@ export const docTypes = [
     "type_doc_agreement_account_maintenance",
     "type_doc_broker_api_token",
     "type_doc_agreement_investment_advisor_app_1",
-
 ];
 
-// Лейблы для UI.
+// Лейблы для UI
 export const docTypeLabels: Record<string, string> = {
     type_doc_passport: "Паспорт",
-    type_doc_EDS_agreement: "Соглашение об ЭДО",
+    type_doc_EDS_agreement: "Соглашение об ЭЦП",
     type_doc_RP_questionnairy: "Анкета Риск Профиля",
     type_doc_agreement_investment_advisor: "Договор ИС",
     type_doc_risk_declarations: "Декларация о рисках",
     type_doc_agreement_personal_data_policy: "Политика персональных данных",
-    type_doc_investment_profile_certificate: "Справка ИП",
-    type_doc_agreement_account_maintenance: 'Доверенность на управление счетом',
-    type_doc_broker_api_token: 'Согласие на передачу API ключа к брокерскому счету',
-    type_doc_agreement_investment_advisor_app_1: 'Договор ИС: Приложение 1',
+    type_doc_investment_profile_certificate: "Справка Инвестиционного профиля",
+    type_doc_agreement_account_maintenance: "Доверенность на управление счетом",
+    type_doc_broker_api_token: "Согласие на передачу API ключа к брокерскому счету",
+    type_doc_agreement_investment_advisor_app_1: "Договор ИС: Приложение 1",
+};
 
+type TimerEntry = {
+    startedAt: number | null; // ms epoch
+    duration: number; // seconds
+    active: boolean;
 };
 
 interface DocumentsState {
     loading: boolean;
     error: string | null;
     success: boolean;
-    currentConfirmableDoc: string;  // Текущий документ на подписании
+
+    currentConfirmableDoc: string;
     confirmationMethod: string;
-    // Заменяем notConfirmedDocuments (string[]) на хранение всего массива:
+
     userDocuments: DocumentConfirmationInfo[];
-    timeoutBetweenConfirmation: number;
+
+
     allNotSignedDocumentsHtml: Record<string, string> | null;
     currentSugnedDocument: {
         document: Uint8Array | null;
         type: string;
     };
+
     brokerIds: string[];
     brokersCount: number;
+
     filledRiskProfileChapters: FilledRiskProfileChapters;
     userPassportData: UserPassportData | null;
     customDocumentsData: CustomDocData | null;
+
     uploadDocs: Record<string, UploadDocState>;
     availabilityPersonalAccountMenuItems: AvailabilityPersonalAccountMenuItems | null;
     documentsChecked: boolean;
+
     is_waiting_manual_verification_broker: boolean;
     waiting_manual_document_verification: {
-        type_doc_agreement_transfer_broker: string,
-        type_doc_passport: string
+        type_doc_agreement_transfer_broker: string;
+        type_doc_passport: string;
     };
+
+    /** ⏱ Глобальные таймеры по документам */
+    timersByDoc: Record<string, TimerEntry>;
+    /** nowTs нужен, чтобы дёшево перерисовывать селекторы раз в секунду */
+    nowTs: number;
 }
 
 const initialState: DocumentsState = {
     loading: false,
     error: null,
     success: false,
+
     currentConfirmableDoc: docTypes[0],
-    confirmationMethod: 'EMAIL',
-    timeoutBetweenConfirmation: 0,
+    confirmationMethod: "EMAIL",
+
+
     allNotSignedDocumentsHtml: null,
     currentSugnedDocument: {
         document: null,
-        type: ''
+        type: "",
     },
     userDocuments: [],
     filledRiskProfileChapters: {
@@ -124,65 +183,62 @@ const initialState: DocumentsState = {
         is_complete_passport: false,
         is_exist_scan_passport: false,
         is_complete_person_legal: false,
-        is_exist_scan_person_legal: false
+        is_exist_scan_person_legal: false,
     },
+
     brokerIds: [],
     brokersCount: 0,
+
     userPassportData: null,
     customDocumentsData: null,
+
     uploadDocs: {},
     availabilityPersonalAccountMenuItems: null,
     documentsChecked: false,
+
     is_waiting_manual_verification_broker: false,
     waiting_manual_document_verification: {
-        type_doc_agreement_transfer_broker: '',
-        type_doc_passport: ''
-    }
+        type_doc_agreement_transfer_broker: "",
+        type_doc_passport: "",
+    },
+
+    timersByDoc: {},
+    nowTs: Date.now(),
 };
+
+// ============ thunks ============
 
 export const openUploadDocWebsocketThunk = createAsyncThunk<
     void,
     { docId: string; socketId: string; onSuccess?: () => void },
     { state: RootState; rejectValue: string }
->(
-    "documents/openUploadDocWebsocket",
-    async ({ docId, socketId, onSuccess }, { dispatch, rejectWithValue }) => {
-        try {
-            // сразу кладём socketId в стор
-            dispatch(setUploadDocSocket({ docId, socketId }));
+>("documents/openUploadDocWebsocket", async ({ docId, socketId, onSuccess }, { dispatch, rejectWithValue }) => {
+    try {
+        dispatch(setUploadDocSocket({ docId, socketId }));
 
-            await new Promise((resolve, reject) => {
-                const ws = new WebSocket(
-                    `wss://test.webbroker.ranks.pro/ws/upload_docs_progress/${socketId}/`
-                );
+        await new Promise((resolve, reject) => {
+            const ws = new WebSocket(`wss://test.webbroker.ranks.pro/ws/upload_docs_progress/${socketId}/`);
 
-                // ws.onopen = () => // console.log("docs-WS open:", docId);
-
-                ws.onmessage = evt => {
-                    const msg = JSON.parse(evt.data);
-
-                    const isSuccess =
-                        msg?.data?.is_success ??
-                        msg?.is_success;
-
-                    if (isSuccess) {
-                        dispatch(setUploadDocStatus({ docId, status: "success" }));
-                        onSuccess?.();
-                        ws.close();
-                    }
-                };
-
-                ws.onerror = err => {
-                    console.error("docs-WS error", err);
+            ws.onmessage = (evt) => {
+                const msg = JSON.parse(evt.data);
+                const isSuccess = msg?.data?.is_success ?? msg?.is_success;
+                if (isSuccess) {
+                    dispatch(setUploadDocStatus({ docId, status: "success" }));
+                    onSuccess?.();
                     ws.close();
-                    reject("WS error");
-                };
-            });
-        } catch (e) {
-            return rejectWithValue("Ошибка WebSocket upload_docs_progress");
-        }
+                }
+            };
+
+            ws.onerror = (err) => {
+                console.error("docs-WS error", err);
+                ws.close();
+                reject("WS error");
+            };
+        });
+    } catch {
+        return rejectWithValue("Ошибка WebSocket upload_docs_progress");
     }
-);
+});
 
 export const confirmTariffRequestThunk = createAsyncThunk<
     void,
@@ -190,29 +246,22 @@ export const confirmTariffRequestThunk = createAsyncThunk<
     { rejectValue: string; state: RootState }
 >(
     "documents/confirmTariffRequestThunk",
-    async (
-        { data: { type_message, type_document, is_agree, tariff_id }, onSuccess },
-        { getState, dispatch, rejectWithValue }
-    ) => {
+    async ({ data: { type_message, type_document, is_agree, tariff_id }, onSuccess }, { getState, dispatch, rejectWithValue }) => {
         try {
             const token = getState().user.token;
-            const currentConfirmableDoc = getState().documents.currentConfirmableDoc
-            if (currentConfirmableDoc === 'type_doc_agreement_investment_advisor_app_1' && tariff_id) {
-                const responseDocs = await signingTariff(
-                    tariff_id, type_message, is_agree,
-                    token
-                );
+            const currentConfirmableDoc = getState().documents.currentConfirmableDoc;
+
+            if (currentConfirmableDoc === "type_doc_agreement_investment_advisor_app_1" && tariff_id) {
+                const responseDocs = await signingTariff(tariff_id, type_message, is_agree, token);
+                // простой таймер из маппинга
+                const duration = docTimeoutMap[currentConfirmableDoc] || 5;
+                dispatch(startDocTimeout({ docKey: currentConfirmableDoc, duration }));
                 onSuccess?.();
-                return responseDocs;
+                return responseDocs as any;
             }
-
-
-
         } catch (error: any) {
             dispatch(setConfirmationDocsSuccess("не пройдено"));
-            // console.log(error);
-            const msg =
-                error.response?.data?.errorText
+            const msg = error.response?.data?.errorText;
             dispatch(setError(msg));
         }
     }
@@ -224,124 +273,72 @@ export const confirmDocsRequestThunk = createAsyncThunk<
     { rejectValue: string; state: RootState }
 >(
     "documents/confirmDocsRequestThunk",
-    async (
-        { data: { type_message, type_document, is_agree }, onSuccess },
-        { getState, dispatch, rejectWithValue }
-    ) => {
+    async ({ data: { type_message, type_document, is_agree }, onSuccess }, { getState, dispatch, rejectWithValue }) => {
         try {
             const token = getState().user.token;
-            const currentConfirmableDoc = getState().documents.currentConfirmableDoc
-            const currentBrokerId = getState().documents.brokerIds[0]
-            if (!token) {
-                return rejectWithValue("Отсутствует токен авторизации");
-            }
-            if (currentConfirmableDoc === 'type_doc_broker_api_token') {
-                const responseDocs = await confirmBrokerDocsRequest(
-                    { type_message, is_agree, broker_id: currentBrokerId },
-                    token
-                );
-                dispatch(setTimeoutBetweenConfirmation(responseDocs.timeinterval_sms))
+            const currentConfirmableDoc = getState().documents.currentConfirmableDoc;
+            const currentBrokerId = getState().documents.brokerIds[0];
+            if (!token) return rejectWithValue("Отсутствует токен авторизации");
+
+            if (currentConfirmableDoc === "type_doc_broker_api_token") {
+                const responseDocs = await confirmBrokerDocsRequest({ type_message, is_agree, broker_id: currentBrokerId }, token);
+                const duration = docTimeoutMap[currentConfirmableDoc] || 5;
+                dispatch(startDocTimeout({ docKey: currentConfirmableDoc, duration }));
                 onSuccess?.();
-                if (responseDocs.group_ws) {
-                    const socketId = responseDocs.group_ws;
-                    dispatch(
-                        openUploadDocWebsocketThunk({
-                            docId: currentConfirmableDoc,
-                            socketId
-                        })
-                    );
+                if ((responseDocs as any).group_ws) {
+                    const socketId = (responseDocs as any).group_ws;
+                    dispatch(openUploadDocWebsocketThunk({ docId: currentConfirmableDoc, socketId }));
                 }
-                return responseDocs;
-            } else if (currentConfirmableDoc !== 'type_doc_broker_api_token' && type_document && type_message) {
-                const responseDocs = await confirmDocsRequest(
-                    { type_message, type_document, is_agree },
-                    token
-                );
-                if (responseDocs.group_ws) {
-                    const socketId = responseDocs.group_ws;
-                    dispatch(
-                        openUploadDocWebsocketThunk({
-                            docId: currentConfirmableDoc,
-                            socketId
-                        })
-                    );
+                return responseDocs as any;
+            } else if (currentConfirmableDoc !== "type_doc_broker_api_token" && type_document && type_message) {
+                const responseDocs = await confirmDocsRequest({ type_message, type_document, is_agree }, token);
+                const duration = docTimeoutMap[currentConfirmableDoc] || 5;
+                dispatch(startDocTimeout({ docKey: currentConfirmableDoc, duration }));
+                if ((responseDocs as any).group_ws) {
+                    const socketId = (responseDocs as any).group_ws;
+                    dispatch(openUploadDocWebsocketThunk({ docId: currentConfirmableDoc, socketId }));
                 }
-                dispatch(setTimeoutBetweenConfirmation(responseDocs.timeinterval_sms))
                 onSuccess?.();
-                return responseDocs;
+                return responseDocs as any;
             }
-
-
-
         } catch (error: any) {
             dispatch(setConfirmationDocsSuccess("не пройдено"));
-            // console.log(error);
-            const msg =
-                error.response?.data?.errorText
+            const msg = error.response?.data?.errorText;
             dispatch(setError(msg));
         }
     }
 );
 
 export const confirmAllDocsRequestThunk = createAsyncThunk<
-    // 1) То, что возвращает API (можно указать тип, если response.data имеет интерфейс)
     ReturnType<typeof confirmAllDocsRequest>,
-    // 2) Аргументы, которые вы передаёте при dispatch
-    {
-        data: ConfirmAllDocsPayload;
-        onSuccess?: () => void;
-    },
-    // 3) Опции: какой тип состояния и тип rejectValue
+    { data: ConfirmAllDocsPayload; onSuccess?: () => void },
     { state: RootState; rejectValue: string }
->(
-    "documents/confirmAllDocsRequest",
-    async (
-        { data, onSuccess },
-        { getState, dispatch, rejectWithValue }
-    ) => {
-        const token = getState().user.token;
-        const currentConfirmableDoc = getState().documents.currentConfirmableDoc;
+>("documents/confirmAllDocsRequest", async ({ data, onSuccess }, { getState, dispatch, rejectWithValue }) => {
+    const token = getState().user.token;
+    const currentConfirmableDoc = getState().documents.currentConfirmableDoc;
+    if (!token) return rejectWithValue("Отсутствует токен авторизации");
 
-        if (!token) {
-            // Если нет токена — уход в rejected
-            return rejectWithValue("Отсутствует токен авторизации");
+    try {
+        const response = await confirmAllDocsRequest(data, token);
+        dispatch(setConfirmationDocsSuccess("пройдено"));
+
+        // Стартуем таймер для текущего документа из маппинга
+        const duration = docTimeoutMap[currentConfirmableDoc] || 5;
+        dispatch(startDocTimeout({ docKey: currentConfirmableDoc, duration }));
+
+        if ((response as any).group_ws) {
+            dispatch(openUploadDocWebsocketThunk({ docId: currentConfirmableDoc, socketId: (response as any).group_ws }));
         }
 
-        try {
-            // Отправляем полный payload
-            const response = await confirmAllDocsRequest(data, token);
-
-            // Помечаем, что всё ок
-            dispatch(setConfirmationDocsSuccess("пройдено"));
-
-            // Если пришёл group_ws — открываем WS
-            if (response.group_ws) {
-                dispatch(
-                    openUploadDocWebsocketThunk({
-                        docId: currentConfirmableDoc,
-                        socketId: response.group_ws,
-                    })
-                );
-            }
-
-            // Колл­бэк при успехе
-            onSuccess?.();
-
-            return response;
-        } catch (err: any) {
-            // Сохраняем текст ошибки
-            const errorMsg =
-                err.response?.data?.errorText ?? "Ошибка при подписании документов";
-
-            // Диспачим редьюсеры для ошибки
-            dispatch(setError(errorMsg));
-            dispatch(setConfirmationDocsSuccess("не пройдено"));
-
-            // Возвращаем reject с сообщением
-            return rejectWithValue(errorMsg);
-        }
+        onSuccess?.();
+        return response as any;
+    } catch (err: any) {
+        const errorMsg = err.response?.data?.errorText ?? "Ошибка при подписании документов";
+        dispatch(setError(errorMsg));
+        dispatch(setConfirmationDocsSuccess("не пройдено"));
+        return rejectWithValue(errorMsg);
     }
-);
+});
 
 export const confirmCustomDocsRequestThunk = createAsyncThunk<
     void,
@@ -349,23 +346,21 @@ export const confirmCustomDocsRequestThunk = createAsyncThunk<
     { rejectValue: string; state: RootState }
 >(
     "documents/confirmCustomDocsRequestThunk",
-    async (
-        { data: { type_message, type_document, is_agree, id_sign }, onSuccess },
-        { getState, dispatch, rejectWithValue }
-    ) => {
-        try {
-            const responseDocs = await confirmCustomDocsRequest(
-                { type_message, id_sign, type_document, is_agree },
-            );
-            onSuccess?.();
-            return responseDocs;
-        } catch (error: any) {
-            const msg =
-                error.response?.data?.errorText
-            dispatch(setError(msg));
+    async ({ data: { type_message, type_document, is_agree, id_sign }, onSuccess }, { dispatch }) => {
+        const responseDocs = await confirmCustomDocsRequest(
+            { type_message, id_sign, type_document, is_agree },
+        );
+
+        // Стартуем таймаут ТОЛЬКО если doc указан
+        if (type_document) {
+            const duration = docTimeoutMap[type_document] || 5;
+            dispatch(startDocTimeout({ docKey: type_document, duration }));
         }
+        onSuccess?.();
+        return responseDocs as any;
     }
 );
+
 
 export const sendDocsConfirmationCode = createAsyncThunk<
     void,
@@ -376,60 +371,35 @@ export const sendDocsConfirmationCode = createAsyncThunk<
     async ({ codeFirst, docs, onSuccess, onSuccessLegal }, { getState, dispatch, rejectWithValue }) => {
         try {
             const token = getState().user.token;
-            const currentConfirmableDoc = getState().documents.currentConfirmableDoc
-            const currentStep = getState().ui.additionalMenu.currentStep
-            const isLegal = getState().user.userPersonalAccountInfo?.is_individual_entrepreneur
-            const broker_id = getState().documents.brokerIds[0]
-            if (!token) {
-                return rejectWithValue("Отсутствует токен авторизации");
-            }
-            if (codeFirst && currentConfirmableDoc === 'type_doc_broker_api_token') {
-                const responseDocs = await postBrokerConfirmationDocsCode(
-                    { code: codeFirst, broker_id: broker_id },
-                    token
-                );
+            const currentConfirmableDoc = getState().documents.currentConfirmableDoc;
+            const currentStep = getState().ui.additionalMenu.currentStep;
+            const isLegal = getState().user.userPersonalAccountInfo?.is_individual_entrepreneur;
+            const broker_id = getState().documents.brokerIds[0];
+            if (!token) return rejectWithValue("Отсутствует токен авторизации");
+
+            if (codeFirst && currentConfirmableDoc === "type_doc_broker_api_token") {
+                const responseDocs = await postBrokerConfirmationDocsCode({ code: codeFirst, broker_id }, token);
                 dispatch(getUserDocumentsStateThunk());
                 dispatch(getAllBrokersThunk({ is_confirmed_type_doc_agreement_transfer_broker: true, onSuccess: () => { } }));
                 onSuccess?.(responseDocs);
-                responseDocs.next_document && dispatch(setCurrentConfirmableDoc(responseDocs.next_document));
-
+                (responseDocs as any).next_document && dispatch(setCurrentConfirmableDoc((responseDocs as any).next_document));
             } else if (codeFirst) {
-                let responseDocs;
-                const legalDocTypes = [
-                    "phone",
-                    "email",
-                    "type_doc_person_legal",
-                ];
+                let responseDocs: any;
+                const legalDocTypes = ["phone", "email", "type_doc_person_legal"];
                 if (!isLegal) {
-                    responseDocs = await postConfirmationDocsCode(
-                        { code: codeFirst, type_document: docs },
-                        token
-                    );
+                    responseDocs = await postConfirmationDocsCode({ code: codeFirst, type_document: docs }, token);
+                } else if (legalDocTypes.includes(docs)) {
+                    responseDocs = await postConfirmationCodeLegal({ code: codeFirst, type_document: docs }, token);
+                } else {
+                    responseDocs = await postConfirmationDocsCode({ code: codeFirst, type_document: docs }, token);
                 }
-                // 4. Легальные — только если текущий тип в списке
-                else if (legalDocTypes.includes(docs)) {
-                    responseDocs = await postConfirmationCodeLegal(
-                        { code: codeFirst, type_document: docs },
-                        token
-                    );
-                }
-                // 5. Всё остальное — обратно на обычный
-                else {
-                    responseDocs = await postConfirmationDocsCode(
-                        { code: codeFirst, type_document: docs },
-                        token
-                    );
-                }
-                currentStep === 2 && isLegal && onSuccessLegal?.()
+                currentStep === 2 && isLegal && onSuccessLegal?.();
                 onSuccess?.(responseDocs);
                 responseDocs.next_document && dispatch(setCurrentConfirmableDoc(responseDocs.next_document));
             }
-
         } catch (error: any) {
             dispatch(setConfirmationDocsSuccess("не пройдено"));
-            // console.log(error);
-            const msg =
-                error.response?.data?.errorText
+            const msg = error.response?.data?.errorText;
             dispatch(setError(msg));
         }
     }
@@ -440,30 +410,20 @@ export const sendDocsConfirmationAllDocuments = createAsyncThunk<
     { codeFirst: string; broker_id: string; onSuccess: () => void; onError: () => void },
     { rejectValue: string; state: RootState }
 >(
-    "documents/sendDocsConfirmationCode",
+    "documents/sendDocsConfirmationCodeAll",
     async ({ codeFirst, broker_id, onSuccess, onError }, { getState, dispatch, rejectWithValue }) => {
         try {
             const token = getState().user.token;
-            if (!token) {
-                return rejectWithValue("Отсутствует токен авторизации");
-            }
+            if (!token) return rejectWithValue("Отсутствует токен авторизации");
             if (codeFirst) {
-                // // console.log('попытка отправить код легально' + person_type)
-                const responseDocs = await postConfirmationCodeAllDocuments(
-                    { code: codeFirst, broker_id },
-                    token
-                )
+                const responseDocs = await postConfirmationCodeAllDocuments({ code: codeFirst, broker_id }, token);
                 onSuccess?.();
-                return responseDocs
-                // dispatch(setCurrentConfirmableDoc(responseDocs.next_document));
+                return responseDocs as any;
             }
-
         } catch (error: any) {
             dispatch(setConfirmationDocsSuccess("не пройдено"));
-            onError()
-            // console.log(error);
-            const msg =
-                error.response?.data?.errorText
+            onError();
+            const msg = error.response?.data?.errorText;
             dispatch(setError(msg));
         }
     }
@@ -478,27 +438,14 @@ export const sendDocsConfirmationCodeLegal = createAsyncThunk<
     async ({ codeFirst, docs, onSuccess }, { getState, dispatch, rejectWithValue }) => {
         try {
             const token = getState().user.token;
-            const currentConfirmableDoc = getState().documents.currentConfirmableDoc
-            const isLegal = getState().user.userPersonalAccountInfo?.is_individual_entrepreneur
-            const broker_id = getState().documents.brokerIds[0]
-            if (!token) {
-                return rejectWithValue("Отсутствует токен авторизации");
-            }
+            if (!token) return rejectWithValue("Отсутствует токен авторизации");
             if (codeFirst) {
-                // // console.log('попытка отправить код легально' + person_type)
-                const responseDocs = postConfirmationCodeLegal(
-                    { code: codeFirst, type_document: docs },
-                    token
-                )
-                onSuccess?.(responseDocs);
-
+                const responseDocs = await postConfirmationCodeLegal({ code: codeFirst, type_document: docs }, token);
+                onSuccess?.(responseDocs as any);
             }
-
         } catch (error: any) {
             dispatch(setConfirmationDocsSuccess("не пройдено"));
-            // console.log(error);
-            const msg =
-                error.response?.data?.errorText
+            const msg = error.response?.data?.errorText;
             dispatch(setError(msg));
         }
     }
@@ -510,16 +457,13 @@ export const sendCustomDocsConfirmationCode = createAsyncThunk<
     { rejectValue: string; state: RootState }
 >(
     "documents/sendCustomDocsConfirmationCode",
-    async ({ codeFirst, docs, id_sign, onSuccess }, { getState, dispatch, rejectWithValue }) => {
+    async ({ codeFirst, docs, id_sign, onSuccess }, { dispatch }) => {
         try {
-            const responseDocs = await postConfirmationCodeCustom(
-                { code: codeFirst, type_document: docs, id_sign: id_sign }
-            );
-            onSuccess?.(responseDocs);
+            const responseDocs = await postConfirmationCodeCustom({ code: codeFirst, type_document: docs, id_sign });
+            onSuccess?.(responseDocs as any);
         } catch (error: any) {
             dispatch(setConfirmationDocsSuccess("не пройдено"));
-            const msg =
-                error.response?.data?.errorText
+            const msg = error.response?.data?.errorText;
             dispatch(setError(msg));
         }
     }
@@ -529,149 +473,125 @@ export const getUserDocumentsStateThunk = createAsyncThunk<
     void,
     void,
     { rejectValue: string; state: RootState }
->(
-    "documents/getUserDocumentsStateThunk",
-    async (_, { getState, dispatch, rejectWithValue }) => {
-        try {
-            const token = getState().user.token;
-            if (!token) {
-                return rejectWithValue("Отсутствует токен авторизации");
-            }
-            const currentBrokerIds = getState().documents.brokerIds
-            const response = await getDocumentsState(token);
-            const { is_risk_profile_complete, is_risk_profile_complete_final, is_exist_scan_passport, is_complete_passport, is_complete_person_legal, is_exist_scan_person_legal
-            } = response;
-            const confirmedBrokers = response.confirmed_brokers ?? [];
-            dispatch(setAvailabilityPersonalAccountMenuItems(response.main_menu_clickable_items))
-            dispatch(
-                setIsRiksProfileComplete({
-                    is_risk_profile_complete,
-                    is_risk_profile_complete_final,
-                    is_complete_passport,
-                    is_exist_scan_passport,
-                    is_complete_person_legal,
-                    is_exist_scan_person_legal
-                })
-            );
+>("documents/getUserDocumentsStateThunk", async (_, { getState, dispatch, rejectWithValue }) => {
+    try {
+        const token = getState().user.token;
+        if (!token) return rejectWithValue("Отсутствует токен авторизации");
 
-            const confirmedDocuments = response.confirmed_documents;
-            const currentDocs = getState().documents.userDocuments;
+        const currentBrokerIds = getState().documents.brokerIds;
+        const response = await getDocumentsState(token);
+        const {
+            is_risk_profile_complete,
+            is_risk_profile_complete_final,
+            is_exist_scan_passport,
+            is_complete_passport,
+            is_complete_person_legal,
+            is_exist_scan_person_legal,
+        } = response;
 
-            const mergedDocs = confirmedDocuments.map((doc: DocumentConfirmationInfo) => {
-                const localDoc = currentDocs.find(d => d.key === doc.key);
-                return {
-                    ...doc,
-                    // сохраняем локальное значение таймера, если оно уже было установлено,
-                    // иначе оставляем значение из данных сервера или 0
-                    timeoutPending: localDoc?.timeoutPending ?? doc.timeoutPending ?? 0,
-                };
+        const confirmedBrokers = response.confirmed_brokers ?? [];
+        dispatch(setAvailabilityPersonalAccountMenuItems(response.main_menu_clickable_items));
+        dispatch(
+            setIsRiksProfileComplete({
+                is_risk_profile_complete,
+                is_risk_profile_complete_final,
+                is_complete_passport,
+                is_exist_scan_passport,
+                is_complete_person_legal,
+                is_exist_scan_person_legal,
+            })
+        );
+
+        const confirmedDocuments = response.confirmed_documents;
+        const currentDocs = getState().documents.userDocuments;
+
+        const mergedDocs = confirmedDocuments.map((doc: DocumentConfirmationInfo) => {
+            const localDoc = currentDocs.find((d) => d.key === doc.key);
+            return {
+                ...doc,
+                timeoutPending: localDoc?.timeoutPending ?? doc.timeoutPending ?? 0,
+            };
+        });
+
+        if (confirmedBrokers.length) {
+            const broker = confirmedBrokers[0];
+            mergedDocs.push({
+                key: "type_doc_broker_api_token",
+                date_last_confirmed_type_doc_agreement_transfer_broker: broker.modified ?? broker.modified,
+                timeoutPending: 0,
             });
-            if (confirmedBrokers.length) {
-                const broker = confirmedBrokers[0];                 // берём только первого
-
-                mergedDocs.push({
-                    key: 'type_doc_broker_api_token',
-                    // дата может называться у вас по‑другому. Берём ту, что приходит.
-                    date_last_confirmed_type_doc_agreement_transfer_broker:
-                        broker.modified ?? broker.modified ?? broker.modified,
-                    timeoutPending: 0,
-                });
-            }
-            // // console.log(mergedDocs)
-            currentBrokerIds[0] && dispatch(setBrokerIds({ brokerId: currentBrokerIds[0], count: response.confirmed_brokers_count }))
-            dispatch(setUserDocuments(mergedDocs));
-        } catch (error: any) {
-            // console.log(error);
-            const msg = error.response?.data?.errorText;
-            dispatch(setError(msg));
         }
+
+        currentBrokerIds[0] &&
+            dispatch(setBrokerIds({ brokerId: currentBrokerIds[0], count: response.confirmed_brokers_count }));
+        dispatch(setUserDocuments(mergedDocs));
+    } catch (error: any) {
+        const msg = error.response?.data?.errorText;
+        dispatch(setError(msg));
     }
-);
-
-
+});
 
 export const getUserDocumentsInfoThunk = createAsyncThunk<
     void,
     void,
     { rejectValue: string; state: RootState }
->(
-    "documents/getUserDocumentsInfoThunk",
-    async (_, { getState, dispatch, rejectWithValue }) => {
-        try {
-            const token = getState().user.token;
-            if (!token) {
-                return rejectWithValue("Отсутствует токен авторизации");
-            }
-            const response = await getDocumentsInfo(token);
-            dispatch(setUserPasportData(response))
-        } catch (error: any) {
-            // console.log(error);
-            const msg =
-                error.response?.data?.errorText
-            dispatch(setError(msg));
-        }
+>("documents/getUserDocumentsInfoThunk", async (_, { getState, dispatch, rejectWithValue }) => {
+    try {
+        const token = getState().user.token;
+        if (!token) return rejectWithValue("Отсутствует токен авторизации");
+        const response = await getDocumentsInfo(token);
+        dispatch(setUserPasportData(response));
+    } catch (error: any) {
+        const msg = error.response?.data?.errorText;
+        dispatch(setError(msg));
     }
-);
+});
 
-// documents/getUserDocumentsNotSignedThunk
+// not-signed: все
 export const getUserDocumentsNotSignedThunk = createAsyncThunk<
     void,
     void,
     { rejectValue: string; state: RootState }
->(
-    "documents/getUserDocumentsNotSignedThunk",
-    async (_, { getState, dispatch, rejectWithValue }) => {
-        try {
-            const token = getState().user.token;
-            if (!token) {
-                return rejectWithValue("Отсутствует токен авторизации");
-            }
+>("documents/getUserDocumentsNotSignedThunk", async (_, { getState, dispatch, rejectWithValue }) => {
+    try {
+        const token = getState().user.token;
+        if (!token) return rejectWithValue("Отсутствует токен авторизации");
 
-            const response = await getDocumentsNotSigned(token);
-            const htmls = response.not_signed_documents_htmls;      // ← что пришло от API
+        const response = await getDocumentsNotSigned(token);
+        const htmls = response.not_signed_documents_htmls;
 
-            // ① Если API вернул строку, заворачиваем её в объект
-            if (typeof htmls === "string") {
-                const docId = getState().documents.currentConfirmableDoc;
-                dispatch(setNotSignedDocumentsHtmls({ [docId]: htmls }));
-            } else {
-                // ② Если уже объект, просто прокидываем дальше
-                dispatch(setNotSignedDocumentsHtmls(htmls));
-            }
-        } catch (error: any) {
-            const msg = error.response?.data?.errorText ?? error.message;
-            dispatch(setError(msg));
-            return rejectWithValue(msg);
+        if (typeof htmls === "string") {
+            const docId = getState().documents.currentConfirmableDoc;
+            dispatch(setNotSignedDocumentsHtmls({ [docId]: htmls }));
+        } else {
+            dispatch(setNotSignedDocumentsHtmls(htmls));
         }
+    } catch (error: any) {
+        const msg = error.response?.data?.errorText ?? error.message;
+        dispatch(setError(msg));
+        return rejectWithValue(msg);
     }
-);
+});
 
-// documentsSlice.ts
+// not-signed: конкретный
 export const getUserDocumentNotSignedThunk = createAsyncThunk<
     void,
-    { custom?: boolean; customId?: string, type: string },
+    { custom?: boolean; customId?: string; type: string },
     { rejectValue: string; state: RootState }
 >(
     "documents/getUserDocumentNotSigned",
     async ({ custom, customId, type }, { getState, dispatch, rejectWithValue }) => {
         try {
             const token = getState().user.token!;
-            // выбираем какой id использовать
-            const docId = custom && customId
-                ? customId
-                : getState().documents.currentConfirmableDoc;
-            if (docId === 'type_doc_agreement_investment_advisor_app_1') {
-                return
-            }
+            const docId = custom && customId ? customId : getState().documents.currentConfirmableDoc;
+            if (docId === "type_doc_agreement_investment_advisor_app_1") return;
 
-            // вызываем нужный API
             const response = custom && customId && type
                 ? await getCustomDocumentsNotSigned(token, customId, type)
                 : await getDocumentNotSigned(token, docId);
 
-
             const htmlString = response.not_signed_document_html;
-            custom && dispatch(setCustomDocumentData(response))
+            custom && dispatch(setCustomDocumentData(response));
             dispatch(setNotSignedDocumentsHtmls({ [docId]: htmlString }));
         } catch (err: any) {
             const msg = err.response?.data?.errorText ?? err.message;
@@ -680,9 +600,6 @@ export const getUserDocumentNotSignedThunk = createAsyncThunk<
         }
     }
 );
-
-
-
 
 export const getUserDocumentsSignedThunk = createAsyncThunk<
     Uint8Array,
@@ -693,36 +610,23 @@ export const getUserDocumentsSignedThunk = createAsyncThunk<
     async ({ type_document, purpose, onSuccess, id_sign }, { getState, dispatch, rejectWithValue }) => {
         try {
             const token = getState().user.token;
-
-            // Выбираем нужный сервис
             const arrayBuffer = id_sign
                 ? await getCustomDocumentsSigned(id_sign, type_document)
                 : await getDocumentsSigned(type_document, token);
 
-            // Универсально превращаем в Uint8Array
             const pdfBytes = new Uint8Array(arrayBuffer);
+            dispatch(setCurrentSignedDocuments({ type: type_document, document: pdfBytes }));
 
-            // Сохраняем в стор
-            dispatch(setCurrentSignedDocuments({
-                type: type_document,
-                document: pdfBytes,
-            }));
-
-            // Только для обычного (не кастомного) документа и при необходимости загрузки
-            if (!id_sign && purpose === 'download') {
+            if (!id_sign && purpose === "download") {
                 onSuccess();
             }
-
-            // Возвращаем payload
             return pdfBytes;
         } catch (error: any) {
-            const msg = error.response?.data?.errorText
-                || "Ошибка при получении подписанного документа";
+            const msg = error.response?.data?.errorText || "Ошибка при получении подписанного документа";
             return rejectWithValue(msg);
         }
     }
 );
-
 
 export const getBrokerDocumentsSignedThunk = createAsyncThunk<
     Uint8Array,
@@ -734,30 +638,17 @@ export const getBrokerDocumentsSignedThunk = createAsyncThunk<
         try {
             const token = getState().user.token;
             const broker_id = getState().documents.brokerIds[0];
-            // // console.log('token in thunk:', token);
-            if (!token) {
-                return rejectWithValue("Отсутствует токен авторизации");
-            }
-            // // console.log('thunk broker')
-            // Запрашиваем PDF как бинарь (ArrayBuffer)
+            if (!token) return rejectWithValue("Отсутствует токен авторизации");
+
             const arrayBuffer = await getBrokerDocumentsSigned(broker_id, token);
-            // Превращаем ArrayBuffer в Uint8Array
             const pdfBytes = new Uint8Array(arrayBuffer);
 
-            dispatch(setCurrentSignedDocuments({
-                type: 'type_doc_broker_api_token',
-                document: pdfBytes,
-            }));
-
-            if (purpose === 'download') {
-                onSuccess()
-            }
-            return pdfBytes
+            dispatch(setCurrentSignedDocuments({ type: "type_doc_broker_api_token", document: pdfBytes }));
+            if (purpose === "download") onSuccess();
+            return pdfBytes;
         } catch (error: any) {
-            const msg =
-                error.response?.request?.errorText ||
-                "Брокер не подтвержден. Обратитесь в поддержку";
-            dispatch(setError(msg))
+            const msg = error.response?.request?.errorText || "Брокер не подтвержден. Обратитесь в поддержку";
+            dispatch(setError(msg));
             return rejectWithValue(msg);
         }
     }
@@ -765,28 +656,25 @@ export const getBrokerDocumentsSignedThunk = createAsyncThunk<
 
 export const getAllBrokersThunk = createAsyncThunk<
     void,
-    { is_confirmed_type_doc_agreement_transfer_broker: boolean, onSuccess: () => void },
+    { is_confirmed_type_doc_agreement_transfer_broker: boolean; onSuccess: () => void },
     { rejectValue: string; state: RootState }
 >(
-    "documents/getUserDocumentsSignedThunk",
+    "documents/getAllBrokers",
     async ({ is_confirmed_type_doc_agreement_transfer_broker, onSuccess }, { getState, dispatch, rejectWithValue }) => {
         try {
             const token = getState().user.token;
-            if (!token) {
-                return rejectWithValue("Отсутствует токен авторизации");
-            }
+            if (!token) return rejectWithValue("Отсутствует токен авторизации");
             const response = await getAllBrokers(token, is_confirmed_type_doc_agreement_transfer_broker);
-            dispatch(setIsWaitingBrokerVerification(response.is_waiting_manual_verification_broker))
-            dispatch(setBrokerIds({ brokerId: response.data[0].id, count: response.count }))
+            dispatch(setIsWaitingBrokerVerification(response.is_waiting_manual_verification_broker));
+            dispatch(setBrokerIds({ brokerId: response.data[0].id, count: response.count }));
         } catch (error: any) {
-            const msg =
-                error.response?.data?.errorText ||
-                "Ошибка при получении подписанного документа";
+            const msg = error.response?.data?.errorText || "Ошибка при получении подписанного документа";
             return rejectWithValue(msg);
         }
     }
 );
 
+// ============ slice ============
 export const documentsSlice = createSlice({
     name: "documents",
     initialState,
@@ -797,7 +685,6 @@ export const documentsSlice = createSlice({
         setCurrentConfirmationMethod(state, action: PayloadAction<string>) {
             state.confirmationMethod = action.payload;
         },
-        // Сохраняем массив объектов (документов) в стейт.
         setUserDocuments(state, action: PayloadAction<DocumentConfirmationInfo[]>) {
             state.userDocuments = action.payload;
         },
@@ -809,126 +696,81 @@ export const documentsSlice = createSlice({
             action: PayloadAction<{ brokerId: string; notSignedDocBroker: string }>
         ) {
             state.brokerIds.push(action.payload.brokerId);
-
-            if (!state.allNotSignedDocumentsHtml) {
-                state.allNotSignedDocumentsHtml = {};
-            }
-            state.allNotSignedDocumentsHtml["type_doc_broker_api_token"] =
-                action.payload.notSignedDocBroker;
+            if (!state.allNotSignedDocumentsHtml) state.allNotSignedDocumentsHtml = {};
+            state.allNotSignedDocumentsHtml["type_doc_broker_api_token"] = action.payload.notSignedDocBroker;
         },
-        // setBrokerIds(
-        //     state,
-        //     action: PayloadAction<{ brokerId: string; count: number; }>
-        // ) {
-        //     state.brokerIds.push(action.payload.brokerId);
-        //     state.brokersCount = action.payload.count
-        // },
-        setBrokerIds(
-            state,
-            action: PayloadAction<{ brokerId: string; count: number }>
-        ) {
-            state.brokerIds = [action.payload.brokerId];   // ← старое значение затираем
+        setBrokerIds(state, action: PayloadAction<{ brokerId: string; count: number }>) {
+            state.brokerIds = [action.payload.brokerId];
             state.brokersCount = action.payload.count;
         },
-        resetBrokerIds(state) {
-            state.brokerIds = [];
-            state.brokersCount = 0;
-        },
-        setTimeoutBetweenConfirmation(state, action: PayloadAction<number>) {
-            state.timeoutBetweenConfirmation = action.payload;
-        },
-        // documentsSlice.ts
-        // вместо PayloadAction<SetHtmlsPayload> берём сразу Record<string,string>
-        setNotSignedDocumentsHtmls(
-            state,
-            action: PayloadAction<Record<string, string>>
-        ) {
+
+        // HTML не подписанных документов
+        setNotSignedDocumentsHtmls(state, action: PayloadAction<Record<string, string>>) {
             if (typeof action.payload === "string") {
-                // строку игнорируем или логируем ошибку,
-                // чтобы не развалить стейт
                 console.warn("setNotSignedDocumentsHtmls: payload is string");
                 return;
             }
-            if (!state.allNotSignedDocumentsHtml) {
-                state.allNotSignedDocumentsHtml = {};
-            }
-            // мержим все поля из action.payload
+            if (!state.allNotSignedDocumentsHtml) state.allNotSignedDocumentsHtml = {};
             Object.entries(action.payload).forEach(([id, html]) => {
                 state.allNotSignedDocumentsHtml![id] = html;
             });
         },
 
-
-
-        setCurrentSignedDocuments(
-            state,
-            action: PayloadAction<{ document: Uint8Array | null; type: string }>
-        ) {
+        setCurrentSignedDocuments(state, action: PayloadAction<{ document: Uint8Array | null; type: string }>) {
             state.currentSugnedDocument = action.payload;
         },
-        setIsRiksProfileComplete(
-            state,
-            action: PayloadAction<FilledRiskProfileChapters>
-        ) {
+        setIsRiksProfileComplete(state, action: PayloadAction<FilledRiskProfileChapters>) {
             state.filledRiskProfileChapters = action.payload;
         },
-        setDocumentTimeoutPending(
+
+        // ===== Новые редьюсеры для таймеров =====
+        startDocTimeout(
             state,
-            action: PayloadAction<{ docKey: string; timeout: number }>
+            action: PayloadAction<{ docKey: string; duration?: number; startedAtMs?: number }>
         ) {
-            const { docKey, timeout } = action.payload;
-            const doc = state.userDocuments.find(doc => doc.key === docKey);
-            if (doc) {
-                doc.timeoutPending = timeout;
-            } else {
-                // Если документа с таким ключом ещё нет, добавляем его с null датой подтверждения
-                state.userDocuments.push({
-                    key: docKey,
-                    date_last_confirmed: null,
-                    timeoutPending: timeout,
-                });
-            }
+            const { docKey } = action.payload;
+            const dur = action.payload.duration ?? docTimeoutMap[docKey] ?? 5;
+            state.timersByDoc[docKey] = {
+                startedAt: action.payload.startedAtMs ?? Date.now(),
+                duration: dur,
+                active: true,
+            };
         },
 
-        decrementDocumentTimeout(
-            state,
-            action: PayloadAction<{ docKey: string; decrement: number }>
-        ) {
-            const { docKey, decrement } = action.payload;
-            const doc = state.userDocuments.find(doc => doc.key === docKey);
-            if (doc && typeof doc.timeoutPending === "number" && doc.timeoutPending > 0) {
-                doc.timeoutPending = Math.max(0, doc.timeoutPending - decrement);
+        stopDocTimeout(state, action: PayloadAction<{ docKey: string }>) {
+            const { docKey } = action.payload;
+            const entry = state.timersByDoc[docKey];
+            if (entry) {
+                entry.active = false;
+                entry.startedAt = null;
+                entry.duration = 0;
             }
         },
-        setCustomDocumentData(state, action: PayloadAction<CustomDocData>) {
-            state.customDocumentsData = action.payload;
+        tickNow(state) {
+            state.nowTs = Date.now();
         },
-        clearDocumentTimeout(state, action: PayloadAction<string>) {
-            const docKey = action.payload;
-            const doc = state.userDocuments.find(doc => doc.key === docKey);
-            if (doc) {
-                doc.timeoutPending = 0;
-            }
-        },
+
 
         nextDocType(state) {
-            const currentIndex = docTypes.findIndex(
-                (doc) => doc === state.currentConfirmableDoc
-            );
-            // Если мы не на последнем документе — переключаемся на следующий
+            const currentIndex = docTypes.findIndex((doc) => doc === state.currentConfirmableDoc);
             if (currentIndex < docTypes.length - 1) {
                 state.currentConfirmableDoc = docTypes[currentIndex + 1];
-            } else {
-                // // console.log("Все документы подписаны!");
             }
         },
-        setUploadDocSocket(
-            state,
-            action: PayloadAction<{ docId: string; socketId: string }>
-        ) {
+
+        setUploadDocSocket(state, action: PayloadAction<{ docId: string; socketId: string }>) {
             const { docId, socketId } = action.payload;
             state.uploadDocs[docId] = { socketId, status: "pending" };
         },
+        resetBrokerIds(state) {
+            state.brokerIds = [];
+            state.brokersCount = 0;
+        },
+        // внутри reducers: { ... }
+        setCustomDocumentData(state, action: PayloadAction<CustomDocData>) {
+            state.customDocumentsData = action.payload;
+        },
+
         setUploadDocStatus(
             state,
             action: PayloadAction<{ docId: string; status: "pending" | "success" }>
@@ -938,10 +780,12 @@ export const documentsSlice = createSlice({
                 state.uploadDocs[docId].status = status;
             }
             if (status === "success") {
-                const doc = state.userDocuments.find(d => d.key === docId);
+                const doc = state.userDocuments.find((d) => d.key === docId);
                 if (doc) doc.timeoutPending = 0;
             }
         },
+
+
         setAvailabilityPersonalAccountMenuItems(
             state,
             action: PayloadAction<AvailabilityPersonalAccountMenuItems>
@@ -949,15 +793,12 @@ export const documentsSlice = createSlice({
             state.availabilityPersonalAccountMenuItems = action.payload;
         },
 
-        setIsWaitingBrokerVerification(
-            state,
-            action: PayloadAction<boolean>
-        ) {
+        setIsWaitingBrokerVerification(state, action: PayloadAction<boolean>) {
             state.is_waiting_manual_verification_broker = action.payload;
         },
         setIsWaitingDocumentsVerification(
             state,
-            action: PayloadAction<{ type_doc_agreement_transfer_broker: string, type_doc_passport: string }>
+            action: PayloadAction<{ type_doc_agreement_transfer_broker: string; type_doc_passport: string }>
         ) {
             state.waiting_manual_document_verification = action.payload;
         },
@@ -1015,34 +856,48 @@ export const documentsSlice = createSlice({
             .addCase(getBrokerDocumentsSignedThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
-            })
-
-        // Аналогично можно дописать pending/fulfilled для confirmDocsRequestThunk, если нужно
+            });
     },
 });
+
+// ===== Selectors =====
+
+/**
+ * Сколько секунд осталось для конкретного документа.
+ * Если таймер не активен — 0.
+ */
+export const selectRemainingTimeoutByDoc = (state: RootState, docKey: string): number => {
+    const entry = state.documents.timersByDoc[docKey];
+    if (!entry || !entry.active || !entry.startedAt) return 0;
+    const now = Date.now();
+    const elapsed = Math.floor((now - entry.startedAt) / 1000);
+    return Math.max(0, entry.duration - elapsed);
+};
+
 
 export const {
     setCurrentConfirmableDoc,
     setCurrentConfirmationMethod,
     setUserDocuments,
     nextDocType,
-    setTimeoutBetweenConfirmation,
     setNotSignedDocumentsHtmls,
     setCurrentSignedDocuments,
     setIsRiksProfileComplete,
     setUserPasportData,
     setBrokerSuccessResponseInfo,
     setBrokerIds,
-    setDocumentTimeoutPending,
-    decrementDocumentTimeout,
-    clearDocumentTimeout,
     setCustomDocumentData,
     setUploadDocSocket,
     setUploadDocStatus,
     resetBrokerIds,
     setAvailabilityPersonalAccountMenuItems,
     setIsWaitingBrokerVerification,
-    setIsWaitingDocumentsVerification
+    setIsWaitingDocumentsVerification,
+
+    // новые
+    startDocTimeout,
+    stopDocTimeout,
+    tickNow,
 } = documentsSlice.actions;
 
 export default documentsSlice.reducer;

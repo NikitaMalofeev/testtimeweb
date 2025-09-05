@@ -12,9 +12,10 @@ import {
     getAllUserTariffsThunk,
     getAllActiveTariffsThunk,
     setCurrentTariff,
-    setLockToLoading, // НОВОЕ
+    setLockToLoading,
+    getBrokerBalanceThunk, // ✨ ДОБАВЛЕНО
 } from 'entities/Payments/slice/paymentsSlice';
-import { setWarning } from 'entities/ui/Ui/slice/uiSlice';
+import { setStepAdditionalMenuUI, setWarning } from 'entities/ui/Ui/slice/uiSlice';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
 import PaymentsBase from 'shared/assets/images/paymentsBase.png';
 import PaymentsActive from 'shared/assets/images/paymentsActive.png';
@@ -34,7 +35,9 @@ import { PaymentsStatus } from '../PaymentsStatus/PaymentsStatus';
 import { Select } from 'shared/ui/Select/Select';
 import { useDevice } from 'shared/hooks/useDevice';
 import { TariffCalculator } from '../TariffCalculator/TariffCalculator';
-import { Loader } from 'shared/ui/Loader/Loader';
+import { Loader, LoaderSize } from 'shared/ui/Loader/Loader';
+import { set } from 'lodash';
+import { setStep } from 'entities/RiskProfile/slice/riskProfileSlice';
 
 const messageTypeOptions = { SMS: 'SMS', EMAIL: 'Email', WHATSAPP: 'Whatsapp' } as const;
 type MessageKey = keyof typeof messageTypeOptions;
@@ -70,24 +73,27 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     const activeTariffs = useSelector((s: RootState) => s.payments.activeTariffs);
     const currentOrderId = useSelector((s: RootState) => s.payments.currentOrderId);
     const currentUserTariffIdForPayments = useSelector((s: RootState) => s.payments.currentUserTariffIdForPayments);
-    const lockToLoading = useSelector((s: RootState) => s.payments.lockToLoading); // НОВОЕ
+    const lockToLoading = useSelector((s: RootState) => s.payments.lockToLoading);
+    const balance = useSelector((s: RootState) => s.payments.balance);                 // ✨ ДОБАВЛЕНО
+    const activeTariff = useSelector((s: RootState) => s.payments.activeTariffs?.[0]); // ✨ ДОБАВЛЕНО
+
     const tariffsRequestedRef = useRef(false);
 
     const isPaidAndActive = (title: string): boolean =>
         activeTariffs.some((t) => t.title === title && t.is_active);
 
-    /* URL → Redux: статус и замок */
+    // ===== URL → Redux: статус и замок
     useEffect(() => {
         if (!statusParam) return;
         if (allowedStatus.includes(statusParam as any)) {
             const st = statusParam as 'success' | 'loading' | 'failed';
             dispatch(setCurrentOrderStatus(st));
-            if (st === 'loading') dispatch(setLockToLoading(true));   // включаем замок
-            if (st === 'success') dispatch(setLockToLoading(false));  // снимаем замок при успехе
+            if (st === 'loading') dispatch(setLockToLoading(true));
+            if (st === 'success') dispatch(setLockToLoading(false));
         }
     }, [statusParam, dispatch]);
 
-    /* Принудительный редирект на /payments/loading при активном замке */
+    // ===== Принудительный редирект /payments/loading при активном замке
     useEffect(() => {
         if (
             lockToLoading &&
@@ -99,7 +105,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         }
     }, [lockToLoading, location.pathname, navigate]);
 
-    /* SUCCESS → подтянуть свежие данные один раз */
+    // ===== SUCCESS → подтянуть свежие данные один раз
     useEffect(() => {
         if (currentOrderStatus === 'success' && !tariffsRequestedRef.current) {
             dispatch(getAllActiveTariffsThunk({ onSuccess() { } }));
@@ -108,7 +114,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         }
     }, [currentOrderStatus, dispatch]);
 
-    /* На монтировании: запрос активных тарифов; при размонтировании — очистить только статус */
+    // ===== На монтировании: активные тарифы; при размонтировании — очистить только статус
     useEffect(() => {
         dispatch(getAllActiveTariffsThunk({ onSuccess() { } }));
         return () => {
@@ -116,26 +122,38 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         };
     }, [dispatch]);
 
-    /* Каталог тарифов */
+    // ===== Каталог тарифов
     useEffect(() => {
         if (tariffs.length < 1) {
             dispatch(getAllTariffsThunk());
         }
     }, [tariffs.length, dispatch]);
 
-    /* Брокеры + тарифы */
+    // ===== Брокеры + тарифы
     useEffect(() => {
         dispatch(getAllBrokersThunk({ is_confirmed_type_doc_agreement_transfer_broker: true, onSuccess: () => { } }));
         dispatch(getAllTariffsThunk());
     }, [dispatch]);
 
+    // ===== Запрос баланса по первому брокеру (если есть) ✨ ДОБАВЛЕНО
+    useEffect(() => {
+        if (brokerIds?.length > 0 && brokerIds[0]) {
+            dispatch(getBrokerBalanceThunk({ broker_id: brokerIds[0] }));
+        }
+    }, [brokerIds, dispatch]);
+
     const brokersItems = brokerIds[0]
         ? [{ value: brokerIds[0], label: 'Т-брокер' }]
         : [{ value: '', label: 'Брокер ещё не выбран' }];
 
-    /* Локальный UI */
+    // ===== Локальный UI
     const [isConfirming, setIsConfirming] = useState(false);
     const [currentTimeout, setCurrentTimeout] = useState(0);
+
+    // ✨ Локальное модальное окно «Подробнее о тарифе»
+    const [isDetailsOpen, setIsDetailsOpen] = useState(false); // ✨
+    const [detailsTariffId, setDetailsTariffId] = useState<string | null>(null); // ✨
+    const detailsTariff = tariffs.find((t) => t.id === detailsTariffId) || null; // ✨
 
     useEffect(() => {
         if (currentTimeout <= 0) return;
@@ -143,7 +161,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         return () => clearTimeout(t);
     }, [currentTimeout]);
 
-    /* Formik */
+    // ===== Formik
     const formik = useFormik({
         initialValues: {
             is_agree: false,
@@ -177,6 +195,20 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         dispatch(setCurrentOrderId(id));
     };
 
+    // ✨ Открыть модал «Подробнее»: сохраняем выбранный тариф и открываем окно
+    const handleOpenDetails = (id: string) => {
+        handleChooseTariff(id);        // сохраняем выбор как и раньше
+        setDetailsTariffId(id);        // для отображения данных в модалке
+        // открыть модал
+    };
+
+    const handleConfirmPayment = () => {
+        dispatch(setStepAdditionalMenuUI(4));
+        dispatch(setCurrentConfirmableDoc('type_doc_agreement_investment_advisor_app_1'));
+        dispatch(openModal({ type: ModalType.IDENTIFICATION, size: ModalSize.FULL, animation: ModalAnimation.LEFT }));
+        setIsDetailsOpen(false)
+    }
+
     const handleSetTariff = useCallback(() => {
         dispatch(closeModal(ModalType.SUCCESS));
         if (brokersCount < 1) {
@@ -192,8 +224,8 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                 }),
             );
         } else {
-            dispatch(setCurrentConfirmableDoc('type_doc_agreement_investment_advisor_app_1'));
-            dispatch(openModal({ type: ModalType.IDENTIFICATION, size: ModalSize.FULL, animation: ModalAnimation.LEFT }));
+            setIsDetailsOpen(true);
+
         }
     }, [dispatch, brokersCount, navigate]);
 
@@ -201,7 +233,9 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         document.body.style.overflow = isConfirming ? 'hidden' : '';
     }, [isConfirming]);
 
-    /* Экран статуса с нужными обработчиками */
+    // ===== Утилиты форматирования и расчёта ✨
+
+    // ===== Экран статуса
     if (currentOrderStatus) {
         return (
             <PaymentsStatus
@@ -215,7 +249,6 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                 onBack={
                     currentOrderStatus === 'loading'
                         ? () => {
-                            // Снять замок и вернуть на /payments
                             dispatch(setLockToLoading(false));
                             dispatch(setCurrentOrderStatus(''));
                             navigate('/payments', { replace: true });
@@ -248,7 +281,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         );
     }
 
-    /* Список карточек (основной экран) */
+    // ===== Список карточек (основной экран)
     const listPart = (
         <>
             <AnimatePresence mode="popLayout">
@@ -274,7 +307,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                             fee={t.commission_asset != null ? `${t.commission_asset}%` : ''}
                             capital={`${t.days_service_validity} days`}
                             imageUrl={t.title === 'Базовый тариф' ? PaymentsBase : PaymentsActive}
-                            onMore={() => handleChooseTariff(t.id)}
+                            onMore={() => handleOpenDetails(t.id)}  // ✨ ИЗМЕНЕНО: открываем модал
                             paidFor={isPaidAndActive(t.title) || false}
                         />
 
@@ -344,7 +377,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         </>
     );
 
-    /* (если используешь отдельный шаг подтверждения) */
+    // ===== (если используешь отдельный шаг подтверждения)
     const confirmPart = (
         <AnimatePresence>
             {isConfirming && (
@@ -392,7 +425,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                     fee={t.commission_asset != null ? `${t.commission_asset}%` : ''}
                                     capital={`${t.days_service_validity} days`}
                                     imageUrl={t.title === 'Долгосрочный инвестор' ? PaymentsBase : PaymentsActive}
-                                    onMore={() => handleChooseTariff(t.id)}
+                                    onMore={() => handleChooseTariff(t.id)} // оставляем прежнее поведение здесь
                                     paidFor={isPaidAndActive(t.title) || false}
                                 />
                             </motion.div>
@@ -457,9 +490,106 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         </AnimatePresence>
     );
 
+    // ===== Модал «Подробнее о тарифе» ✨
+    const detailsModal = (
+        <AnimatePresence>
+            {isDetailsOpen && (
+                <motion.div
+                    className={styles.detailsModalOverlay || 'details-modal-overlay'} // на случай, если нет класса в scss
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    style={{
+                        position: 'fixed',
+                        inset: 0,
+                        background: 'rgba(0,0,0,0.4)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 1000,
+                    }}
+                    onClick={() => setIsDetailsOpen(false)}
+                >
+                    <motion.div
+                        className={styles.detailsModal || 'details-modal'}
+                        initial={{ y: 40, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: 40, opacity: 0 }}
+                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                        style={{
+                            background: '#fff',
+                            borderRadius: 16,
+                            padding: 20,
+                            width: 'min(560px, 92vw)',
+                            boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12, gap: 10 }}>
+                            {detailsTariff?.title ? <span style={{ opacity: 0.7 }}>{detailsTariff.title}</span> : null}
+
+                        </div>
+
+                        <div style={{ display: 'grid', gap: 10 }}>
+                            <div>
+                                <div style={{ fontSize: 13, opacity: 0.7, marginBottom: 4 }}>Ваш текущий баланс</div>
+                                <div style={{ fontSize: 20, fontWeight: 700 }}>
+                                    {balance?.all_total ? balance.all_total : <Loader size={LoaderSize.MEDIUM} />} ₽
+                                </div>
+                            </div>
+
+                            <div style={{ height: 1, background: '#eee', margin: '6px 0' }} />
+
+                            <div style={{ display: 'grid', gap: 6 }}>
+                                <div style={{ fontSize: 12, opacity: 0.6, marginTop: 4 }}>
+                                    *Расчёт комиссии по тарифу зависит от баланса и риск-профиля
+                                </div>
+                            </div>
+
+                            <div style={{ height: 1, background: '#eee', margin: '6px 0' }} />
+
+                            <div style={{ display: 'flex', flexDirection: 'row', gap: 8, alignItems: 'start', flexWrap: 'wrap' }}>
+                                <span style={{ fontSize: 16, opacity: 0.8 }}>Есть вопросы?</span>
+                                <Button
+                                    className={styles.chat__button}
+                                    theme={ButtonTheme.EMPTYBLUE}
+                                    onClick={() => navigate('/support')}
+
+                                    padding="0"
+                                >
+                                    Напишите в чат поддержки
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: 10, marginTop: 16, justifyContent: 'flex-end' }}>
+                            <Button
+                                theme={ButtonTheme.EMPTYBLUE}
+                                onClick={() => setIsDetailsOpen(false)}
+                                padding="10px 18px"
+                            >
+                                Вернуться
+                            </Button>
+                            <Button
+                                theme={ButtonTheme.BLUE}
+                                onClick={() => handleConfirmPayment()}
+                                padding="10px 18px"
+                            >
+                                Подтвердить
+                            </Button>
+                        </div>
+                    </motion.div>
+                </motion.div>
+            )}
+        </AnimatePresence>
+    );
+
     return (
         <div className={styles.list}>
             {!isConfirming ? listPart : confirmPart}
+
+            {/* ✨ Модальное окно «Подробнее о тарифе» */}
+            {detailsModal}
 
             <ConfirmDocsModal
                 lastData={{

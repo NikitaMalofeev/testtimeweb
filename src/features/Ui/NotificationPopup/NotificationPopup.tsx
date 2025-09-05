@@ -25,25 +25,36 @@ import {
 export const NotificationPopup: React.FC = () => {
     const dispatch = useAppDispatch();
     const current = useSelector(selectFirstActive);
-    const isOpen = Boolean(current);
-    const autoHideMs = 10000; // поставь 3000 для "пара секунд"
 
-    // таймер живет пока есть открытое уведомление
+    // есть ли что показать
+    const hasContent = current?.status !== 'notif_info'
+    Boolean(current?.title?.trim()) || Boolean(current?.text?.trim());
+
+    // попап показываем только если есть уведомление и есть title || text
+    const isOpen = Boolean(current && hasContent);
+
+    const autoHideMs = 6000;
+
+    // если уведомление пустое — сразу выключаем его
     useEffect(() => {
-        if (!current) return;
+        if (current && !hasContent) {
+            dispatch(deactivateNotification({ id: current.id }));
+        }
+    }, [current, hasContent, dispatch]);
+
+    // автозакрытие только когда реально открыт
+    useEffect(() => {
+        if (!isOpen || !current) return;
         const id = current.id;
         const t = window.setTimeout(() => {
             dispatch(deactivateNotification({ id }));
-            // если хочешь считать просмотр попапа "прочитанным":
-            // dispatch(markAsRead({ id }));
         }, autoHideMs);
         return () => window.clearTimeout(t);
-    }, [current?.id, dispatch]);
+    }, [isOpen, current?.id, dispatch]);
 
     const handleClose = () => {
         if (!current) return;
         dispatch(deactivateNotification({ id: current.id }));
-        // если нужно: dispatch(markAsRead({ id: current.id }));
     };
 
     const bg =
@@ -57,10 +68,7 @@ export const NotificationPopup: React.FC = () => {
             animate={isOpen ? { y: 24, opacity: 1 } : { y: -124, opacity: 0 }}
             transition={{ duration: 0.5, ease: 'easeInOut' }}
             className={styles.warningModal}
-            style={{
-                background: bg,
-                pointerEvents: isOpen ? 'auto' : 'none',
-            }}
+            style={{ background: bg, pointerEvents: isOpen ? 'auto' : 'none' }}
             role="alert"
             aria-live="polite"
             aria-hidden={!isOpen}
@@ -79,9 +87,13 @@ export const NotificationPopup: React.FC = () => {
                         <Icon Svg={WarningIcon} width={20} height={20} />
                         {current?.title && <strong>{current.title}</strong>}
                     </div>
-                    {/* <div className={styles.text}>
-                        <span>{current?.text}</span>
-                    </div> */}
+
+                    {/* Показать текст, если есть */}
+                    {current?.text?.trim() && (
+                        <div className={styles.text}>
+                            <span>{current.text}</span>
+                        </div>
+                    )}
                 </div>
             )}
         </motion.div>

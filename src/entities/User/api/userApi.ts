@@ -130,3 +130,12 @@ export const deleteUserTariffs = async (token: string) => {
     );
     return response.data;
 };
+
+export const getAllCountryCodes = async () => {
+    const response = await axios.get(`${apiUrl}create_doc_user/get_all_codes_countres/`, {
+        headers: {
+            "Accept-Language": "ru",
+        },
+    });
+    return response.data;
+};

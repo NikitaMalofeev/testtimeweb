@@ -21,14 +21,24 @@ interface Props {
     min_deposit_value: number;
 }
 
-/** Формат/парс как в SecondRiskProfile */
-const formatMoney = (num: number) =>
+/** Формат/парс как в SecondRiskProfile (для инпута) */
+const formatMoneyInput = (num: number) =>
     num ? String(num).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' ₽' : '';
 
 const parseMoneyStringToNumber = (str: string) => {
     const raw = str.replace(/\s/g, '').replace('₽', '').trim();
     const val = parseInt(raw, 10);
     return isNaN(val) ? 0 : val;
+};
+
+/** Формат для вывода результатов: 10 000 ₽, 400 000 ₽, 2 000 345 ₽ */
+const formatMoneyOut = (value: number | string | null | undefined) => {
+    if (value === null || value === undefined) return '';
+    const n = typeof value === 'number'
+        ? Math.round(value)
+        : Math.round(Number(String(value).replace(/[^\d.-]/g, '')));
+    if (!isFinite(n)) return '';
+    return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' ₽';
 };
 
 const STEP = 10_000;
@@ -62,13 +72,12 @@ export const TariffCalculator: React.FC<Props> = ({ tariff_key, min_deposit_valu
         (riskProfileFromUser as string) || 'risk_prof_balanced'
     );
 
-    // Если из стора пришёл профиль и локально ещё дефолт — синхронизируем один раз
+    // Если из стора пришёл профиль и локально ещё дефолт — синхроним
     useEffect(() => {
-        if (riskProfileFromUser && !selectedProfile) {
+        if (riskProfileFromUser && selectedProfile === 'risk_prof_balanced') {
             setSelectedProfile(riskProfileFromUser);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [riskProfileFromUser]);
+    }, [riskProfileFromUser, selectedProfile]);
 
     // Дебаунс запроса расчёта
     const fire = useMemo(
@@ -76,7 +85,7 @@ export const TariffCalculator: React.FC<Props> = ({ tariff_key, min_deposit_valu
             debounce((sum: number, profile: string) => {
                 const payload: CalculateProfitabilityPayload = {
                     min_deposit: sum,
-                    risk_profile: profile ? profile : selectedProfile,
+                    risk_profile: profile,
                     tariff_key: tariff_key || '',
                 };
                 dispatch(calculateProfitabilityThunk(payload));
@@ -133,7 +142,7 @@ export const TariffCalculator: React.FC<Props> = ({ tariff_key, min_deposit_valu
                         max={MAX_DEPOSIT}
                         step={STEP}
                         needShowInput
-                        value={formatMoney(clamp(roundToStep(min_deposit || min_deposit_value)))}
+                        value={formatMoneyInput(clamp(roundToStep(min_deposit || min_deposit_value)))}
                         onChange={(e) => {
                             const num = parseMoneyStringToNumber(e.target.value);
                             const normalized = clamp(roundToStep(num));
@@ -159,21 +168,26 @@ export const TariffCalculator: React.FC<Props> = ({ tariff_key, min_deposit_valu
                         positionBox={{ top: '16px', left: '-264px' }}
                         squerePosition={{ top: '4px', left: '241px' }}
                         topForCenteringIcons="24px"
-                        description={riskProfileFromUser ? 'Ваш текущий риск-профиль' : "Доходность и комиссия зависят напрямую от риск-профиля, который вы выберете"}
+                        description={
+                            riskProfileFromUser
+                                ? 'Ваш текущий риск-профиль'
+                                : 'Доходность и комиссия зависят напрямую от риск-профиля, который вы выберете'
+                        }
                         className={styles.tooltip_rp}
                     />
 
                     {riskProfileFromUser ? (
-                        <span>{riskProfileFromUser ? SWIPER_PARAM_VALUES[riskProfileFromUser as keyof typeof SWIPER_PARAM_VALUES] : ''}</span>
+                        <span>
+                            {riskProfileFromUser
+                                ? SWIPER_PARAM_VALUES[riskProfileFromUser as keyof typeof SWIPER_PARAM_VALUES]
+                                : ''}
+                        </span>
                     ) : (
                         <Select
                             value={selectedProfile}
                             title="Выберите риск профиль"
                             items={finalRiskProfileOptions}
-                            onChange={(val: string) => {
-                                // val — одно из значений ключей профилей
-                                setSelectedProfile(val);
-                            }}
+                            onChange={(val: string) => setSelectedProfile(val)}
                         />
                     )}
                 </div>
@@ -187,7 +201,7 @@ export const TariffCalculator: React.FC<Props> = ({ tariff_key, min_deposit_valu
                         positionBox={{ top: '26px', left: '-264px' }}
                         squerePosition={{ top: '15px', left: '241px' }}
                         topForCenteringIcons="24px"
-                        description="Показывает прогноз прибыли за год на основании заданного депозита и риск-профиля"
+                        description="Прогноз прибыли за год на основании заданного депозита и риск-профиля"
                         className={styles.tooltip}
                     />
                 </div>
@@ -206,21 +220,19 @@ export const TariffCalculator: React.FC<Props> = ({ tariff_key, min_deposit_valu
                         </div>
                         <div className={styles.row}>
                             <span className={styles.label}>Годовой доход</span>
-                            <span className={styles.value}>{`${result.year_money} ₽`}</span>
+                            <span className={styles.value}>{formatMoneyOut(result.year_money)}</span>
                         </div>
                         <div className={styles.row}>
                             <span className={styles.label}>Комиссия за 365 дней</span>
-                            <span className={styles.value}>{`${result.commission_365_days} ₽`}</span>
+                            <span className={styles.value}>{formatMoneyOut(result.commission_365_days)}</span>
                         </div>
                         <div className={styles.row}>
                             <span className={styles.label}>Годовой доход с учетом комиссии</span>
-                            <span className={styles.value}>{`${result.year_money_without_commission} ₽`}</span>
+                            <span className={styles.value}>{formatMoneyOut(result.year_money_without_commission)}</span>
                         </div>
                     </div>
                 )}
             </div>
-
         </div>
-
     );
 };

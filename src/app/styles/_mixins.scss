@@ -1,37 +1,51 @@
-// _mixins.scss
+/* src/app/styles/_mixins.scss */
+@use "sass:map";
+@use "sass:list";
+@use "sass:meta";
+@use "sass:string";
+
+/* Карта брейкпоинтов */
 $breakpoints: (
-  'mobile': (350px, 959px),      // ширина 350‑1023 — высота не важна
-  'tablet-desktop': (960px, 4000px) // ширина 1024‑4000 + ВЫСОТА ≥ 700
+  'mobile': (350px, 959px),          // ширина 350–959
+  'tablet-desktop': (960px, 4000px), // ширина 960–4000 + доп. проверки
+  '350-500': (350px, 500px)          // ⬅️ алиас, чтобы не падали include'ы из стилей
 );
 
-// универсальный миксин + спец‑кейс для tablet‑desktop
+/* Универсальный миксин + спец-кейс для tablet-desktop */
 @mixin respond-to($bp) {
-  // 1️⃣ tablet‑desktop: ширина + высота
+  // 1) tablet-desktop: ширина + высота
   @if $bp == 'tablet-desktop' {
-    $range: map-get($breakpoints, 'tablet-desktop');
+    $range: map.get($breakpoints, 'tablet-desktop');
 
-    @media (min-width: nth($range, 1))       // ≥ 1024 px
-           and (max-width: nth($range, 2))   // ≤ 4000 px
-           and (min-height: 640px) {         // ≥ 660 px
+    @media (min-width: #{list.nth($range, 1)})
+           and (max-width: #{list.nth($range, 2)})
+           and (min-height: 640px) { // скорректируй при необходимости
       @content;
     }
 
-  // 2️⃣ любой другой брейкпоинт из карты
-  } @else if map-has-key($breakpoints, $bp) {
-    $val: map-get($breakpoints, $bp);
+  // 2) любой другой брейкпоинт из карты
+  } @else if map.has-key($breakpoints, $bp) {
+    $val: map.get($breakpoints, $bp);
 
-    @if length($val) == 2 { // диапазон ширины
-      @media (min-width: nth($val, 1)) and (max-width: nth($val, 2)) {
+    @if meta.type-of($val) == 'list' and list.length($val) == 2 {
+      @media (min-width: #{list.nth($val, 1)}) and (max-width: #{list.nth($val, 2)}) {
         @content;
       }
-    } @else if (type-of($val) == 'number' or type-of($val) == 'string') { // одно значение
-      @media (min-width: #{$val}) {
-        @content;
-      }
+    } @else if (meta.type-of($val) == 'number' or meta.type-of($val) == 'string') {
+      @media (min-width: #{$val}) { @content; }
+    } @else {
+      @warn "Брейкпоинт `#{$bp}` имеет неподдерживаемый формат.";
     }
 
   } @else {
     @warn "Брейкпоинт `#{$bp}` не определён.";
+  }
+}
+
+/* Отдельный миксин под условие: высота 500–750 и ширина ≥ 800 */
+@mixin h500-750-w800 {
+  @media (min-height: 500px) and (max-height: 750px) and (min-width: 800px) {
+    @content;
   }
 }
 
@@ -44,5 +58,5 @@ $breakpoints: (
   @if $min-h != null { $mq: $mq + " and (min-height: #{$min-h})"; }
   @if $max-h != null { $mq: $mq + " and (max-height: #{$max-h})"; }
 
-  @media #{unquote($mq)} { @content; }
+  @media #{string.unquote($mq)} { @content; }
 }

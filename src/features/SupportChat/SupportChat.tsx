@@ -164,8 +164,7 @@ export const SupportChat = () => {
         dispatch(addMessage(newMessage));
         setMessageText("");
         
-        // Отправляем на сервер+
-        //
+        // Отправляем на сервер
         try {
             await dispatch(postMessage({ text: messageToSend }));
         } catch (error) {

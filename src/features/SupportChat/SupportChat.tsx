@@ -25,6 +25,93 @@ import { Loader } from "shared/ui/Loader/Loader";
 import { closeAllModals } from "entities/ui/Modal/slice/modalSlice";
 import { setScrollToTop } from "entities/ui/Ui/slice/uiSlice";
 
+// Компонент для загрузки защищенных изображений через Blob
+const AuthImage: React.FC<{ 
+    src: string; 
+    alt: string; 
+    className?: string;
+    token: string;
+}> = ({ src, alt, className, token }) => {
+    const [blobUrl, setBlobUrl] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
+
+    useEffect(() => {
+        const loadImage = async () => {
+            try {
+                setLoading(true);
+                setError(false);
+
+                const response = await fetch(src, {
+                    headers: {
+                        'Authorization': `Token ${token}`,
+                        'Accept': 'image/*,*/*'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                setBlobUrl(url);
+                setLoading(false);
+            } catch (err) {
+                console.error('Ошибка загрузки изображения:', err);
+                setError(true);
+                setLoading(false);
+            }
+        };
+
+        loadImage();
+
+        // Очистка при размонтировании компонента
+        return () => {
+            if (blobUrl) {
+                URL.revokeObjectURL(blobUrl);
+            }
+        };
+    }, [src, token]);
+
+    // Очистка при изменении blobUrl
+    useEffect(() => {
+        return () => {
+            if (blobUrl) {
+                URL.revokeObjectURL(blobUrl);
+            }
+        };
+    }, [blobUrl]);
+
+    if (loading) {
+        return (
+            <div className={`${styles.message__imageLoading} ${className || ''}`}>
+                <div className={styles.message__imageLoader}>Загрузка...</div>
+            </div>
+        );
+    }
+
+    if (error || !blobUrl) {
+        return (
+            <div className={`${styles.message__imageError} ${className || ''}`}>
+                <span>Не удалось загрузить изображение</span>
+            </div>
+        );
+    }
+
+    return (
+        <img 
+            src={blobUrl} 
+            alt={alt} 
+            className={className}
+            onLoad={() => {
+                // Дополнительная очистка при успешной загрузке
+                // URL все еще нужен для отображения
+            }}
+        />
+    );
+};
+
 const formatDateTime = (datetime: any) => {
     if (!datetime) return "Неизвестно";
     
@@ -70,7 +157,7 @@ const isImageUrl = (url?: string | null) => {
     return hasImageExtension || isRanksFileApi || hasImageKeywords;
 };
 
-export const UserMessage = ({ message }: { message: ChatMessage }) => {
+export const UserMessage = ({ message, token }: { message: ChatMessage; token: string }) => {
     return (
         <div className={styles.message_user}>
             <span className={styles.message__date}>
@@ -81,7 +168,12 @@ export const UserMessage = ({ message }: { message: ChatMessage }) => {
                 <div className={styles.message__attachment}>
                     {isImageUrl(message.file_url) ? (
                         <div className={styles.message__imageContainer}>
-                            <img className={styles.message__fullImage} src={message.file_url} alt="attachment" />
+                            <AuthImage 
+                                src={message.file_url} 
+                                alt="attachment" 
+                                className={styles.message__fullImage}
+                                token={token}
+                            />
                         </div>
                     ) : (
                         <div className={styles.message__fileContainer}>
@@ -96,7 +188,7 @@ export const UserMessage = ({ message }: { message: ChatMessage }) => {
     );
 };
 
-export const SupportMessage = ({ message, highlight }: { message: ChatMessage; highlight?: boolean }) => {
+export const SupportMessage = ({ message, highlight, token }: { message: ChatMessage; highlight?: boolean; token: string }) => {
     return (
         <div className={styles.message_support}>
             <span className={styles.message__date}>
@@ -108,7 +200,12 @@ export const SupportMessage = ({ message, highlight }: { message: ChatMessage; h
                 <div className={styles.message__attachment}>
                     {isImageUrl(message.file_url) ? (
                         <div className={styles.message__imageContainer}>
-                            <img className={styles.message__fullImage} src={message.file_url} alt="attachment" />
+                            <AuthImage 
+                                src={message.file_url} 
+                                alt="attachment" 
+                                className={styles.message__fullImage}
+                                token={token}
+                            />
                         </div>
                     ) : (
                         <div className={styles.message__fileContainer}>
@@ -301,11 +398,11 @@ export const SupportChat = () => {
                         .map((msg, index) => {
                             const msgKey = `${(msg as any).id ?? "noid"}-${msg.created}-${msg.user_id}-${index}`;
                             if (!msg.is_answer) {
-                                return <UserMessage key={msgKey} message={msg} />;
+                                return <UserMessage key={msgKey} message={msg} token={token} />;
                             }
                             const messageKey = `${msg.created}-${msg.user_id}`;
                             const highlight = unreadMessageKeys.has(messageKey);
-                            return <SupportMessage key={msgKey} message={msg} highlight={highlight} />;
+                            return <SupportMessage key={msgKey} message={msg} highlight={highlight} token={token} />;
                         })}
                 </div>
             </div>

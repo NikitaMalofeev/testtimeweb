@@ -26,7 +26,15 @@ import { closeAllModals } from "entities/ui/Modal/slice/modalSlice";
 import { setScrollToTop } from "entities/ui/Ui/slice/uiSlice";
 
 const formatDateTime = (datetime: any) => {
+    if (!datetime) return "Неизвестно";
+    
     const d = new Date(datetime);
+    
+    // Проверяем валидность даты
+    if (isNaN(d.getTime())) {
+        return "Неизвестно";
+    }
+    
     const day = String(d.getDate()).padStart(2, "0");
     const month = String(d.getMonth() + 1).padStart(2, "0");
     const year = d.getFullYear();
@@ -37,10 +45,29 @@ const formatDateTime = (datetime: any) => {
 
 const isImageUrl = (url?: string | null) => {
     if (!url) return false;
-    const u = url.split("?")[0].toLowerCase();
-    return u.endsWith(".png") || u.endsWith(".jpg") || u.endsWith(".jpeg") || 
-           u.endsWith(".webp") || u.endsWith(".gif") || u.endsWith(".bmp") || 
-           u.endsWith(".svg") || u.endsWith(".tiff") || u.endsWith(".ico");
+    
+    const u = url.toLowerCase();
+    
+    // Проверяем по расширению (для обычных файлов)
+    const urlWithoutParams = u.split("?")[0];
+    const hasImageExtension = urlWithoutParams.endsWith(".png") || urlWithoutParams.endsWith(".jpg") || 
+                             urlWithoutParams.endsWith(".jpeg") || urlWithoutParams.endsWith(".webp") || 
+                             urlWithoutParams.endsWith(".gif") || urlWithoutParams.endsWith(".bmp") || 
+                             urlWithoutParams.endsWith(".svg") || urlWithoutParams.endsWith(".tiff") || 
+                             urlWithoutParams.endsWith(".ico");
+    
+    // Проверяем специфические API endpoints твоего сервера (Ranks API)
+    const isRanksFileApi = u.includes("get_files_question") && u.includes("id=");
+    
+    // Проверяем по ключевым словам в URL (для других API)
+    const hasImageKeywords = u.includes("/image") || u.includes("image/") || u.includes("img/") || 
+                             u.includes("/photo") || u.includes("photo/") || u.includes("/picture");
+    
+    // Файл считается изображением если:
+    // 1. Имеет расширение изображения ИЛИ
+    // 2. Это API Ranks для файлов ИЛИ  
+    // 3. Содержит ключевые слова изображений
+    return hasImageExtension || isRanksFileApi || hasImageKeywords;
 };
 
 export const UserMessage = ({ message }: { message: ChatMessage }) => {

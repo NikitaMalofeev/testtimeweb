@@ -1,5 +1,6 @@
-// Определяем тип для сообщения чата
+// entities/SupportChat/model/chatModel.ts
 export interface ChatMessage {
+    id?: number;               // <— добавил, чтобы обновлять по нужному id
     created?: string;
     file_url?: string | null;
     is_answer?: boolean;

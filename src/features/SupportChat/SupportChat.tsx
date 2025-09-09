@@ -38,7 +38,9 @@ const formatDateTime = (datetime: any) => {
 const isImageUrl = (url?: string | null) => {
     if (!url) return false;
     const u = url.split("?")[0].toLowerCase();
-    return u.endsWith(".png") || u.endsWith(".jpg") || u.endsWith(".jpeg") || u.endsWith(".webp") || u.endsWith(".gif");
+    return u.endsWith(".png") || u.endsWith(".jpg") || u.endsWith(".jpeg") || 
+           u.endsWith(".webp") || u.endsWith(".gif") || u.endsWith(".bmp") || 
+           u.endsWith(".svg") || u.endsWith(".tiff") || u.endsWith(".ico");
 };
 
 export const UserMessage = ({ message }: { message: ChatMessage }) => {
@@ -46,7 +48,6 @@ export const UserMessage = ({ message }: { message: ChatMessage }) => {
         <div className={styles.message_user}>
             <span className={styles.message__date}>
                 {formatDateTime(message.created)}
-                {message.is_edit ? <em className={styles.message__edited}> • изменено</em> : null}
             </span>
             {message.text ? <p className={styles.message__message_user}>{message.text}</p> : null}
             {message.file_url ? (
@@ -56,9 +57,11 @@ export const UserMessage = ({ message }: { message: ChatMessage }) => {
                             <img className={styles.message__fullImage} src={message.file_url} alt="attachment" />
                         </div>
                     ) : (
-                        <a href={message.file_url} target="_blank" rel="noreferrer" className={styles.message__fileLink}>
-                            Скачать файл
-                        </a>
+                        <div className={styles.message__fileContainer}>
+                            <a href={message.file_url} target="_blank" rel="noreferrer" className={styles.message__fileLink}>
+                                📁 Скачать файл
+                            </a>
+                        </div>
                     )}
                 </div>
             ) : null}
@@ -71,7 +74,6 @@ export const SupportMessage = ({ message, highlight }: { message: ChatMessage; h
         <div className={styles.message_support}>
             <span className={styles.message__date}>
                 {formatDateTime(message.created)}
-                {message.is_edit ? <em className={styles.message__edited}> • изменено</em> : null}
                 {highlight && <div className={styles.highlight}></div>}
             </span>
             {message.text ? <p className={styles.message__message_support}>{message.text}</p> : null}
@@ -82,9 +84,11 @@ export const SupportMessage = ({ message, highlight }: { message: ChatMessage; h
                             <img className={styles.message__fullImage} src={message.file_url} alt="attachment" />
                         </div>
                     ) : (
-                        <a href={message.file_url} target="_blank" rel="noreferrer" className={styles.message__fileLink}>
-                            Скачать файл
-                        </a>
+                        <div className={styles.message__fileContainer}>
+                            <a href={message.file_url} target="_blank" rel="noreferrer" className={styles.message__fileLink}>
+                                📁 Скачать файл
+                            </a>
+                        </div>
                     )}
                 </div>
             ) : null}
@@ -188,18 +192,8 @@ export const SupportChat = () => {
         if (!messageText.trim() && attachedFiles.length === 0) return;
 
         const messageToSend = messageText.trim();
-
-        // Оптимистично показываем текстовую часть (оставим как у вас было)
-        if (messageToSend) {
-            const optimistic: ChatMessage = {
-                text: messageToSend,
-                created: new Date().toISOString(),
-                is_answer: false,
-                user_id: 1, // как у вас
-            };
-            dispatch(addMessage(optimistic));
-        }
-
+        
+        // Очищаем поля сразу для UX
         setMessageText("");
 
         try {
@@ -212,6 +206,8 @@ export const SupportChat = () => {
             setAttachedFiles([]); // очищаем превью после успешной отправки
         } catch (error) {
             console.error("Ошибка отправки сообщения:", error);
+            // В случае ошибки возвращаем текст обратно
+            setMessageText(messageToSend);
         }
     };
 

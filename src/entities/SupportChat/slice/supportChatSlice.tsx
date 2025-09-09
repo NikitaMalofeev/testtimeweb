@@ -193,15 +193,15 @@ export const supportChatSlice = createSlice({
             const msg = action.payload;
             const msgId = (msg as any).id as number | undefined;
 
-            // Если это редактирование — обновляем по id и НЕ увеличиваем счётчик непрочитанных
-            if (msg.is_edit && msgId != null) {
+            // is_edit работает ТОЛЬКО для сообщений от поддержки (is_answer: true)
+            if (msg.is_edit && msg.is_answer && msgId != null) {
                 const idx = state.messages.findIndex((m) => (m as any).id === msgId);
                 if (idx !== -1) {
-                    // Заменяем сообщение полностью, сохраняя структуру
+                    // Заменяем сообщение от поддержки полностью
                     state.messages[idx] = {
                         ...state.messages[idx],
                         ...msg,
-                        is_edit: true // убеждаемся что флаг остается
+                        is_edit: true
                     };
                 } else {
                     // Если вдруг не нашли по ID - добавляем как новое (редкий случай)
@@ -290,9 +290,13 @@ export const supportChatSlice = createSlice({
                 state.error = null;
                 state.success = false;
             })
-            .addCase(postMessage.fulfilled, (state) => {
+            .addCase(postMessage.fulfilled, (state, action) => {
                 state.loading = false;
                 state.success = true;
+                // Добавляем отправленное сообщение в чат
+                if (action.payload) {
+                    state.messages.unshift(action.payload);
+                }
             })
             .addCase(postMessage.rejected, (state, action) => {
                 state.loading = false;

@@ -17,7 +17,7 @@ interface IconProps {
     maxHeight?: number; // Ограничение высоты
     onClick?: () => void;
     objectFit?: 'contain' | 'cover' | 'fill'; // Контроль за fit
-    pointer?: boolean;
+pointer?: boolean;
 }
 
 export const Icon = memo(({

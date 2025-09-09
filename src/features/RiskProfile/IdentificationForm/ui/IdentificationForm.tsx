@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import ReCAPTCHA from "react-google-recaptcha";
@@ -7,6 +7,7 @@ import styles from "./styles.module.scss";
 import { createRiskProfile } from "entities/RiskProfile/slice/riskProfileSlice";
 import { IdentificationProfileData } from "entities/RiskProfile/model/types";
 import { Input } from "shared/ui/Input/Input";
+import { PhoneInput } from "shared/ui/PhoneInput/PhoneInput";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { Checkbox } from "shared/ui/Checkbox/Checkbox";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
@@ -29,6 +30,8 @@ import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/D
 import PrivacyPdf from "shared/assets/documents/PersonalPolicy.pdf";
 import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { useScrollShadow } from "shared/hooks/useScrollShadow";
+import { useCapitalizeName } from "shared/hooks/useCapitalizeName";
+import { usePhoneFormat } from "shared/hooks/usePhoneFormat";
 import BooleanTabs from "shared/ui/BooleanTabs/BooleanTabs";
 import { DocumentsPreviewPdfModal } from "features/Documents/DocumentsPreviewPdfModal/DocumentsPreviewPdfModal";
 import { resetBrokerIds, setBrokerIds } from "entities/Documents/slice/documentsSlice";
@@ -50,6 +53,23 @@ const IdentificationProfileForm: React.FC = () => {
     const formContentRef = useRef<HTMLFormElement>(null);
     const { isScrolled, isBottom } = useScrollShadow(formContentRef, true);
 
+    /* ───────────── хук для капитализации ФИО ───────────── */
+    const { handleNameChange: handleCapitalizedNameChange } = useCapitalizeName();
+
+    /* ───────────── хук для форматирования телефона ───────────── */
+    const { handlePhoneChange, getPhoneValidationRegex } = usePhoneFormat();
+
+    /* ───────────── простая валидация телефона ───────────── */
+    const validatePhoneNumber = (value: string | undefined) => {
+        if (!value) return false;
+        // Простая проверка: начинается с + и содержит не менее 10 цифр
+        const phoneRegex = /^\+\d{10,15}$/;
+        const isValid = phoneRegex.test(value);
+        console.log('Phone validation:', { value, isValid });
+        return isValid;
+    };
+    //деплой timeweb
+
     const { loading } = useSelector((s: RootState) => s.riskProfile);
     const modalState = useSelector((s: RootState) => s.modal);
     const systemError = useSelector((s: RootState) => s.error.error);
@@ -59,6 +79,35 @@ const IdentificationProfileForm: React.FC = () => {
 
     const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@([A-Za-z0-9-]+\.)+[A-Za-z]{2,}$/;
     const NAME_REGEX = /^[А-Яа-яЁё\s-]+$/;
+
+    /* ───────────── схема валидации с доступом к validatePhoneNumber ───────────── */
+    const validationSchema = useMemo(() => Yup.object({
+        lastName: Yup.string()
+            .matches(NAME_REGEX, "Допустимы только буквы, пробел и дефис")
+            .min(2, "Минимум 2 символа")
+            .required("Фамилия обязательна"),
+        firstName: Yup.string()
+            .matches(NAME_REGEX, "Допустимы только буквы, пробел и дефис")
+            .min(2, "Минимум 2 символа")
+            .required("Имя обязательно"),
+        patronymic: Yup.string()
+            .matches(NAME_REGEX, "Допустимы только буквы, пробел и дефис")
+            .min(2, "Минимум 2 символа")
+            .nullable(),
+        email: Yup.string()
+            .required("E-mail обязательно")
+            .matches(EMAIL_REGEX, "Некорректный email"),
+        phone: Yup.string()
+            .test('phone-format', 'Неверный формат номера телефона', validatePhoneNumber)
+            .required("Номер телефона обязателен"),
+        password: Yup.string()
+            .min(8, "Пароль минимум 8 символов")
+            .required("Пароль обязателен"),
+        password2: Yup.string()
+            .oneOf([Yup.ref("password")], "Пароли не совпадают")
+            .required("Подтверждение обязательно"),
+        g_recaptcha: Yup.string().required("Подтвердите, что вы не робот"),
+    }), [validatePhoneNumber]);
 
     const formik = useFormik({
         initialValues: {
@@ -74,33 +123,7 @@ const IdentificationProfileForm: React.FC = () => {
             is_individual_entrepreneur: false,
             type_sms_message: "SMS",
         },
-        validationSchema: Yup.object({
-            lastName: Yup.string()
-                .matches(NAME_REGEX, "Допустимы только буквы, пробел и дефис")
-                .min(2, "Минимум 2 символа")
-                .required("Фамилия обязательна"),
-            firstName: Yup.string()
-                .matches(NAME_REGEX, "Допустимы только буквы, пробел и дефис")
-                .min(2, "Минимум 2 символа")
-                .required("Имя обязательно"),
-            patronymic: Yup.string()
-                .matches(NAME_REGEX, "Допустимы только буквы, пробел и дефис")
-                .min(2, "Минимум 2 символа")
-                .nullable(),
-            email: Yup.string()
-                .required("E-mail обязательно")
-                .matches(EMAIL_REGEX, "Некорректный email"),
-            phone: Yup.string()
-                .matches(/^\+\d{11}$/, "Неверный формат номера телефона")
-                .required("Номер телефона обязателен"),
-            password: Yup.string()
-                .min(8, "Пароль минимум 8 символов")
-                .required("Пароль обязателен"),
-            password2: Yup.string()
-                .oneOf([Yup.ref("password")], "Пароли не совпадают")
-                .required("Подтверждение обязательно"),
-            g_recaptcha: Yup.string().required("Подтвердите, что вы не робот"),
-        }),
+        validationSchema: validationSchema,
         validateOnMount: true,
         onSubmit: () => { },
     });
@@ -108,6 +131,13 @@ const IdentificationProfileForm: React.FC = () => {
     /* ───────────── разблокировка кнопки ───────────── */
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
     useEffect(() => {
+        console.log('Button disabled check:', {
+            isValid: formik.isValid,
+            dirty: formik.dirty,
+            captchaVerified,
+            agreement: formik.values.is_agreement,
+            errors: formik.errors
+        });
         setIsButtonDisabled(
             !(
                 formik.isValid &&
@@ -138,13 +168,12 @@ const IdentificationProfileForm: React.FC = () => {
         recaptchaRef.current?.reset();
     };
 
-    /* ───────────── ввод ФИО только кириллицей ───────────── */
-    const handleNameChange =
-        (field: string) =>
-            (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-                const sanitized = e.target.value.replace(/[^А-Яа-яЁё\s-]/g, "");
-                formik.setFieldValue(field, sanitized);
-            };
+    /* ───────────── ввод ФИО только кириллицей с капитализацией ───────────── */
+    const handleNameChange = (field: string) =>
+        handleCapitalizedNameChange(
+            (value: string) => formik.setFieldValue(field, value),
+            /[^А-Яа-яЁё\s-]/g
+        );
 
     /* ───────────── открыть политику конфиденциальности ───────────── */
     const handleOpenPrivacy = (e: React.MouseEvent) => {
@@ -280,20 +309,15 @@ const IdentificationProfileForm: React.FC = () => {
                         type="text"
                         error={formik.touched.patronymic && formik.errors.patronymic}
                     />
-                    <Input
+                    <PhoneInput
                         name="phone"
                         value={formik.values.phone}
-                        onChange={(e) => {
-                            let value = e.target.value.replace(/[^\d+]/g, "");
-                            if (!value.startsWith("+")) value = "+" + value;
-                            formik.setFieldValue("phone", value);
-                        }}
+                        onChange={(value) => formik.setFieldValue("phone", value)}
                         onBlur={formik.handleBlur}
                         placeholder={numberPlaceholder}
                         onFocus={() => setNumberPlaceholder('+7 (___) ___-____')}
                         withoutCloudyLabel
                         needValue
-                        type="text"
                         error={formik.touched.phone && formik.errors.phone}
                     />
                     <Input

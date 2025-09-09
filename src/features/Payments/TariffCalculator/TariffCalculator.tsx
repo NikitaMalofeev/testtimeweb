@@ -201,7 +201,7 @@ export const TariffCalculator: React.FC<Props> = ({ tariff_key, min_deposit_valu
                         positionBox={{ top: '26px', left: '-264px' }}
                         squerePosition={{ top: '15px', left: '241px' }}
                         topForCenteringIcons="24px"
-                        description="Показывает прогноз прибыли за год на основании заданного депозита и риск-профиля"
+                        description="Прогноз прибыли за год на основании заданного депозита и риск-профиля"
                         className={styles.tooltip}
                     />
                 </div>

@@ -57,9 +57,9 @@ const BooleanTabs: React.FC<BooleanTabsProps> = ({
 
             </div>
             {description && <Tooltip
-                positionBox={{ top: "16px", left: "30px" }}
-                squerePosition={{ top: "6px", left: "-2px" }}
-                topForCenteringIcons="24px"
+                positionBox={{ top: "50px", left: "-50px" }}
+                squerePosition={{ top: "-4px", left: "54px" }}
+                topForCenteringIcons="0px"
                 className={styles.tooltip}
                 description={description}
             />}

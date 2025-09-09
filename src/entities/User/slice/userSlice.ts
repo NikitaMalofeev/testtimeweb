@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { AllUserInfo, ProblemsRequestData, userAllData, UserLogin, UserPersonalAccount, userType } from "../types/userTypes";
+import { AllUserInfo, CountryCode, ProblemsRequestData, userAllData, UserLogin, UserPersonalAccount, userType } from "../types/userTypes";
 import { sendProblemsRequest, sendProblemsRequestNotAuth, setPersonType } from "entities/User/api/userApi";
-import { getAllUserInfo, getUserPersonalAccountInfo, userLogin } from "../api/userApi";
+import { getAllCountryCodes, getAllUserInfo, getUserPersonalAccountInfo, userLogin } from "../api/userApi";
 import { setError } from "entities/Error/slice/errorSlice";
 import { RootState } from "app/providers/store/config/store";
 import { setIsWaitingDocumentsVerification } from "entities/Documents/slice/documentsSlice";
@@ -19,6 +19,8 @@ interface UserState {
     userPersonalAccountInfo: UserPersonalAccount | null
     allUserDataForDocuments: AllUserInfo | null;
     userForPersonalAccount: userAllData | null;
+    countryCodes: CountryCode[];
+    countryCodesLoading: boolean;
 }
 
 const initialState: UserState = {
@@ -41,6 +43,8 @@ const initialState: UserState = {
     userPersonalAccountInfo: null,
     allUserDataForDocuments: null,
     userForPersonalAccount: null,
+    countryCodes: [],
+    countryCodesLoading: false,
 };
 
 export const sendProblemsThunk = createAsyncThunk<
@@ -179,6 +183,34 @@ export const getUserPersonalAccountInfoThunk = createAsyncThunk<
     }
 );
 
+export const getAllCountryCodesThunk = createAsyncThunk<
+    void,
+    void,
+    { rejectValue: string }
+>(
+    "user/getAllCountryCodesThunk",
+    async (_, { rejectWithValue, dispatch }) => {
+        try {
+            dispatch(setCountryCodesLoading(true));
+            const response = await getAllCountryCodes();
+            console.log("API Response:", response);
+            console.log("Response type:", typeof response);
+            console.log("Is array:", Array.isArray(response));
+
+            const countryCodes = Array.isArray(response.data) ? response.data : [];
+            console.log("Setting countryCodes:", countryCodes.length);
+            dispatch(setCountryCodes(countryCodes));
+
+        } catch (error: any) {
+            console.error("Ошибка при получении кодов стран:", error);
+            dispatch(setCountryCodesLoading(false));
+            return rejectWithValue(
+                error.response?.data?.message || "Ошибка при получении кодов стран"
+            );
+        }
+    }
+);
+
 
 export const userSlice = createSlice({
     name: "user",
@@ -222,6 +254,20 @@ export const userSlice = createSlice({
                     ...action.payload,
                 };
             }
+        },
+        // Очистка кодов стран при уходе со страницы
+        clearCountryCodes: (state) => {
+            state.countryCodes = [];
+            state.countryCodesLoading = false;
+        },
+        // Установка кодов стран
+        setCountryCodes: (state, action: PayloadAction<CountryCode[]>) => {
+            state.countryCodes = action.payload;
+            state.countryCodesLoading = false;
+        },
+        // Установка загрузки кодов стран
+        setCountryCodesLoading: (state, action: PayloadAction<boolean>) => {
+            state.countryCodesLoading = action.payload;
         },
     },
     extraReducers: (builder) => {
@@ -278,6 +324,9 @@ export const {
     setUserAllInfo,
     setUserIsActive,
     setUserPersonalAccountInfo,
+    clearCountryCodes,
+    setCountryCodes,
+    setCountryCodesLoading,
 } = userSlice.actions;
 
 export default userSlice.reducer;

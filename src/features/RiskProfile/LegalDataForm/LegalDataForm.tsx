@@ -16,12 +16,15 @@ import { setError } from "entities/Error/slice/errorSlice";
 
 /* UI-kit */
 import { Input } from "shared/ui/Input/Input";
+import { PhoneInput } from "shared/ui/PhoneInput/PhoneInput";
 import { Checkbox } from "shared/ui/Checkbox/Checkbox";
 import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
 import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
 import { useDevice } from "shared/hooks/useDevice";
 import { useScrollShadow } from "shared/hooks/useScrollShadow";
+import { useCapitalizeName } from "shared/hooks/useCapitalizeName";
+import { usePhoneFormat } from "shared/hooks/usePhoneFormat";
 
 /* Модалки */
 import { closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
@@ -51,6 +54,12 @@ export const LegalDataForm: React.FC = () => {
     const formRef = useRef<HTMLFormElement>(null);
     const { isScrolled, isBottom } = useScrollShadow(formRef, true);
     const device = useDevice();
+
+    /* ───────────── хук для капитализации ФИО ───────────── */
+    const { handleNameChange: handleCapitalizedNameChange } = useCapitalizeName();
+
+    /* ───────────── хук для форматирования телефона ───────────── */
+    const { handlePhoneChange, getPhoneValidationRegex } = usePhoneFormat();
 
     /* env */
     const gcaptchaSiteKey = import.meta.env.VITE_RANKS_GRCAPTCHA_SITE_KEY;
@@ -120,7 +129,7 @@ export const LegalDataForm: React.FC = () => {
             .required("Корреспондентский счёт обязателен"),
 
         phone: Yup.string()
-            .matches(PHONE_REGEX, "Телефон без +, 10-11 цифр")
+            .matches(/^\+\d{10,15}$/, "Неверный формат телефона")
             .required("Рабочий телефон обязателен"),
 
         email: Yup.string()
@@ -288,10 +297,10 @@ export const LegalDataForm: React.FC = () => {
 
     /* sanitizers / onChange */
     const handleNameChange = (field: keyof typeof formik.values) =>
-        (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-            const sanitized = e.target.value.replace(/[^А-Яа-яЁё\s-]/g, "");
-            formik.setFieldValue(field, sanitized);
-        };
+        handleCapitalizedNameChange(
+            (value: string) => formik.setFieldValue(field, value),
+            /[^А-Яа-яЁё\s-]/g
+        );
 
     const handleTextChange = (field: keyof typeof formik.values) =>
         (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -486,14 +495,11 @@ export const LegalDataForm: React.FC = () => {
                 }
             />
 
-            <Input
+            <PhoneInput
                 placeholder="Рабочий телефон"
                 name="phone"
-                inputMode="tel"
-                maxLength={11}
-
                 value={formik.values.phone || ''}
-                onChange={handleNumericChange("phone", 11)}
+                onChange={(value) => formik.setFieldValue("phone", value)}
                 onBlur={formik.handleBlur}
                 needValue
                 error={formik.touched.phone && formik.errors.phone}

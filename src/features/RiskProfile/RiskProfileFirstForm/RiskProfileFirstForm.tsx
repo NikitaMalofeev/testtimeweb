@@ -19,6 +19,7 @@ import { closeModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalType } from "entities/ui/Modal/model/modalTypes";
 import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { Input } from "shared/ui/Input/Input";
+import { PhoneInput } from "shared/ui/PhoneInput/PhoneInput";
 import { Loader, LoaderTheme } from "shared/ui/Loader/Loader";
 import { Select } from "shared/ui/Select/Select";
 import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
@@ -29,6 +30,8 @@ import { useNavigate } from "react-router-dom";
 import CloseIcon from 'shared/assets/svg/close.svg'
 import { Icon } from "shared/ui/Icon/Icon";
 import { Tooltip } from "shared/ui/Tooltip/Tooltip";
+import { useCapitalizeName } from "shared/hooks/useCapitalizeName";
+import { usePhoneFormat } from "shared/hooks/usePhoneFormat";
 
 interface Question {
     name: string;
@@ -46,6 +49,12 @@ export const RiskProfileFirstForm: React.FC = () => {
 
 
     const [numberPlaceholder, setNumberPlaceholder] = useState('Введите номер телефона')
+
+    /* ───────────── хук для капитализации ФИО ───────────── */
+    const { handleNameChange: handleCapitalizedNameChange } = useCapitalizeName();
+
+    /* ───────────── хук для форматирования телефона ───────────── */
+    const { handlePhoneChange, getPhoneValidationRegex } = usePhoneFormat();
 
     // ============ REDUX STATE ============
     const {
@@ -202,7 +211,7 @@ export const RiskProfileFirstForm: React.FC = () => {
         validationSchema: Yup.object({
             // Условная валидация для phone: правило применяется только если trusted_person_fio заполнено
             phone: Yup.string()
-                .matches(/^\+\d{11}$/, "Неверный формат")
+                .matches(/^\+\d{10,15}$/, "Неверный формат")
                 .when(
                     ["trusted_person_fio"],
                     ([trustedPersonFio], schema) =>
@@ -212,7 +221,7 @@ export const RiskProfileFirstForm: React.FC = () => {
                 ),
             trusted_person_fio: Yup.string().min(3, "Минимум 3 символа"),
             trusted_person_phone: Yup.string()
-                .matches(/^\+\d{11}$/, "Неверный формат")
+                .matches(/^\+\d{10,15}$/, "Неверный формат")
                 .when(
                     ["trusted_person_fio"],
                     ([trustedPersonFio], schema) =>
@@ -332,37 +341,26 @@ export const RiskProfileFirstForm: React.FC = () => {
                         type="text"
                         minLength={2}
                         value={formik.values.trusted_person_fio || ""}
-                        onChange={(e) => {
-                            let value = e.target.value;
-                            value = value.replace(/[^A-Za-zА-Яа-яЁё\s-]/g, ""); // Оставляем только буквы, пробелы и дефисы
-                            const newEvent = {
-                                ...e,
-                                target: {
-                                    ...e.target,
-                                    value,
-                                },
-                            } as React.ChangeEvent<HTMLInputElement>;
-                            handleChangeAndDispatch("trusted_person_fio")(newEvent);
-                        }}
+                        onChange={handleCapitalizedNameChange(
+                            (value: string) => {
+                                formik.setFieldValue("trusted_person_fio", value);
+                                dispatch(updateFieldValue({ name: "trusted_person_fio", value }));
+                            },
+                            /[^A-Za-zА-Яа-яЁё\s-]/g
+                        )}
                         onBlur={formik.handleBlur}
                         needValue={formik.values?.trusted_person_phone?.length > 0}
                         error={formik.touched.trusted_person_fio && formik.errors.trusted_person_fio}
                     />
 
-                    <Input
+                    <PhoneInput
                         placeholder={numberPlaceholder}
                         name="trusted_person_phone"
-                        inputMode="numeric"
-                        type="text"
                         value={formik.values.trusted_person_phone || ""}
                         withoutCloudyLabel
-                        onChange={(e) => {
-                            let inputVal = e.target.value;
-                            const onlyDigits = inputVal.replace(/\D/g, "");
-                            const limitedDigits = onlyDigits.slice(0, 14);
-                            const formatted = limitedDigits.length > 0 ? "+" + limitedDigits : "";
-                            formik.setFieldValue("trusted_person_phone", formatted);
-                            dispatch(updateFieldValue({ name: "trusted_person_phone", value: formatted }));
+                        onChange={(value) => {
+                            formik.setFieldValue("trusted_person_phone", value);
+                            dispatch(updateFieldValue({ name: "trusted_person_phone", value }));
                         }}
                         onFocus={() => setNumberPlaceholder('+7 (___) ___-____')}
                         onBlur={formik.handleBlur}

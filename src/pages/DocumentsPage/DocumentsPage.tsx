@@ -127,6 +127,7 @@ const DocumentsPage: React.FC = () => {
         dispatch(getUserDocumentsStateThunk());
         dispatch(getUserDocumentsNotSignedThunk());
     }, [currentConfirmableDocument, PasportScanForm, brokersCount, isIdentityScanExist]);
+    //
 
     const isAnyModalOpen = useSelector(selectIsAnyModalOpen);
 

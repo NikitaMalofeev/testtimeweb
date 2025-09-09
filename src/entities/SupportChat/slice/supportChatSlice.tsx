@@ -1,8 +1,10 @@
 // entities/SupportChat/slice/supportChatSlice.ts
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { askQuestion, getAllQuestions, getGroupWs } from "../api/supportChatApi";
+import { getAllQuestions, getGroupWs } from "../api/supportChatApi";
 import { RootState } from "app/providers/store/config/store";
 import { ChatMessage } from "../model/chatModel";
+import axios from "axios";
+import apiUrl from "../api/supportChatApi"; // default export = base API url
 
 interface SupportChatState {
     websocketId: string;
@@ -30,7 +32,7 @@ let chatSocket: WebSocket | null = null;
 // --------------------------------------------------
 
 export const fetchWebsocketId = createAsyncThunk<
-    string,            // вернём строку‑ID
+    string,
     void,
     { rejectValue: string; state: RootState }
 >(
@@ -39,11 +41,8 @@ export const fetchWebsocketId = createAsyncThunk<
         try {
             const token = getState().user.token;
             const { group_ws } = await getGroupWs(token);
-
-            // сохраняем в стор
             dispatch(setWebsocketId(group_ws));
-
-            return group_ws;            // <‑‑ важное изменение!
+            return group_ws;
         } catch (e: any) {
             return rejectWithValue(e.response?.data?.message ?? "Не смогли получить websocketId");
         }
@@ -58,13 +57,13 @@ export const openWebSocketConnection = createAsyncThunk<
     "supportChat/openWebSocketConnection",
     async (websocketId, { dispatch, rejectWithValue }) => {
         try {
-            // --- ГЛАВНОЕ: жёстко закрываем старый сокет ---
+            // Жёстко закрываем старый сокет
             if (chatSocket) {
                 chatSocket.close();
                 chatSocket = null;
             }
 
-            // --- Открываем новый ---
+            // Открываем новый
             chatSocket = new WebSocket(`wss://test.webbroker.ranks.pro/ws/chat_support/${websocketId}/`);
 
             chatSocket.onopen = () => {
@@ -75,6 +74,7 @@ export const openWebSocketConnection = createAsyncThunk<
                 try {
                     const data = JSON.parse(evt.data);
                     if (data.type === "message_to_support_chat") {
+                        // универсально: и новые, и отредактированные пойдут одной ручкой
                         dispatch(addMessage(data.data));
                     } else {
                         // console.log("Неизвестный тип:", data.type);
@@ -97,7 +97,6 @@ export const openWebSocketConnection = createAsyncThunk<
     }
 );
 
-
 export const getAllMessagesThunk = createAsyncThunk<
     ChatMessage[],
     void,
@@ -118,7 +117,6 @@ export const getAllMessagesThunk = createAsyncThunk<
     }
 );
 
-
 export const closeWebSocketConnection = createAsyncThunk<
     void,
     void,
@@ -131,24 +129,46 @@ export const closeWebSocketConnection = createAsyncThunk<
                 chatSocket.close();
                 chatSocket = null;
             }
-            // здесь мы ничего не возвращаем, просто закрыли сокет
         } catch (e: any) {
             return rejectWithValue("Ошибка при закрытии WebSocket");
         }
     }
 );
 
+// ---- отправка сообщения с поддержкой файлов (multipart) ----
+export type PostMessagePayload = {
+    text?: string;
+    files?: File[];
+};
+
 export const postMessage = createAsyncThunk<
     ChatMessage,
-    ChatMessage,
+    PostMessagePayload,
     { rejectValue: string; state: RootState }
 >(
     "supportChat/postMessage",
-    async (messageData, { rejectWithValue, getState }) => {
+    async (payload, { rejectWithValue, getState }) => {
         const token = getState().user.token;
         try {
-            const response = await askQuestion(messageData, token);
-            return response;
+            const form = new FormData();
+            if (payload.text) form.append("text", payload.text);
+            if (payload.files && payload.files.length) {
+                payload.files.forEach((f) => form.append("files", f));
+            }
+
+            const response = await axios.post(
+                `${apiUrl}user_lk/ask_question/`,
+                form,
+                {
+                    headers: {
+                        Authorization: `Token ${token}`,
+                        // ВАЖНО: не ставим Content-Type, пусть браузер сам проставит multipart boundary
+                        "Accept-Language": "ru",
+                    },
+                }
+            );
+
+            return response.data as ChatMessage;
         } catch (error: any) {
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка отправки сообщения"
@@ -165,15 +185,66 @@ export const supportChatSlice = createSlice({
             state.websocketId = action.payload;
         },
         setMessages: (state, action: PayloadAction<ChatMessage[]>) => {
-            state.messages = action.payload;
+            state.messages = action.payload ?? [];
         },
+
+        // универсальный upsert: если пришёл is_edit === true -> обновляем по id; иначе добавляем (с антидублем)
         addMessage: (state, action: PayloadAction<ChatMessage>) => {
             const msg = action.payload;
-            state.messages.unshift(msg);
-            if (msg.is_answer) {
-                state.unreadAnswersCount += 1;
+            const msgId = (msg as any).id as number | undefined;
+
+            // is_edit работает ТОЛЬКО для сообщений от поддержки (is_answer: true)
+            if (msg.is_edit && msg.is_answer && msgId != null) {
+                const idx = state.messages.findIndex((m) => (m as any).id === msgId);
+                if (idx !== -1) {
+                    // Заменяем сообщение от поддержки полностью
+                    state.messages[idx] = {
+                        ...state.messages[idx],
+                        ...msg,
+                        is_edit: true
+                    };
+                } else {
+                    // Если вдруг не нашли по ID - добавляем как новое (редкий случай)
+                    state.messages.unshift(msg);
+                    // НЕ увеличиваем unreadAnswersCount для отредактированных сообщений
+                }
+                return;
+            }
+
+            // Если у сообщения есть id — проверяем двойник по id
+            if (msgId != null) {
+                const existsById = state.messages.some((m) => (m as any).id === msgId);
+                if (existsById) {
+                    // Обновим (на случай если пришла новая версия без is_edit)
+                    state.messages = state.messages.map((m) =>
+                        (m as any).id === msgId ? { ...m, ...msg } : m
+                    );
+                } else {
+                    state.messages.unshift(msg);
+                    if (msg.is_answer) {
+                        state.unreadAnswersCount += 1;
+                    }
+                }
+                return;
+            }
+
+            // Fallback-антидубль для старого формата без id
+            const exists =
+                state.messages.some(
+                    (existingMsg) =>
+                        existingMsg.text === msg.text &&
+                        existingMsg.created === msg.created &&
+                        existingMsg.is_answer === msg.is_answer
+                );
+
+            if (!exists) {
+                state.messages.unshift(msg);
+                if (msg.is_answer) {
+                    state.unreadAnswersCount += 1;
+                }
             }
         },
+
         setUnreadAnswersCount: (state, action: PayloadAction<number>) => {
             state.unreadAnswersCount = action.payload;
         },
@@ -207,7 +278,7 @@ export const supportChatSlice = createSlice({
                 state.isWsConnected = false;
                 state.error = action.payload as string;
             })
-            .addCase(closeWebSocketConnection.fulfilled, state => {
+            .addCase(closeWebSocketConnection.fulfilled, (state) => {
                 state.isWsConnected = false;
                 state.websocketId = "";
             })
@@ -219,9 +290,13 @@ export const supportChatSlice = createSlice({
                 state.error = null;
                 state.success = false;
             })
-            .addCase(postMessage.fulfilled, (state) => {
+            .addCase(postMessage.fulfilled, (state, action) => {
                 state.loading = false;
                 state.success = true;
+                // Добавляем отправленное сообщение в чат
+                if (action.payload) {
+                    state.messages.unshift(action.payload);
+                }
             })
             .addCase(postMessage.rejected, (state, action) => {
                 state.loading = false;

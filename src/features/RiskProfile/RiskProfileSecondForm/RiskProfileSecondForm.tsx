@@ -552,7 +552,7 @@ export const RiskProfileSecondForm: React.FC = () => {
                             disabled={!(formik.isValid && formik.dirty)}
                             onClick={handlePostRiskProfileDetailedInfo}
                         >
-                            Продолжить
+                            Подтвердить риск профиль
                         </Button>
                     </div>
                 </form>
@@ -591,11 +591,11 @@ export const RiskProfileSecondForm: React.FC = () => {
                     }}
                     actionText="Подробное описание риск-профилей"
                 />
-                <PreviewModal contentPurpose="riskProfiles" title="Подробное описание риск-профилей" content={<>
+                <PreviewModal contentPurpose="riskProfiles" title="Подробное описание риск-профилей" content={<div className={styles.risk_profiles__container}>
                     {riskProfiles.map(profile => (
                         <RiskProfileCard key={profile.id} {...profile} />
                     ))}
-                </>} />
+                </div>} />
             </div>
         );
     }

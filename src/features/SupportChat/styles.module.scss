@@ -211,6 +211,7 @@
       align-items: center;
       justify-content: center;
       min-height: 100px;
+      min-width: 200px;
       background: #f5f5f5;
       border-radius: 12px;
       margin-top: 5px;
@@ -325,6 +326,7 @@
 @include mix.respond-to('tablet-desktop') {
   
   .chat {
+
      position: relative;
             max-width: 960px;
             width: 100%;
@@ -338,11 +340,28 @@
             width: 100%;
             max-height: 662px;
 
+
+
      &__imagePreviewBar {
+      position: absolute;
        max-width: 960px;
        left: 50%;
+       bottom: 74px;
        transform: translateX(-50%);
      }
+
+     &__imagePreviewContainer {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
   }
 
   .message__attachment {
@@ -358,4 +377,38 @@
     max-width: 960px;
             width: 100%;
   }
+}
+
+// Стили для кнопки скачивания изображений
+.downloadButton {
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: #e0e0e0;
+    color: #333;
+  }
+  
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+// Стили для контейнера кнопки скачивания
+.message__imageDownload {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
+  padding: 16px;
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  margin: 8px 0;
 }

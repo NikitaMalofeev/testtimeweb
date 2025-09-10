@@ -412,3 +412,50 @@
   border-radius: 8px;
   margin: 8px 0;
 }
+
+// Стили для кликабельного изображения
+.clickableImage {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 8px;
+  
+  &:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+// Модальное окно для просмотра изображений
+.imageModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgb(83 83 83 / 80%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+  
+  &__content {
+    max-width: 90vw;
+    max-height: 90vh;
+    position: relative;
+    cursor: default;
+  }
+  
+  &__image {
+    max-width: 100%;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+}

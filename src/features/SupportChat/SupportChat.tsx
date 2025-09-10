@@ -25,6 +25,7 @@ import { Loader, LoaderSize } from "shared/ui/Loader/Loader";
 import { closeAllModals } from "entities/ui/Modal/slice/modalSlice";
 import { setScrollToTop } from "entities/ui/Ui/slice/uiSlice";
 import JSZip from "jszip";
+import { createPortal } from "react-dom";
 
 // Глобальный кеш для изображений в рамках сессии
 interface ImageCacheEntry {
@@ -198,10 +199,56 @@ const ImageDownloadButton: React.FC<{
     );
 };
 
+// Компонент модального окна для просмотра изображений в полном размере
+const ImageModal: React.FC<{
+    src: string;
+    alt?: string;
+    isOpen: boolean;
+    onClose: () => void;
+}> = ({ src, alt, isOpen, onClose }) => {
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+            // Закрытие по клавише Escape
+            const handleKeyDown = (e: KeyboardEvent) => {
+                if (e.key === 'Escape') {
+                    onClose();
+                }
+            };
+            document.addEventListener('keydown', handleKeyDown);
+            return () => {
+                document.body.style.overflow = '';
+                document.removeEventListener('keydown', handleKeyDown);
+            };
+        }
+    }, [isOpen, onClose]);
+
+    if (!isOpen) return null;
+
+    return createPortal(
+        <div
+            className={styles.imageModal}
+            onClick={onClose}
+        >
+            <div
+                className={styles.imageModal__content}
+                onClick={(e) => e.stopPropagation()}
+            >
+                <img
+                    src={src}
+                    alt={alt}
+                    className={styles.imageModal__image}
+                />
+            </div>
+        </div>,
+        document.body
+    );
+};
+
 // Компонент для загрузки защищенных изображений через Blob
 const AuthImage: React.FC<{
     src: string;
-    alt: string;
+    alt?: string;
     className?: string;
     token: string;
 }> = ({ src, alt, className, token }) => {
@@ -209,6 +256,7 @@ const AuthImage: React.FC<{
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
     const [isZipFile, setIsZipFile] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const imageRef = useRef<HTMLDivElement>(null);
     const isInViewport = useInViewport(imageRef);
 
@@ -243,7 +291,7 @@ const AuthImage: React.FC<{
                 } else {
                     setError(true);
                 }
-                
+
                 setLoading(false);
             } catch (err) {
                 console.error('Ошибка загрузки изображения:', err);
@@ -288,35 +336,58 @@ const AuthImage: React.FC<{
     }
 
     // Если это ZIP файл и изображение не в viewport - показываем кнопку скачивания
+    // if (isZipFile && !isInViewport) {
+    //     return (
+    //         <div ref={imageRef} className={`${styles.message__imageDownload} ${className || ''}`}>
+    //             <ImageDownloadButton src={src} token={token} />
+    //         </div>
+    //     );
+    // }
     if (isZipFile && !isInViewport) {
         return (
-            <div ref={imageRef} className={`${styles.message__imageDownload} ${className || ''}`}>
-                <ImageDownloadButton src={src} token={token} />
+            <div ref={imageRef} className={`${styles.message__imageLoading} ${className || ''}`}>
+                <div className={styles.message__imageLoader}><Loader size={LoaderSize.SMALL} /></div>
             </div>
         );
     }
 
-    // Если нет blobUrl (например, ZIP вне viewport)
+
+    // Если нет blobUrl(например, ZIP вне viewport)
+    // if (!blobUrl) {
+    //     return (
+    //         <div ref={imageRef} className={`${styles.message__imageDownload} ${className || ''}`}>
+    //             <ImageDownloadButton src={src} token={token} />
+    //         </div>
+    //     );
+    // }
     if (!blobUrl) {
         return (
-            <div ref={imageRef} className={`${styles.message__imageDownload} ${className || ''}`}>
-                <ImageDownloadButton src={src} token={token} />
+            <div ref={imageRef} className={`${styles.message__imageLoading} ${className || ''}`}>
+                <div className={styles.message__imageLoader}><Loader size={LoaderSize.SMALL} /></div>
             </div>
         );
     }
 
     return (
-        <div ref={imageRef}>
-            <img
+        <>
+            <div ref={imageRef} onClick={() => setIsModalOpen(true)}>
+                <img
+                    src={blobUrl}
+                    alt={alt}
+                    className={`${className} ${styles.clickableImage}`}
+                    onLoad={() => {
+                        // Дополнительная очистка при успешной загрузке
+                        // URL все еще нужен для отображения
+                    }}
+                />
+            </div>
+            <ImageModal
                 src={blobUrl}
                 alt={alt}
-                className={className}
-                onLoad={() => {
-                    // Дополнительная очистка при успешной загрузке
-                    // URL все еще нужен для отображения
-                }}
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
             />
-        </div>
+        </>
     );
 };
 
@@ -374,7 +445,7 @@ export const UserMessage = ({ message, token }: { message: ChatMessage; token: s
             {message.text ? <p className={styles.message__message_user}>{message.text}</p> : null}
             {message.file_url ? (
                 <div className={styles.message__attachment}>
-                    {isImageUrl(message.file_url) ? (
+                    {/* {isImageUrl(message.file_url) ? (
                         <div className={styles.message__imageContainer}>
                             <AuthImage
                                 src={message.file_url}
@@ -389,7 +460,15 @@ export const UserMessage = ({ message, token }: { message: ChatMessage; token: s
                                 📁 Скачать файл
                             </a>
                         </div>
-                    )}
+                    )} */}
+                    <div className={styles.message__imageContainer}>
+                        <AuthImage
+                            src={message.file_url}
+
+                            className={styles.message__fullImage}
+                            token={token}
+                        />
+                    </div>
                 </div>
             ) : null}
         </div>

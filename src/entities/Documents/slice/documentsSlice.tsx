@@ -24,6 +24,11 @@ import {
     getDocumentsState,
     postConfirmationCodeAllDocuments,
     postConfirmationCodeCustom,
+    getAllCustomDocumentUser,
+    confirmCustomDocumentUser,
+    checkConfirmationCodeUser,
+    getSignedCustomDocumentUser,
+    getUserNotSignedDocumentHtml,
 } from "../api/documentsApi";
 import { setCurrentConfirmingDoc } from "entities/RiskProfile/slice/riskProfileSlice";
 import { setConfirmationDocsSuccess } from "entities/ui/Ui/slice/uiSlice";
@@ -88,6 +93,14 @@ export interface CustomDocData {
     title: string;
 }
 
+export interface CustomDocUserData {
+    id: string;
+    title: string;
+    is_confirmed: boolean;
+    created_at: string;
+    modified_at: string | null;
+}
+
 // Массив очередности документов
 export const docTypes = [
     "type_doc_passport",
@@ -146,6 +159,10 @@ interface DocumentsState {
     userPassportData: UserPassportData | null;
     customDocumentsData: CustomDocData | null;
 
+    // Для авторизованных пользователей
+    customDocumentsUser: CustomDocUserData[];
+    currentCustomDocUser: CustomDocUserData | null;
+
     uploadDocs: Record<string, UploadDocState>;
     availabilityPersonalAccountMenuItems: AvailabilityPersonalAccountMenuItems | null;
     documentsChecked: boolean;
@@ -191,6 +208,10 @@ const initialState: DocumentsState = {
 
     userPassportData: null,
     customDocumentsData: null,
+
+    // Для авторизованных пользователей
+    customDocumentsUser: [],
+    currentCustomDocUser: null,
 
     uploadDocs: {},
     availabilityPersonalAccountMenuItems: null,
@@ -582,13 +603,20 @@ export const getUserDocumentNotSignedThunk = createAsyncThunk<
     "documents/getUserDocumentNotSigned",
     async ({ custom, customId, type }, { getState, dispatch, rejectWithValue }) => {
         try {
-            const token = getState().user.token!;
+            const token = getState().user.token;
             const docId = custom && customId ? customId : getState().documents.currentConfirmableDoc;
             if (docId === "type_doc_agreement_investment_advisor_app_1") return;
 
-            const response = custom && customId && type
-                ? await getCustomDocumentsNotSigned(token, customId, type)
-                : await getDocumentNotSigned(token, docId);
+            let response;
+
+            if (custom && customId && type) {
+                // Для кастомных документов неавторизованных пользователей (БЕЗ токена)
+                response = await getCustomDocumentsNotSigned(token || '', customId, type);
+            } else {
+                // Для обычных документов авторизованных пользователей (С токеном)
+                if (!token) return rejectWithValue("Отсутствует токен авторизации");
+                response = await getDocumentNotSigned(token, docId);
+            }
 
             const htmlString = response.not_signed_document_html;
             custom && dispatch(setCustomDocumentData(response));
@@ -669,6 +697,127 @@ export const getAllBrokersThunk = createAsyncThunk<
             dispatch(setBrokerIds({ brokerId: response.data[0].id, count: response.count }));
         } catch (error: any) {
             const msg = error.response?.data?.errorText || "Ошибка при получении подписанного документа";
+            return rejectWithValue(msg);
+        }
+    }
+);
+
+// ============ Thunks для авторизованных пользователей (CustomDoc) ============
+
+export const getAllCustomDocumentUserThunk = createAsyncThunk<
+    void,
+    void,
+    { rejectValue: string; state: RootState }
+>("documents/getAllCustomDocumentUser", async (_, { getState, dispatch, rejectWithValue }) => {
+    try {
+        const token = getState().user.token;
+        if (!token) return rejectWithValue("Отсутствует токен авторизации");
+
+        const response = await getAllCustomDocumentUser(token);
+        dispatch(setCustomDocumentsUser(response.data || []));
+    } catch (error: any) {
+        const msg = error.response?.data?.errorText || "Ошибка при получении списка кастомных документов";
+        dispatch(setError(msg));
+        return rejectWithValue(msg);
+    }
+});
+
+export const confirmCustomDocumentUserThunk = createAsyncThunk<
+    void,
+    { data: { id: string; is_agree: boolean }; onSuccess: () => void },
+    { rejectValue: string; state: RootState }
+>(
+    "documents/confirmCustomDocumentUser",
+    async ({ data, onSuccess }, { getState, dispatch, rejectWithValue }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) return rejectWithValue("Отсутствует токен авторизации");
+
+            const response = await confirmCustomDocumentUser(data, token);
+            onSuccess();
+            return response;
+        } catch (error: any) {
+            const msg = error.response?.data?.errorText || "Ошибка при подписании документа";
+            dispatch(setError(msg));
+            return rejectWithValue(msg);
+        }
+    }
+);
+
+export const checkConfirmationCodeUserThunk = createAsyncThunk<
+    void,
+    { data: { id: string; code: string }; onSuccess: (response: any) => void },
+    { rejectValue: string; state: RootState }
+>(
+    "documents/checkConfirmationCodeUser",
+    async ({ data, onSuccess }, { getState, dispatch, rejectWithValue }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) return rejectWithValue("Отсутствует токен авторизации");
+
+            const response = await checkConfirmationCodeUser(data, token);
+            onSuccess(response);
+
+            // Обновляем список документов после успешного подписания
+            dispatch(getAllCustomDocumentUserThunk());
+
+            return response;
+        } catch (error: any) {
+            const msg = error.response?.data?.errorText || "Ошибка при проверке кода подтверждения";
+            dispatch(setError(msg));
+            return rejectWithValue(msg);
+        }
+    }
+);
+
+export const getSignedCustomDocumentUserThunk = createAsyncThunk<
+    Uint8Array,
+    { data: { id: string }; onSuccess?: () => void },
+    { rejectValue: string; state: RootState }
+>(
+    "documents/getSignedCustomDocumentUser",
+    async ({ data, onSuccess }, { getState, dispatch, rejectWithValue }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) return rejectWithValue("Отсутствует токен авторизации");
+
+            const arrayBuffer = await getSignedCustomDocumentUser(data, token);
+            const pdfBytes = new Uint8Array(arrayBuffer);
+
+            dispatch(setCurrentSignedDocuments({ type: `custom_doc_${data.id}`, document: pdfBytes }));
+            onSuccess?.();
+
+            return pdfBytes;
+        } catch (error: any) {
+            const msg = error.response?.data?.errorText || "Ошибка при получении подписанного документа";
+            dispatch(setError(msg));
+            return rejectWithValue(msg);
+        }
+    }
+);
+
+export const getUserNotSignedDocumentHtmlThunk = createAsyncThunk<
+    void,
+    { data: { id: number }; onSuccess?: (response: any) => void },
+    { rejectValue: string; state: RootState }
+>(
+    "documents/getUserNotSignedDocumentHtml",
+    async ({ data, onSuccess }, { getState, dispatch, rejectWithValue }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) return rejectWithValue("Отсутствует токен авторизации");
+
+            const response = await getUserNotSignedDocumentHtml(data, token);
+
+            // Сохраняем HTML документа для предварительного просмотра
+            const docId = `custom_doc_user_${data.id}`;
+            dispatch(setNotSignedDocumentsHtmls({ [docId]: response.not_signed_document_html }));
+
+            onSuccess?.(response);
+            return response;
+        } catch (error: any) {
+            const msg = error.response?.data?.errorText || "Ошибка при получении HTML документа";
+            dispatch(setError(msg));
             return rejectWithValue(msg);
         }
     }
@@ -802,6 +951,15 @@ export const documentsSlice = createSlice({
         ) {
             state.waiting_manual_document_verification = action.payload;
         },
+
+        // ===== Новые reducers для авторизованных пользователей =====
+        setCustomDocumentsUser(state, action: PayloadAction<CustomDocUserData[]>) {
+            state.customDocumentsUser = action.payload;
+        },
+
+        setCurrentCustomDocUser(state, action: PayloadAction<CustomDocUserData | null>) {
+            state.currentCustomDocUser = action.payload;
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -898,6 +1056,10 @@ export const {
     startDocTimeout,
     stopDocTimeout,
     tickNow,
+
+    // для авторизованных пользователей
+    setCustomDocumentsUser,
+    setCurrentCustomDocUser,
 } = documentsSlice.actions;
 
 export default documentsSlice.reducer;

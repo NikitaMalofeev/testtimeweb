@@ -255,7 +255,7 @@ export const getSignedCustomDocumentUser = async (data: { id: string }, token: s
 };
 
 // Получить неподписанный HTML документ для авторизованного пользователя
-export const getUserNotSignedDocumentHtml = async (data: { id: number }, token: string) => {
+export const getUserNotSignedDocumentHtml = async (data: { id: string }, token: string) => {
     const response = await axios.post(`${apiDocUrl}view_custom_document_user/get_user_not_signed_document_html/`, data, {
         headers: {
             "Accept-Language": "ru",

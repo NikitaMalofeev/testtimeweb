@@ -798,7 +798,7 @@ export const getSignedCustomDocumentUserThunk = createAsyncThunk<
 
 export const getUserNotSignedDocumentHtmlThunk = createAsyncThunk<
     void,
-    { data: { id: number }; onSuccess?: (response: any) => void },
+    { data: { id: string }; onSuccess?: (response: any) => void },
     { rejectValue: string; state: RootState }
 >(
     "documents/getUserNotSignedDocumentHtml",

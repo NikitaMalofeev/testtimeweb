@@ -358,6 +358,7 @@ export const RiskProfileFirstForm: React.FC = () => {
                         name="trusted_person_phone"
                         value={formik.values.trusted_person_phone || ""}
                         withoutCloudyLabel
+                        autoInitializeWithCountryCode={false}
                         onChange={(value) => {
                             formik.setFieldValue("trusted_person_phone", value);
                             dispatch(updateFieldValue({ name: "trusted_person_phone", value }));

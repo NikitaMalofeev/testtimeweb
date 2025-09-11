@@ -5,6 +5,7 @@ import { RootState } from "app/providers/store/config/store";
 import { ChatMessage } from "../model/chatModel";
 import axios from "axios";
 import apiUrl from "../api/supportChatApi"; // default export = base API url
+import { setError } from "entities/Error/slice/errorSlice";
 
 interface SupportChatState {
     websocketId: string;
@@ -147,7 +148,7 @@ export const postMessage = createAsyncThunk<
     { rejectValue: string; state: RootState }
 >(
     "supportChat/postMessage",
-    async (payload, { rejectWithValue, getState }) => {
+    async (payload, { rejectWithValue, getState, dispatch }) => {
         const token = getState().user.token;
         try {
             const form = new FormData();
@@ -170,10 +171,23 @@ export const postMessage = createAsyncThunk<
 
             return response.data as ChatMessage;
         } catch (error: any) {
-            return rejectWithValue(
-                error.response?.data?.message || "Ошибка отправки сообщения"
-            );
+            let errorMessage = "Ошибка отправки сообщения";
+
+            const data = error.response?.data;
+
+            if (data) {
+                if (payload.files && payload.files.length > 0) {
+                    errorMessage = data.text_for_files?.[0] || data.message || errorMessage;
+                    dispatch(setError(errorMessage));
+                } else {
+                    errorMessage = data.text?.[0] || data.message || errorMessage;
+                    dispatch(setError(errorMessage));
+                }
+            }
+
+            return rejectWithValue(errorMessage);
         }
+
     }
 );
 

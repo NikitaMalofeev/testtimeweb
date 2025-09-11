@@ -26,6 +26,7 @@ interface PhoneInputProps {
     type?: string;
     maxLength?: number;
     className?: string;
+    autoInitializeWithCountryCode?: boolean; // Новый проп для контроля автоинициализации
 }
 
 export const PhoneInput: React.FC<PhoneInputProps> = ({
@@ -42,6 +43,7 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
     inputMode = "tel",
     type = "text",
     className,
+    autoInitializeWithCountryCode = true, // По умолчанию включена автоинициализация
     ...props
 }) => {
     const dispatch = useAppDispatch();
@@ -55,9 +57,19 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
     const [searchQuery, setSearchQuery] = useState<string>('');
     const { handlePhoneChange, getPhoneValidationRegex } = usePhoneFormat();
 
-    // Простая маска для всех стран
-    const getPhonePlaceholder = (countryCode: string) => {
-        return `${countryCode} ________________`;
+    // Получаем значение без кода страны
+    const getPhoneWithoutCountryCode = (phoneValue: string, countryCode: string) => {
+        if (phoneValue.startsWith(countryCode)) {
+            return phoneValue.slice(countryCode.length).trim();
+        }
+        return phoneValue;
+    };
+
+    // Добавляем код страны к номеру
+    const addCountryCodeToPhone = (phoneNumber: string, countryCode: string) => {
+        if (!phoneNumber) return countryCode;
+        if (phoneNumber.startsWith(countryCode)) return phoneNumber;
+        return `${countryCode} ${phoneNumber}`;
     };
 
     // Загружаем коды стран при монтировании компонента
@@ -68,6 +80,13 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
             dispatch(getAllCountryCodesThunk());
         }
     }, []);
+
+    // Инициализируем значение с кодом страны, если поле пустое (только если включена автоинициализация)
+    useEffect(() => {
+        if (autoInitializeWithCountryCode && (!value || value.trim() === '')) {
+            onChange(selectedCountryCode);
+        }
+    }, [selectedCountryCode, autoInitializeWithCountryCode]);
 
     // Очищаем данные при размонтировании
     useEffect(() => {
@@ -83,8 +102,13 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
         setIsDropdownOpen(false);
         setSearchQuery(''); // Очищаем поиск при выборе страны
         
-        // Просто устанавливаем новый код страны
-        onChange(code);
+        if (autoInitializeWithCountryCode || value.trim() !== '') {
+            // Сохраняем существующий номер без кода и добавляем новый код
+            const phoneWithoutCode = getPhoneWithoutCountryCode(value, selectedCountryCode);
+            const newPhoneValue = addCountryCodeToPhone(phoneWithoutCode, code);
+            onChange(newPhoneValue);
+        }
+        // Если автоинициализация отключена и поле пустое, не добавляем код
     };
 
     // Обработчик переключения выпадающего списка
@@ -95,14 +119,34 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
         setIsDropdownOpen(!isDropdownOpen);
     };
 
-    // Простой обработчик изменения номера телефона
+    // Обработчик изменения номера телефона с автоподстановкой кода
     const handlePhoneInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const inputValue = e.target.value;
         
         // Разрешаем только цифры, плюс и пробелы
         const cleanValue = inputValue.replace(/[^\d+ ]/g, "");
         
-        onChange(cleanValue);
+        if (autoInitializeWithCountryCode) {
+            // Режим с автоинициализацией - защищаем код страны
+            if (!cleanValue.startsWith(selectedCountryCode)) {
+                // Если код страны удален, восстанавливаем его
+                const phoneWithoutCode = cleanValue.replace(/^\+?\d+\s?/, ''); // удаляем любой оставшийся код
+                const finalValue = addCountryCodeToPhone(phoneWithoutCode, selectedCountryCode);
+                onChange(finalValue);
+            } else {
+                // Код страны на месте, просто обновляем значение
+                onChange(cleanValue);
+            }
+        } else {
+            // Режим без автоинициализации - разрешаем любое значение
+            // Если пользователь начинает вводить с цифры, автоматически добавляем код
+            if (cleanValue.length > 0 && !cleanValue.startsWith('+')) {
+                const finalValue = addCountryCodeToPhone(cleanValue, selectedCountryCode);
+                onChange(finalValue);
+            } else {
+                onChange(cleanValue);
+            }
+        }
     };
 
     // Фильтрация стран по поисковому запросу
@@ -194,7 +238,7 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
                         value={value}
                         onChange={handlePhoneInputChange}
 
-                        placeholder={getPhonePlaceholder(selectedCountryCode)}
+                        placeholder="Номер телефона"
                         onFocus={onFocus}
                         withoutCloudyLabel={withoutCloudyLabel}
                         needValue={needValue}

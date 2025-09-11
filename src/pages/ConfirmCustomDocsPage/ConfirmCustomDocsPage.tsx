@@ -261,7 +261,7 @@ const ConfirmCustomDocsPage: React.FC = () => {
             <div className={styles.header}>
                 {/* <div className={styles.page__counter}>{displayLabel}</div> */}
                 <div className={styles.page__counter}>
-                    {isUserAuthorized ? 'Кастомный документ' : `документ ${step} из 2`}
+                    {isUserAuthorized ? currentCustomDocUser?.title : `документ ${step} из 2`}
                 </div>
             </div>
             <div className={styles.page__container}>

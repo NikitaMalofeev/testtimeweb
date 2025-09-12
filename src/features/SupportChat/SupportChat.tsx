@@ -445,16 +445,25 @@ const isImageUrl = (url?: string | null) => {
 export const UserMessage = ({ message, token }: { message: ChatMessage; token: string }) => {
     // Для optimistic сообщений используем optimisticFiles, для обычных - file_url
     const files = (message as any).optimisticFiles || (message.file_url ? [{ url: message.file_url }] : []);
+    const isOptimistic = (message as any).optimistic === true;
+    const hasError = (message as any).error === true;
     
     return (
         <div className={styles.message_user}>
             <span className={styles.message__date}>
                 {formatDateTime(message.created)}
-                {(message as any).optimistic && (
+                {isOptimistic && (
                     <span className={styles.message__sending}> отправляется...</span>
                 )}
+                {hasError && (
+                    <span className={styles.message__error}> ошибка отправки</span>
+                )}
             </span>
-            {message.text ? <p className={styles.message__message_user}>{message.text}</p> : null}
+            {message.text && (
+                <p className={`${styles.message__message_user} ${isOptimistic ? styles.message__sending_text : ''} ${hasError ? styles.message__error_text : ''}`}>
+                    {message.text}
+                </p>
+            )}
             
             {/* Отображение файлов */}
             {files.length > 0 && (

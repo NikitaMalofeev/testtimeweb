@@ -331,44 +331,59 @@ export const supportChatSlice = createSlice({
 
                 const msgId = (newMsg as any).id;
 
-                if (msgId) {
-                    // Если уже есть по id (вдруг пришло из WS), то обновим и сохраним blob при наличии
-                    const existingIdx = state.messages.findIndex((m) => (m as any).id === msgId);
-                    if (existingIdx !== -1) {
-                        const existing = state.messages[existingIdx] as any;
-                        const merged: any = { ...existing, ...newMsg };
-                        if (existing.file_url && String(existing.file_url).startsWith("blob:")) {
-                            merged.file_url = existing.file_url; // сохраняем blob, чтобы не перегружать картинку
-                        }
-                        merged.optimistic = undefined;
-                        state.messages[existingIdx] = merged;
-                        return;
+                // ВСЕГДА сначала ищем optimistic сообщение для замены
+                const optIndex = state.messages.findIndex((m) => !m.is_answer && (m as any).optimistic === true);
+                
+                if (optIndex !== -1) {
+                    // Нашли optimistic сообщение - заменяем его
+                    const opt = state.messages[optIndex] as any;
+                    const merged: any = { ...opt, ...newMsg };
+                    
+                    // Сохраняем blob URL для изображений
+                    if (opt.file_url && String(opt.file_url).startsWith("blob:")) {
+                        merged.file_url = opt.file_url;
                     }
-
-                    // Иначе ищем оптимиста и мержим
-                    const optIndex = state.messages.findIndex((m) => !m.is_answer && (m as any).user_id === 0);
-                    if (optIndex !== -1) {
-                        const opt = state.messages[optIndex] as any;
-                        const merged: any = { ...opt, ...newMsg };
-                        if (opt.file_url && String(opt.file_url).startsWith("blob:")) {
-                            merged.file_url = opt.file_url;
-                        }
-                        merged.optimistic = undefined;
-                        state.messages[optIndex] = merged;
-                        return;
-                    }
-
-                    // Ни WS, ни оптимиста — добавим новое сообщение
-                    state.messages.unshift(newMsg);
+                    
+                    // Убираем флаг optimistic
+                    merged.optimistic = false;
+                    
+                    state.messages[optIndex] = merged;
                     return;
                 }
 
-                // На всякий случай (если сервер вернул без id)
-                state.messages.unshift(newMsg);
+                // Если оптимиста нет, проверяем наличие сообщения по ID
+                if (msgId) {
+                    const existingIdx = state.messages.findIndex((m) => (m as any).id === msgId);
+                    if (existingIdx !== -1) {
+                        // Обновляем существующее сообщение
+                        const existing = state.messages[existingIdx] as any;
+                        const merged: any = { ...existing, ...newMsg };
+                        if (existing.file_url && String(existing.file_url).startsWith("blob:")) {
+                            merged.file_url = existing.file_url;
+                        }
+                        merged.optimistic = false;
+                        state.messages[existingIdx] = merged;
+                        return;
+                    }
+                }
+
+                // Если ничего не нашли - добавляем как новое сообщение
+                state.messages.unshift({ ...newMsg, optimistic: false });
             })
             .addCase(postMessage.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
+                
+                // При ошибке отправки отмечаем optimistic сообщение как ошибку
+                const optIndex = state.messages.findIndex((m) => !m.is_answer && (m as any).optimistic === true);
+                if (optIndex !== -1) {
+                    const optMessage = state.messages[optIndex] as any;
+                    // Можно либо удалить, либо отметить как ошибку
+                    optMessage.optimistic = false;
+                    optMessage.error = true;
+                    // Или просто удаляем:
+                    // state.messages.splice(optIndex, 1);
+                }
             })
             .addCase(getAllMessagesThunk.pending, (state) => {
                 state.loading = true;

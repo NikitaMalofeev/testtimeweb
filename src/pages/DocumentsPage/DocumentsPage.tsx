@@ -353,12 +353,10 @@ const DocumentsPage: React.FC = () => {
             }
             // Для отменя кнопки подписать на 1 документе при множетсвенном подписании
             case "type_doc_EDS_agreement": {
-
                 if (isBulkEnabled) {
                     const selectableDocIds = bulkSelectableDocs.map(d => d.id);
                     setSelectedDocs(selectableDocIds);
                     setBulkOpen(true)
-
                 } else {
                     navigate('/payments')
                 }

@@ -106,20 +106,23 @@ const ConfirmCustomDocsPage: React.FC = () => {
             // Для неавторизованных пользователей
 
             dispatch(setCurrentConfirmableDoc(displayKey));
-            console.log('useEffectINAUTH')
-            console.log(step)
-            console.log(isUserAuthorized)
-            // Для неавторизованных пользователей сохраняем старую логику
+            // console.log('useEffectINAUTH')
+            // console.log(step)
+            // console.log(isUserAuthorized)
+            // Для неавторизованных пользователей используем кастомный API
             if (step === 1) {
-                // ЭДО — не кастомный документ
+                // ЭДО для неавторизованных через кастомный API
+                // console.log('Dispatching EDS document with id:', id);
                 dispatch(
                     getUserDocumentNotSignedThunk({
                         custom: true,
+                        customId: id,
                         type: 'type_doc_EDS_agreement',
                     })
                 );
             } else {
                 // Кастомный документ по id - используем старый API для неавторизованных
+                // console.log('Dispatching custom document with id:', id);
                 dispatch(
                     getUserDocumentNotSignedThunk({
                         custom: true,
@@ -403,9 +406,8 @@ const ConfirmCustomDocsPage: React.FC = () => {
                 onClose={() => dispatch(closeModal(ModalType.SUCCESS))}
                 isUserAuthorized={isUserAuthorized}
                 isLastDocument={
-                    isUserAuthorized
-                        ? customDocumentsUser.filter(doc => !doc.is_confirmed && doc.id.toString() !== id).length === 0
-                        : step === 2
+                    isUserAuthorized ? true : step === 2
+
                 }
             />
             {isUserAuthorized ? (
@@ -417,12 +419,20 @@ const ConfirmCustomDocsPage: React.FC = () => {
                     title={currentCustomDocUser?.title || 'Кастомный документ'}
                 />
             ) : (
-                !customData?.is_confirmed_type_doc_custom ? (
+                !customData?.is_confirmed_type_doc_custom && step === 1 ? (
                     <DocumentPreviewModal
                         isOpen={documentsPreviewState.isOpen}
                         onClose={() => dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW_SIGNED))}
-                        docId={step === 1 ? 'type_doc_EDS_agreement' : id}
+                        docId={id}
                         title="Документ"
+                    />
+                ) : customData?.is_confirmed_type_doc_custom && step === 2 ? (
+                    <DocumentPreviewModal
+                        isOpen={documentsPreviewState.isOpen}
+                        onClose={() => dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW))}
+                        isSignedDoc={true}
+                        docId={id}
+                        title={customData.title}
                     />
                 ) : (
                     <DocumentPreviewModal
@@ -430,7 +440,7 @@ const ConfirmCustomDocsPage: React.FC = () => {
                         onClose={() => dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW))}
                         isSignedDoc={true}
                         docId={id}
-                        title={customData.title}
+                        title={''}
                     />
                 )
             )}

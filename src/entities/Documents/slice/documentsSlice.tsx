@@ -610,18 +610,19 @@ export const getUserDocumentNotSignedThunk = createAsyncThunk<
             if (docId === "type_doc_agreement_investment_advisor_app_1") return;
 
             let response;
-            console.log('1')
+            // console.log('1')
             if (custom && customId && type) {
                 // кастомный документ — без токена тоже ок
-                console.log('2')
+                // console.log('2')
                 response = await getCustomDocumentsNotSigned(token || "", customId, type);
             } else {
-                console.log('3')
+                // console.log('3')
                 response = await getDocumentNotSigned(token || "", docId);
             }
 
             const htmlString = response.not_signed_document_html;
             custom && dispatch(setCustomDocumentData(response));
+            // console.log(response)
             dispatch(setNotSignedDocumentsHtmls({ [docId]: htmlString }));
         } catch (err: any) {
             const msg = err.response?.data?.errorText ?? err.message;

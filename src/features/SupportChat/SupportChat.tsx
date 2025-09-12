@@ -392,13 +392,13 @@ const AuthImage: React.FC<{
 };
 
 const formatDateTime = (datetime: any) => {
-    if (!datetime) return "Неизвестно";
+    if (!datetime) return "";
 
     const d = new Date(datetime);
 
     // Проверяем валидность даты
     if (isNaN(d.getTime())) {
-        return "Неизвестно";
+        return "";
     }
 
     const day = String(d.getDate()).padStart(2, "0");

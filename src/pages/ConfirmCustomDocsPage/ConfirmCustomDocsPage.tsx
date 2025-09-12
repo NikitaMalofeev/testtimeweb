@@ -406,16 +406,29 @@ const ConfirmCustomDocsPage: React.FC = () => {
                 title="Документ подписан"
                 description={
                     <div style={{ textAlign: "center" }}>
-                        Документ "<strong>
-                            {isUserAuthorized
-                                ? (currentCustomDocUser?.title || 'Кастомный документ')
-                                : (step === 1 ? 'Соглашение об ЭЦП' : `${customData?.title}`)
-                            }
-                        </strong>" успешно подписан.
+                        {/* Для последнего документа показываем особый текст */}
+                        {(isUserAuthorized && customDocumentsUser.filter(doc => !doc.is_confirmed && doc.id.toString() !== id).length === 0) || 
+                         (!isUserAuthorized && step === 2) ? (
+                            "Спасибо за подписание документов"
+                        ) : (
+                            <>
+                                Документ "<strong>
+                                    {isUserAuthorized
+                                        ? (currentCustomDocUser?.title || 'Кастомный документ')
+                                        : (step === 1 ? 'Соглашение об ЭЦП' : `${customData?.title}`)
+                                    }
+                                </strong>" успешно подписан.
+                            </>
+                        )}
                     </div>
                 }
                 customSuccessModal
                 action={handleSuccessAction}
+                isLastDocument={
+                    isUserAuthorized 
+                        ? customDocumentsUser.filter(doc => !doc.is_confirmed && doc.id.toString() !== id).length === 0
+                        : step === 2
+                }
             />
             {isUserAuthorized ? (
                 <DocumentPreviewModal

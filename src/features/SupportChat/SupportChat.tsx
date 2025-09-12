@@ -39,6 +39,9 @@ interface ImageCacheEntry {
 
 const imageCache = new Map<string, ImageCacheEntry>();
 
+// Кеш для blob URL optimistic файлов
+const optimisticBlobCache = new Map<File, string>();
+
 // Функция для очистки кеша
 const clearImageCache = () => {
     imageCache.forEach(entry => {
@@ -440,33 +443,64 @@ const isImageUrl = (url?: string | null) => {
 };
 
 export const UserMessage = ({ message, token }: { message: ChatMessage; token: string }) => {
+    // Для optimistic сообщений используем optimisticFiles, для обычных - file_url
+    const files = (message as any).optimisticFiles || (message.file_url ? [{ url: message.file_url }] : []);
+    
     return (
         <div className={styles.message_user}>
             <span className={styles.message__date}>
                 {formatDateTime(message.created)}
+                {(message as any).optimistic && (
+                    <span className={styles.message__sending}> отправляется...</span>
+                )}
             </span>
             {message.text ? <p className={styles.message__message_user}>{message.text}</p> : null}
-            {message.file_url ? (
+            
+            {/* Отображение файлов */}
+            {files.length > 0 && (
                 <div className={styles.message__attachment}>
                     <div className={styles.message__imageContainer}>
-                        {/* Для optimistic сообщений (blob URL) показываем обычный img, для остальных AuthImage */}
-                        {message.file_url?.startsWith('blob:') ? (
-                            <img
-                                src={message.file_url}
-                                alt="attachment"
-                                className={`${styles.message__fullImage} ${styles.clickableImage}`}
-                                onClick={() => window.open(message.file_url || '', '_blank')}
-                            />
-                        ) : (
-                            <AuthImage
-                                src={message.file_url || ''}
-                                className={styles.message__fullImage}
-                                token={token}
-                            />
-                        )}
+                        {files.map((file: any, index: number) => {
+                            // Для optimistic файлов создаем blob URL
+                            if (file instanceof File) {
+                                const blobUrl = URL.createObjectURL(file);
+                                return (
+                                    <img
+                                        key={index}
+                                        src={blobUrl}
+                                        alt={`attachment ${index + 1}`}
+                                        className={`${styles.message__fullImage} ${styles.clickableImage}`}
+                                        onClick={() => window.open(blobUrl, '_blank')}
+                                        onLoad={() => {
+                                            // Освобождаем URL после загрузки изображения для экономии памяти
+                                            setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+                                        }}
+                                    />
+                                );
+                            }
+                            
+                            // Для обычных файлов с сервера
+                            const fileUrl = file.url || file;
+                            return fileUrl?.startsWith('blob:') ? (
+                                <img
+                                    key={index}
+                                    src={fileUrl}
+                                    alt={`attachment ${index + 1}`}
+                                    className={`${styles.message__fullImage} ${styles.clickableImage}`}
+                                    onClick={() => window.open(fileUrl, '_blank')}
+                                />
+                            ) : (
+                                <AuthImage
+                                    key={index}
+                                    src={fileUrl || ''}
+                                    className={styles.message__fullImage}
+                                    token={token}
+                                />
+                            );
+                        })}
                     </div>
                 </div>
-            ) : null}
+            )}
         </div>
     );
 };

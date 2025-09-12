@@ -139,6 +139,7 @@ export const closeWebSocketConnection = createAsyncThunk<
 // ---- отправка сообщения с поддержкой файлов (multipart) ----
 export type PostMessagePayload = {
     text?: string;
+    text_for_files?: string;
     files?: File[];
 };
 
@@ -152,9 +153,25 @@ export const postMessage = createAsyncThunk<
         const token = getState().user.token;
         try {
             const form = new FormData();
-            if (payload.text) form.append("text", payload.text);
+            console.log('=== SLICE THUNK STARTED ===');
+            console.log('payload received:', payload);
+            
+            // Если есть файлы - отправляем И text И text_for_files, иначе только text
             if (payload.files && payload.files.length) {
+                console.log('Has files - adding both text and text_for_files');
+                const messageText = payload.text_for_files || "";
+                form.append("text", messageText);
+                form.append("text_for_files", messageText);
                 payload.files.forEach((f) => form.append("files", f));
+            } else if (payload.text) {
+                console.log('No files - adding only text:', payload.text);
+                form.append("text", payload.text);
+            }
+
+            // Логируем содержимое FormData
+            console.log('FormData contents:');
+            for (let [key, value] of form.entries()) {
+                console.log(`${key}:`, value);
             }
 
             const response = await axios.post(
@@ -174,15 +191,19 @@ export const postMessage = createAsyncThunk<
             let errorMessage = "Ошибка отправки сообщения";
 
             const data = error.response?.data;
-
             if (data) {
-                if (payload.files && payload.files.length > 0) {
-                    errorMessage = data.text_for_files?.[0] || data.message || errorMessage;
-                    dispatch(setError(errorMessage));
-                } else {
-                    errorMessage = data.text?.[0] || data.message || errorMessage;
-                    dispatch(setError(errorMessage));
+                // Проверяем ошибки в массивах text и text_for_files
+                if (data.text && Array.isArray(data.text) && data.text.length > 0) {
+                    errorMessage = data.text[0];
+                } else if (data.text_for_files && Array.isArray(data.text_for_files) && data.text_for_files.length > 0) {
+                    errorMessage = data.text_for_files[0];
+                } else if (data.message) {
+                    errorMessage = data.message;
                 }
+                
+                console.log('Error from server:', data);
+                console.log('Final error message:', errorMessage);
+                dispatch(setError(errorMessage));
             }
 
             return rejectWithValue(errorMessage);
@@ -262,6 +283,20 @@ export const supportChatSlice = createSlice({
         setUnreadAnswersCount: (state, action: PayloadAction<number>) => {
             state.unreadAnswersCount = action.payload;
         },
+
+        // Optimistic update - добавляем сообщение пользователя сразу
+        addOptimisticMessage: (state, action: PayloadAction<{ text: string; files?: File[] }>) => {
+            const { text, files } = action.payload;
+            const optimisticMessage: ChatMessage = {
+                text: text,
+                created: new Date().toISOString(),
+                is_answer: false,
+                user_id: 0, // временный ID
+                file_url: files && files.length > 0 ? URL.createObjectURL(files[0]) : null,
+            };
+            
+            state.messages.unshift(optimisticMessage);
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -307,9 +342,20 @@ export const supportChatSlice = createSlice({
             .addCase(postMessage.fulfilled, (state, action) => {
                 state.loading = false;
                 state.success = true;
-                // Добавляем отправленное сообщение в чат
+                // Заменяем optimistic сообщение на настоящее от сервера
                 if (action.payload) {
-                    state.messages.unshift(action.payload);
+                    // Ищем optimistic сообщение (последнее сообщение пользователя)
+                    const optimisticIndex = state.messages.findIndex(
+                        (msg) => !msg.is_answer && msg.user_id === 0
+                    );
+                    
+                    if (optimisticIndex !== -1) {
+                        // Заменяем optimistic сообщение на настоящее
+                        state.messages[optimisticIndex] = action.payload;
+                    } else {
+                        // Если не нашли optimistic - добавляем как новое
+                        state.messages.unshift(action.payload);
+                    }
                 }
             })
             .addCase(postMessage.rejected, (state, action) => {
@@ -332,7 +378,7 @@ export const supportChatSlice = createSlice({
     },
 });
 
-export const { setWebsocketId, setMessages, addMessage, setUnreadAnswersCount } =
+export const { setWebsocketId, setMessages, addMessage, setUnreadAnswersCount, addOptimisticMessage } =
     supportChatSlice.actions;
 
 export default supportChatSlice.reducer;

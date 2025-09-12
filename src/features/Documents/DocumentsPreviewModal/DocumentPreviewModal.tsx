@@ -53,11 +53,11 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
     const [isContentReady, setIsContentReady] = useState(false);
 
     useEffect(() => {
-        // console.log(docId)
-        // console.log(allDocumentsHtml)
-        // console.log(isSignedDoc)
-        // docId && // console.log(allDocumentsHtml?.[docId])
-    }, [docId, isContentReady])
+        console.log(docId)
+        console.log(allDocumentsHtml)
+        console.log(isSignedDoc)
+
+    }, [docId, isContentReady, allDocumentsHtml])
 
     useEffect(() => {
 

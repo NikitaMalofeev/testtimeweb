@@ -40,7 +40,9 @@
       "Read(/C:\\Users\\admin\\Desktop\\WORK\\Ranks\\Ranks.autopilot\\src\\features\\RiskProfile\\LegalDataForm/**)",
       "Read(/C:\\Users\\admin\\Desktop\\WORK\\Ranks\\Ranks.autopilot\\src\\features\\RiskProfile\\RiskProfileFirstForm/**)",
       "Read(/C:\\Users\\admin\\Desktop\\WORK\\Ranks\\Ranks.autopilot\\src\\features\\SupportChat/**)",
-      "Read(/C:\\Users\\admin\\Desktop\\WORK\\Ranks\\Ranks.autopilot\\src\\shared\\ui\\Input/**)"
+      "Read(/C:\\Users\\admin\\Desktop\\WORK\\Ranks\\Ranks.autopilot\\src\\shared\\ui\\Input/**)",
+      "Bash(npm install:*)",
+      "Bash(npm run dev:*)"
     ],
     "deny": [],
     "ask": []

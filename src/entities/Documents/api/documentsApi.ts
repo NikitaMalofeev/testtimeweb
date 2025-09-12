@@ -100,6 +100,10 @@ export const getDocumentsNotSigned = async (token: string) => {
     return response.data;
 };
 
+// ==============================================
+// СТАРЫЕ API ДЛЯ НЕАВТОРИЗОВАННЫХ ПОЛЬЗОВАТЕЛЕЙ
+// ==============================================
+
 export const getCustomDocumentsNotSigned = async (token: string, id_sign: string, type_document: string) => {
     const response = await axios.post(`${apiDocUrl}custom_documents/get_user_not_signed_document_html/`, { id_sign, type_document }, {
         headers: {
@@ -115,60 +119,6 @@ export const getDocumentNotSigned = async (token: string, type_document: string)
             "Accept-Language": "ru",
             "Authorization": `Token ${token}`
         },
-    });
-    return response.data;
-};
-
-export const getDocumentsInfo = async (token: string) => {
-    const response = await axios.get(`${apiUrl}create_doc_user/get_user_documents/`, {
-        headers: {
-            "Accept-Language": "ru",
-            "Authorization": `Token ${token}`
-        },
-    });
-    return response.data;
-};
-
-// export const getAllBrokers = async (token: string, is_confirmed_type_doc_agreement_transfer_broker: boolean) => {
-//     const response = await axios.post(`${apiUrl}user_lk/s/`, { is_confirmed_type_doc_agreement_transfer_broker: is_confirmed_type_doc_agreement_transfer_broker, broker: ["tinkoff_brokers"] }, {
-//         headers: {
-//             "Accept-Language": "ru",
-//             "Authorization": `Token ${token}`
-//         },
-//     });
-//     return response.data;
-// };
-
-
-export const getAllBrokers = async (token: string, is_confirmed_type_doc_agreement_transfer_broker: boolean) => {
-    const response = await axios.post(`${apiUrl}user_lk/get_all_brokers/`, { is_confirmed_type_doc_agreement_transfer_broker: is_confirmed_type_doc_agreement_transfer_broker, broker: "tinkoff_brokers" }, {
-        headers: {
-            "Accept-Language": "ru",
-            "Authorization": `Token ${token}`
-        },
-    });
-    return response.data;
-};
-
-export const getDocumentsSigned = async (type_document: string, token: string) => {
-    const response = await axios.post(`${apiUrl}create_doc_user/get_signed_document/`, { type_document }, {
-        headers: {
-            "Accept-Language": "ru",
-            "Authorization": `Token ${token}`,
-            "Content-Type": "application/json",
-        },
-        responseType: "arraybuffer",
-    });
-    return response.data;
-};
-
-export const getCustomDocumentsSigned = async (id_sign: string, type_document: string) => {
-    const response = await axios.post(`${apiDocUrl}custom_documents/get_signed_custom_document/`, { type_document, id_sign }, {
-        headers: {
-            "Accept-Language": "ru",
-            "Content-Type": "application/json",
-        },
-        responseType: "arraybuffer",
     });
     return response.data;
 };
@@ -193,6 +143,53 @@ export const postConfirmationCodeCustom = async (data: ConfirmationCustomDocsDat
     return response.data;
 };
 
+export const getCustomDocumentsSigned = async (id_sign: string, type_document: string) => {
+    const response = await axios.post(`${apiDocUrl}custom_documents/get_signed_custom_document/`, { type_document, id_sign }, {
+        headers: {
+            "Accept-Language": "ru",
+            "Content-Type": "application/json",
+        },
+        responseType: "arraybuffer",
+    });
+    return response.data;
+};
+
+// ==============================================
+// ДРУГИЕ API
+// ==============================================
+
+export const getDocumentsInfo = async (token: string) => {
+    const response = await axios.get(`${apiUrl}create_doc_user/get_user_documents/`, {
+        headers: {
+            "Accept-Language": "ru",
+            "Authorization": `Token ${token}`
+        },
+    });
+    return response.data;
+};
+
+export const getAllBrokers = async (token: string, is_confirmed_type_doc_agreement_transfer_broker: boolean) => {
+    const response = await axios.post(`${apiUrl}user_lk/get_all_brokers/`, { is_confirmed_type_doc_agreement_transfer_broker: is_confirmed_type_doc_agreement_transfer_broker, broker: "tinkoff_brokers" }, {
+        headers: {
+            "Accept-Language": "ru",
+            "Authorization": `Token ${token}`
+        },
+    });
+    return response.data;
+};
+
+export const getDocumentsSigned = async (type_document: string, token: string) => {
+    const response = await axios.post(`${apiUrl}create_doc_user/get_signed_document/`, { type_document }, {
+        headers: {
+            "Accept-Language": "ru",
+            "Authorization": `Token ${token}`,
+            "Content-Type": "application/json",
+        },
+        responseType: "arraybuffer",
+    });
+    return response.data;
+};
+
 export const getBrokerDocumentsSigned = async (broker_id: string, token: string) => {
     const response = await axios.post(`${apiUrl}create_doc_user/get_signed_broker/`, { broker_id }, {
         headers: {
@@ -205,3 +202,69 @@ export const getBrokerDocumentsSigned = async (broker_id: string, token: string)
     return response.data;
 };
 
+// ==============================================
+// НОВЫЕ API ДЛЯ АВТОРИЗОВАННЫХ ПОЛЬЗОВАТЕЛЕЙ
+// ==============================================
+
+// Получить все кастомные документы для авторизованного пользователя
+export const getAllCustomDocumentUser = async (token: string) => {
+    const response = await axios.post(`${apiUrl}user_lk/get_all_custom_documents_user/`, {}, {
+        headers: {
+            "Accept-Language": "ru",
+            "Authorization": `Token ${token}`,
+        },
+    });
+    return response.data;
+};
+
+// Подписать кастомный документ для авторизованного пользователя
+export const confirmCustomDocumentUser = async (data: { id: string; is_agree: boolean }, token: string) => {
+    const response = await axios.post(`${apiDocUrl}view_custom_document_user/signing_document/`, data, {
+        headers: {
+            "Accept-Language": "ru",
+            "Authorization": `Token ${token}`,
+            "Content-Type": "application/json",
+        },
+    });
+    return response.data;
+};
+
+// Проверить код подтверждения для авторизованного пользователя
+export const checkConfirmationCodeUser = async (data: { id: string; code: string }, token: string) => {
+    const response = await axios.post(`${apiDocUrl}view_custom_document_user/check_confirmation_code/`, data, {
+        headers: {
+            "Accept-Language": "ru",
+            "Authorization": `Token ${token}`,
+            "Content-Type": "application/json",
+        },
+    });
+    return response.data;
+};
+
+// Получить подписанный кастомный документ для авторизованного пользователя
+export const getSignedCustomDocumentUser = async (data: { id: string }, token: string) => {
+    const response = await axios.post(`${apiDocUrl}view_custom_document_user/get_signed_custom_document/`, data, {
+        headers: {
+            "Accept-Language": "ru",
+            "Authorization": `Token ${token}`,
+            "Content-Type": "application/json",
+        },
+        responseType: "arraybuffer",
+    });
+    return response.data;
+};
+
+// Получить неподписанный HTML документ для авторизованного пользователя
+export const getUserNotSignedDocumentHtml = async (data: { id: string }, token: string) => {
+    console.log('API getUserNotSignedDocumentHtml called with data:', data);
+    console.log('Full URL:', `${apiDocUrl}view_custom_document_user/get_user_not_signed_document_html/`);
+    
+    const response = await axios.post(`${apiDocUrl}view_custom_document_user/get_user_not_signed_document_html/`, data, {
+        headers: {
+            "Accept-Language": "ru",
+            "Authorization": `Token ${token}`,
+            "Content-Type": "application/json",
+        },
+    });
+    return response.data;
+};

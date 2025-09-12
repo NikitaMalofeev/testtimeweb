@@ -358,7 +358,20 @@ const DocumentsPage: React.FC = () => {
                     setSelectedDocs(selectableDocIds);
                     setBulkOpen(true)
                 } else {
-                    navigate('/payments')
+                    if (docId === "type_doc_EDS_agreement" && !isIdentityScanExist) {
+                        // Если паспорт не существует, не даём подписывать документ
+                        return;
+                    }
+                    dispatch(setCurrentConfirmableDoc(docId));
+                    dispatch(setStepAdditionalMenuUI(4));
+                    dispatch(
+                        openModal({
+                            type: ModalType.IDENTIFICATION,
+                            size: ModalSize.FULL,
+                            animation: ModalAnimation.LEFT,
+                        })
+                    );
+                    break;
                 }
                 break
             }

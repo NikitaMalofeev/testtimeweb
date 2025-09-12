@@ -33,6 +33,7 @@ import styles from "./styles.module.scss";
 import { ConfirmCustomDocsModal } from "features/RiskProfile/ConfirmCustomDocModal/ConfirmCustomDocModal";
 import { ConfirmCustomDocUserModal } from "features/RiskProfile/ConfirmCustomDocUserModal/ConfirmCustomDocUserModal";
 import { SuccessModal } from "features/RiskProfile/SuccessModal/SuccessModal";
+import { SuccessCustomModal } from "features/RiskProfile/SuccessCustomModal/SuccessCustomModal";
 import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/DocumentPreviewModal";
 import SuccessBlueIcon from "shared/assets/svg/SuccessBlueIcon.svg";
 import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
@@ -400,30 +401,10 @@ const ConfirmCustomDocsPage: React.FC = () => {
                     email={customData?.email || ''}
                 />
             )}
-            <SuccessModal
+            <SuccessCustomModal
                 isOpen={successModalOpen}
                 onClose={() => dispatch(closeModal(ModalType.SUCCESS))}
-                title="Документ подписан"
-                description={
-                    <div style={{ textAlign: "center" }}>
-                        {/* Для последнего документа показываем особый текст */}
-                        {(isUserAuthorized && customDocumentsUser.filter(doc => !doc.is_confirmed && doc.id.toString() !== id).length === 0) || 
-                         (!isUserAuthorized && step === 2) ? (
-                            "Спасибо за подписание документов"
-                        ) : (
-                            <>
-                                Документ "<strong>
-                                    {isUserAuthorized
-                                        ? (currentCustomDocUser?.title || 'Кастомный документ')
-                                        : (step === 1 ? 'Соглашение об ЭЦП' : `${customData?.title}`)
-                                    }
-                                </strong>" успешно подписан.
-                            </>
-                        )}
-                    </div>
-                }
-                customSuccessModal
-                action={handleSuccessAction}
+                isUserAuthorized={isUserAuthorized}
                 isLastDocument={
                     isUserAuthorized 
                         ? customDocumentsUser.filter(doc => !doc.is_confirmed && doc.id.toString() !== id).length === 0

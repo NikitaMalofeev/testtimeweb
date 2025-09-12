@@ -34,13 +34,16 @@ export const ConfirmCustomDocUserModal = memo(
         const userInfo = useSelector((state: RootState) => state.user.userPersonalAccountInfo);
         const [phoneTimeLeft, setPhoneTimeLeft] = useState(60);
         const [phoneTimerActive, setPhoneTimerActive] = useState(false);
+        const [isCodeSubmitting, setIsCodeSubmitting] = useState(false);
 
         useEffect(() => {
             if (isOpen) {
                 setPhoneTimeLeft(60);
                 setPhoneTimerActive(true);
+                setIsCodeSubmitting(false); // сбрасываем флаг при открытии модала
             } else {
                 setPhoneTimerActive(false);
+                setIsCodeSubmitting(false);
             }
         }, [isOpen]);
 
@@ -176,21 +179,26 @@ export const ConfirmCustomDocUserModal = memo(
 
         // При полном вводе кода отправляем запрос на подтверждение
         useEffect(() => {
-            if (smsCode.every(digit => digit !== "") && documentId) {
+            if (smsCode.every(digit => digit !== "") && documentId && !isCodeSubmitting) {
+                setIsCodeSubmitting(true);
                 const code = smsCode.join("");
                 dispatch(checkConfirmationCodeUserThunk({
                     data: { id: documentId, code },
                     onSuccess: (data: any) => {
                         setSmsCode(Array(codeLength).fill(""));
+                        setIsCodeSubmitting(false);
                         if (openSuccessModal) {
                             openSuccessModal();
                         } else {
                             onClose();
                         }
                     },
+                    onError: () => {
+                        setIsCodeSubmitting(false);
+                    }
                 }));
             }
-        }, [smsCode, documentId, dispatch, openSuccessModal, onClose, codeLength]);
+        }, [smsCode, documentId, dispatch, openSuccessModal, onClose, codeLength, isCodeSubmitting]);
 
         return (
             <Modal

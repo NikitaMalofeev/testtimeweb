@@ -450,16 +450,16 @@ export const UserMessage = ({ message, token }: { message: ChatMessage; token: s
                 <div className={styles.message__attachment}>
                     <div className={styles.message__imageContainer}>
                         {/* Для optimistic сообщений (blob URL) показываем обычный img, для остальных AuthImage */}
-                        {message.file_url.startsWith('blob:') ? (
+                        {message.file_url?.startsWith('blob:') ? (
                             <img
                                 src={message.file_url}
                                 alt="attachment"
                                 className={`${styles.message__fullImage} ${styles.clickableImage}`}
-                                onClick={() => window.open(message.file_url, '_blank')}
+                                onClick={() => window.open(message.file_url || '', '_blank')}
                             />
                         ) : (
                             <AuthImage
-                                src={message.file_url}
+                                src={message.file_url || ''}
                                 className={styles.message__fullImage}
                                 token={token}
                             />
@@ -481,7 +481,7 @@ export const SupportMessage = ({ message, highlight, token }: { message: ChatMes
             {message.text ? <p className={styles.message__message_support}>{message.text}</p> : null}
             {message.file_url ? (
                 <div className={styles.message__attachment}>
-                    {isImageUrl(message.file_url) ? (
+                    {message.file_url && isImageUrl(message.file_url) ? (
                         <div className={styles.message__imageContainer}>
                             <AuthImage
                                 src={message.file_url}
@@ -490,13 +490,13 @@ export const SupportMessage = ({ message, highlight, token }: { message: ChatMes
                                 token={token}
                             />
                         </div>
-                    ) : (
+                    ) : message.file_url ? (
                         <div className={styles.message__fileContainer}>
                             <a href={message.file_url} target="_blank" rel="noreferrer" className={styles.message__fileLink}>
                                 📁 Скачать файл
                             </a>
                         </div>
-                    )}
+                    ) : null}
                 </div>
             ) : null}
         </div>

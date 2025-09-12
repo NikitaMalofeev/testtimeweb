@@ -193,9 +193,7 @@ export const ConfirmCustomDocUserModal = memo(
                             onClose();
                         }
                     },
-                    onError: () => {
-                        setIsCodeSubmitting(false);
-                    }
+
                 }));
             }
         }, [smsCode, documentId, dispatch, openSuccessModal, onClose, codeLength, isCodeSubmitting]);

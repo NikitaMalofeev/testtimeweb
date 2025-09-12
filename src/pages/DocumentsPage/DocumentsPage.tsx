@@ -351,6 +351,19 @@ const DocumentsPage: React.FC = () => {
                 }
                 break
             }
+            // Для отменя кнопки подписать на 1 документе при множетсвенном подписании
+            case "type_doc_EDS_agreement": {
+
+                if (isBulkEnabled) {
+                    const selectableDocIds = bulkSelectableDocs.map(d => d.id);
+                    setSelectedDocs(selectableDocIds);
+                    setBulkOpen(true)
+
+                } else {
+                    navigate('/payments')
+                }
+                break
+            }
             case "type_doc_EDS_agreement":
             case "type_doc_agreement_investment_advisor":
             case "type_doc_risk_declarations":

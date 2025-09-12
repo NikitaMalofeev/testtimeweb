@@ -7,5 +7,6 @@ export interface ChatMessage {
     is_edit?: boolean;
     modified?: string;
     text?: string;
+    optimistic: boolean;
     user_id?: number;
 }

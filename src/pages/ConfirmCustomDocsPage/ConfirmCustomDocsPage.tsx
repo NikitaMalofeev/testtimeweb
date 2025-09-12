@@ -63,14 +63,14 @@ const ConfirmCustomDocsPage: React.FC = () => {
     );
 
     // Проверяем, подписан ли ЭДО документ для авторизованных пользователей
-    const edsDocument = isUserAuthorized ? 
-        userDocuments.find(doc => doc.key === 'type_doc_EDS_agreement') 
+    const edsDocument = isUserAuthorized ?
+        userDocuments.find(doc => doc.key === 'type_doc_EDS_agreement')
         : null;
-    
-    const isEdsDocumentSigned = isUserAuthorized ? 
+
+    const isEdsDocumentSigned = isUserAuthorized ?
         (edsDocument && edsDocument.date_last_confirmed !== null)
         : true; // для неавторизованных пользователей используем старую логику
-    
+
     // Нужно ли показывать ЭДО документ первым для авторизованных пользователей
     const shouldShowEdsFirst = isUserAuthorized && !isEdsDocumentSigned;
 
@@ -78,18 +78,7 @@ const ConfirmCustomDocsPage: React.FC = () => {
     const displayKey = step === 1 ? "type_doc_EDS_agreement" : id;
     const previewDocId = step === 1 ? "type_doc_EDS_agreement" : id;
 
-    // Initial overall data fetch
-    useEffect(() => {
-        if (isUserAuthorized) {
-            // Для авторизованных пользователей загружаем список кастомных документов и статус обычных документов
-            dispatch(getAllCustomDocumentUserThunk());
-            dispatch(getUserDocumentsStateThunk()); // Загружаем userDocuments для проверки ЭДО
-        } else {
-            // Для неавторизованных пользователей
-            dispatch(getUserDocumentsStateThunk());
-            dispatch(setCurrentConfirmableDoc(displayKey));
-        }
-    }, [dispatch, displayKey, isUserAuthorized]);
+
 
     // Отдельный useEffect для установки текущего документа когда список загрузился
     useEffect(() => {
@@ -105,6 +94,8 @@ const ConfirmCustomDocsPage: React.FC = () => {
 
     useEffect(() => {
         if (isUserAuthorized) {
+            dispatch(getAllCustomDocumentUserThunk());
+            dispatch(getUserDocumentsStateThunk()); // Загружаем 
             // Для авторизованных пользователей загружаем только кастомный документ
             if (id) {
                 dispatch(getUserNotSignedDocumentHtmlThunk({
@@ -112,12 +103,18 @@ const ConfirmCustomDocsPage: React.FC = () => {
                 }));
             }
         } else {
+            // Для неавторизованных пользователей
+
+            dispatch(setCurrentConfirmableDoc(displayKey));
+            console.log('useEffectINAUTH')
+            console.log(step)
+            console.log(isUserAuthorized)
             // Для неавторизованных пользователей сохраняем старую логику
             if (step === 1) {
                 // ЭДО — не кастомный документ
                 dispatch(
                     getUserDocumentNotSignedThunk({
-                        custom: false,
+                        custom: true,
                         type: 'type_doc_EDS_agreement',
                     })
                 );
@@ -132,7 +129,7 @@ const ConfirmCustomDocsPage: React.FC = () => {
                 );
             }
         }
-    }, [dispatch, step, id, isUserAuthorized]);
+    }, [id, isUserAuthorized]);
 
 
     // Formik for shared fields (agreement checkbox and message method)
@@ -286,7 +283,7 @@ const ConfirmCustomDocsPage: React.FC = () => {
             <div className={styles.header}>
                 {/* <div className={styles.page__counter}>{displayLabel}</div> */}
                 <div className={styles.page__counter}>
-                    {isUserAuthorized 
+                    {isUserAuthorized
                         ? (currentCustomDocUser?.title || 'Кастомный документ')
                         : `документ ${step} из 2`
                     }
@@ -406,7 +403,7 @@ const ConfirmCustomDocsPage: React.FC = () => {
                 onClose={() => dispatch(closeModal(ModalType.SUCCESS))}
                 isUserAuthorized={isUserAuthorized}
                 isLastDocument={
-                    isUserAuthorized 
+                    isUserAuthorized
                         ? customDocumentsUser.filter(doc => !doc.is_confirmed && doc.id.toString() !== id).length === 0
                         : step === 2
                 }

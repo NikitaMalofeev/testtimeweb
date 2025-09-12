@@ -18,11 +18,11 @@ interface SuccessCustomModalProps {
     isLastDocument: boolean;
 }
 
-export const SuccessCustomModal = memo(({ 
-    isOpen, 
-    onClose, 
-    isUserAuthorized, 
-    isLastDocument 
+export const SuccessCustomModal = memo(({
+    isOpen,
+    onClose,
+    isUserAuthorized,
+    isLastDocument
 }: SuccessCustomModalProps) => {
     const modalState = useSelector((state: RootState) => state.modal);
     const navigate = useNavigate();
@@ -39,13 +39,19 @@ export const SuccessCustomModal = memo(({
         if (isUserAuthorized && isLastDocument) {
             return {
                 title: "Документ подписан",
-                description: "Спасибо за подписание документа",
+
                 buttonText: "Перейти в личный кабинет",
                 buttonAction: handleBackToPA
             };
+        } else if (!isUserAuthorized && !isLastDocument) {
+            return {
+                title: "Документ подписан",
+                buttonText: 'Перейти к следующему', // нет кнопки для неавторизованных на последнем документе
+                buttonAction: onClose
+            };
         } else if (!isUserAuthorized && isLastDocument) {
             return {
-                title: "Документы подписаны", 
+                title: "Документ подписан",
                 description: "Спасибо за подписание документов",
                 buttonText: null, // нет кнопки для неавторизованных на последнем документе
                 buttonAction: null

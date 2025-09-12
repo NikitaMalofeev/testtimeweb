@@ -38,14 +38,15 @@ export const getGroupWs = async (token: string) => {
 
 // 1) POST-запрос на ручку /main/user_lk/ask_question/
 export const askQuestion = async (data: any, token: string) => {
-    // data — объект с данными вопроса (например, { text: 'Вопрос', ... })
+    // data — объект с данными вопроса (например, { text: 'Вопрос', text_for_files: 'Текст с файлами', files: [...] })
     const response = await axios.post(
         `${apiUrl}user_lk/ask_question/`,
         data,
         {
             headers: {
                 Authorization: `Token ${token}`,
-                "Content-Type": "application/json",
+                // Для multipart данных не устанавливаем Content-Type
+                ...(data instanceof FormData ? {} : { "Content-Type": "application/json" }),
             },
         }
     );
@@ -74,8 +75,9 @@ export const postChatMessage = async (data: any, token: string) => {
         {
             headers: {
                 "Accept-Language": "ru",
-                "Content-Type": "application/json",
                 "Authorization": `Token ${token}`,
+                // Для multipart данных не устанавливаем Content-Type
+                ...(data instanceof FormData ? {} : { "Content-Type": "application/json" }),
             },
         }
     );

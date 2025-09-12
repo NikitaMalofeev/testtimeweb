@@ -497,8 +497,7 @@ export const getUserDocumentsStateThunk = createAsyncThunk<
 >("documents/getUserDocumentsStateThunk", async (_, { getState, dispatch, rejectWithValue }) => {
     try {
         const token = getState().user.token;
-        if (!token) return rejectWithValue("Отсутствует токен авторизации");
-
+        if (!token) return
         const currentBrokerIds = getState().documents.brokerIds;
         const response = await getDocumentsState(token);
         const {
@@ -595,6 +594,7 @@ export const getUserDocumentsNotSignedThunk = createAsyncThunk<
 });
 
 // not-signed: конкретный
+// not-signed: конкретный
 export const getUserDocumentNotSignedThunk = createAsyncThunk<
     void,
     { custom?: boolean; customId?: string; type: string },
@@ -605,21 +605,24 @@ export const getUserDocumentNotSignedThunk = createAsyncThunk<
         try {
             const token = getState().user.token;
             const docId = custom && customId ? customId : getState().documents.currentConfirmableDoc;
+            console.log({ docId, custom, customId, hasToken: Boolean(token) });
+
             if (docId === "type_doc_agreement_investment_advisor_app_1") return;
 
             let response;
-
+            // console.log('1')
             if (custom && customId && type) {
-                // Для кастомных документов неавторизованных пользователей (БЕЗ токена)
-                response = await getCustomDocumentsNotSigned(token || '', customId, type);
+                // кастомный документ — без токена тоже ок
+                // console.log('2')
+                response = await getCustomDocumentsNotSigned(token || "", customId, type);
             } else {
-                // Для обычных документов авторизованных пользователей (С токеном)
-                if (!token) return rejectWithValue("Отсутствует токен авторизации");
-                response = await getDocumentNotSigned(token, docId);
+                // console.log('3')
+                response = await getDocumentNotSigned(token || "", docId);
             }
 
             const htmlString = response.not_signed_document_html;
             custom && dispatch(setCustomDocumentData(response));
+            // console.log(response)
             dispatch(setNotSignedDocumentsHtmls({ [docId]: htmlString }));
         } catch (err: any) {
             const msg = err.response?.data?.errorText ?? err.message;
@@ -628,6 +631,7 @@ export const getUserDocumentNotSignedThunk = createAsyncThunk<
         }
     }
 );
+
 
 export const getUserDocumentsSignedThunk = createAsyncThunk<
     Uint8Array,

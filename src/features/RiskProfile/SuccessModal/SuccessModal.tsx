@@ -19,11 +19,14 @@ interface SuccessModalProps {
     action: () => void;
     actionText?: string;
     customSuccessModal?: boolean;
+    isLastDocument?: boolean;
 }
 
-export const SuccessModal = memo(({ isOpen, onClose, title, description, action, actionText, customSuccessModal }: SuccessModalProps) => {
+export const SuccessModal = memo(({ isOpen, onClose, title, description, action, actionText, customSuccessModal, isLastDocument }: SuccessModalProps) => {
     const modalState = useSelector((state: RootState) => state.modal);
     const customDocsData = useSelector((state: RootState) => state.documents.customDocumentsData);
+    const userToken = useSelector((state: RootState) => state.user.token);
+    const isUserAuthorized = Boolean(userToken);
     const navigate = useNavigate()
     const dispatch = useAppDispatch()
     const handleBackToPA = () => {
@@ -58,22 +61,36 @@ export const SuccessModal = memo(({ isOpen, onClose, title, description, action,
                             Вернуться в личный кабинет
                         </Button>
                     )}
-                    {customSuccessModal && customDocsData?.is_confirmed_type_doc_custom ? (
-                        <Button
-                            theme={ButtonTheme.BLUE}
-                            onClick={() => action()}
-                            className={styles.submitButton}
-                        >
-                            {actionText ? actionText : 'Просмотр документа'}
-                        </Button>
-                    ) : (
-                        <Button
-                            theme={ButtonTheme.BLUE}
-                            onClick={() => action()}
-                            className={styles.submitButton}
-                        >
-                            {actionText ? actionText : 'Перейти к следующему'}
-                        </Button>
+                    {customSuccessModal && (
+                        // Для кастомных документов проверяем, является ли это последним документом и авторизован ли пользователь
+                        isLastDocument && isUserAuthorized ? (
+                            <Button
+                                theme={ButtonTheme.BLUE}
+                                onClick={handleBackToPA}
+                                className={styles.submitButton}
+                            >
+                                Перейти в личный кабинет
+                            </Button>
+                        ) : isLastDocument && !isUserAuthorized ? (
+                            // Для неавторизованных пользователей на последнем документе просто закрываем модал
+                            null
+                        ) : customDocsData?.is_confirmed_type_doc_custom ? (
+                            <Button
+                                theme={ButtonTheme.BLUE}
+                                onClick={() => action()}
+                                className={styles.submitButton}
+                            >
+                                {actionText ? actionText : 'Просмотр документа'}
+                            </Button>
+                        ) : (
+                            <Button
+                                theme={ButtonTheme.BLUE}
+                                onClick={() => action()}
+                                className={styles.submitButton}
+                            >
+                                {actionText ? actionText : 'Перейти к следующему'}
+                            </Button>
+                        )
                     )}
 
                 </div>

@@ -1,6 +1,8 @@
 // entities/SupportChat/ui/SupportChat.tsx
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 import { Icon } from "shared/ui/Icon/Icon";
 import { Input } from "shared/ui/Input/Input";
 import ArrowBack from "shared/assets/svg/ArrowBack.svg";
@@ -20,6 +22,7 @@ import {
     setUnreadAnswersCount,
     addMessage,
     closeWebSocketConnection,
+    addOptimisticMessage,
 } from "entities/SupportChat/slice/supportChatSlice";
 import { Loader, LoaderSize } from "shared/ui/Loader/Loader";
 import { closeAllModals } from "entities/ui/Modal/slice/modalSlice";
@@ -392,13 +395,13 @@ const AuthImage: React.FC<{
 };
 
 const formatDateTime = (datetime: any) => {
-    if (!datetime) return "Неизвестно";
+    if (!datetime) return "";
 
     const d = new Date(datetime);
 
     // Проверяем валидность даты
     if (isNaN(d.getTime())) {
-        return "Неизвестно";
+        return "";
     }
 
     const day = String(d.getDate()).padStart(2, "0");
@@ -445,29 +448,22 @@ export const UserMessage = ({ message, token }: { message: ChatMessage; token: s
             {message.text ? <p className={styles.message__message_user}>{message.text}</p> : null}
             {message.file_url ? (
                 <div className={styles.message__attachment}>
-                    {/* {isImageUrl(message.file_url) ? (
-                        <div className={styles.message__imageContainer}>
-                            <AuthImage
+                    <div className={styles.message__imageContainer}>
+                        {/* Для optimistic сообщений (blob URL) показываем обычный img, для остальных AuthImage */}
+                        {message.file_url.startsWith('blob:') ? (
+                            <img
                                 src={message.file_url}
                                 alt="attachment"
+                                className={`${styles.message__fullImage} ${styles.clickableImage}`}
+                                onClick={() => window.open(message.file_url, '_blank')}
+                            />
+                        ) : (
+                            <AuthImage
+                                src={message.file_url}
                                 className={styles.message__fullImage}
                                 token={token}
                             />
-                        </div>
-                    ) : (
-                        <div className={styles.message__fileContainer}>
-                            <a href={message.file_url} target="_blank" rel="noreferrer" className={styles.message__fileLink}>
-                                📁 Скачать файл
-                            </a>
-                        </div>
-                    )} */}
-                    <div className={styles.message__imageContainer}>
-                        <AuthImage
-                            src={message.file_url}
-
-                            className={styles.message__fullImage}
-                            token={token}
-                        />
+                        )}
                     </div>
                 </div>
             ) : null}
@@ -516,13 +512,70 @@ export const SupportChat = () => {
     );
     const token = useSelector((state: RootState) => state.user.token);
 
-    const [messageText, setMessageText] = useState("");
     const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
     const [isScrolled, setIsScrolled] = useState(false);
     const [isBottom, setIsBottom] = useState(true);
 
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Formik форма
+    const formik = useFormik({
+        initialValues: {
+            message: "",
+        },
+        validationSchema: Yup.object({
+            message: Yup.string().when([], {
+                is: () => attachedFiles.length === 0,
+                then: (schema) => schema.required("Введите сообщение или прикрепите файл"),
+                otherwise: (schema) => schema.notRequired(),
+            }),
+        }),
+        onSubmit: async (values, { resetForm }) => {
+            console.log('=== FORMIK SUBMIT STARTED ===');
+            console.log('values.message:', values.message);
+            console.log('attachedFiles.length:', attachedFiles.length);
+
+            const messageText = values.message.trim();
+
+            // Валидация в функции
+            if (!messageText && attachedFiles.length === 0) {
+                console.log('No message and no files - skipping');
+                return;
+            }
+
+            // Optimistic update - сразу показываем сообщение пользователя
+            dispatch(addOptimisticMessage({
+                text: messageText,
+                files: attachedFiles.length > 0 ? attachedFiles : undefined
+            }));
+
+            // Очищаем форму сразу для UX
+            resetForm();
+            const filesToSend = [...attachedFiles]; // копируем массив файлов
+            setAttachedFiles([]);
+
+            // Формируем payload правильно
+            const payload = filesToSend.length > 0
+                ? {
+                    text_for_files: messageText, // текст для файлов
+                    files: filesToSend,
+                }
+                : {
+                    text: messageText, // обычный текст
+                };
+
+            console.log('Final payload:', payload);
+
+            try {
+                await dispatch(postMessage(payload) as any);
+                console.log('=== FORMIK SUBMIT COMPLETED ===');
+            } catch (error) {
+                console.error('Error sending message:', error);
+                // TODO: можно добавить логику отката optimistic update при ошибке
+            }
+        },
+    });
 
     // Получение ID веб-сокета и всех сообщений
     useEffect(() => {
@@ -574,14 +627,10 @@ export const SupportChat = () => {
         }
     };
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setMessageText(e.target.value);
-    };
-
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
-            handleSendMessage();
+            formik.handleSubmit();
         }
     };
 
@@ -598,30 +647,6 @@ export const SupportChat = () => {
         setAttachedFiles((prev) => prev.filter((_, i) => i !== idx));
     };
 
-    // Отправка сообщения (с файлами)
-    const handleSendMessage = async () => {
-        if (!messageText.trim() && attachedFiles.length === 0) return;
-
-        const messageToSend = messageText.trim();
-
-        // Очищаем поля сразу для UX
-        setMessageText("");
-
-        try {
-            await dispatch(
-                postMessage({
-                    text: messageToSend || undefined,
-                    files: attachedFiles.length ? attachedFiles : undefined,
-                }) as any
-            );
-            setAttachedFiles([]); // очищаем превью после успешной отправки
-        } catch (error) {
-            console.error("Ошибка отправки сообщения:", error);
-            // В случае ошибки возвращаем текст обратно
-            setMessageText(messageToSend);
-        }
-    };
-
     // Отключаем прокрутку страницы при открытом чате и чистим WS при размонтировании
     useEffect(() => {
         const originalOverflow = document.body.style.overflow;
@@ -634,9 +659,6 @@ export const SupportChat = () => {
         };
     }, [dispatch]);
 
-    const handleBlur = () => {
-        dispatch(setScrollToTop(true));
-    };
 
     // какие сообщения подсвечивать (непрочитанные)
     const unreadMessageKeys = React.useMemo(() => {
@@ -719,12 +741,15 @@ export const SupportChat = () => {
                     placeholder="Написать сообщение..."
                     name="message"
                     type="text"
-                    value={messageText}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
+                    value={formik.values.message}
+                    onChange={formik.handleChange}
+                    onBlur={(e) => {
+                        formik.handleBlur(e);
+                        dispatch(setScrollToTop(true));
+                    }}
                     onKeyDown={handleKeyDown}
                     withoutCloudyLabel
-                    error={false}
+                    error={formik.touched.message && Boolean(formik.errors.message)}
                 />
                 <Icon
                     className={styles.chat__input__icon}
@@ -732,7 +757,7 @@ export const SupportChat = () => {
                     width={24}
                     height={24}
                     pointer
-                    onClick={handleSendMessage}
+                    onClick={() => formik.handleSubmit()}
                 />
             </div>
 

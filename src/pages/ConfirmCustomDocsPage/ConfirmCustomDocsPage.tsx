@@ -430,7 +430,7 @@ const ConfirmCustomDocsPage: React.FC = () => {
                     <DocumentPreviewModal
                         isOpen={documentsPreviewState.isOpen}
                         onClose={() => dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW))}
-                        isSignedDoc={true}
+
                         docId={id}
                         title={customData.title}
                     />
@@ -438,7 +438,7 @@ const ConfirmCustomDocsPage: React.FC = () => {
                     <DocumentPreviewModal
                         isOpen={documentsPreviewState.isOpen}
                         onClose={() => dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW))}
-                        isSignedDoc={true}
+
                         docId={id}
                         title={''}
                     />

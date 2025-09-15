@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import styles from "./styles.module.scss";
 import { Icon } from "shared/ui/Icon/Icon";
 import BackIcon from "shared/assets/svg/ArrowBack.svg";
+import CloseIcon from "shared/assets/svg/close.svg";
 import { Payments } from "features/Payments/Payments/Payments";
 import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/DocumentPreviewModal";
 import { useSelector } from "react-redux";
@@ -11,6 +12,7 @@ import { RootState } from "app/providers/store/config/store";
 import { closeModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalType } from "entities/ui/Modal/model/modalTypes";
 import { useDevice } from "shared/hooks/useDevice";
+import { resetTariffSelection } from "entities/Payments/slice/paymentsSlice";
 
 
 const PaymentsPage: React.FC = () => {
@@ -21,6 +23,7 @@ const PaymentsPage: React.FC = () => {
     const [isPaid, setIsPaid] = useState<boolean>(false)
     const paymentStatus = useSelector((state: RootState) => state.payments.currentOrderStatus)
     const currentPaidTariffs = useSelector((s: RootState) => s.payments.paidTariffKeys)
+    const currentOrderId = useSelector((s: RootState) => s.payments.currentOrderId)
 
 
     // useEffect(() => {
@@ -38,15 +41,48 @@ const PaymentsPage: React.FC = () => {
         <div className={styles.page}>
             {device === 'mobile' && !isPaid && !paymentStatus && (
                 <div className={styles.page__title}>
-                    <Icon Svg={BackIcon} width={24} height={24} onClick={() => navigate("/lk")} pointer />
+                    {currentOrderId && (
+                        <Icon
+                            Svg={currentOrderId ? BackIcon : BackIcon}
+                            width={24}
+                            height={24}
+                            onClick={() => currentOrderId ? dispatch(resetTariffSelection()) : navigate("/lk")}
+                            pointer
+                        />
+                    )}
                     <h2 className={styles.page__title}>Тарифы</h2>
+                    <Icon
+                        Svg={CloseIcon}
+                        width={24}
+                        height={24}
+                        className={styles.close}
+                        onClick={() => navigate("/lk")}
+                        pointer
+                    />
                 </div>
             )}
             <div>
                 {device !== 'mobile' && !isPaid && !paymentStatus && (
                     <div className={styles.page__title}>
-                        <Icon Svg={BackIcon} width={24} height={24} onClick={() => navigate("/lk")} pointer />
+                        {currentOrderId && (
+                            <Icon
+                                Svg={currentOrderId ? BackIcon : BackIcon}
+                                width={24}
+                                height={24}
+                                onClick={() => currentOrderId ? dispatch(resetTariffSelection()) : navigate("/lk")}
+                                pointer
+                            />
+                        )}
+
                         <h2 className={styles.page__title}>Тарифы</h2>
+                        <Icon
+                            Svg={CloseIcon}
+                            width={24}
+                            height={24}
+                            className={styles.close}
+                            onClick={() => navigate("/lk")}
+                            pointer
+                        />
                     </div>
                 )}
                 <Payments isPaid={(value) => setIsPaid(value)} />

@@ -13,7 +13,9 @@ import {
     getAllActiveTariffsThunk,
     setCurrentTariff,
     setLockToLoading,
-    getBrokerBalanceThunk, // ✨ ДОБАВЛЕНО
+    getBrokerBalanceThunk,
+    setIsConfirming,
+    resetTariffSelection,
 } from 'entities/Payments/slice/paymentsSlice';
 import { setStepAdditionalMenuUI, setWarning } from 'entities/ui/Ui/slice/uiSlice';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
@@ -74,8 +76,9 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     const currentOrderId = useSelector((s: RootState) => s.payments.currentOrderId);
     const currentUserTariffIdForPayments = useSelector((s: RootState) => s.payments.currentUserTariffIdForPayments);
     const lockToLoading = useSelector((s: RootState) => s.payments.lockToLoading);
-    const balance = useSelector((s: RootState) => s.payments.balance);                 // ✨ ДОБАВЛЕНО
-    const activeTariff = useSelector((s: RootState) => s.payments.activeTariffs?.[0]); // ✨ ДОБАВЛЕНО
+    const balance = useSelector((s: RootState) => s.payments.balance);
+    const activeTariff = useSelector((s: RootState) => s.payments.activeTariffs?.[0]);
+    const isConfirming = useSelector((s: RootState) => s.payments.isConfirming);
 
     const tariffsRequestedRef = useRef(false);
 
@@ -147,7 +150,6 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         : [{ value: '', label: 'Брокер ещё не выбран' }];
 
     // ===== Локальный UI
-    const [isConfirming, setIsConfirming] = useState(false);
     const [currentTimeout, setCurrentTimeout] = useState(0);
 
     // ✨ Локальное модальное окно «Подробнее о тарифе»
@@ -345,22 +347,11 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                             }}
                             noMargin
                             needValue
+                            hideArrow
                             title="Выберите брокера для подключения тарифа"
                             label="Брокерский счёт для подключения тарифа"
                         />
 
-                        <Button
-                            theme={ButtonTheme.UNDERLINE}
-                            padding="10px 25px"
-                            className={styles.button}
-                            onClick={() => {
-                                dispatch(setCurrentOrderId(''));
-                                setIsConfirming(false);
-                                formik.resetForm();
-                            }}
-                        >
-                            Вернуться к выбору тарифов
-                        </Button>
 
                         <Button
                             disabled={!formik.values.broker_id}
@@ -394,7 +385,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                             width={24}
                             height={24}
                             onClick={() => {
-                                setIsConfirming(false);
+                                dispatch(setIsConfirming(false));
                                 isPaid(false);
                             }}
                             pointer

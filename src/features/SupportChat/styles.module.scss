@@ -200,11 +200,12 @@
       margin-top: 5px;
       background-color: #e1ecfb;
           border-radius: 15px;
-          padding: 10px;
+          padding: 6px;
     }
 
     &__imageContainer {
       max-width: 100%;
+      width: 100%;
       object-fit: contain;
 
       border-radius: 12px;

@@ -512,7 +512,7 @@ export const UserMessage = ({ message, token }: { message: ChatMessage; token: s
                     )}
                     {/* Описание файлов */}
                     {fileDescription && (
-                        <p className={`${styles.message__message_user} ${isOptimistic ? styles.message__sending_text : ''} ${hasError ? styles.message__error_text : ''}`} style={{ marginBottom: files.length > 0 ? '8px' : '0' }}>
+                        <p className={`${styles.message__message_user} ${isOptimistic ? styles.message__sending_text : ''} ${hasError ? styles.message__error_text : ''}`} style={{ marginBottom: files.length > 0 ? '0' : '0' }}>
                             {fileDescription}
                         </p>
                     )}

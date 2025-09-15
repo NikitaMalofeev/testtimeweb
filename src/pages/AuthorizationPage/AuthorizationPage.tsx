@@ -88,7 +88,7 @@ const AuthorizationPage = () => {
 
     return (
         <>
-            <div className={styles.auth} >
+            <div className={styles.auth} style={activeTab === 'registration' ? { paddingTop: '20px' } : { paddingTop: '42px' }}>
                 <AnimateHeightWrapper isOpen={activeTab === 'registration'} minHeight={deviceSize === 'desktop' ? '100%' : '100%'} style={activeTab === 'registration' ? { height: '98%' } : { height: '100%' }}>
                     <div className={styles.auth__wrapper}>
                         <div

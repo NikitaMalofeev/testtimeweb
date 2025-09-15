@@ -7,6 +7,7 @@ export interface ChatMessage {
     is_edit?: boolean;
     modified?: string;
     text?: string;
+    text_for_files?: string;   // описание файлов с сервера
     optimistic: boolean;
     user_id?: number;
 }

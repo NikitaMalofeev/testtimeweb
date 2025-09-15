@@ -145,9 +145,12 @@ export const postMessage = createAsyncThunk<
         const form = new FormData();
 
         if (payload.files && payload.files.length) {
-            const messageText = payload.text_for_files || "";
-            form.append("text", messageText);
-            form.append("text_for_files", messageText);
+            if (payload.text) {
+                form.append("text", payload.text);
+            }
+            if (payload.text_for_files) {
+                form.append("text_for_files", payload.text_for_files);
+            }
             payload.files.forEach((f) => form.append("files", f));
         } else if (payload.text) {
             form.append("text", payload.text);
@@ -259,11 +262,15 @@ export const supportChatSlice = createSlice({
         },
 
         // Optimistic update — добавляем сразу с blob-URL и меткой optimistic
-        addOptimisticMessage: (state, action: PayloadAction<{ text: string; files?: File[] }>) => {
-            const { text, files } = action.payload;
+        addOptimisticMessage: (state, action: PayloadAction<{ text: string; fileDescription?: string; files?: File[] }>) => {
+            const { text, fileDescription, files } = action.payload;
+
+            // Удаляем все сообщения с ошибками перед добавлением нового
+            state.messages = state.messages.filter((m) => !(m as any).error);
 
             const optimistic: any = {
                 text,
+                fileDescription,
                 created: new Date().toISOString(),
                 is_answer: false,
                 user_id: 0, // маркер оптимиста

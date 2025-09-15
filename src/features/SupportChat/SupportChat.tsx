@@ -447,7 +447,9 @@ export const UserMessage = ({ message, token }: { message: ChatMessage; token: s
     const files = (message as any).optimisticFiles || (message.file_url ? [{ url: message.file_url }] : []);
     const isOptimistic = (message as any).optimistic === true;
     const hasError = (message as any).error === true;
-    
+    // Используем text_for_files с сервера или локальный fileDescription для optimistic сообщений
+    const fileDescription = message.text_for_files || (message as any).fileDescription;
+
     return (
         <div className={styles.message_user}>
             <span className={styles.message__date}>
@@ -459,56 +461,69 @@ export const UserMessage = ({ message, token }: { message: ChatMessage; token: s
                     <span className={styles.message__error}> ошибка отправки</span>
                 )}
             </span>
+
+            {/* fileDescription + файлы в одном блоке с фоном */}
+            {(fileDescription || files.length > 0) && (
+                <div className={styles.message__attachment}>
+
+
+                    {/* Файлы */}
+                    {files.length > 0 && (
+                        <div className={styles.message__imageContainer}>
+                            {files.map((file: any, index: number) => {
+                                // Для optimistic файлов создаем blob URL
+                                if (file instanceof File) {
+                                    const blobUrl = URL.createObjectURL(file);
+                                    return (
+                                        <img
+                                            key={index}
+                                            src={blobUrl}
+                                            alt={`attachment ${index + 1}`}
+                                            className={`${styles.message__fullImage} ${styles.clickableImage}`}
+                                            onClick={() => window.open(blobUrl, '_blank')}
+                                            onLoad={() => {
+                                                // Освобождаем URL после загрузки изображения для экономии памяти
+                                                setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+                                            }}
+                                        />
+                                    );
+                                }
+
+                                // Для обычных файлов с сервера
+                                const fileUrl = file.url || file;
+                                return fileUrl?.startsWith('blob:') ? (
+                                    <img
+                                        key={index}
+                                        src={fileUrl}
+                                        alt={`attachment ${index + 1}`}
+                                        className={`${styles.message__fullImage} ${styles.clickableImage}`}
+                                        onClick={() => window.open(fileUrl, '_blank')}
+                                    />
+                                ) : (
+                                    <AuthImage
+                                        key={index}
+                                        src={fileUrl || ''}
+                                        className={styles.message__fullImage}
+                                        token={token}
+                                    />
+                                );
+                            })}
+                        </div>
+                    )}
+                    {/* Описание файлов */}
+                    {fileDescription && (
+                        <p className={`${styles.message__message_user} ${isOptimistic ? styles.message__sending_text : ''} ${hasError ? styles.message__error_text : ''}`} style={{ marginBottom: files.length > 0 ? '0' : '0' }}>
+                            {fileDescription}
+                        </p>
+                    )}
+                </div>
+            )}
+
+            {/* Основной текст в отдельном блоке */}
             {message.text && (
                 <p className={`${styles.message__message_user} ${isOptimistic ? styles.message__sending_text : ''} ${hasError ? styles.message__error_text : ''}`}>
                     {message.text}
                 </p>
-            )}
-            
-            {/* Отображение файлов */}
-            {files.length > 0 && (
-                <div className={styles.message__attachment}>
-                    <div className={styles.message__imageContainer}>
-                        {files.map((file: any, index: number) => {
-                            // Для optimistic файлов создаем blob URL
-                            if (file instanceof File) {
-                                const blobUrl = URL.createObjectURL(file);
-                                return (
-                                    <img
-                                        key={index}
-                                        src={blobUrl}
-                                        alt={`attachment ${index + 1}`}
-                                        className={`${styles.message__fullImage} ${styles.clickableImage}`}
-                                        onClick={() => window.open(blobUrl, '_blank')}
-                                        onLoad={() => {
-                                            // Освобождаем URL после загрузки изображения для экономии памяти
-                                            setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
-                                        }}
-                                    />
-                                );
-                            }
-                            
-                            // Для обычных файлов с сервера
-                            const fileUrl = file.url || file;
-                            return fileUrl?.startsWith('blob:') ? (
-                                <img
-                                    key={index}
-                                    src={fileUrl}
-                                    alt={`attachment ${index + 1}`}
-                                    className={`${styles.message__fullImage} ${styles.clickableImage}`}
-                                    onClick={() => window.open(fileUrl, '_blank')}
-                                />
-                            ) : (
-                                <AuthImage
-                                    key={index}
-                                    src={fileUrl || ''}
-                                    className={styles.message__fullImage}
-                                    token={token}
-                                />
-                            );
-                        })}
-                    </div>
-                </div>
             )}
         </div>
     );
@@ -556,6 +571,7 @@ export const SupportChat = () => {
     const token = useSelector((state: RootState) => state.user.token);
 
     const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+    const [fileDescription, setFileDescription] = useState<string>("");
     const [isScrolled, setIsScrolled] = useState(false);
     const [isBottom, setIsBottom] = useState(true);
 
@@ -569,8 +585,32 @@ export const SupportChat = () => {
         },
         validationSchema: Yup.object({
             message: Yup.string().when([], {
-                is: () => attachedFiles.length === 0,
-                then: (schema) => schema.required("Введите сообщение или прикрепите файл"),
+                is: () => {
+                    // Проверяем, есть ли уже сообщения пользователя (не от поддержки)
+                    const userMessages = messages.filter(m => !m.is_answer);
+                    const isFirstMessage = userMessages.length === 0;
+
+                    if (isFirstMessage) {
+                        // Для первого сообщения - минимум 50 символов, если нет файлов
+                        return attachedFiles.length === 0;
+                    } else {
+                        // Для остальных сообщений - обычная валидация
+                        return attachedFiles.length === 0;
+                    }
+                },
+                then: (schema) => {
+                    // Проверяем, первое ли это сообщение
+                    const userMessages = messages.filter(m => !m.is_answer);
+                    const isFirstMessage = userMessages.length === 0;
+
+                    if (isFirstMessage) {
+                        return schema
+                            .required("Введите сообщение или прикрепите файл")
+                            .min(50, "Первое сообщение должно содержать минимум 50 символов");
+                    } else {
+                        return schema.required("Введите сообщение или прикрепите файл");
+                    }
+                },
                 otherwise: (schema) => schema.notRequired(),
             }),
         }),
@@ -578,6 +618,7 @@ export const SupportChat = () => {
             console.log('=== FORMIK SUBMIT STARTED ===');
             console.log('values.message:', values.message);
             console.log('attachedFiles.length:', attachedFiles.length);
+            console.log('fileDescription:', fileDescription);
 
             const messageText = values.message.trim();
 
@@ -587,21 +628,36 @@ export const SupportChat = () => {
                 return;
             }
 
+            // Дополнительная проверка для первого сообщения
+            const userMessages = messages.filter(m => !m.is_answer);
+            const isFirstMessage = userMessages.length === 0;
+
+            if (isFirstMessage && attachedFiles.length === 0 && messageText.length < 50) {
+                // Форсируем показ ошибки
+                formik.setFieldTouched('message', true);
+                formik.setFieldError('message', 'Первое сообщение должно содержать минимум 50 символов');
+                return;
+            }
+
             // Optimistic update - сразу показываем сообщение пользователя
             dispatch(addOptimisticMessage({
                 text: messageText,
+                fileDescription: fileDescription.trim() || undefined,
                 files: attachedFiles.length > 0 ? attachedFiles : undefined
             }));
 
             // Очищаем форму сразу для UX
             resetForm();
             const filesToSend = [...attachedFiles]; // копируем массив файлов
+            const descriptionToSend = fileDescription.trim();
             setAttachedFiles([]);
+            setFileDescription("");
 
             // Формируем payload правильно
             const payload = filesToSend.length > 0
                 ? {
-                    text_for_files: messageText, // текст для файлов
+                    text: messageText, // основной текст
+                    text_for_files: descriptionToSend, // описание файлов
                     files: filesToSend,
                 }
                 : {
@@ -780,20 +836,28 @@ export const SupportChat = () => {
                     />
                 </div>
 
-                <Input
-                    placeholder="Написать сообщение..."
-                    name="message"
-                    type="text"
-                    value={formik.values.message}
-                    onChange={formik.handleChange}
-                    onBlur={(e) => {
-                        formik.handleBlur(e);
-                        dispatch(setScrollToTop(true));
-                    }}
-                    onKeyDown={handleKeyDown}
-                    withoutCloudyLabel
-                    error={formik.touched.message && Boolean(formik.errors.message)}
-                />
+                <div className={styles.input}>
+                    <Input
+                        placeholder="Написать сообщение..."
+                        name="message"
+                        type="text"
+                        value={formik.values.message}
+                        onChange={formik.handleChange}
+                        onBlur={(e) => {
+                            formik.handleBlur(e);
+                            dispatch(setScrollToTop(true));
+                        }}
+
+                        onKeyDown={handleKeyDown}
+                        withoutCloudyLabel
+                        error={formik.touched.message && Boolean(formik.errors.message)}
+                    />
+                    {formik.touched.message && formik.errors.message && (
+                        <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px', paddingLeft: '4px' }}>
+                            {formik.errors.message}
+                        </div>
+                    )}
+                </div>
                 <Icon
                     className={styles.chat__input__icon}
                     Svg={ChatSendIcon}
@@ -807,6 +871,17 @@ export const SupportChat = () => {
             {/* превью выбранных файлов перед отправкой - полупрозрачная полоска на всю ширину */}
             {attachedFiles.length > 0 && (
                 <div className={styles.chat__imagePreviewBar}>
+                    {/* Поле для описания файлов */}
+                    <div className={styles.chat__fileDescriptionContainer}>
+                        <Input
+                            placeholder="Описание файлов..."
+                            name="fileDescription"
+                            type="text"
+                            value={fileDescription}
+                            onChange={(e) => setFileDescription(e.target.value)}
+                            withoutCloudyLabel
+                        />
+                    </div>
                     <div className={styles.chat__imagePreviewContainer}>
                         {attachedFiles.map((f, idx) => {
                             const url = URL.createObjectURL(f);

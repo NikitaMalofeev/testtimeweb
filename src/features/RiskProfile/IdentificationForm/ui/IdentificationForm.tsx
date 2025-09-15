@@ -36,6 +36,7 @@ import BooleanTabs from "shared/ui/BooleanTabs/BooleanTabs";
 import { DocumentsPreviewPdfModal } from "features/Documents/DocumentsPreviewPdfModal/DocumentsPreviewPdfModal";
 import { resetBrokerIds, setBrokerIds } from "entities/Documents/slice/documentsSlice";
 import { setActiveTariffs } from "entities/Payments/slice/paymentsSlice";
+import { Select } from "shared/ui/Select/Select";
 
 const IdentificationProfileForm: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -107,6 +108,29 @@ const IdentificationProfileForm: React.FC = () => {
             .oneOf([Yup.ref("password")], "Пароли не совпадают")
             .required("Подтверждение обязательно"),
         g_recaptcha: Yup.string().required("Подтвердите, что вы не робот"),
+        contact_communication_type: Yup.string()
+            .oneOf(['contact_communication_telegram', 'contact_communication_whatsapp', 'contact_communication_max', 'contact_communication_other'], "Выберите тип контакта")
+            .required("Тип контакта обязателен"),
+        contact_communication_telegram: Yup.string().when('contact_communication_type', {
+            is: 'contact_communication_telegram',
+            then: (schema) => schema.required("Telegram обязателен для выбранного типа"),
+            otherwise: (schema) => schema.nullable()
+        }),
+        contact_communication_whatsapp: Yup.string().when('contact_communication_type', {
+            is: 'contact_communication_whatsapp',
+            then: (schema) => schema.test('phone-format', 'Неверный формат номера телефона', validatePhoneNumber).required("WhatsApp номер обязателен для выбранного типа"),
+            otherwise: (schema) => schema.nullable()
+        }),
+        contact_communication_max: Yup.string().when('contact_communication_type', {
+            is: 'contact_communication_max',
+            then: (schema) => schema.required("Max контакт обязателен для выбранного типа"),
+            otherwise: (schema) => schema.nullable()
+        }),
+        contact_communication_other: Yup.string().when('contact_communication_type', {
+            is: 'contact_communication_other',
+            then: (schema) => schema.required("Другой контакт обязателен для выбранного типа"),
+            otherwise: (schema) => schema.nullable()
+        }),
     }), [validatePhoneNumber]);
 
     const formik = useFormik({
@@ -122,6 +146,11 @@ const IdentificationProfileForm: React.FC = () => {
             g_recaptcha: "",
             is_individual_entrepreneur: false,
             type_sms_message: "SMS",
+            contact_communication_type: "",
+            contact_communication_telegram: "",
+            contact_communication_whatsapp: "",
+            contact_communication_max: "",
+            contact_communication_other: "",
         },
         validationSchema: validationSchema,
         validateOnMount: true,
@@ -209,6 +238,11 @@ const IdentificationProfileForm: React.FC = () => {
             g_recaptcha: formik.values.g_recaptcha,
             is_individual_entrepreneur: formik.values.is_individual_entrepreneur,
             type_sms_message: formik.values.type_sms_message,
+            contact_communication_type: formik.values.contact_communication_type as 'contact_communication_telegram' | 'contact_communication_whatsapp' | 'contact_communication_max' | 'contact_communication_other',
+            contact_communication_telegram: formik.values.contact_communication_telegram,
+            contact_communication_whatsapp: formik.values.contact_communication_whatsapp,
+            contact_communication_max: formik.values.contact_communication_max,
+            contact_communication_other: formik.values.contact_communication_other,
         };
 
         const userForRedux: userType = {
@@ -352,6 +386,84 @@ const IdentificationProfileForm: React.FC = () => {
                         type="password"
                         error={formik.touched.password2 && formik.errors.password2}
                     />
+
+                    {/* ───────────── дополнительные контакты ───────────── */}
+                    <Select
+                        items={[
+                            { value: 'contact_communication_telegram', label: 'Telegram' },
+                            { value: 'contact_communication_whatsapp', label: 'WhatsApp' },
+                            { value: 'contact_communication_max', label: 'Max' },
+                            { value: 'contact_communication_other', label: 'Другое' },
+                        ]}
+                        value={formik.values.contact_communication_type}
+                        onChange={(value) => {
+                            formik.setFieldValue('contact_communication_type', value);
+                            // Очищаем все поля при смене типа
+                            formik.setFieldValue('contact_communication_telegram', '');
+                            formik.setFieldValue('contact_communication_whatsapp', '');
+                            formik.setFieldValue('contact_communication_max', '');
+                            formik.setFieldValue('contact_communication_other', '');
+                        }}
+
+                        title="Тип дополнительного контакта"
+                        label="Выберите тип дополнительного контакта"
+                        needValue
+                        error={formik.touched.contact_communication_type && formik.errors.contact_communication_type}
+                    />
+
+                    {/* Условно отображаемые поля в зависимости от выбранного типа */}
+                    {formik.values.contact_communication_type === 'contact_communication_telegram' && (
+                        <Input
+                            name="contact_communication_telegram"
+                            value={formik.values.contact_communication_telegram}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            placeholder="@username или ссылка на Telegram"
+                            needValue
+                            type="text"
+                            error={formik.touched.contact_communication_telegram && formik.errors.contact_communication_telegram}
+                        />
+                    )}
+
+                    {formik.values.contact_communication_type === 'contact_communication_whatsapp' && (
+                        <PhoneInput
+                            name="contact_communication_whatsapp"
+                            value={formik.values.contact_communication_whatsapp}
+                            onChange={(value) => formik.setFieldValue("contact_communication_whatsapp", value)}
+                            onBlur={formik.handleBlur}
+                            placeholder="Номер телефона WhatsApp"
+                            withoutCloudyLabel
+                            needValue
+                            error={formik.touched.contact_communication_whatsapp && formik.errors.contact_communication_whatsapp}
+                        />
+                    )}
+
+                    {formik.values.contact_communication_type === 'contact_communication_max' && (
+                        <Input
+                            name="contact_communication_max"
+                            value={formik.values.contact_communication_max}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            placeholder="Max контакт"
+                            needValue
+                            type="text"
+                            error={formik.touched.contact_communication_max && formik.errors.contact_communication_max}
+                        />
+                    )}
+
+                    {formik.values.contact_communication_type === 'contact_communication_other' && (
+                        <Input
+                            name="contact_communication_other"
+                            value={formik.values.contact_communication_other}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            placeholder="Другой способ связи"
+                            needValue
+                            type="text"
+                            error={formik.touched.contact_communication_other && formik.errors.contact_communication_other}
+                        />
+                    )}
+
                     <Checkbox
                         name="is_agreement"
                         value={formik.values.is_agreement}

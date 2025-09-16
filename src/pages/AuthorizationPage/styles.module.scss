@@ -6,8 +6,18 @@
     justify-content: center;
     flex-grow: 1;
     height: var(--app-vh, 100vh);
+    min-height: var(--app-vh, 100vh);
+    max-height: var(--app-vh, 100vh);
     background-color: #E1ECFB;
     padding-top: 20px;
+    overflow: hidden;
+
+    &.auth_registration_mode {
+        height: auto;
+        min-height: var(--app-vh, 100vh);
+        max-height: none;
+        overflow: visible;
+    }
     
 
     &__icon {
@@ -76,6 +86,12 @@
         align-items: end;
         width: 100%;
         height: 100%;
+
+        /* Для регистрации убираем ограничения */
+        .auth_registration_mode & {
+            height: auto;
+            min-height: 100%;
+        }
     }
     
 }
@@ -92,11 +108,14 @@
     justify-content: end;
     overflow-y: auto;
     display: flex;
+
     background-color: white;
     border-radius: 50px 50px 0 0;
     flex-direction: column;
     transition: height 0.3s ease;
-    padding-bottom: 16px;
+        padding-bottom: 74px;
+    min-height: 0;
+    flex-shrink: 1;
 }
 
 .forgotPassword {
@@ -132,7 +151,78 @@ margin-top: 5px;
 }
 }
 
+/* Фикс для iOS Safari при появлении клавиатуры - только для логина */
+@supports (-webkit-touch-callout: none) {
+    /* Применяем фикс только когда добавлен специальный класс */
+    .auth.auth_login_mode.keyboard_visible {
+        height: -webkit-fill-available;
+        min-height: -webkit-fill-available;
+        max-height: -webkit-fill-available;
+    }
 
+    .auth.auth_login_mode.keyboard_visible .auth__container:not(.auth__container_extended) {
+        max-height: calc(var(--app-vh, 100vh) - 80px);
+    }
+
+    /* Для регистрации отключаем iOS фиксы */
+    .auth.auth_registration_mode {
+        height: auto;
+        min-height: var(--app-vh, 100vh);
+        max-height: none;
+    }
+}
+
+/* Дополнительный фикс для мобильных устройств */
+@media screen and (max-width: 768px) {
+    /* Общие стили только для login страницы */
+    .auth {
+        &.auth_login_mode {
+            position: relative;
+            height: var(--app-vh, 100vh);
+            min-height: var(--app-vh, 100vh);
+            max-height: var(--app-vh, 100vh);
+            width: 100%;
+        }
+    }
+
+    .auth__wrapper {
+        height: 100%;
+        max-height: 100%;
+
+        /* Для регистрации разрешаем быть выше экрана */
+        .auth_registration_mode & {
+            height: auto;
+            max-height: none;
+            min-height: 100%;
+        }
+    }
+
+    /* Для формы авторизации */
+    .auth__container:not(.auth__container_extended) {
+        flex: 1;
+        max-height: none;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Для формы регистрации - возвращаем нормальное поведение */
+    .auth__container_extended {
+        position: relative;
+        max-height: none !important;
+        overflow-y: visible;
+        flex: none;
+        height: auto;
+    }
+
+    /* Возвращаем нормальное поведение для регистрации */
+    .auth.auth_registration_mode {
+        position: relative;
+        height: auto;
+        min-height: var(--app-vh, 100vh);
+        max-height: none;
+        overflow: visible;
+    }
+}
 
 @include mix.respond-to('tablet-desktop') {
 

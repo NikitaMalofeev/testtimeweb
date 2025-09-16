@@ -29,6 +29,8 @@ const AuthorizationPage = () => {
     const ModalState = useSelector((state: RootState) => state.modal.resetPassword)
     const navigate = useNavigate()
     const deviceSize = useDevice();
+    const [keyboardVisible, setKeyboardVisible] = useState(false);
+    const authRef = useRef<HTMLDivElement>(null);
 
     // Форма для авторизации    
     const formik = useFormik({
@@ -84,11 +86,43 @@ const AuthorizationPage = () => {
         }
     }, [activeTab]);
 
+    // Определяем iOS устройства
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
+    // Обработчики для определения видимости клавиатуры на iOS
+    useEffect(() => {
+        if (!isIOS || activeTab !== 'login') return;
+
+        const handleFocus = () => {
+            setKeyboardVisible(true);
+        };
+
+        const handleBlur = () => {
+            setKeyboardVisible(false);
+        };
+
+        const inputs = document.querySelectorAll('input[type="text"], input[type="password"], input[type="email"], input[type="tel"]');
+
+        inputs.forEach(input => {
+            input.addEventListener('focus', handleFocus);
+            input.addEventListener('blur', handleBlur);
+        });
+
+        return () => {
+            inputs.forEach(input => {
+                input.removeEventListener('focus', handleFocus);
+                input.removeEventListener('blur', handleBlur);
+            });
+        };
+    }, [activeTab, isIOS]);
 
     return (
         <>
-            <div className={styles.auth} style={activeTab === 'registration' ? { paddingTop: '20px' } : { paddingTop: '42px' }}>
+            <div
+                ref={authRef}
+                className={`${styles.auth} ${activeTab === 'login' ? styles.auth_login_mode : styles.auth_registration_mode} ${keyboardVisible && activeTab === 'login' && isIOS ? 'keyboard_visible' : ''}`}
+                style={activeTab === 'registration' ? { paddingTop: '20px' } : { paddingTop: '42px' }}
+            >
                 <AnimateHeightWrapper isOpen={activeTab === 'registration'} minHeight={deviceSize === 'desktop' ? '100%' : '100%'} style={activeTab === 'registration' ? { height: '98%' } : { height: '100%' }}>
                     <div className={styles.auth__wrapper}>
                         <div

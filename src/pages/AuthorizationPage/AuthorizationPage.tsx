@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useSelector } from "react-redux";
@@ -24,6 +24,21 @@ const AuthorizationPage = () => {
     const [activeTab, setActiveTab] = useState<"login" | "registration">("login");
     const ModalState = useSelector((state: RootState) => state.modal.resetPassword)
     const navigate = useNavigate();
+
+    // Добавляем класс к body для отключения глобальных фиксов высоты
+    useEffect(() => {
+        document.body.classList.add('authorization-page');
+
+        // Устанавливаем фиксированную высоту для страницы авторизации
+        document.documentElement.style.setProperty('--app-vh', '100vh');
+
+        return () => {
+            document.body.classList.remove('authorization-page');
+            // Восстанавливаем dynamic высоту при выходе
+            const currentHeight = window.visualViewport?.height ?? window.innerHeight;
+            document.documentElement.style.setProperty('--app-vh', `${currentHeight}px`);
+        };
+    }, []);
 
     // Форма для авторизации    
     const formik = useFormik({

@@ -5,6 +5,11 @@
     background-color: #E1ECFB;
     min-height: 100vh;
     padding-top: 42px;
+
+    // Отключаем влияние --app-vh на эту страницу
+    height: auto !important;
+    min-height: 100vh !important;
+    max-height: none !important;
     
 
     &__icon {

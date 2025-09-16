@@ -661,14 +661,14 @@ export const SupportChat = () => {
             // Optimistic update - сразу показываем сообщение пользователя
             dispatch(addOptimisticMessage({
                 text: messageText,
-                fileDescription: fileDescription.trim() || undefined,
+                fileDescription: attachedFiles.length > 0 ? fileDescription.trim() || undefined : undefined,
                 files: attachedFiles.length > 0 ? attachedFiles : undefined
             }));
 
             // Очищаем форму сразу для UX
             resetForm();
             const filesToSend = [...attachedFiles]; // копируем массив файлов
-            const descriptionToSend = fileDescription.trim();
+            const descriptionToSend = attachedFiles.length > 0 ? fileDescription.trim() : "";
             setAttachedFiles([]);
             setFileDescription("");
             setFileDescriptionError("");
@@ -776,6 +776,14 @@ export const SupportChat = () => {
             }
         }
     };
+
+    // Очищаем описание файлов когда все файлы удалены
+    useEffect(() => {
+        if (attachedFiles.length === 0 && fileDescription) {
+            setFileDescription("");
+            setFileDescriptionError("");
+        }
+    }, [attachedFiles.length, fileDescription]);
 
     // Отключаем прокрутку страницы при открытом чате и чистим WS при размонтировании
     useEffect(() => {

@@ -24,7 +24,6 @@ import {
     closeWebSocketConnection,
     addOptimisticMessage,
 } from "entities/SupportChat/slice/supportChatSlice";
-import apiUrl from "entities/SupportChat/api/supportChatApi";
 import { Loader, LoaderSize } from "shared/ui/Loader/Loader";
 import { closeAllModals } from "entities/ui/Modal/slice/modalSlice";
 import { setScrollToTop } from "entities/ui/Ui/slice/uiSlice";
@@ -152,59 +151,6 @@ const useInViewport = (ref: React.RefObject<HTMLElement>) => {
     return isVisible;
 };
 
-// Компонент кнопки скачивания для изображений вне viewport
-const ImageDownloadButton: React.FC<{
-    src: string;
-    token: string;
-    className?: string;
-}> = ({ src, token, className }) => {
-    const handleDownload = async () => {
-        try {
-            const response = await fetch(src, {
-                headers: {
-                    'Authorization': `Token ${token}`,
-                    'Accept': 'image/*,*/*'
-                }
-            });
-
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-            const blob = await response.blob();
-            let downloadUrl = URL.createObjectURL(blob);
-            let fileName = 'image';
-
-            // Если это ZIP файл, попробуем извлечь изображение
-            if (blob.type === 'application/zip' || blob.type === 'application/x-zip-compressed') {
-                const extractedUrl = await extractImageFromZip(blob);
-                if (extractedUrl) {
-                    downloadUrl = extractedUrl;
-                    fileName = 'extracted_image';
-                } else {
-                    fileName = 'archive.zip';
-                }
-            }
-
-            const link = document.createElement('a');
-            link.href = downloadUrl;
-            link.download = fileName;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(downloadUrl);
-        } catch (error) {
-            console.error('Ошибка скачивания изображения:', error);
-        }
-    };
-
-    return (
-        <button
-            onClick={handleDownload}
-            className={`${styles.downloadButton} ${className || ''}`}
-        >
-            ⬇ Скачать изображение
-        </button>
-    );
-};
 
 // Компонент модального окна для просмотра изображений в полном размере
 const ImageModal: React.FC<{
@@ -249,6 +195,69 @@ const ImageModal: React.FC<{
             </div>
         </div>,
         document.body
+    );
+};
+
+// Компонент для оптимистичных изображений (File объекты и blob URL)
+const OptimisticImage: React.FC<{
+    file?: File;
+    blobUrl?: string;
+    index: number;
+}> = ({ file, blobUrl, index }) => {
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    useEffect(() => {
+        let url: string;
+        if (file) {
+            url = URL.createObjectURL(file);
+        } else if (blobUrl) {
+            url = blobUrl;
+        } else {
+            return;
+        }
+
+        setImageUrl(url);
+
+        // Имитируем небольшую задержку для показа скелетона
+        const timer = setTimeout(() => setLoading(false), 200);
+
+        return () => {
+            clearTimeout(timer);
+            if (file && url) {
+                // Освобождаем URL только если мы его создали
+                URL.revokeObjectURL(url);
+            }
+        };
+    }, [file, blobUrl]);
+
+    if (loading || !imageUrl) {
+        return (
+            <div className={`${styles.message__imageLoading} ${styles.message__fullImage}`}>
+                <div className={styles.message__imageLoader}>
+                    <Loader size={LoaderSize.SMALL} />
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <>
+            <div onClick={() => setIsModalOpen(true)}>
+                <img
+                    src={imageUrl}
+                    alt={`attachment ${index + 1}`}
+                    className={`${styles.message__fullImage} ${styles.clickableImage}`}
+                />
+            </div>
+            <ImageModal
+                src={imageUrl}
+                alt={`attachment ${index + 1}`}
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+            />
+        </>
     );
 };
 
@@ -342,14 +351,7 @@ const AuthImage: React.FC<{
         );
     }
 
-    // Если это ZIP файл и изображение не в viewport - показываем кнопку скачивания
-    // if (isZipFile && !isInViewport) {
-    //     return (
-    //         <div ref={imageRef} className={`${styles.message__imageDownload} ${className || ''}`}>
-    //             <ImageDownloadButton src={src} token={token} />
-    //         </div>
-    //     );
-    // }
+    // Если это ZIP файл и изображение не в viewport - показываем лоадер
     if (isZipFile && !isInViewport) {
         return (
             <div ref={imageRef} className={`${styles.message__imageLoading} ${className || ''}`}>
@@ -358,15 +360,7 @@ const AuthImage: React.FC<{
         );
     }
 
-
-    // Если нет blobUrl(например, ZIP вне viewport)
-    // if (!blobUrl) {
-    //     return (
-    //         <div ref={imageRef} className={`${styles.message__imageDownload} ${className || ''}`}>
-    //             <ImageDownloadButton src={src} token={token} />
-    //         </div>
-    //     );
-    // }
+    // Если нет blobUrl - показываем лоадер
     if (!blobUrl) {
         return (
             <div ref={imageRef} className={`${styles.message__imageLoading} ${className || ''}`}>
@@ -429,27 +423,37 @@ const isImageUrl = (url?: string | null) => {
         urlWithoutParams.endsWith(".svg") || urlWithoutParams.endsWith(".tiff") ||
         urlWithoutParams.endsWith(".ico");
 
-    // Проверяем специфические API endpoints твоего сервера (Ranks API)
-    const isRanksFileApi = u.includes(`${apiUrl}user_lk/get_files_question`) && u.includes("id=");
-
     // Проверяем по ключевым словам в URL (для других API)
     const hasImageKeywords = u.includes("/image") || u.includes("image/") || u.includes("img/") ||
         u.includes("/photo") || u.includes("photo/") || u.includes("/picture");
 
     // Файл считается изображением если:
     // 1. Имеет расширение изображения ИЛИ
-    // 2. Это API Ranks для файлов ИЛИ  
-    // 3. Содержит ключевые слова изображений
-    return hasImageExtension || isRanksFileApi || hasImageKeywords;
+    // 2. Содержит ключевые слова изображений
+    return hasImageExtension || hasImageKeywords;
 };
 
 export const UserMessage = ({ message, token }: { message: ChatMessage; token: string }) => {
-    // Для optimistic сообщений используем optimisticFiles, для обычных - file_url
-    const files = (message as any).optimisticFiles || (message.file_url ? [{ url: message.file_url }] : []);
     const isOptimistic = (message as any).optimistic === true;
     const hasError = (message as any).error === true;
+
+    // Для всех сообщений используем file_url (массив URL или одиночный URL)
+    let files: any[] = [];
+
+    if (message.file_url) {
+        const urls = Array.isArray(message.file_url) ? message.file_url : [message.file_url];
+
+        if (isOptimistic && (message as any).optimisticFiles) {
+            // Для оптимистичных сообщений используем File объекты
+            files = (message as any).optimisticFiles;
+        } else {
+            // Для обычных сообщений используем URL
+            files = urls.map(url => ({ url }));
+        }
+    }
+
     // Используем text_for_files с сервера или локальный fileDescription для optimistic сообщений
-    const fileDescription = message.text_for_files || (message as any).fileDescription;
+    const fileDescription = message.text_for_files;
 
     return (
         <div className={styles.message_user}>
@@ -472,42 +476,28 @@ export const UserMessage = ({ message, token }: { message: ChatMessage; token: s
                     {files.length > 0 && (
                         <div className={styles.message__imageContainer}>
                             {files.map((file: any, index: number) => {
-                                // Для optimistic файлов создаем blob URL
+                                // Для optimistic файлов (File объекты)
                                 if (file instanceof File) {
-                                    const blobUrl = URL.createObjectURL(file);
-                                    return (
-                                        <img
-                                            key={index}
-                                            src={blobUrl}
-                                            alt={`attachment ${index + 1}`}
-                                            className={`${styles.message__fullImage} ${styles.clickableImage}`}
-                                            onClick={() => window.open(blobUrl, '_blank')}
-                                            onLoad={() => {
-                                                // Освобождаем URL после загрузки изображения для экономии памяти
-                                                setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
-                                            }}
-                                        />
-                                    );
+                                    return <OptimisticImage key={index} file={file} index={index} />;
                                 }
 
-                                // Для обычных файлов с сервера
+                                // Для серверных файлов (URL)
                                 const fileUrl = file.url || file;
-                                return fileUrl?.startsWith('blob:') ? (
-                                    <img
-                                        key={index}
-                                        src={fileUrl}
-                                        alt={`attachment ${index + 1}`}
-                                        className={`${styles.message__fullImage} ${styles.clickableImage}`}
-                                        onClick={() => window.open(fileUrl, '_blank')}
-                                    />
-                                ) : (
-                                    <AuthImage
-                                        key={index}
-                                        src={fileUrl || ''}
-                                        className={styles.message__fullImage}
-                                        token={token}
-                                    />
-                                );
+                                if (typeof fileUrl === 'string') {
+                                    if (fileUrl.startsWith('blob:')) {
+                                        return <OptimisticImage key={index} blobUrl={fileUrl} index={index} />;
+                                    } else {
+                                        return (
+                                            <AuthImage
+                                                key={index}
+                                                src={fileUrl}
+                                                className={styles.message__fullImage}
+                                                token={token}
+                                            />
+                                        );
+                                    }
+                                }
+                                return null;
                             })}
                         </div>
                     )}
@@ -531,6 +521,11 @@ export const UserMessage = ({ message, token }: { message: ChatMessage; token: s
 };
 
 export const SupportMessage = ({ message, highlight, token }: { message: ChatMessage; highlight?: boolean; token: string }) => {
+    // Обрабатываем file_url как массив или одиночный файл
+    const fileUrls = message.file_url ?
+        (Array.isArray(message.file_url) ? message.file_url : [message.file_url]) :
+        [];
+
     return (
         <div className={styles.message_support}>
             <span className={styles.message__date}>
@@ -538,24 +533,21 @@ export const SupportMessage = ({ message, highlight, token }: { message: ChatMes
                 {highlight && <div className={styles.highlight}></div>}
             </span>
             {message.text ? <p className={styles.message__message_support}>{message.text}</p> : null}
-            {message.file_url ? (
+            {fileUrls.length > 0 ? (
                 <div className={styles.message__attachment}>
-                    {message.file_url && isImageUrl(message.file_url) ? (
-                        <div className={styles.message__imageContainer}>
-                            <AuthImage
-                                src={message.file_url}
-                                alt="attachment"
-                                className={styles.message__fullImage}
-                                token={token}
-                            />
-                        </div>
-                    ) : message.file_url ? (
-                        <div className={styles.message__fileContainer}>
-                            <a href={message.file_url} target="_blank" rel="noreferrer" className={styles.message__fileLink}>
-                                📁 Скачать файл
-                            </a>
-                        </div>
-                    ) : null}
+                    <div className={styles.message__imageContainer}>
+                        {fileUrls.map((fileUrl, index) => (
+                            fileUrl ? (
+                                <AuthImage
+                                    key={index}
+                                    src={fileUrl}
+                                    alt={`attachment ${index + 1}`}
+                                    className={styles.message__fullImage}
+                                    token={token}
+                                />
+                            ) : null
+                        ))}
+                    </div>
                 </div>
             ) : null}
         </div>

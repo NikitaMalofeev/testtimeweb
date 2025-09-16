@@ -5,9 +5,9 @@
     align-items: end;
     justify-content: center;
     flex-grow: 1;
-    height: var(--app-vh, 100vh);
-    min-height: var(--app-vh, 100vh);
-    max-height: var(--app-vh, 100vh);
+height: 100dvh;
+  min-height: 100dvh;
+  max-height: 100dvh;
     background-color: #E1ECFB;
     padding-top: 20px;
     overflow: hidden;
@@ -161,7 +161,7 @@ margin-top: 5px;
     }
 
     .auth.auth_login_mode.keyboard_visible .auth__container:not(.auth__container_extended) {
-        max-height: calc(var(--app-vh, 100vh) - 80px);
+       
     }
 
     /* Для регистрации отключаем iOS фиксы */
@@ -197,13 +197,6 @@ margin-top: 5px;
         }
     }
 
-    /* Для формы авторизации */
-    .auth__container:not(.auth__container_extended) {
-        flex: 1;
-        max-height: none;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-    }
 
     /* Для формы регистрации - возвращаем нормальное поведение */
     .auth__container_extended {
@@ -287,4 +280,12 @@ margin-top: 5px;
         max-width: 316px;
         margin: 0 auto;
     }
+}
+
+.auth__container:not(.auth__container_extended) {
+  flex: 1 1 auto;
+  max-height: 100%;                // важно: вписываемся в 100dvh родителя
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: max(60px, env(safe-area-inset-bottom));
 }

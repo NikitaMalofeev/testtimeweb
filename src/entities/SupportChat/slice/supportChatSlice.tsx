@@ -39,10 +39,18 @@ export const fetchWebsocketId = createAsyncThunk<
 >("supportChat/fetchWebsocketId", async (_, { getState, rejectWithValue, dispatch }) => {
     try {
         const token = getState().user.token;
-        const { group_ws } = await getGroupWs(token);
+        console.log("Fetching websocketId with token:", token ? "present" : "missing");
+
+        const response = await getGroupWs(token);
+        console.log("getGroupWs response:", response);
+
+        const { group_ws } = response;
+        console.log("Received websocketId:", group_ws);
+
         dispatch(setWebsocketId(group_ws));
         return group_ws;
     } catch (e: any) {
+        console.error("Error fetching websocketId:", e);
         return rejectWithValue(e.response?.data?.message ?? "Не смогли получить websocketId");
     }
 });
@@ -55,17 +63,39 @@ export const openWebSocketConnection = createAsyncThunk<
     try {
         // Закрываем старый сокет
         if (chatSocket) {
+            console.log("Closing existing WebSocket connection");
             chatSocket.close();
             chatSocket = null;
         }
 
-        chatSocket = new WebSocket(`wss://test.webbroker.ranks.pro/ws/chat_support/${websocketId}/`);
+        if (!websocketId || websocketId.trim() === '') {
+            console.error("Invalid websocketId:", websocketId);
+            return rejectWithValue("Неверный websocketId");
+        }
 
-        chatSocket.onopen = () => {
-            // console.log("WebSocket opened:", websocketId);
-        };
+        const wsUrl = `wss://test.webbroker.ranks.pro/ws/chat_support/${websocketId}/`;
+        console.log("Attempting to connect WebSocket to:", wsUrl);
 
-        chatSocket.onmessage = (evt) => {
+        return new Promise((resolve, reject) => {
+            chatSocket = new WebSocket(wsUrl);
+
+            // Таймаут для подключения
+            const connectionTimeout = setTimeout(() => {
+                console.error("WebSocket connection timeout");
+                if (chatSocket) {
+                    chatSocket.close();
+                    chatSocket = null;
+                }
+                reject("Таймаут подключения WebSocket");
+            }, 10000); // 10 секунд
+
+            chatSocket.onopen = () => {
+                console.log("WebSocket opened successfully:", websocketId);
+                clearTimeout(connectionTimeout);
+                resolve();
+            };
+
+            chatSocket.onmessage = (evt) => {
             try {
                 const data = JSON.parse(evt.data);
 
@@ -116,14 +146,40 @@ export const openWebSocketConnection = createAsyncThunk<
             }
         };
 
-        chatSocket.onclose = () => {
-            // console.log("WebSocket closed:", websocketId);
-        };
+            chatSocket.onclose = (event) => {
+                console.log("WebSocket closed:", {
+                    websocketId,
+                    code: event.code,
+                    reason: event.reason,
+                    wasClean: event.wasClean
+                });
+                clearTimeout(connectionTimeout);
 
-        chatSocket.onerror = (err) => {
-            console.error("WebSocket error:", err);
-        };
-    } catch {
+                // Переподключение если соединение закрылось неожиданно (не код 1000)
+                if (event.code !== 1000 && websocketId) {
+                    console.log("WebSocket closed unexpectedly, attempting reconnection in 5 seconds...");
+                    setTimeout(() => {
+                        if (!chatSocket || chatSocket.readyState === WebSocket.CLOSED) {
+                            console.log("Attempting to reconnect WebSocket...");
+                            dispatch(openWebSocketConnection(websocketId));
+                        }
+                    }, 5000);
+                }
+            };
+
+            chatSocket.onerror = (err) => {
+                console.error("WebSocket error details:", {
+                    websocketId,
+                    error: err,
+                    readyState: chatSocket?.readyState,
+                    url: chatSocket?.url
+                });
+                clearTimeout(connectionTimeout);
+                reject("Ошибка подключения WebSocket");
+            };
+        });
+    } catch (error) {
+        console.error("Exception in openWebSocketConnection:", error);
         return rejectWithValue("Ошибка при открытии WebSocket");
     }
 });

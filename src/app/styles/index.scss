@@ -3,13 +3,16 @@
 
 
 .page__wrapper {
-  height: var(--app-vh); 
-
   width: 100%;
-    display: flex;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+
+  // Применяем фиксы высоты только когда не на странице авторизации
+  body:not(.authorization-page) & {
+    height: var(--app-vh);
     overflow-y: hidden;
-    flex-direction: column;
-    position: relative;
+  }
 }
 
 .page__content {
@@ -17,9 +20,11 @@
   flex-direction: column;
   position: relative;
   overflow-x: hidden;
-  height: var(--app-vh); 
 
-  
+  // Применяем фиксы высоты только когда не на странице авторизации
+  body:not(.authorization-page) & {
+    height: var(--app-vh);
+  }
 }
 
 .page__scroll {
@@ -35,14 +40,18 @@ html {
 }
 
 body {
-  height: var(--app-vh); 
   overscroll-behavior: none;
   width: 100%;
-    font-family: var(--font-inter);
+  font-family: var(--font-inter);
+  color: #0F0E0E;
+
+  // Условно применяем фиксы только когда не на странице авторизации
+  &:not(.authorization-page) {
+    height: var(--app-vh);
     overflow-y: hidden;
     position: fixed;
     height: 100%;
-    color: #0F0E0E;
+  }
 }
 
 @include mix.respond-to('tablet-desktop') {

@@ -50,10 +50,7 @@ function App() {
   useModalsController();
   useAuthModalsController();
 
-  useLayoutEffect(() => {
-    const userVh = window.innerHeight;
-    document.documentElement.style.setProperty('--app-vh', `${userVh}px`);
-  }, []);
+  // Убрано - useVhFix уже устанавливает --app-vh и следит за изменениями
 
   useEffect(() => {
     if (!token) return;

@@ -591,15 +591,16 @@ export const SupportChat = () => {
             const messageText = values.message.trim();
             const fileDescriptionText = fileDescription.trim();
 
-            // Если есть файлы, проверяем описание файлов
             if (attachedFiles.length > 0) {
-                if (!fileDescriptionText) {
-                    // Ошибка будет показана в другом месте для fileDescription
-                } else if (fileDescriptionText.length < 50) {
-                    // Ошибка будет показана в другом месте для fileDescription
+                // Если есть файлы, требуем И описание файлов (20 символов), И основное сообщение (50 символов)
+                if (!messageText) {
+                    errors.message = "Введите основное сообщение";
+                } else if (messageText.length < 50) {
+                    errors.message = "мин. 50 символов";
                 }
+                // Ошибки для описания файлов будут показаны через отдельное состояние
             } else {
-                // Если нет файлов, проверяем основное сообщение
+                // Если нет файлов, проверяем только основное сообщение (50 символов)
                 if (!messageText) {
                     errors.message = "Введите сообщение или прикрепите файл";
                 } else if (messageText.length < 50) {
@@ -621,17 +622,35 @@ export const SupportChat = () => {
                 return;
             }
 
-            // Если есть файлы, проверяем описание файлов
             if (attachedFiles.length > 0) {
+                // Если есть файлы, требуем И описание файлов (20+ символов), И основное сообщение (50+ символов)
+                let hasError = false;
+
+                // Проверяем описание файлов
                 if (!fileDescriptionText) {
                     setFileDescriptionError("Введите описание файлов");
-                    return;
-                } else if (fileDescriptionText.length < 50) {
-                    setFileDescriptionError("мин. 50 символов");
+                    hasError = true;
+                } else if (fileDescriptionText.length < 20) {
+                    setFileDescriptionError("мин. 20 символов");
+                    hasError = true;
+                }
+
+                // Проверяем основное сообщение
+                if (!messageText) {
+                    formik.setFieldTouched('message', true);
+                    formik.setFieldError('message', 'Введите основное сообщение');
+                    hasError = true;
+                } else if (messageText.length < 50) {
+                    formik.setFieldTouched('message', true);
+                    formik.setFieldError('message', 'мин. 50 символов');
+                    hasError = true;
+                }
+
+                if (hasError) {
                     return;
                 }
             } else {
-                // Если нет файлов, проверяем основное сообщение
+                // Если нет файлов, проверяем только основное сообщение (50+ символов)
                 if (messageText.length < 50) {
                     formik.setFieldTouched('message', true);
                     formik.setFieldError('message', 'мин. 50 символов');
@@ -752,7 +771,7 @@ export const SupportChat = () => {
         // Очищаем ошибку при изменении
         if (fileDescriptionError) {
             const trimmedValue = value.trim();
-            if (trimmedValue.length >= 50 || trimmedValue.length === 0) {
+            if (trimmedValue.length >= 20 || trimmedValue.length === 0) {
                 setFileDescriptionError("");
             }
         }

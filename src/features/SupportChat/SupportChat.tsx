@@ -764,7 +764,7 @@ export const SupportChat = () => {
     };
 
     // Обработка изменений в описании файлов с валидацией
-    const handleFileDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileDescriptionChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const value = e.target.value;
         setFileDescription(value);
 

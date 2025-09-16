@@ -95,3 +95,14 @@ export const getAllMessages = async (token: string) => {
     });
     return response.data;
 };
+
+// Функция для получения файлов по вопросу
+export const getFilesQuestion = async (id: string, token: string) => {
+    const response = await axios.get(`${apiUrl}user_lk/get_files_question/?id=${id}`, {
+        headers: {
+            "Accept-Language": "ru",
+            "Authorization": `Token ${token}`,
+        },
+    });
+    return response.data;
+};

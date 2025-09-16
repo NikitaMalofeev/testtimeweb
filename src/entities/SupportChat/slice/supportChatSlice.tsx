@@ -30,6 +30,8 @@ const initialState: SupportChatState = {
 // --------------------------------------------------
 // ВСЕГДА один сокет на приложение
 let chatSocket: WebSocket | null = null;
+// Cache for optimistic blob URLs
+const optimisticBlobCache = new Map<string, string>();
 // --------------------------------------------------
 
 export const fetchWebsocketId = createAsyncThunk<

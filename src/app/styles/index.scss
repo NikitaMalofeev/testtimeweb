@@ -31,10 +31,12 @@
 
 html {
   height: var(--app-vh); 
+  overscroll-behavior: none;
 }
 
 body {
   height: var(--app-vh); 
+  overscroll-behavior: none;
   width: 100%;
     font-family: var(--font-inter);
     overflow-y: hidden;

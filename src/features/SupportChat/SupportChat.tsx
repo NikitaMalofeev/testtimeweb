@@ -24,7 +24,6 @@ import {
     closeWebSocketConnection,
     addOptimisticMessage,
 } from "entities/SupportChat/slice/supportChatSlice";
-import apiUrl from "entities/SupportChat/api/supportChatApi";
 import { Loader, LoaderSize } from "shared/ui/Loader/Loader";
 import { closeAllModals } from "entities/ui/Modal/slice/modalSlice";
 import { setScrollToTop } from "entities/ui/Ui/slice/uiSlice";
@@ -429,23 +428,26 @@ const isImageUrl = (url?: string | null) => {
         urlWithoutParams.endsWith(".svg") || urlWithoutParams.endsWith(".tiff") ||
         urlWithoutParams.endsWith(".ico");
 
-    // Проверяем специфические API endpoints твоего сервера (Ranks API)
-    const isRanksFileApi = u.includes(`${apiUrl}user_lk/get_files_question`) && u.includes("id=");
-
     // Проверяем по ключевым словам в URL (для других API)
     const hasImageKeywords = u.includes("/image") || u.includes("image/") || u.includes("img/") ||
         u.includes("/photo") || u.includes("photo/") || u.includes("/picture");
 
     // Файл считается изображением если:
     // 1. Имеет расширение изображения ИЛИ
-    // 2. Это API Ranks для файлов ИЛИ  
-    // 3. Содержит ключевые слова изображений
-    return hasImageExtension || isRanksFileApi || hasImageKeywords;
+    // 2. Содержит ключевые слова изображений
+    return hasImageExtension || hasImageKeywords;
 };
 
 export const UserMessage = ({ message, token }: { message: ChatMessage; token: string }) => {
-    // Для optimistic сообщений используем optimisticFiles, для обычных - file_url
-    const files = (message as any).optimisticFiles || (message.file_url ? [{ url: message.file_url }] : []);
+    // Для optimistic сообщений используем optimisticFiles, для обычных - file_url (теперь массив)
+    const files = (message as any).optimisticFiles ||
+        (message.file_url ?
+            (Array.isArray(message.file_url) ?
+                message.file_url.map(url => ({ url })) :
+                [{ url: message.file_url }]
+            ) :
+            []
+        );
     const isOptimistic = (message as any).optimistic === true;
     const hasError = (message as any).error === true;
     // Используем text_for_files с сервера или локальный fileDescription для optimistic сообщений
@@ -531,6 +533,11 @@ export const UserMessage = ({ message, token }: { message: ChatMessage; token: s
 };
 
 export const SupportMessage = ({ message, highlight, token }: { message: ChatMessage; highlight?: boolean; token: string }) => {
+    // Обрабатываем file_url как массив или одиночный файл
+    const fileUrls = message.file_url ?
+        (Array.isArray(message.file_url) ? message.file_url : [message.file_url]) :
+        [];
+
     return (
         <div className={styles.message_support}>
             <span className={styles.message__date}>
@@ -538,24 +545,27 @@ export const SupportMessage = ({ message, highlight, token }: { message: ChatMes
                 {highlight && <div className={styles.highlight}></div>}
             </span>
             {message.text ? <p className={styles.message__message_support}>{message.text}</p> : null}
-            {message.file_url ? (
+            {fileUrls.length > 0 ? (
                 <div className={styles.message__attachment}>
-                    {message.file_url && isImageUrl(message.file_url) ? (
-                        <div className={styles.message__imageContainer}>
-                            <AuthImage
-                                src={message.file_url}
-                                alt="attachment"
-                                className={styles.message__fullImage}
-                                token={token}
-                            />
-                        </div>
-                    ) : message.file_url ? (
-                        <div className={styles.message__fileContainer}>
-                            <a href={message.file_url} target="_blank" rel="noreferrer" className={styles.message__fileLink}>
-                                📁 Скачать файл
-                            </a>
-                        </div>
-                    ) : null}
+                    <div className={styles.message__imageContainer}>
+                        {fileUrls.map((fileUrl, index) => (
+                            fileUrl && isImageUrl(fileUrl) ? (
+                                <AuthImage
+                                    key={index}
+                                    src={fileUrl}
+                                    alt={`attachment ${index + 1}`}
+                                    className={styles.message__fullImage}
+                                    token={token}
+                                />
+                            ) : fileUrl ? (
+                                <div key={index} className={styles.message__fileContainer}>
+                                    <a href={fileUrl} target="_blank" rel="noreferrer" className={styles.message__fileLink}>
+                                        📁 Скачать файл {index + 1}
+                                    </a>
+                                </div>
+                            ) : null
+                        ))}
+                    </div>
                 </div>
             ) : null}
         </div>

@@ -59,7 +59,7 @@ export const openWebSocketConnection = createAsyncThunk<
     void,
     string,
     { rejectValue: string; state: RootState }
->("supportChat/openWebSocketConnection", async (websocketId, { dispatch, rejectWithValue }) => {
+>("supportChat/openWebSocketConnection", async (websocketId, { dispatch, rejectWithValue, getState }) => {
     try {
         // Закрываем старый сокет
         if (chatSocket) {
@@ -120,7 +120,7 @@ export const openWebSocketConnection = createAsyncThunk<
                         // Пользовательское сообщение с ID - проверяем нет ли уже optimistic
                         const state = getState();
                         const hasOptimistic = state.supportChat.messages.some(
-                            (m) => !m.is_answer && (m as any).optimistic === true
+                            (m: ChatMessage) => !m.is_answer && (m as any).optimistic === true
                         );
 
                         if (hasOptimistic) {
@@ -129,7 +129,7 @@ export const openWebSocketConnection = createAsyncThunk<
                             dispatch(addMessage(msg));
                         } else {
                             // Нет optimistic - проверяем нет ли уже такого ID
-                            const hasExisting = state.supportChat.messages.some((m) => (m as any).id === msg.id);
+                            const hasExisting = state.supportChat.messages.some((m: ChatMessage) => (m as any).id === msg.id);
                             if (!hasExisting) {
                                 console.log("WS: Adding new user message:", msg?.id);
                                 dispatch(addMessage(msg));
@@ -390,7 +390,8 @@ export const supportChatSlice = createSlice({
                 is_answer: false,
                 user_id: 0, // маркер оптимиста
                 optimistic: true,
-                optimisticFiles: files || [],
+                // Вместо сохранения File объектов, сохраняем только метаданные
+                optimisticFilesCount: files?.length || 0,
             };
 
             // Создаем blob URL для всех файлов
@@ -398,6 +399,14 @@ export const supportChatSlice = createSlice({
                 try {
                     const blobUrls = files.map(file => URL.createObjectURL(file));
                     optimistic.file_url = blobUrls;
+
+                    // Сохраняем File объекты во внешнем Map-кеше вместо Redux state
+                    const optimisticId = Date.now().toString();
+                    optimistic.optimisticId = optimisticId;
+                    optimisticBlobCache.clear(); // очищаем предыдущий кеш
+                    files.forEach((file, index) => {
+                        optimisticBlobCache.set(`${optimisticId}-${index}` as any, blobUrls[index]);
+                    });
                 } catch (error) {
                     console.error('Error creating blob URLs:', error);
                 }

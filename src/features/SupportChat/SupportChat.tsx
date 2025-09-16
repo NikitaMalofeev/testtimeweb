@@ -424,9 +424,9 @@ export const UserMessage = ({ message, token }: { message: ChatMessage; token: s
     if (message.file_url) {
         const urls = Array.isArray(message.file_url) ? message.file_url : [message.file_url];
 
-        if (isOptimistic && (message as any).optimisticFiles) {
-            // Для оптимистичных сообщений используем File объекты
-            files = (message as any).optimisticFiles;
+        if (isOptimistic && (message as any).optimisticFilesCount > 0) {
+            // Для оптимистичных сообщений используем blob URL из кеша
+            files = urls.map(url => ({ url }));
         } else {
             // Для обычных сообщений используем URL
             files = urls.map(url => ({ url }));
@@ -457,18 +457,13 @@ export const UserMessage = ({ message, token }: { message: ChatMessage; token: s
                     {files.length > 0 && (
                         <div className={styles.message__imageContainer}>
                             {files.map((file: any, index: number) => {
-                                // Для optimistic файлов (File объекты)
-                                if (file instanceof File) {
-                                    return <OptimisticImage key={index} file={file} index={index} />;
-                                }
-
-                                // Для серверных файлов (URL)
                                 const fileUrl = file.url || file;
                                 if (typeof fileUrl === 'string') {
                                     if (fileUrl.startsWith('blob:')) {
+                                        // Для optimistic файлов (blob URL)
                                         return <OptimisticImage key={index} blobUrl={fileUrl} index={index} />;
                                     } else {
-                                        // Используем новый API с messageId и fileIndex
+                                        // Используем новый API с messageId и fileIndex для серверных файлов
                                         const messageId = (message as any).id;
                                         if (messageId) {
                                             return (

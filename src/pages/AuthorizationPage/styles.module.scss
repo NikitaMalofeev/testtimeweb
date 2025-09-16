@@ -5,6 +5,7 @@
     align-items: end;
     justify-content: center;
     flex-grow: 1;
+    height: var(--app-vh, 100vh);
     background-color: #E1ECFB;
     padding-top: 20px;
     
@@ -74,6 +75,7 @@
         display: flex;
         align-items: end;
         width: 100%;
+        height: 100%;
     }
     
 }

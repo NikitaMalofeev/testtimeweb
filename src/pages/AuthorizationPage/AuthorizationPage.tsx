@@ -123,79 +123,80 @@ const AuthorizationPage = () => {
                 className={`${styles.auth} ${activeTab === 'login' ? styles.auth_login_mode : styles.auth_registration_mode} ${keyboardVisible && activeTab === 'login' && isIOS ? 'keyboard_visible' : ''}`}
                 style={activeTab === 'registration' ? { paddingTop: '20px' } : { paddingTop: '42px' }}
             >
-                <AnimateHeightWrapper isOpen={activeTab === 'registration'} minHeight={deviceSize === 'desktop' ? '100%' : '100%'} style={activeTab === 'registration' ? { height: '98%' } : { height: '100%' }}>
-                    <div className={styles.auth__wrapper}>
-                        <div
-                            className={`${styles.auth__container} ${activeTab === 'registration' ? styles.auth__container_extended : ''}`}
-                        >
-                            <Icon Svg={WhiteLogo} width={73} height={73} className={styles.auth__icon} />
-                            {/* Вкладки */}
-                            <BooleanTabs
-                                leftTitle="Авторизация"
-                                rightTitle="Регистрация"
-                                active={activeTab === "login" ? "left" : "right"}
-                                onLeftClick={() => setActiveTab("login")}
-                                onRightClick={() => setActiveTab("registration")}
-                            />
+                {/* <AnimateHeightWrapper isOpen={activeTab === 'registration'} minHeight={deviceSize === 'desktop' ? '100%' : '100%'} style={activeTab === 'registration' ? { height: '98%' } : { height: '100%' }}>
 
-                            {/* Контент в зависимости от вкладки */}
-                            {activeTab === 'login' && (
-                                <form onSubmit={formik.handleSubmit} className={styles.auth__form}>
-                                    <div className={styles.auth__form__container}>
-                                        <div>
+                </AnimateHeightWrapper> */}
+                <div className={styles.auth__wrapper}>
+                    <div
+                        className={`${styles.auth__container} ${activeTab === 'registration' ? styles.auth__container_extended : ''}`}
+                    >
+                        <Icon Svg={WhiteLogo} width={73} height={73} className={styles.auth__icon} />
+                        {/* Вкладки */}
+                        <BooleanTabs
+                            leftTitle="Авторизация"
+                            rightTitle="Регистрация"
+                            active={activeTab === "login" ? "left" : "right"}
+                            onLeftClick={() => setActiveTab("login")}
+                            onRightClick={() => setActiveTab("registration")}
+                        />
 
-                                            <Input
-                                                autoComplete="new-password"
-                                                placeholder="Email/телефон +7"
-                                                name="identifier"
-                                                type="text"
-                                                value={formik.values.identifier}
-                                                onChange={formik.handleChange}
-                                                onBlur={formik.handleBlur}
-                                                error={formik.touched.identifier && formik.errors.identifier}
-                                                needValue
-                                            />
-                                            <Input
-                                                autoComplete="new-password"
-                                                placeholder="Пароль"
-                                                name="password"
-                                                type="password"
-                                                value={formik.values.password}
-                                                onChange={formik.handleChange}
-                                                onBlur={formik.handleBlur}
-                                                error={formik.touched.password && formik.errors.password}
-                                                needValue
-                                            />
-                                        </div>
+                        {/* Контент в зависимости от вкладки */}
+                        {activeTab === 'login' && (
+                            <form onSubmit={formik.handleSubmit} className={styles.auth__form}>
+                                <div className={styles.auth__form__container}>
+                                    <div>
 
-                                        <div>
-                                            <div className={styles.resetPassword} onClick={() => {
-                                                dispatch(openModal({ type: ModalType.RESET_PASSWORD, animation: ModalAnimation.BOTTOM, size: ModalSize.MC }))
-                                            }}>Не помню пароль</div>
-
-                                            <Button
-                                                type="button"
-                                                onClick={handleSubmit}
-                                                theme={ButtonTheme.BLUE}
-                                                className={styles.button}
-                                                disabled={!(formik.isValid && formik.dirty)}
-                                            >
-                                                {loading ? <Loader theme={LoaderTheme.WHITE} size={LoaderSize.SMALL} /> : 'Войти'}
-                                            </Button>
-                                        </div>
+                                        <Input
+                                            autoComplete="new-password"
+                                            placeholder="Email/телефон +7"
+                                            name="identifier"
+                                            type="text"
+                                            value={formik.values.identifier}
+                                            onChange={formik.handleChange}
+                                            onBlur={formik.handleBlur}
+                                            error={formik.touched.identifier && formik.errors.identifier}
+                                            needValue
+                                        />
+                                        <Input
+                                            autoComplete="new-password"
+                                            placeholder="Пароль"
+                                            name="password"
+                                            type="password"
+                                            value={formik.values.password}
+                                            onChange={formik.handleChange}
+                                            onBlur={formik.handleBlur}
+                                            error={formik.touched.password && formik.errors.password}
+                                            needValue
+                                        />
                                     </div>
-                                </form>
-                            )}
 
-                            {/* Элемент crutch всегда отрисовывается, но изначально скрыт */}
-                            {/* {device !== 'desktop' && <div ref={crutchRef} className={styles.crutch} style={{ display: "none" }}></div>} */}
+                                    <div>
+                                        <div className={styles.resetPassword} onClick={() => {
+                                            dispatch(openModal({ type: ModalType.RESET_PASSWORD, animation: ModalAnimation.BOTTOM, size: ModalSize.MC }))
+                                        }}>Не помню пароль</div>
 
-                            {activeTab === 'registration' && (
-                                <IdentificationProfileForm />
-                            )}
-                        </div>
+                                        <Button
+                                            type="button"
+                                            onClick={handleSubmit}
+                                            theme={ButtonTheme.BLUE}
+                                            className={styles.button}
+                                            disabled={!(formik.isValid && formik.dirty)}
+                                        >
+                                            {loading ? <Loader theme={LoaderTheme.WHITE} size={LoaderSize.SMALL} /> : 'Войти'}
+                                        </Button>
+                                    </div>
+                                </div>
+                            </form>
+                        )}
+
+                        {/* Элемент crutch всегда отрисовывается, но изначально скрыт */}
+                        {/* {device !== 'desktop' && <div ref={crutchRef} className={styles.crutch} style={{ display: "none" }}></div>} */}
+
+                        {activeTab === 'registration' && (
+                            <IdentificationProfileForm />
+                        )}
                     </div>
-                </AnimateHeightWrapper>
+                </div>
             </div>
             <ResetPasswordModal isOpen={ModalState.isOpen} onClose={() => {
                 dispatch(closeModal(ModalType.RESET_PASSWORD))

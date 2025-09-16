@@ -50,27 +50,21 @@ const clearImageCache = () => {
     imageCache.clear();
 };
 
-// Функция для получения изображения из кеша или загрузки
-const getCachedImage = async (src: string, token: string): Promise<ImageCacheEntry | null> => {
+// Функция для получения изображения из кеша или загрузки через новый API
+const getCachedImage = async (messageId: number, fileIndex: number, token: string): Promise<ImageCacheEntry | null> => {
+    const cacheKey = `${messageId}-${fileIndex}`;
+
     // Проверяем кеш
-    const cached = imageCache.get(src);
+    const cached = imageCache.get(cacheKey);
     if (cached) {
         return cached;
     }
 
     try {
-        const response = await fetch(src, {
-            headers: {
-                'Authorization': `Token ${token}`,
-                'Accept': 'image/*,*/*'
-            }
-        });
+        // Импортируем API функцию
+        const { getFileByQuestionIdAndIndex } = await import('entities/SupportChat/api/supportChatApi');
 
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-
-        const blob = await response.blob();
+        const blob = await getFileByQuestionIdAndIndex(messageId, fileIndex, token);
         let blobUrl: string;
         let isZipFile = false;
 
@@ -95,7 +89,7 @@ const getCachedImage = async (src: string, token: string): Promise<ImageCacheEnt
         };
 
         // Сохраняем в кеш
-        imageCache.set(src, cacheEntry);
+        imageCache.set(cacheKey, cacheEntry);
         return cacheEntry;
     } catch (error) {
         console.error('Ошибка загрузки изображения:', error);
@@ -261,13 +255,14 @@ const OptimisticImage: React.FC<{
     );
 };
 
-// Компонент для загрузки защищенных изображений через Blob
+// Компонент для загрузки защищенных изображений через новый API
 const AuthImage: React.FC<{
-    src: string;
+    messageId: number;
+    fileIndex: number;
     alt?: string;
     className?: string;
     token: string;
-}> = ({ src, alt, className, token }) => {
+}> = ({ messageId, fileIndex, alt, className, token }) => {
     const [blobUrl, setBlobUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
@@ -282,8 +277,10 @@ const AuthImage: React.FC<{
                 setLoading(true);
                 setError(false);
 
+                const cacheKey = `${messageId}-${fileIndex}`;
+
                 // Сначала проверяем кеш
-                const cached = imageCache.get(src);
+                const cached = imageCache.get(cacheKey);
                 if (cached) {
                     setBlobUrl(cached.blobUrl);
                     setIsZipFile(cached.isZipFile);
@@ -291,16 +288,15 @@ const AuthImage: React.FC<{
                     return;
                 }
 
-                // Быстрая проверка типа файла для ZIP
-                const isLikelyZip = await checkIfNeedsViewport(src, token);
-                if (isLikelyZip && !isInViewport) {
-                    setIsZipFile(true);
+                // Загружаем только когда элемент в viewport или это не ZIP
+                if (!isInViewport) {
+                    // Пока не загружаем, просто показываем лоадер
                     setLoading(false);
                     return;
                 }
 
                 // Загружаем и кешируем
-                const cacheEntry = await getCachedImage(src, token);
+                const cacheEntry = await getCachedImage(messageId, fileIndex, token);
                 if (cacheEntry) {
                     setBlobUrl(cacheEntry.blobUrl);
                     setIsZipFile(cacheEntry.isZipFile);
@@ -317,23 +313,8 @@ const AuthImage: React.FC<{
         };
 
         loadImage();
-    }, [src, token, isInViewport]);
+    }, [messageId, fileIndex, token, isInViewport]);
 
-    // Функция для быстрой проверки типа файла без полной загрузки
-    const checkIfNeedsViewport = async (src: string, token: string): Promise<boolean> => {
-        try {
-            const response = await fetch(src, {
-                method: 'HEAD',
-                headers: {
-                    'Authorization': `Token ${token}`,
-                }
-            });
-            const contentType = response.headers.get('content-type') || '';
-            return contentType === 'application/zip' || contentType === 'application/x-zip-compressed';
-        } catch {
-            return false;
-        }
-    };
 
     if (loading) {
         return (
@@ -487,14 +468,19 @@ export const UserMessage = ({ message, token }: { message: ChatMessage; token: s
                                     if (fileUrl.startsWith('blob:')) {
                                         return <OptimisticImage key={index} blobUrl={fileUrl} index={index} />;
                                     } else {
-                                        return (
-                                            <AuthImage
-                                                key={index}
-                                                src={fileUrl}
-                                                className={styles.message__fullImage}
-                                                token={token}
-                                            />
-                                        );
+                                        // Используем новый API с messageId и fileIndex
+                                        const messageId = (message as any).id;
+                                        if (messageId) {
+                                            return (
+                                                <AuthImage
+                                                    key={index}
+                                                    messageId={messageId}
+                                                    fileIndex={index}
+                                                    className={styles.message__fullImage}
+                                                    token={token}
+                                                />
+                                            );
+                                        }
                                     }
                                 }
                                 return null;
@@ -536,17 +522,24 @@ export const SupportMessage = ({ message, highlight, token }: { message: ChatMes
             {fileUrls.length > 0 ? (
                 <div className={styles.message__attachment}>
                     <div className={styles.message__imageContainer}>
-                        {fileUrls.map((fileUrl, index) => (
-                            fileUrl ? (
-                                <AuthImage
-                                    key={index}
-                                    src={fileUrl}
-                                    alt={`attachment ${index + 1}`}
-                                    className={styles.message__fullImage}
-                                    token={token}
-                                />
-                            ) : null
-                        ))}
+                        {fileUrls.map((fileUrl, index) => {
+                            if (!fileUrl) return null;
+
+                            const messageId = (message as any).id;
+                            if (messageId) {
+                                return (
+                                    <AuthImage
+                                        key={index}
+                                        messageId={messageId}
+                                        fileIndex={index}
+                                        alt={`attachment ${index + 1}`}
+                                        className={styles.message__fullImage}
+                                        token={token}
+                                    />
+                                );
+                            }
+                            return null;
+                        })}
                     </div>
                 </div>
             ) : null}

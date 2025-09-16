@@ -53,17 +53,27 @@ function App() {
   // Убрано - useVhFix уже устанавливает --app-vh и следит за изменениями
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      console.log("WebSocket init: No token available");
+      return;
+    }
+
+    console.log("WebSocket init: Starting connection process");
 
     (async () => {
       try {
         // 1) Получаем свежий ID
+        console.log("WebSocket init: Fetching websocket ID");
         const id = await dispatch(fetchWebsocketId()).unwrap();
+        console.log("WebSocket init: Received websocket ID:", id);
 
         // 2) Открываем сокет на этот ID (старый внутри закроется сам)
+        console.log("WebSocket init: Opening connection");
         await dispatch(openWebSocketConnection(id));
+        console.log("WebSocket init: Connection opened successfully");
 
         // 3) Подтягиваем историю
+        console.log("WebSocket init: Fetching message history");
         dispatch(getAllMessagesThunk());
       } catch (err) {
         console.error("WebSocket init error:", err);

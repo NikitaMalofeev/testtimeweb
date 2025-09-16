@@ -473,6 +473,8 @@
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   border-radius: 8px;
+  margin-bottom: 8px;
+  border: 2px solid white;
   
   &:hover {
     transform: scale(1.02);

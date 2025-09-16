@@ -270,15 +270,15 @@ export const supportChatSlice = createSlice({
 
             const optimistic: any = {
                 text,
-                fileDescription,
+                text_for_files: fileDescription,
                 created: new Date().toISOString(),
                 is_answer: false,
                 user_id: 0, // маркер оптимиста
                 optimistic: true,
-                file_url: null as string | null,
+                optimisticFiles: files || [],
             };
 
-            // Если есть файлы — используем blob URL первого файла для превью
+            // Для обратной совместимости оставляем file_url с первым файлом
             if (files && files.length > 0) {
                 try {
                     optimistic.file_url = URL.createObjectURL(files[0]);

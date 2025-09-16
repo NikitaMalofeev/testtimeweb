@@ -72,12 +72,43 @@ export const openWebSocketConnection = createAsyncThunk<
                 if (data?.type === "message_to_support_chat") {
                     const msg: ChatMessage & { id?: number; is_edit?: boolean } = data.data;
 
-                    // В ЧАТ ИЗ WS БЕРЕМ ТОЛЬКО СЕРВЕРНЫЕ СООБЩЕНИЯ (ответы поддержки) И/ИЛИ РЕДАКТИРОВАНИЯ
-                    // Пользовательские эхо-сообщения игнорируем, чтобы не было дублей и мерцания.
+                    // Проверяем что сообщение валидно
+                    if (!msg || typeof msg !== 'object') {
+                        console.warn("Invalid message received from WS:", msg);
+                        return;
+                    }
+
+                    // В ЧАТ ИЗ WS БЕРЕМ:
+                    // 1. СЕРВЕРНЫЕ СООБЩЕНИЯ (ответы поддержки)
+                    // 2. РЕДАКТИРОВАНИЯ сообщений
+                    // 3. ПОЛЬЗОВАТЕЛЬСКИЕ сообщения (но только если нет optimistic дубля)
                     if (msg?.is_answer || msg?.is_edit) {
+                        // Ответы поддержки и редактирования всегда принимаем
+                        console.log("WS: Received support message or edit:", msg?.id, msg.is_answer ? "answer" : "edit");
                         dispatch(addMessage(msg));
+                    } else if (msg?.id != null) {
+                        // Пользовательское сообщение с ID - проверяем нет ли уже optimistic
+                        const state = getState();
+                        const hasOptimistic = state.supportChat.messages.some(
+                            (m) => !m.is_answer && (m as any).optimistic === true
+                        );
+
+                        if (hasOptimistic) {
+                            // Есть optimistic - пытаемся его заменить
+                            console.log("WS: Merging with optimistic message:", msg?.id);
+                            dispatch(addMessage(msg));
+                        } else {
+                            // Нет optimistic - проверяем нет ли уже такого ID
+                            const hasExisting = state.supportChat.messages.some((m) => (m as any).id === msg.id);
+                            if (!hasExisting) {
+                                console.log("WS: Adding new user message:", msg?.id);
+                                dispatch(addMessage(msg));
+                            } else {
+                                console.log("WS: Message already exists, skipping:", msg?.id);
+                            }
+                        }
                     } else {
-                        // Игнор: это, скорее всего, "эхо" нашего же сообщения
+                        console.log("WS: Ignoring message without ID or criteria:", msg);
                     }
                 }
             } catch (e) {
@@ -244,28 +275,44 @@ export const supportChatSlice = createSlice({
 
             // Обычный upsert по id
             if (msgId != null) {
-                const existsById = state.messages.some((m) => (m as any).id === msgId);
-                if (existsById) {
-                    state.messages = state.messages.map((m) => ((m as any).id === msgId ? { ...m, ...msg } : m));
+                const existingIndex = state.messages.findIndex((m) => (m as any).id === msgId);
+                if (existingIndex !== -1) {
+                    // Обновляем существующее сообщение, сохраняя важные поля
+                    const existing = state.messages[existingIndex];
+                    const merged = { ...existing, ...msg };
+
+                    // Сохраняем blob URL если они есть
+                    if ((existing as any).file_url &&
+                        Array.isArray((existing as any).file_url) &&
+                        (existing as any).file_url.some((url: string) => url.startsWith('blob:'))) {
+                        merged.file_url = (existing as any).file_url;
+                    }
+
+                    state.messages[existingIndex] = merged;
                 } else {
+                    // Добавляем новое сообщение
+                    console.log("Adding new message with ID:", msgId, msg);
                     state.messages.unshift(msg);
                     if (msg.is_answer) state.unreadAnswersCount += 1;
                 }
                 return;
             }
 
-            // Fallback-антидубль (для старого формата)
-            const exists =
-                state.messages.some(
-                    (existingMsg) =>
-                        existingMsg.text === msg.text &&
-                        existingMsg.created === msg.created &&
-                        existingMsg.is_answer === msg.is_answer
-                );
+            // Fallback-антидубль (для старого формата без ID)
+            const exists = state.messages.some(
+                (existingMsg) =>
+                    existingMsg.text === msg.text &&
+                    existingMsg.created === msg.created &&
+                    existingMsg.is_answer === msg.is_answer &&
+                    existingMsg.user_id === msg.user_id
+            );
 
             if (!exists) {
+                console.log("Adding message via fallback (no ID):", msg);
                 state.messages.unshift(msg);
                 if (msg.is_answer) state.unreadAnswersCount += 1;
+            } else {
+                console.log("Message already exists (fallback check):", msg);
             }
         },
 

@@ -558,6 +558,7 @@ export const SupportChat = () => {
 
     const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
     const [fileDescription, setFileDescription] = useState<string>("");
+    const [fileDescriptionError, setFileDescriptionError] = useState<string>("");
     const [isScrolled, setIsScrolled] = useState(false);
     const [isBottom, setIsBottom] = useState(true);
 
@@ -572,57 +573,70 @@ export const SupportChat = () => {
         validationSchema: Yup.object({
             message: Yup.string().when([], {
                 is: () => {
-                    // Проверяем, есть ли уже сообщения пользователя (не от поддержки)
-                    const userMessages = messages.filter(m => !m.is_answer);
-                    const isFirstMessage = userMessages.length === 0;
-
-                    if (isFirstMessage) {
-                        // Для первого сообщения - минимум 50 символов, если нет файлов
-                        return attachedFiles.length === 0;
-                    } else {
-                        // Для остальных сообщений - обычная валидация
-                        return attachedFiles.length === 0;
-                    }
+                    // Если нет прикрепленных файлов, требуем текст минимум 50 символов
+                    return attachedFiles.length === 0;
                 },
                 then: (schema) => {
-                    // Проверяем, первое ли это сообщение
-                    const userMessages = messages.filter(m => !m.is_answer);
-                    const isFirstMessage = userMessages.length === 0;
-
-                    if (isFirstMessage) {
-                        return schema
-                            .required("Введите сообщение или прикрепите файл")
-                            .min(50, "Первое сообщение должно содержать минимум 50 символов");
-                    } else {
-                        return schema.required("Введите сообщение или прикрепите файл");
-                    }
+                    return schema
+                        .required("Введите сообщение или прикрепите файл")
+                        .min(50, "мин. 50 символов");
                 },
                 otherwise: (schema) => schema.notRequired(),
             }),
         }),
-        onSubmit: async (values, { resetForm }) => {
-            console.log('=== FORMIK SUBMIT STARTED ===');
-            console.log('values.message:', values.message);
-            console.log('attachedFiles.length:', attachedFiles.length);
-            console.log('fileDescription:', fileDescription);
 
+        // Включаем валидацию при изменении значений
+        validate: (values) => {
+            const errors: any = {};
             const messageText = values.message.trim();
+            const fileDescriptionText = fileDescription.trim();
+
+            // Если есть файлы, проверяем описание файлов
+            if (attachedFiles.length > 0) {
+                if (!fileDescriptionText) {
+                    // Ошибка будет показана в другом месте для fileDescription
+                } else if (fileDescriptionText.length < 50) {
+                    // Ошибка будет показана в другом месте для fileDescription
+                }
+            } else {
+                // Если нет файлов, проверяем основное сообщение
+                if (!messageText) {
+                    errors.message = "Введите сообщение или прикрепите файл";
+                } else if (messageText.length < 50) {
+                    errors.message = "мин. 50 символов";
+                }
+            }
+
+            return errors;
+        },
+        onSubmit: async (values, { resetForm }) => {
+            const messageText = values.message.trim();
+            const fileDescriptionText = fileDescription.trim();
+
+            // Очищаем ошибку описания файлов
+            setFileDescriptionError("");
 
             // Валидация в функции
             if (!messageText && attachedFiles.length === 0) {
-                console.log('No message and no files - skipping');
                 return;
             }
 
-            // Дополнительная проверка для первого сообщения
-            const userMessages = messages.filter(m => !m.is_answer);
-            const isFirstMessage = userMessages.length === 0;
-
-            if (isFirstMessage && attachedFiles.length === 0 && messageText.length < 50) {
-                // Форсируем показ ошибки
-                formik.setFieldTouched('message', true);
-                formik.setFieldError('message', 'Первое сообщение должно содержать минимум 50 символов');
-                return;
+            // Если есть файлы, проверяем описание файлов
+            if (attachedFiles.length > 0) {
+                if (!fileDescriptionText) {
+                    setFileDescriptionError("Введите описание файлов");
+                    return;
+                } else if (fileDescriptionText.length < 50) {
+                    setFileDescriptionError("мин. 50 символов");
+                    return;
+                }
+            } else {
+                // Если нет файлов, проверяем основное сообщение
+                if (messageText.length < 50) {
+                    formik.setFieldTouched('message', true);
+                    formik.setFieldError('message', 'мин. 50 символов');
+                    return;
+                }
             }
 
             // Optimistic update - сразу показываем сообщение пользователя
@@ -638,6 +652,7 @@ export const SupportChat = () => {
             const descriptionToSend = fileDescription.trim();
             setAttachedFiles([]);
             setFileDescription("");
+            setFileDescriptionError("");
 
             // Формируем payload правильно
             const payload = filesToSend.length > 0
@@ -650,14 +665,11 @@ export const SupportChat = () => {
                     text: messageText, // обычный текст
                 };
 
-            console.log('Final payload:', payload);
 
             try {
                 await dispatch(postMessage(payload) as any);
-                console.log('=== FORMIK SUBMIT COMPLETED ===');
             } catch (error) {
                 console.error('Error sending message:', error);
-                // TODO: можно добавить логику отката optimistic update при ошибке
             }
         },
     });
@@ -730,6 +742,20 @@ export const SupportChat = () => {
 
     const removeAttached = (idx: number) => {
         setAttachedFiles((prev) => prev.filter((_, i) => i !== idx));
+    };
+
+    // Обработка изменений в описании файлов с валидацией
+    const handleFileDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setFileDescription(value);
+
+        // Очищаем ошибку при изменении
+        if (fileDescriptionError) {
+            const trimmedValue = value.trim();
+            if (trimmedValue.length >= 50 || trimmedValue.length === 0) {
+                setFileDescriptionError("");
+            }
+        }
     };
 
     // Отключаем прокрутку страницы при открытом чате и чистим WS при размонтировании
@@ -864,9 +890,15 @@ export const SupportChat = () => {
                             name="fileDescription"
                             type="text"
                             value={fileDescription}
-                            onChange={(e) => setFileDescription(e.target.value)}
+                            onChange={handleFileDescriptionChange}
                             withoutCloudyLabel
+                            error={Boolean(fileDescriptionError)}
                         />
+                        {fileDescriptionError && (
+                            <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px', paddingLeft: '4px' }}>
+                                {fileDescriptionError}
+                            </div>
+                        )}
                     </div>
                     <div className={styles.chat__imagePreviewContainer}>
                         {attachedFiles.map((f, idx) => {

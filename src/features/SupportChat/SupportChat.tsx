@@ -24,6 +24,7 @@ import {
     closeWebSocketConnection,
     addOptimisticMessage,
 } from "entities/SupportChat/slice/supportChatSlice";
+import apiUrl from "entities/SupportChat/api/supportChatApi";
 import { Loader, LoaderSize } from "shared/ui/Loader/Loader";
 import { closeAllModals } from "entities/ui/Modal/slice/modalSlice";
 import { setScrollToTop } from "entities/ui/Ui/slice/uiSlice";
@@ -429,7 +430,7 @@ const isImageUrl = (url?: string | null) => {
         urlWithoutParams.endsWith(".ico");
 
     // Проверяем специфические API endpoints твоего сервера (Ranks API)
-    const isRanksFileApi = u.includes("get_files_question") && u.includes("id=");
+    const isRanksFileApi = u.includes(`${apiUrl}user_lk/get_files_question`) && u.includes("id=");
 
     // Проверяем по ключевым словам в URL (для других API)
     const hasImageKeywords = u.includes("/image") || u.includes("image/") || u.includes("img/") ||

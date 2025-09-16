@@ -214,18 +214,30 @@ export const supportChatSlice = createSlice({
             // --- ВАЖНО: если прилетело пользовательское сообщение из WS (на всякий случай) ---
             // Пытаемся замерджить его в оптимистичное, чтобы не мигало и не перезагружались картинки.
             if (msgId != null && !msg.is_answer) {
-                const optIndex = state.messages.findIndex((m) => !m.is_answer && (m as any).user_id === 0);
+                const optIndex = state.messages.findIndex((m) => !m.is_answer && (m as any).optimistic === true);
                 if (optIndex !== -1) {
-                    const optMsg = state.messages[optIndex];
-                    const merged = { ...optMsg, ...msg };
-                    // Сохраняем локальный blob URL, чтобы картинка не перезагружалась
-                    if ((optMsg as any).file_url && String((optMsg as any).file_url).startsWith("blob:")) {
-                        (merged as any).file_url = (optMsg as any).file_url;
+                    const optMsg = state.messages[optIndex] as any;
+
+                    // Если еще не получали ответ от сервера, заменяем optimistic сообщение
+                    if (!optMsg.serverResponseReceived) {
+                        const merged = { ...optMsg, ...msg };
+                        // Сохраняем локальный blob URL, чтобы картинка не перезагружалась
+                        if (optMsg.file_url && Array.isArray(optMsg.file_url)) {
+                            merged.file_url = optMsg.file_url;
+                        }
+                        // убираем флаг optimistic и отмечаем получение ответа
+                        merged.optimistic = false;
+                        merged.serverResponseReceived = true;
+                        state.messages[optIndex] = merged;
+                        return;
+                    } else {
+                        // Если уже получали ответ, добавляем как новое сообщение
+                        const existsById = state.messages.some((m) => (m as any).id === msgId);
+                        if (!existsById) {
+                            state.messages.unshift(msg);
+                        }
+                        return;
                     }
-                    // убираем флаг optimistic, если был
-                    (merged as any).optimistic = undefined;
-                    state.messages[optIndex] = merged;
-                    return;
                 }
                 // если оптимиста нет — ниже обычный upsert по id
             }
@@ -278,11 +290,14 @@ export const supportChatSlice = createSlice({
                 optimisticFiles: files || [],
             };
 
-            // Для обратной совместимости оставляем file_url с первым файлом
+            // Создаем blob URL для всех файлов
             if (files && files.length > 0) {
                 try {
-                    optimistic.file_url = URL.createObjectURL(files[0]);
-                } catch { }
+                    const blobUrls = files.map(file => URL.createObjectURL(file));
+                    optimistic.file_url = blobUrls;
+                } catch (error) {
+                    console.error('Error creating blob URLs:', error);
+                }
             }
 
             state.messages.unshift(optimistic as ChatMessage);
@@ -338,24 +353,36 @@ export const supportChatSlice = createSlice({
 
                 const msgId = (newMsg as any).id;
 
-                // ВСЕГДА сначала ищем optimistic сообщение для замены
+                // Ищем optimistic сообщение для замены
                 const optIndex = state.messages.findIndex((m) => !m.is_answer && (m as any).optimistic === true);
-                
+
                 if (optIndex !== -1) {
-                    // Нашли optimistic сообщение - заменяем его
                     const opt = state.messages[optIndex] as any;
-                    const merged: any = { ...opt, ...newMsg };
-                    
-                    // Сохраняем blob URL для изображений
-                    if (opt.file_url && String(opt.file_url).startsWith("blob:")) {
-                        merged.file_url = opt.file_url;
+
+                    // Если это первое сообщение от сервера, заменяем optimistic
+                    if (!opt.serverResponseReceived) {
+                        const merged: any = { ...opt, ...newMsg };
+
+                        // Сохраняем blob URL для изображений
+                        if (opt.file_url && Array.isArray(opt.file_url)) {
+                            merged.file_url = opt.file_url;
+                        }
+
+                        // Убираем флаг optimistic и отмечаем что получили ответ
+                        merged.optimistic = false;
+                        merged.serverResponseReceived = true;
+
+                        state.messages[optIndex] = merged;
+                        return;
+                    } else {
+                        // Если уже получали ответ от сервера, просто добавляем новое сообщение
+                        // (это может быть дополнительное сообщение для других файлов)
+                        const existingIdx = state.messages.findIndex((m) => (m as any).id === msgId);
+                        if (existingIdx === -1) {
+                            state.messages.unshift({ ...newMsg, optimistic: false });
+                        }
+                        return;
                     }
-                    
-                    // Убираем флаг optimistic
-                    merged.optimistic = false;
-                    
-                    state.messages[optIndex] = merged;
-                    return;
                 }
 
                 // Если оптимиста нет, проверяем наличие сообщения по ID

@@ -437,16 +437,19 @@ export const UserMessage = ({ message, token }: { message: ChatMessage; token: s
     const isOptimistic = (message as any).optimistic === true;
     const hasError = (message as any).error === true;
 
-    // Для optimistic сообщений используем optimisticFiles, для обычных - file_url (теперь массив)
+    // Для всех сообщений используем file_url (массив URL или одиночный URL)
     let files: any[] = [];
 
-    if (isOptimistic && (message as any).optimisticFiles) {
-        // Оптимистичные файлы - это массив File объектов
-        files = (message as any).optimisticFiles;
-    } else if (message.file_url) {
-        // Серверные файлы - это массив URL или одиночный URL
+    if (message.file_url) {
         const urls = Array.isArray(message.file_url) ? message.file_url : [message.file_url];
-        files = urls.map(url => ({ url }));
+
+        if (isOptimistic && (message as any).optimisticFiles) {
+            // Для оптимистичных сообщений используем File объекты
+            files = (message as any).optimisticFiles;
+        } else {
+            // Для обычных сообщений используем URL
+            files = urls.map(url => ({ url }));
+        }
     }
 
     // Используем text_for_files с сервера или локальный fileDescription для optimistic сообщений

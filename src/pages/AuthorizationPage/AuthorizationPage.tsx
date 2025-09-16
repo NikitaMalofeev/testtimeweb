@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useSelector } from "react-redux";
@@ -10,27 +10,20 @@ import { Icon } from "shared/ui/Icon/Icon";
 import WhiteLogo from 'shared/assets/svg/WhiteLogo.svg';
 import { RootState } from "app/providers/store/config/store";
 import { Loader, LoaderSize, LoaderTheme } from "shared/ui/Loader/Loader";
-import { setPersonTypeThunk, userLoginThunk } from "entities/User/slice/userSlice";
+import { userLoginThunk } from "entities/User/slice/userSlice";
 import IdentificationProfileForm from "features/RiskProfile/IdentificationForm/ui/IdentificationForm";
-import { motion } from "framer-motion";
-import AnimateHeightWrapper from "shared/lib/helpers/animation/AnimateHeightWrapper";
 import { ResetPasswordModal } from "features/Account/ResetPasswordModal/ResetPasswordModal";
 import { closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { useNavigate } from "react-router-dom";
-import { useDevice } from "shared/hooks/useDevice";
 import BooleanTabs from "shared/ui/BooleanTabs/BooleanTabs";
 
 const AuthorizationPage = () => {
     const dispatch = useAppDispatch();
     const { loading } = useSelector((state: RootState) => state.user);
-    const device = useDevice();
     const [activeTab, setActiveTab] = useState<"login" | "registration">("login");
     const ModalState = useSelector((state: RootState) => state.modal.resetPassword)
-    const navigate = useNavigate()
-    const deviceSize = useDevice();
-    const [keyboardVisible, setKeyboardVisible] = useState(false);
-    const authRef = useRef<HTMLDivElement>(null);
+    const navigate = useNavigate();
 
     // Форма для авторизации    
     const formik = useFormik({
@@ -65,71 +58,12 @@ const AuthorizationPage = () => {
         }
     };
 
-    // Используем ref для управления видимостью элемента "crutch"
-    const crutchRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        if (activeTab === 'login') {
-            if (crutchRef.current) {
-                // Сразу показываем элемент без задержки
-                crutchRef.current.style.display = "block";
-            }
-            setTimeout(() => {
-                if (crutchRef.current) {
-                    crutchRef.current.style.display = "none";
-                }
-            }, 400); // скрыть через 400 мс
-        } else {
-            if (crutchRef.current) {
-                crutchRef.current.style.display = "none";
-            }
-        }
-    }, [activeTab]);
-
-    // Определяем iOS устройства
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-
-    // Обработчики для определения видимости клавиатуры на iOS
-    useEffect(() => {
-        if (!isIOS || activeTab !== 'login') return;
-
-        const handleFocus = () => {
-            setKeyboardVisible(true);
-        };
-
-        const handleBlur = () => {
-            setKeyboardVisible(false);
-        };
-
-        const inputs = document.querySelectorAll('input[type="text"], input[type="password"], input[type="email"], input[type="tel"]');
-
-        inputs.forEach(input => {
-            input.addEventListener('focus', handleFocus);
-            input.addEventListener('blur', handleBlur);
-        });
-
-        return () => {
-            inputs.forEach(input => {
-                input.removeEventListener('focus', handleFocus);
-                input.removeEventListener('blur', handleBlur);
-            });
-        };
-    }, [activeTab, isIOS]);
 
     return (
         <>
-            <div
-                ref={authRef}
-                className={`${styles.auth} ${activeTab === 'login' ? styles.auth_login_mode : styles.auth_registration_mode} ${keyboardVisible && activeTab === 'login' && isIOS ? 'keyboard_visible' : ''}`}
-                style={activeTab === 'registration' ? { paddingTop: '20px' } : { paddingTop: '42px' }}
-            >
-                {/* <AnimateHeightWrapper isOpen={activeTab === 'registration'} minHeight={deviceSize === 'desktop' ? '100%' : '100%'} style={activeTab === 'registration' ? { height: '98%' } : { height: '100%' }}>
-
-                </AnimateHeightWrapper> */}
+            <div className={styles.auth}>
                 <div className={styles.auth__wrapper}>
-                    <div
-                        className={`${styles.auth__container} ${activeTab === 'registration' ? styles.auth__container_extended : ''}`}
-                    >
+                    <div className={styles.auth__container}>
                         <Icon Svg={WhiteLogo} width={73} height={73} className={styles.auth__icon} />
                         {/* Вкладки */}
                         <BooleanTabs
@@ -189,8 +123,6 @@ const AuthorizationPage = () => {
                             </form>
                         )}
 
-                        {/* Элемент crutch всегда отрисовывается, но изначально скрыт */}
-                        {/* {device !== 'desktop' && <div ref={crutchRef} className={styles.crutch} style={{ display: "none" }}></div>} */}
 
                         {activeTab === 'registration' && (
                             <IdentificationProfileForm />

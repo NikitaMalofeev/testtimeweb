@@ -52,5 +52,9 @@
   @include mix.respond-to('tablet-desktop') {
     .card {
       margin-bottom: 0;
+      max-width: 500px;
+      margin: 0 auto;
     }
+
+    
   }

@@ -27,8 +27,7 @@ export const NotificationPopup: React.FC = () => {
     const current = useSelector(selectFirstActive);
 
     // есть ли что показать
-    const hasContent = current?.status !== 'notif_info'
-    Boolean(current?.title?.trim()) || Boolean(current?.text?.trim());
+    const hasContent = Boolean(current?.title?.trim()) || Boolean(current?.text?.trim());
 
     // попап показываем только если есть уведомление и есть title || text
     const isOpen = Boolean(current && hasContent);

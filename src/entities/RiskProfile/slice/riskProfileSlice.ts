@@ -46,7 +46,7 @@ import { PasportScanData } from "features/RiskProfile/PassportScanForm/PassportS
 import { omit } from "lodash";
 import { setBrokerSuccessResponseInfo } from "entities/Documents/slice/documentsSlice";
 import { EMPTY_LEGAL_FORM } from "../constants/constansRiskProfile";
-import { openModal } from "entities/ui/Modal/slice/modalSlice";
+import { closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 
 interface RiskProfileFormState {
@@ -235,22 +235,28 @@ export const postBrokerApiTokenThunk = createAsyncThunk<
                 onSuccess();
             }
         } catch (error: any) {
-            // dispatch(
-            //     // setWarning({
-            //     //     active: true,
-            //     //     description: error.response.data.errorText,
-            //     //     buttonLabel: "Перейти к подключению",
-            //     //     action: () => {
-            //     //         window.location.href = '/payments';
-            //     //         dispatch(setWarning(
-            //     //             {
-            //     //                 active: false
-            //     //             }
-            //     //         ))
-            //     //     },
-            //     // }),
-            // );
-            dispatch(setError(error.response.data.token))
+            if (error.response.data.token) {
+                dispatch(setError(error.response.data.token));
+            } else {
+                dispatch(
+                    setWarning({
+                        active: true,
+                        description: error.response.data.errorText || error.response.data.token,
+                        buttonLabel: "Перейти к подключению",
+
+                        action: () => {
+                            window.location.href = '/documents';
+                            dispatch(closeModal(ModalType.IDENTIFICATION))
+                            dispatch(setWarning(
+                                {
+                                    active: false
+                                }
+                            ))
+                        },
+                    }),
+                );
+            }
+
         }
     }
 );

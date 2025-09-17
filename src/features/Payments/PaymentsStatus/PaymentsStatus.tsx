@@ -152,7 +152,7 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
                 >
                     <div className={styles.status__buttons}>
                         <Button
-                            theme={ButtonTheme.UNDERLINE}
+                            theme={ButtonTheme.BLUE}
                             padding="20px 25px"
                             onClick={payAction}
                             className={styles.button}
@@ -173,7 +173,7 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
                         )}
 
                         <Button
-                            theme={ButtonTheme.BLUE}
+                            theme={ButtonTheme.UNDERLINE}
                             padding="20px 25px"
                             onClick={() => {
                                 // Возврат в ЛК без снятия гейта — это ок: при возврате в /payments снова удержим на /payments/loading

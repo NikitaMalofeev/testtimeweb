@@ -29,6 +29,7 @@ export const SuccessModal = memo(({ isOpen, onClose, title, description, action,
     const userToken = useSelector((state: RootState) => state.user.token);
     const isUserAuthorized = Boolean(userToken);
     const navigate = useNavigate()
+    const filledChapters = useSelector((state: RootState) => state.documents.filledRiskProfileChapters);
     const dispatch = useAppDispatch()
     const handleBackToPA = () => {
         navigate('/lk');
@@ -54,7 +55,7 @@ export const SuccessModal = memo(({ isOpen, onClose, title, description, action,
                     <span className={styles.description}>{description}</span>
                 </div>
                 <div className={styles.buttons}>
-                    {!customSuccessModal && (
+                    {isLastDocument || !customSuccessModal && (filledChapters.is_complete_passport || filledChapters.is_complete_person_legal) && (
                         <>
                             <Button
                                 theme={ButtonTheme.BLUE}
@@ -63,15 +64,29 @@ export const SuccessModal = memo(({ isOpen, onClose, title, description, action,
                             >
                                 Перейти к следующему
                             </Button>
-                            <Button
-                                theme={ButtonTheme.UNDERLINE}
-                                onClick={handleBackToPA}
-                                className={styles.submitButton}
-                            >
-                                Вернуться в личный кабинет
-                            </Button>
+
                         </>
                     )}
+                    {/* Для риск профиля */}
+                    {!isLastDocument || !customSuccessModal && (
+                        <>
+                            <Button
+                                theme={ButtonTheme.BLUE}
+                                onClick={() => action()}
+                                className={styles.submitButton}
+                            >
+                                Перейти к заполнению документов
+                            </Button>
+
+                        </>
+                    )}
+                    <Button
+                        theme={ButtonTheme.UNDERLINE}
+                        onClick={handleBackToPA}
+                        className={styles.submitButton}
+                    >
+                        Вернуться в личный кабинет
+                    </Button>
                     {customSuccessModal && (
                         // Для кастомных документов проверяем, является ли это последним документом и авторизован ли пользователь
                         isLastDocument && isUserAuthorized ? (

@@ -354,39 +354,6 @@ const IdentificationProfileForm: React.FC = () => {
                         needValue
                         error={formik.touched.phone && formik.errors.phone}
                     />
-                    <Input
-                        autoComplete="new-password"
-                        name="email"
-                        value={formik.values.email}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        placeholder="E-mail"
-                        needValue
-                        type="text"
-                        error={formik.touched.email && formik.errors.email}
-                    />
-                    <Input
-                        autoComplete="new-password"
-                        name="password"
-                        value={formik.values.password}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        placeholder="Пароль"
-                        needValue
-                        type="password"
-                        error={formik.touched.password && formik.errors.password}
-                    />
-                    <Input
-                        name="password2"
-                        value={formik.values.password2}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        placeholder="Повтор пароля"
-                        needValue
-                        type="password"
-                        error={formik.touched.password2 && formik.errors.password2}
-                    />
-
                     {/* ───────────── дополнительные контакты ───────────── */}
                     <Select
                         items={[
@@ -410,7 +377,6 @@ const IdentificationProfileForm: React.FC = () => {
                         needValue
                         error={formik.touched.contact_communication_type && formik.errors.contact_communication_type}
                     />
-
                     {/* Условно отображаемые поля в зависимости от выбранного типа */}
                     {formik.values.contact_communication_type === 'contact_communication_telegram' && (
                         <Input
@@ -463,6 +429,42 @@ const IdentificationProfileForm: React.FC = () => {
                             error={formik.touched.contact_communication_other && formik.errors.contact_communication_other}
                         />
                     )}
+                    <Input
+                        autoComplete="new-password"
+                        name="email"
+                        value={formik.values.email}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        placeholder="E-mail"
+                        needValue
+                        type="text"
+                        error={formik.touched.email && formik.errors.email}
+                    />
+                    <Input
+                        autoComplete="new-password"
+                        name="password"
+                        value={formik.values.password}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        placeholder="Пароль"
+                        needValue
+                        type="password"
+                        error={formik.touched.password && formik.errors.password}
+                    />
+                    <Input
+                        name="password2"
+                        value={formik.values.password2}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        placeholder="Повтор пароля"
+                        needValue
+                        type="password"
+                        error={formik.touched.password2 && formik.errors.password2}
+                    />
+
+
+
+
 
                     <Checkbox
                         name="is_agreement"

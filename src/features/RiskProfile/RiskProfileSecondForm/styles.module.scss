@@ -420,5 +420,13 @@
  .risk_profiles__container {
     min-height: max-content;
     padding-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
     height: 100%;
+    padding-bottom: 54px;
+
+    & .card {
+        max-width: 500px;
+    }
  }

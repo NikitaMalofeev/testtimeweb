@@ -106,7 +106,7 @@ export const ConfirmAllDocs: React.FC = () => {
 
     // Состояние для хранения последнего подписанного документа (для описания в successModal)
     const [lastConfirmedDoc, setLastConfirmedDoc] = React.useState<string>("");
-    
+
     // ⏱ оставшееся время по текущему документу — теперь из Redux
     const remainingSeconds = useSelector((s: RootState) =>
         selectRemainingTimeoutByDoc(s, currentTypeDoc)
@@ -443,8 +443,8 @@ export const ConfirmAllDocs: React.FC = () => {
             <SuccessModal
                 isOpen={successModalOpen}
                 onClose={() => {
-                    dispatch(closeModal(ModalType.SUCCESS));
-                    dispatch(closeModal(ModalType.CONFIRM_DOCS));
+                    dispatch(closeModal(ModalType.CONFIRM_DOCS))
+                    dispatch(closeModal(ModalType.SUCCESS))
                 }}
                 title="Документ подписан"
                 description={
@@ -457,6 +457,19 @@ export const ConfirmAllDocs: React.FC = () => {
                     </div>
                 }
                 action={() => {
+                    const currentIndex = docTypes.findIndex((d) => d === currentTypeDoc);
+                    const nextIndex = currentIndex + 1;
+
+                    if (nextIndex < docTypes.length) {
+                        // Переходим к следующему документу
+                        dispatch(setCurrentConfirmableDoc(docTypes[nextIndex]));
+                    } else {
+                        // Если документы закончились, переходим в ЛК
+                        navigate('/lk');
+                        dispatch(closeAllModals());
+                        return;
+                    }
+
                     if (
                         currentTypeDoc === "type_doc_broker_api_token" &&
                         brokerIds.length === 0

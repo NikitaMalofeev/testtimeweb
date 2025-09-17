@@ -10,6 +10,7 @@ import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { closeAllModals, closeModal } from "entities/ui/Modal/slice/modalSlice";
 import { Icon } from "shared/ui/Icon/Icon";
 import SuccessIcon from 'shared/assets/svg/SuccessLabel.svg'
+import closeIcon from 'shared/assets/svg/close.svg'
 
 interface SuccessModalProps {
     isOpen: boolean;
@@ -46,6 +47,7 @@ export const SuccessModal = memo(({ isOpen, onClose, title, description, action,
             type={ModalType.INFO}
         >
             <div className={styles.modalContent}>
+                <Icon width={20} height={20} Svg={closeIcon} className={styles.closeIcon} onClick={onClose} pointer />
                 <div className={styles.content}>
                     <Icon width={36} height={36} Svg={SuccessIcon} />
                     <span className={styles.title}>{title}</span>
@@ -53,13 +55,22 @@ export const SuccessModal = memo(({ isOpen, onClose, title, description, action,
                 </div>
                 <div className={styles.buttons}>
                     {!customSuccessModal && (
-                        <Button
-                            theme={ButtonTheme.UNDERLINE}
-                            onClick={handleBackToPA}
-                            className={styles.submitButton}
-                        >
-                            Вернуться в личный кабинет
-                        </Button>
+                        <>
+                            <Button
+                                theme={ButtonTheme.BLUE}
+                                onClick={() => action()}
+                                className={styles.submitButton}
+                            >
+                                Перейти к следующему
+                            </Button>
+                            <Button
+                                theme={ButtonTheme.UNDERLINE}
+                                onClick={handleBackToPA}
+                                className={styles.submitButton}
+                            >
+                                Вернуться в личный кабинет
+                            </Button>
+                        </>
                     )}
                     {customSuccessModal && (
                         // Для кастомных документов проверяем, является ли это последним документом и авторизован ли пользователь

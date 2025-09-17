@@ -99,7 +99,7 @@ export const getAllMessages = async (token: string) => {
 // Новая функция для получения файлов сообщения по ID и индексу
 export const getFileByQuestionIdAndIndex = async (id: number, index: number, token: string) => {
     const response = await axios.get(
-        `${apiUrl}user_lk/get_files_question?id=${id}&index=${index}`,
+        `${apiUrl}user_lk/get_files_question/?id=${id}&index=${index}`,
         {
             headers: {
                 "Accept-Language": "ru",

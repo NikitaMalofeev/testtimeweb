@@ -457,18 +457,7 @@ export const ConfirmAllDocs: React.FC = () => {
                     </div>
                 }
                 action={() => {
-                    const currentIndex = docTypes.findIndex((d) => d === currentTypeDoc);
-                    const nextIndex = currentIndex + 1;
 
-                    if (nextIndex < docTypes.length) {
-                        // Переходим к следующему документу
-                        dispatch(setCurrentConfirmableDoc(docTypes[nextIndex]));
-                    } else {
-                        // Если документы закончились, переходим в ЛК
-                        navigate('/lk');
-                        dispatch(closeAllModals());
-                        return;
-                    }
 
                     if (
                         currentTypeDoc === "type_doc_broker_api_token" &&

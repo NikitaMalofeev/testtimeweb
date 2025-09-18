@@ -131,3 +131,18 @@ export const getFileByQuestionIdAndIndex = async (id: number, index: number, tok
     );
     return response.data;
 };
+
+// Функция для получения настроек чата
+export const getChatSettings = async (token: string) => {
+    const response = await axios.get(
+        `${apiUrl}user_lk/get_feedback_settings/`,
+        {
+            headers: {
+                "Accept-Language": "ru",
+                "Authorization": `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        }
+    );
+    return response.data;
+};

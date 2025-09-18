@@ -48,6 +48,7 @@ export const BrokerConnectionForm: React.FC = () => {
             label: 'Т-инвестиции'
         }
     ]
+    //sa
 
     const tinkoffExternalLink = 'https://www.tbank.ru/invest/'
 
@@ -194,6 +195,7 @@ export const BrokerConnectionForm: React.FC = () => {
                 onClose={() => dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW_PDF))}
 
             />
+            
 
             <ProblemsModal isOpen={modalState.problem.isOpen} title='Проблемы с подключением брокера' problemScreen='Подключение брокера'
                 onClose={() => {

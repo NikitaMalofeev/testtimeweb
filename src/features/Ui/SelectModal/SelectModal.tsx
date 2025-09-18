@@ -111,7 +111,7 @@ export const SelectModal: React.FC<SelectModalProps> = ({
                 <Input
                     type="search"
                     placeholder="Поиск"
-                    autoComplete="new-password"
+                    autoComplete="none"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className={styles.searchInput}

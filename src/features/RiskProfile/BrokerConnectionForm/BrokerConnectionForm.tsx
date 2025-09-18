@@ -46,9 +46,32 @@ export const BrokerConnectionForm: React.FC = () => {
         {
             value: 'tinkoff_brokers',
             label: 'Т-инвестиции'
+        },
+        {
+            value: 'finam',
+            label: 'Финам'
+        },
+        {
+            value: 'alfa',
+            label: 'Альфа'
+        },
+        {
+            value: 'bcs',
+            label: 'БКС'
+        },
+        {
+            value: 'vtb',
+            label: 'ВТБ'
+        },
+        {
+            value: 'sberbank',
+            label: 'Сбербанк'
+        },
+        {
+            value: 'other',
+            label: 'Другой брокер'
         }
     ]
-    //sa
 
     const tinkoffExternalLink = 'https://www.tbank.ru/invest/'
 
@@ -56,7 +79,16 @@ export const BrokerConnectionForm: React.FC = () => {
     const validationSchema = Yup.object().shape({
         // market: Yup.string().required('Обязательное поле'),
         broker: Yup.string().required('Обязательное поле'),
-        token: Yup.string().required('Обязательное поле'),
+        customBrokerName: Yup.string().when('broker', {
+            is: 'other',
+            then: (schema) => schema.required('Название брокера обязательно для заполнения'),
+            otherwise: (schema) => schema.notRequired()
+        }),
+        token: Yup.string().when('broker', {
+            is: 'tinkoff_brokers',
+            then: (schema) => schema.required('Обязательное поле'),
+            otherwise: (schema) => schema.notRequired()
+        }),
     });
 
     // Инициализируем Formik
@@ -64,6 +96,7 @@ export const BrokerConnectionForm: React.FC = () => {
         initialValues: {
             // market: '',
             broker: '',
+            customBrokerName: '',
             token: '',
         },
         validationSchema,
@@ -74,8 +107,14 @@ export const BrokerConnectionForm: React.FC = () => {
     });
 
     const handleSubmit = () => {
+        const submitData = {
+            ...formik.values,
+            // Если выбран "other", используем customBrokerName как broker
+            broker: formik.values.broker === 'other' ? formik.values.customBrokerName : formik.values.broker
+        };
+
         dispatch(postBrokerApiTokenThunk({
-            data: formik.values, onSuccess: () => {
+            data: submitData, onSuccess: () => {
                 dispatch(openModal({ type: ModalType.INFO, animation: ModalAnimation.BOTTOM, size: ModalSize.MC }))
             }
         }))
@@ -98,17 +137,40 @@ export const BrokerConnectionForm: React.FC = () => {
             /> */}
 
             {device !== 'desktop' && (
-                <Select
-                    items={brokersItems}
-                    value={formik.values.broker}
-                    onChange={(val) => {
-                        formik.setFieldValue('broker', val)
-                    }}
-                    needValue
-                    title='Выберите бокера'
-                    label='Выбор брокера'
-                    error={formik.touched.broker && formik.errors.broker}
-                />
+                <>
+                    <Select
+                        items={brokersItems}
+                        value={formik.values.broker}
+                        onChange={(val) => {
+                            formik.setFieldValue('broker', val)
+                            if (val !== 'other') {
+                                formik.setFieldValue('customBrokerName', '')
+                            }
+                            if (val !== 'tinkoff_brokers') {
+                                formik.setFieldValue('token', '')
+                            }
+                        }}
+                        needValue
+                        title='Выберите бокера'
+                        label='Выбор брокера'
+                        error={formik.touched.broker && formik.errors.broker}
+                    />
+
+                    {formik.values.broker === 'other' && (
+                        <div style={{ marginTop: '16px' }}>
+                            <Input
+                                placeholder="Название брокера"
+                                name="customBrokerName"
+                                type="text"
+                                value={formik.values.customBrokerName}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                error={formik.touched.customBrokerName && formik.errors.customBrokerName}
+                                needValue
+                            />
+                        </div>
+                    )}
+                </>
             )}
 
 
@@ -121,66 +183,91 @@ export const BrokerConnectionForm: React.FC = () => {
                 </div>
                 <div className={styles.desktop__item}>
                     {device === 'desktop' && (
-                        <Select
-                            items={brokersItems}
-                            value={formik.values.broker}
-                            onChange={(val) => {
-                                formik.setFieldValue('broker', val)
-                            }}
-                            needValue
-                            title='Выберите бокера'
-                            label='Выбор брокера'
-                            error={formik.touched.broker && formik.errors.broker}
-                        />
+                        <>
+                            <Select
+                                items={brokersItems}
+                                value={formik.values.broker}
+                                onChange={(val) => {
+                                    formik.setFieldValue('broker', val)
+                                    if (val !== 'other') {
+                                        formik.setFieldValue('customBrokerName', '')
+                                    }
+                                    if (val !== 'tinkoff_brokers') {
+                                        formik.setFieldValue('token', '')
+                                    }
+                                }}
+                                needValue
+                                title='Выберите бокера'
+                                label='Выбор брокера'
+                                error={formik.touched.broker && formik.errors.broker}
+                            />
+
+                            {formik.values.broker === 'other' && (
+                                <div style={{ marginTop: '16px' }}>
+                                    <Input
+                                        placeholder="Название брокера"
+                                        name="customBrokerName"
+                                        type="text"
+                                        value={formik.values.customBrokerName}
+                                        onChange={formik.handleChange}
+                                        onBlur={formik.handleBlur}
+                                        error={formik.touched.customBrokerName && formik.errors.customBrokerName}
+                                        needValue
+                                    />
+                                </div>
+                            )}
+                        </>
                     )}
                     <div className={styles.broker__site}>
                         <span className={styles.broker__site__title}> Личный кабинет на сайте брокера</span>
-                        <Button onClick={() => window.open(tinkoffExternalLink, '_blank')} className={styles.broker__site__button} children='Перейти на сайт брокера' theme={ButtonTheme.UNDERLINE} padding='19px 42px' />
+                        <Button onClick={() => window.open(tinkoffExternalLink, '_blank')} className={styles.broker__site__button} children='подключить брокера' theme={ButtonTheme.UNDERLINE} padding='19px 42px' />
                     </div>
                 </div>
             </div>
 
-            <div className={styles.desktop__container}>
-                <div className={styles.broker__container}>
-                    <div>
-                        <h2 className={styles.broker__title}>Реквизиты для подключения</h2>
+            {formik.values.broker === 'tinkoff_brokers' && (
+                <div className={styles.desktop__container}>
+                    <div className={styles.broker__container}>
+                        <div>
+                            <h2 className={styles.broker__title}>Реквизиты для подключения</h2>
 
-                        <Input
-                            placeholder="Токен"
-                            name="token"
-                            type='password'
-                            value={formik.values.token}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            error={formik.touched.token && formik.errors.token}
-                            needValue
-                        />
-                    </div>
+                            <Input
+                                placeholder="Токен"
+                                name="token"
+                                type='password'
+                                value={formik.values.token}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                error={formik.touched.token && formik.errors.token}
+                                needValue
+                            />
+                        </div>
 
-                    {/* Кнопка подтверждения */}
-                    <div className={styles.desktop__broker__item}>
-                        <Button
-                            theme={ButtonTheme.BLUE}
-                            className={styles.submitButton}
-                            padding='19px 70px'
-                            disabled={!(formik.isValid && formik.dirty)}
-                            onClick={handleSubmit}
+                        {/* Кнопка подтверждения */}
+                        <div className={styles.desktop__broker__item}>
+                            <Button
+                                theme={ButtonTheme.BLUE}
+                                className={styles.submitButton}
+                                padding='19px 70px'
+                                disabled={!(formik.isValid && formik.dirty)}
+                                onClick={handleSubmit}
 
-                        >
-                            Подтвердить токен
-                        </Button>
+                            >
+                                Подтвердить токен
+                            </Button>
 
-                        <Button
-                            type="button"
-                            theme={ButtonTheme.EMPTYBLUE}
-                            className={styles.problemButton}
-                            onClick={() => dispatch(openModal({ type: ModalType.PROBLEM, animation: ModalAnimation.BOTTOM, size: ModalSize.MINI }))}
-                        >
-                            Проблемы с подключением?
-                        </Button>
+                            <Button
+                                type="button"
+                                theme={ButtonTheme.EMPTYBLUE}
+                                className={styles.problemButton}
+                                onClick={() => dispatch(openModal({ type: ModalType.PROBLEM, animation: ModalAnimation.BOTTOM, size: ModalSize.MINI }))}
+                            >
+                                Проблемы с подключением?
+                            </Button>
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
 
 
             {/* Реквизиты для подключения */}
@@ -195,7 +282,6 @@ export const BrokerConnectionForm: React.FC = () => {
                 onClose={() => dispatch(closeModal(ModalType.DOCUMENTS_PREVIEW_PDF))}
 
             />
-            
 
             <ProblemsModal isOpen={modalState.problem.isOpen} title='Проблемы с подключением брокера' problemScreen='Подключение брокера'
                 onClose={() => {

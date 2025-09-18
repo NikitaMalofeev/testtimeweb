@@ -1,11 +1,19 @@
 // entities/SupportChat/slice/supportChatSlice.ts
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { getAllQuestions, getGroupWs, getWebSocketUrl } from "../api/supportChatApi";
+import { getAllQuestions, getGroupWs, getWebSocketUrl, getChatSettings } from "../api/supportChatApi";
 import { RootState } from "app/providers/store/config/store";
 import { ChatMessage } from "../model/chatModel";
 import axios from "axios";
 import apiUrl from "../api/supportChatApi"; // default export = base API url
 import { setError } from "entities/Error/slice/errorSlice";
+
+interface ChatSettings {
+    min_length_text: number;
+    min_length_text_for_files: number;
+    max_count_file: number;
+    max_size_file_mb: number;
+    file_allowed_content_types: string[];
+}
 
 interface SupportChatState {
     websocketId: string;
@@ -15,6 +23,7 @@ interface SupportChatState {
     success: boolean;
     isWsConnected: boolean;
     unreadAnswersCount: number;
+    chatSettings: ChatSettings | null;
 }
 
 const initialState: SupportChatState = {
@@ -25,6 +34,7 @@ const initialState: SupportChatState = {
     success: false,
     isWsConnected: false,
     unreadAnswersCount: 0,
+    chatSettings: null,
 };
 
 // --------------------------------------------------
@@ -199,6 +209,20 @@ export const getAllMessagesThunk = createAsyncThunk<
         return response;
     } catch (error: any) {
         return rejectWithValue(error.response?.data?.message || "Ошибка получения сообщений");
+    }
+});
+
+export const fetchChatSettings = createAsyncThunk<
+    ChatSettings,
+    void,
+    { rejectValue: string; state: RootState }
+>("supportChat/fetchChatSettings", async (_, { rejectWithValue, getState }) => {
+    try {
+        const token = getState().user.token;
+        const response = await getChatSettings(token);
+        return response;
+    } catch (error: any) {
+        return rejectWithValue(error.response?.data?.message || "Ошибка получения настроек чата");
     }
 });
 
@@ -379,6 +403,10 @@ export const supportChatSlice = createSlice({
             state.unreadAnswersCount = action.payload;
         },
 
+        setChatSettings: (state, action: PayloadAction<ChatSettings>) => {
+            state.chatSettings = action.payload;
+        },
+
         // Optimistic update — добавляем сразу с blob-URL и меткой optimistic
         addOptimisticMessage: (state, action: PayloadAction<{ text: string; fileDescription?: string; files?: File[] }>) => {
             const { text, fileDescription, files } = action.payload;
@@ -546,11 +574,23 @@ export const supportChatSlice = createSlice({
             .addCase(getAllMessagesThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
+            })
+            .addCase(fetchChatSettings.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchChatSettings.fulfilled, (state, action) => {
+                state.loading = false;
+                state.chatSettings = action.payload;
+            })
+            .addCase(fetchChatSettings.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
             });
     },
 });
 
-export const { setWebsocketId, setMessages, addMessage, setUnreadAnswersCount, addOptimisticMessage } =
+export const { setWebsocketId, setMessages, addMessage, setUnreadAnswersCount, addOptimisticMessage, setChatSettings } =
     supportChatSlice.actions;
 
 export default supportChatSlice.reducer;

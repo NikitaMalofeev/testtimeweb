@@ -40,6 +40,7 @@ import { TariffCalculator } from '../TariffCalculator/TariffCalculator';
 import { Loader, LoaderSize } from 'shared/ui/Loader/Loader';
 import { set } from 'lodash';
 import { setStep } from 'entities/RiskProfile/slice/riskProfileSlice';
+import { formatNumberWithSpaces } from 'shared/lib/helpers/formatNumber';
 
 const messageTypeOptions = { SMS: 'SMS', EMAIL: 'Email', WHATSAPP: 'Whatsapp' } as const;
 type MessageKey = keyof typeof messageTypeOptions;
@@ -317,7 +318,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                             <>
                                 <TariffCalculator
                                     tariff_key={currentOrderId}
-                                    min_deposit_value={t.title === 'Базовый тариф' ? 1_000_000 : 5_000_000}
+                                    min_deposit_value={t.min_amount_start || (t.title === 'Базовый тариф' ? 1_000_000 : 5_000_000)}
                                 />
                                 <div>
                                     <span className={styles.disclaimer}>

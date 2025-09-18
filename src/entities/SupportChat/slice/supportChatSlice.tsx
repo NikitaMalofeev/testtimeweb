@@ -1,6 +1,6 @@
 // entities/SupportChat/slice/supportChatSlice.ts
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { getAllQuestions, getGroupWs } from "../api/supportChatApi";
+import { getAllQuestions, getGroupWs, getWebSocketUrl } from "../api/supportChatApi";
 import { RootState } from "app/providers/store/config/store";
 import { ChatMessage } from "../model/chatModel";
 import axios from "axios";
@@ -75,7 +75,8 @@ export const openWebSocketConnection = createAsyncThunk<
             return rejectWithValue("Неверный websocketId");
         }
 
-        const wsUrl = `wss://test.webbroker.ranks.pro/ws/chat_support/${websocketId}/`;
+        const baseWsUrl = getWebSocketUrl();
+        const wsUrl = `${baseWsUrl}chat_support/${websocketId}/`;
         console.log("Attempting to connect WebSocket to:", wsUrl);
 
         return new Promise((resolve, reject) => {

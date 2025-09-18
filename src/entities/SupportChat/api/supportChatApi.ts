@@ -20,6 +20,27 @@ switch (envEnviroment) {
 
 export default apiUrl;
 
+// WebSocket URL configuration
+const envEnvironment = import.meta.env.VITE_ENVIROMENT;
+let wsUrl: string;
+
+switch (envEnvironment) {
+    case "PROD":
+        wsUrl = import.meta.env.VITE_RANKS_PROD_WS_URL;
+        break;
+
+    case "LOCAL":
+        wsUrl = import.meta.env.VITE_RANKS_TEST_WS_URL_LOCAL;
+        break;
+
+    case "TEST":
+    default:
+        wsUrl = import.meta.env.VITE_RANKS_TEST_WS_URL;
+        break;
+}
+
+export const getWebSocketUrl = () => wsUrl;
+
 
 // Пример существующей функции
 export const getGroupWs = async (token: string) => {

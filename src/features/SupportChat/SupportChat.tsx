@@ -683,8 +683,8 @@ export const SupportChat = () => {
 
             // Optimistic update - сразу показываем сообщение пользователя
             dispatch(addOptimisticMessage({
-                text: messageText || undefined,
-                fileDescription: fileDescriptionText || undefined,
+                text: messageText || '',
+                fileDescription: fileDescriptionText || '',
                 files: attachedFiles.length > 0 ? attachedFiles : undefined
             }));
 

@@ -20,6 +20,7 @@ interface CustomSelectProps {
     items: SelectItem[];
     onChange: (val: string) => void;
     error?: string | boolean;
+    hideArrow?: boolean;
     noMargin?: boolean;
 }
 
@@ -31,6 +32,7 @@ export const Select: React.FC<CustomSelectProps> = ({
     items,
     noMargin,
     onChange,
+    hideArrow,
     error
 }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -81,13 +83,16 @@ export const Select: React.FC<CustomSelectProps> = ({
                     {currentLabel}
                 </div>
             </div>
-            <button
-                type="button"
-                className={`${styles.toggleButton} ${isModalOpen ? styles.rotated : ""}`}
-                onClick={handleOpenModal}
-            >
-                <Icon Svg={SelectArrow} />
-            </button>
+            {!hideArrow && (
+                <button
+                    type="button"
+                    className={`${styles.toggleButton} ${isModalOpen ? styles.rotated : ""}`}
+                    onClick={handleOpenModal}
+                >
+                    <Icon Svg={SelectArrow} />
+                </button>
+            )}
+
 
             {error && (
                 <div className={styles.input__error}>

@@ -30,6 +30,8 @@ const initialState: SupportChatState = {
 // --------------------------------------------------
 // ВСЕГДА один сокет на приложение
 let chatSocket: WebSocket | null = null;
+// Cache for optimistic blob URLs
+const optimisticBlobCache = new Map<string, string>();
 // --------------------------------------------------
 
 export const fetchWebsocketId = createAsyncThunk<
@@ -39,10 +41,18 @@ export const fetchWebsocketId = createAsyncThunk<
 >("supportChat/fetchWebsocketId", async (_, { getState, rejectWithValue, dispatch }) => {
     try {
         const token = getState().user.token;
-        const { group_ws } = await getGroupWs(token);
+        console.log("Fetching websocketId with token:", token ? "present" : "missing");
+
+        const response = await getGroupWs(token);
+        console.log("getGroupWs response:", response);
+
+        const { group_ws } = response;
+        console.log("Received websocketId:", group_ws);
+
         dispatch(setWebsocketId(group_ws));
         return group_ws;
     } catch (e: any) {
+        console.error("Error fetching websocketId:", e);
         return rejectWithValue(e.response?.data?.message ?? "Не смогли получить websocketId");
     }
 });
@@ -51,33 +61,86 @@ export const openWebSocketConnection = createAsyncThunk<
     void,
     string,
     { rejectValue: string; state: RootState }
->("supportChat/openWebSocketConnection", async (websocketId, { dispatch, rejectWithValue }) => {
+>("supportChat/openWebSocketConnection", async (websocketId, { dispatch, rejectWithValue, getState }) => {
     try {
         // Закрываем старый сокет
         if (chatSocket) {
+            console.log("Closing existing WebSocket connection");
             chatSocket.close();
             chatSocket = null;
         }
 
-        chatSocket = new WebSocket(`wss://test.webbroker.ranks.pro/ws/chat_support/${websocketId}/`);
+        if (!websocketId || websocketId.trim() === '') {
+            console.error("Invalid websocketId:", websocketId);
+            return rejectWithValue("Неверный websocketId");
+        }
 
-        chatSocket.onopen = () => {
-            // console.log("WebSocket opened:", websocketId);
-        };
+        const wsUrl = `wss://test.webbroker.ranks.pro/ws/chat_support/${websocketId}/`;
+        console.log("Attempting to connect WebSocket to:", wsUrl);
 
-        chatSocket.onmessage = (evt) => {
+        return new Promise((resolve, reject) => {
+            chatSocket = new WebSocket(wsUrl);
+
+            // Таймаут для подключения
+            const connectionTimeout = setTimeout(() => {
+                console.error("WebSocket connection timeout");
+                if (chatSocket) {
+                    chatSocket.close();
+                    chatSocket = null;
+                }
+                reject("Таймаут подключения WebSocket");
+            }, 10000); // 10 секунд
+
+            chatSocket.onopen = () => {
+                console.log("WebSocket opened successfully:", websocketId);
+                clearTimeout(connectionTimeout);
+                resolve();
+            };
+
+            chatSocket.onmessage = (evt) => {
             try {
                 const data = JSON.parse(evt.data);
 
                 if (data?.type === "message_to_support_chat") {
                     const msg: ChatMessage & { id?: number; is_edit?: boolean } = data.data;
 
-                    // В ЧАТ ИЗ WS БЕРЕМ ТОЛЬКО СЕРВЕРНЫЕ СООБЩЕНИЯ (ответы поддержки) И/ИЛИ РЕДАКТИРОВАНИЯ
-                    // Пользовательские эхо-сообщения игнорируем, чтобы не было дублей и мерцания.
+                    // Проверяем что сообщение валидно
+                    if (!msg || typeof msg !== 'object') {
+                        console.warn("Invalid message received from WS:", msg);
+                        return;
+                    }
+
+                    // В ЧАТ ИЗ WS БЕРЕМ:
+                    // 1. СЕРВЕРНЫЕ СООБЩЕНИЯ (ответы поддержки)
+                    // 2. РЕДАКТИРОВАНИЯ сообщений
+                    // 3. ПОЛЬЗОВАТЕЛЬСКИЕ сообщения (но только если нет optimistic дубля)
                     if (msg?.is_answer || msg?.is_edit) {
+                        // Ответы поддержки и редактирования всегда принимаем
+                        console.log("WS: Received support message or edit:", msg?.id, msg.is_answer ? "answer" : "edit");
                         dispatch(addMessage(msg));
+                    } else if (msg?.id != null) {
+                        // Пользовательское сообщение с ID - проверяем нет ли уже optimistic
+                        const state = getState();
+                        const hasOptimistic = state.supportChat.messages.some(
+                            (m: ChatMessage) => !m.is_answer && (m as any).optimistic === true
+                        );
+
+                        if (hasOptimistic) {
+                            // Есть optimistic - пытаемся его заменить
+                            console.log("WS: Merging with optimistic message:", msg?.id);
+                            dispatch(addMessage(msg));
+                        } else {
+                            // Нет optimistic - проверяем нет ли уже такого ID
+                            const hasExisting = state.supportChat.messages.some((m: ChatMessage) => (m as any).id === msg.id);
+                            if (!hasExisting) {
+                                console.log("WS: Adding new user message:", msg?.id);
+                                dispatch(addMessage(msg));
+                            } else {
+                                console.log("WS: Message already exists, skipping:", msg?.id);
+                            }
+                        }
                     } else {
-                        // Игнор: это, скорее всего, "эхо" нашего же сообщения
+                        console.log("WS: Ignoring message without ID or criteria:", msg);
                     }
                 }
             } catch (e) {
@@ -85,14 +148,40 @@ export const openWebSocketConnection = createAsyncThunk<
             }
         };
 
-        chatSocket.onclose = () => {
-            // console.log("WebSocket closed:", websocketId);
-        };
+            chatSocket.onclose = (event) => {
+                console.log("WebSocket closed:", {
+                    websocketId,
+                    code: event.code,
+                    reason: event.reason,
+                    wasClean: event.wasClean
+                });
+                clearTimeout(connectionTimeout);
 
-        chatSocket.onerror = (err) => {
-            console.error("WebSocket error:", err);
-        };
-    } catch {
+                // Переподключение если соединение закрылось неожиданно (не код 1000)
+                if (event.code !== 1000 && websocketId) {
+                    console.log("WebSocket closed unexpectedly, attempting reconnection in 5 seconds...");
+                    setTimeout(() => {
+                        if (!chatSocket || chatSocket.readyState === WebSocket.CLOSED) {
+                            console.log("Attempting to reconnect WebSocket...");
+                            dispatch(openWebSocketConnection(websocketId));
+                        }
+                    }, 5000);
+                }
+            };
+
+            chatSocket.onerror = (err) => {
+                console.error("WebSocket error details:", {
+                    websocketId,
+                    error: err,
+                    readyState: chatSocket?.readyState,
+                    url: chatSocket?.url
+                });
+                clearTimeout(connectionTimeout);
+                reject("Ошибка подключения WebSocket");
+            };
+        });
+    } catch (error) {
+        console.error("Exception in openWebSocketConnection:", error);
         return rejectWithValue("Ошибка при открытии WebSocket");
     }
 });
@@ -145,9 +234,12 @@ export const postMessage = createAsyncThunk<
         const form = new FormData();
 
         if (payload.files && payload.files.length) {
-            const messageText = payload.text_for_files || "";
-            form.append("text", messageText);
-            form.append("text_for_files", messageText);
+            if (payload.text) {
+                form.append("text", payload.text);
+            }
+            if (payload.text_for_files) {
+                form.append("text_for_files", payload.text_for_files);
+            }
             payload.files.forEach((f) => form.append("files", f));
         } else if (payload.text) {
             form.append("text", payload.text);
@@ -211,46 +303,74 @@ export const supportChatSlice = createSlice({
             // --- ВАЖНО: если прилетело пользовательское сообщение из WS (на всякий случай) ---
             // Пытаемся замерджить его в оптимистичное, чтобы не мигало и не перезагружались картинки.
             if (msgId != null && !msg.is_answer) {
-                const optIndex = state.messages.findIndex((m) => !m.is_answer && (m as any).user_id === 0);
+                const optIndex = state.messages.findIndex((m) => !m.is_answer && (m as any).optimistic === true);
                 if (optIndex !== -1) {
-                    const optMsg = state.messages[optIndex];
-                    const merged = { ...optMsg, ...msg };
-                    // Сохраняем локальный blob URL, чтобы картинка не перезагружалась
-                    if ((optMsg as any).file_url && String((optMsg as any).file_url).startsWith("blob:")) {
-                        (merged as any).file_url = (optMsg as any).file_url;
+                    const optMsg = state.messages[optIndex] as any;
+
+                    // Если еще не получали ответ от сервера, заменяем optimistic сообщение
+                    if (!optMsg.serverResponseReceived) {
+                        const merged = { ...optMsg, ...msg };
+                        // Сохраняем локальный blob URL, чтобы картинка не перезагружалась
+                        if (optMsg.file_url && Array.isArray(optMsg.file_url)) {
+                            merged.file_url = optMsg.file_url;
+                        }
+                        // убираем флаг optimistic и отмечаем получение ответа
+                        merged.optimistic = false;
+                        merged.serverResponseReceived = true;
+                        state.messages[optIndex] = merged;
+                        return;
+                    } else {
+                        // Если уже получали ответ, добавляем как новое сообщение
+                        const existsById = state.messages.some((m) => (m as any).id === msgId);
+                        if (!existsById) {
+                            state.messages.unshift(msg);
+                        }
+                        return;
                     }
-                    // убираем флаг optimistic, если был
-                    (merged as any).optimistic = undefined;
-                    state.messages[optIndex] = merged;
-                    return;
                 }
                 // если оптимиста нет — ниже обычный upsert по id
             }
 
             // Обычный upsert по id
             if (msgId != null) {
-                const existsById = state.messages.some((m) => (m as any).id === msgId);
-                if (existsById) {
-                    state.messages = state.messages.map((m) => ((m as any).id === msgId ? { ...m, ...msg } : m));
+                const existingIndex = state.messages.findIndex((m) => (m as any).id === msgId);
+                if (existingIndex !== -1) {
+                    // Обновляем существующее сообщение, сохраняя важные поля
+                    const existing = state.messages[existingIndex];
+                    const merged = { ...existing, ...msg };
+
+                    // Сохраняем blob URL если они есть
+                    if ((existing as any).file_url &&
+                        Array.isArray((existing as any).file_url) &&
+                        (existing as any).file_url.some((url: string) => url.startsWith('blob:'))) {
+                        merged.file_url = (existing as any).file_url;
+                    }
+
+                    state.messages[existingIndex] = merged;
                 } else {
+                    // Добавляем новое сообщение
+                    console.log("Adding new message with ID:", msgId, msg);
                     state.messages.unshift(msg);
                     if (msg.is_answer) state.unreadAnswersCount += 1;
                 }
                 return;
             }
 
-            // Fallback-антидубль (для старого формата)
-            const exists =
-                state.messages.some(
-                    (existingMsg) =>
-                        existingMsg.text === msg.text &&
-                        existingMsg.created === msg.created &&
-                        existingMsg.is_answer === msg.is_answer
-                );
+            // Fallback-антидубль (для старого формата без ID)
+            const exists = state.messages.some(
+                (existingMsg) =>
+                    existingMsg.text === msg.text &&
+                    existingMsg.created === msg.created &&
+                    existingMsg.is_answer === msg.is_answer &&
+                    existingMsg.user_id === msg.user_id
+            );
 
             if (!exists) {
+                console.log("Adding message via fallback (no ID):", msg);
                 state.messages.unshift(msg);
                 if (msg.is_answer) state.unreadAnswersCount += 1;
+            } else {
+                console.log("Message already exists (fallback check):", msg);
             }
         },
 
@@ -259,23 +379,39 @@ export const supportChatSlice = createSlice({
         },
 
         // Optimistic update — добавляем сразу с blob-URL и меткой optimistic
-        addOptimisticMessage: (state, action: PayloadAction<{ text: string; files?: File[] }>) => {
-            const { text, files } = action.payload;
+        addOptimisticMessage: (state, action: PayloadAction<{ text: string; fileDescription?: string; files?: File[] }>) => {
+            const { text, fileDescription, files } = action.payload;
+
+            // Удаляем все сообщения с ошибками перед добавлением нового
+            state.messages = state.messages.filter((m) => !(m as any).error);
 
             const optimistic: any = {
                 text,
+                text_for_files: fileDescription,
                 created: new Date().toISOString(),
                 is_answer: false,
                 user_id: 0, // маркер оптимиста
                 optimistic: true,
-                file_url: null as string | null,
+                // Вместо сохранения File объектов, сохраняем только метаданные
+                optimisticFilesCount: files?.length || 0,
             };
 
-            // Если есть файлы — используем blob URL первого файла для превью
+            // Создаем blob URL для всех файлов
             if (files && files.length > 0) {
                 try {
-                    optimistic.file_url = URL.createObjectURL(files[0]);
-                } catch { }
+                    const blobUrls = files.map(file => URL.createObjectURL(file));
+                    optimistic.file_url = blobUrls;
+
+                    // Сохраняем File объекты во внешнем Map-кеше вместо Redux state
+                    const optimisticId = Date.now().toString();
+                    optimistic.optimisticId = optimisticId;
+                    optimisticBlobCache.clear(); // очищаем предыдущий кеш
+                    files.forEach((file, index) => {
+                        optimisticBlobCache.set(`${optimisticId}-${index}` as any, blobUrls[index]);
+                    });
+                } catch (error) {
+                    console.error('Error creating blob URLs:', error);
+                }
             }
 
             state.messages.unshift(optimistic as ChatMessage);
@@ -331,24 +467,36 @@ export const supportChatSlice = createSlice({
 
                 const msgId = (newMsg as any).id;
 
-                // ВСЕГДА сначала ищем optimistic сообщение для замены
+                // Ищем optimistic сообщение для замены
                 const optIndex = state.messages.findIndex((m) => !m.is_answer && (m as any).optimistic === true);
-                
+
                 if (optIndex !== -1) {
-                    // Нашли optimistic сообщение - заменяем его
                     const opt = state.messages[optIndex] as any;
-                    const merged: any = { ...opt, ...newMsg };
-                    
-                    // Сохраняем blob URL для изображений
-                    if (opt.file_url && String(opt.file_url).startsWith("blob:")) {
-                        merged.file_url = opt.file_url;
+
+                    // Если это первое сообщение от сервера, заменяем optimistic
+                    if (!opt.serverResponseReceived) {
+                        const merged: any = { ...opt, ...newMsg };
+
+                        // Сохраняем blob URL для изображений
+                        if (opt.file_url && Array.isArray(opt.file_url)) {
+                            merged.file_url = opt.file_url;
+                        }
+
+                        // Убираем флаг optimistic и отмечаем что получили ответ
+                        merged.optimistic = false;
+                        merged.serverResponseReceived = true;
+
+                        state.messages[optIndex] = merged;
+                        return;
+                    } else {
+                        // Если уже получали ответ от сервера, просто добавляем новое сообщение
+                        // (это может быть дополнительное сообщение для других файлов)
+                        const existingIdx = state.messages.findIndex((m) => (m as any).id === msgId);
+                        if (existingIdx === -1) {
+                            state.messages.unshift({ ...newMsg, optimistic: false });
+                        }
+                        return;
                     }
-                    
-                    // Убираем флаг optimistic
-                    merged.optimistic = false;
-                    
-                    state.messages[optIndex] = merged;
-                    return;
                 }
 
                 // Если оптимиста нет, проверяем наличие сообщения по ID

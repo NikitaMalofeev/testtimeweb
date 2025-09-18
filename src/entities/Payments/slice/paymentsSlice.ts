@@ -106,6 +106,9 @@ interface PaymentsState {
 
     /** НОВОЕ: гейт, удерживающий маршрут на /payments/loading */
     lockToLoading: boolean;
+
+    /** Состояние подтверждения тарифа */
+    isConfirming: boolean;
 }
 
 const initialState: PaymentsState = {
@@ -165,6 +168,7 @@ const initialState: PaymentsState = {
 
     // НОВОЕ
     lockToLoading: false,
+    isConfirming: false,
 };
 
 /* -------------------------------------------------------------------------- */
@@ -547,6 +551,17 @@ export const paymentsSlice = createSlice({
             state.balance = action.payload;
         },
 
+        /** Управление состоянием подтверждения */
+        setIsConfirming: (state, action: PayloadAction<boolean>) => {
+            state.isConfirming = action.payload;
+        },
+
+        /** Сбросить все состояния связанные с выбором тарифа */
+        resetTariffSelection: (state) => {
+            state.currentOrderId = '';
+            state.isConfirming = false;
+        },
+
         resetPaymentsState: () => initialState,
     },
     extraReducers: (builder) => {
@@ -599,6 +614,8 @@ export const {
     setLockToLoading,
     // NEW:
     setBalance,
+    setIsConfirming,
+    resetTariffSelection,
 } = paymentsSlice.actions;
 
 export default paymentsSlice.reducer;

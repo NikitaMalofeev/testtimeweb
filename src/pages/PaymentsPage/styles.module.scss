@@ -17,6 +17,7 @@
         align-items: center;
         gap: 9px;
         color: #0F0E0E;
+        position: relative;
         font-weight: 500;
         font-size: 24px;
         line-height: 28.8px;
@@ -33,10 +34,15 @@
     .page {
         padding: 0;
             padding-bottom: 50px;
+
+            &__title {
+                position: relative;
+            }
         & > div:last-child {
             position: relative;
             background-color: white;
             border-radius: 15px;
+            overflow-x: hidden;
                     padding: 60px 60px 100px 60px;
                     max-width: 960px;
                     width: 100%;
@@ -53,6 +59,12 @@
 @include mix.respond-to('mobile') {
 
     .page {
-        padding-bottom: 186px;
+        padding-bottom: 146px;
     }
+}
+
+.close {
+    position: absolute;
+    right: 0;
+    top: 2px;
 }

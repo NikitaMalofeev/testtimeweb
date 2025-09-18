@@ -9,8 +9,12 @@ export interface IdentificationProfileData {
     is_agreement: boolean;
     g_recaptcha: string;
     is_individual_entrepreneur: boolean;
-    type_sms_message?: string
-
+    type_sms_message?: string;
+    contact_communication_type?: 'contact_communication_telegram' | 'contact_communication_whatsapp' | 'contact_communication_max' | 'contact_communication_other';
+    contact_communication_telegram?: string;
+    contact_communication_whatsapp?: string;
+    contact_communication_max?: string;
+    contact_communication_other?: string;
 }
 
 export interface ConfirmationCodeData {

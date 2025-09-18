@@ -123,13 +123,6 @@ export const RiskProfileSecondForm: React.FC = () => {
         }
     }, [secondRiskProfileData]);
 
-    // const finalRiskProfileOptions = Object.entries(secondRiskProfileData?.recommended_risk_profiles || {}).map(
-    //     ([key, value]) => ({
-    //         value: key,
-    //         label: value,
-    //     })
-    // );
-
 
     // 2) сам onChange-проход в Select
     const handleFinalProfileChange = (val: string) => {

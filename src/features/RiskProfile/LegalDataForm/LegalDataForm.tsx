@@ -184,9 +184,6 @@ export const LegalDataForm: React.FC = () => {
 
     }
 
-    useEffect(() => {
-        dispatch(setCurrentConfirmationMethod('EMAIL'))
-    }, [])
 
     useEffect(() => {
         if (!userPersonalAccountInfo) return;
@@ -217,7 +214,7 @@ export const LegalDataForm: React.FC = () => {
         first_name: userPersonalAccountInfo?.first_name,
         last_name: userPersonalAccountInfo?.last_name,
         patronymic: userPersonalAccountInfo?.patronymic,
-        type_message: 'EMAIL',
+        type_message: legalFormData.type_message || 'EMAIL',
     }), [legalFormData]);
 
     /* ──────── Formik ──────── */

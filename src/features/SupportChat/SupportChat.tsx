@@ -50,27 +50,21 @@ const clearImageCache = () => {
     imageCache.clear();
 };
 
-// Функция для получения изображения из кеша или загрузки
-const getCachedImage = async (src: string, token: string): Promise<ImageCacheEntry | null> => {
+// Функция для получения изображения из кеша или загрузки через новый API
+const getCachedImage = async (messageId: number, fileIndex: number, token: string): Promise<ImageCacheEntry | null> => {
+    const cacheKey = `${messageId}-${fileIndex}`;
+
     // Проверяем кеш
-    const cached = imageCache.get(src);
+    const cached = imageCache.get(cacheKey);
     if (cached) {
         return cached;
     }
 
     try {
-        const response = await fetch(src, {
-            headers: {
-                'Authorization': `Token ${token}`,
-                'Accept': 'image/*,*/*'
-            }
-        });
+        // Импортируем API функцию
+        const { getFileByQuestionIdAndIndex } = await import('entities/SupportChat/api/supportChatApi');
 
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-
-        const blob = await response.blob();
+        const blob = await getFileByQuestionIdAndIndex(messageId, fileIndex, token);
         let blobUrl: string;
         let isZipFile = false;
 
@@ -95,7 +89,7 @@ const getCachedImage = async (src: string, token: string): Promise<ImageCacheEnt
         };
 
         // Сохраняем в кеш
-        imageCache.set(src, cacheEntry);
+        imageCache.set(cacheKey, cacheEntry);
         return cacheEntry;
     } catch (error) {
         console.error('Ошибка загрузки изображения:', error);
@@ -151,59 +145,6 @@ const useInViewport = (ref: React.RefObject<HTMLElement>) => {
     return isVisible;
 };
 
-// Компонент кнопки скачивания для изображений вне viewport
-const ImageDownloadButton: React.FC<{
-    src: string;
-    token: string;
-    className?: string;
-}> = ({ src, token, className }) => {
-    const handleDownload = async () => {
-        try {
-            const response = await fetch(src, {
-                headers: {
-                    'Authorization': `Token ${token}`,
-                    'Accept': 'image/*,*/*'
-                }
-            });
-
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-            const blob = await response.blob();
-            let downloadUrl = URL.createObjectURL(blob);
-            let fileName = 'image';
-
-            // Если это ZIP файл, попробуем извлечь изображение
-            if (blob.type === 'application/zip' || blob.type === 'application/x-zip-compressed') {
-                const extractedUrl = await extractImageFromZip(blob);
-                if (extractedUrl) {
-                    downloadUrl = extractedUrl;
-                    fileName = 'extracted_image';
-                } else {
-                    fileName = 'archive.zip';
-                }
-            }
-
-            const link = document.createElement('a');
-            link.href = downloadUrl;
-            link.download = fileName;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(downloadUrl);
-        } catch (error) {
-            console.error('Ошибка скачивания изображения:', error);
-        }
-    };
-
-    return (
-        <button
-            onClick={handleDownload}
-            className={`${styles.downloadButton} ${className || ''}`}
-        >
-            ⬇ Скачать изображение
-        </button>
-    );
-};
 
 // Компонент модального окна для просмотра изображений в полном размере
 const ImageModal: React.FC<{
@@ -251,13 +192,77 @@ const ImageModal: React.FC<{
     );
 };
 
-// Компонент для загрузки защищенных изображений через Blob
+// Компонент для оптимистичных изображений (File объекты и blob URL)
+const OptimisticImage: React.FC<{
+    file?: File;
+    blobUrl?: string;
+    index: number;
+}> = ({ file, blobUrl, index }) => {
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    useEffect(() => {
+        let url: string;
+        if (file) {
+            url = URL.createObjectURL(file);
+        } else if (blobUrl) {
+            url = blobUrl;
+        } else {
+            return;
+        }
+
+        setImageUrl(url);
+
+        // Имитируем небольшую задержку для показа скелетона
+        const timer = setTimeout(() => setLoading(false), 200);
+
+        return () => {
+            clearTimeout(timer);
+            if (file && url) {
+                // Освобождаем URL только если мы его создали
+                URL.revokeObjectURL(url);
+            }
+        };
+    }, [file, blobUrl]);
+
+    if (loading || !imageUrl) {
+        return (
+            <div className={`${styles.message__imageLoading} ${styles.message__fullImage}`}>
+                <div className={styles.message__imageLoader}>
+                    <Loader size={LoaderSize.SMALL} />
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <>
+            <div onClick={() => setIsModalOpen(true)}>
+                <img
+                    src={imageUrl}
+                    alt={`attachment ${index + 1}`}
+                    className={`${styles.message__fullImage} ${styles.clickableImage}`}
+                />
+            </div>
+            <ImageModal
+                src={imageUrl}
+                alt={`attachment ${index + 1}`}
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+            />
+        </>
+    );
+};
+
+// Компонент для загрузки защищенных изображений через новый API
 const AuthImage: React.FC<{
-    src: string;
+    messageId: number;
+    fileIndex: number;
     alt?: string;
     className?: string;
     token: string;
-}> = ({ src, alt, className, token }) => {
+}> = ({ messageId, fileIndex, alt, className, token }) => {
     const [blobUrl, setBlobUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
@@ -272,8 +277,10 @@ const AuthImage: React.FC<{
                 setLoading(true);
                 setError(false);
 
+                const cacheKey = `${messageId}-${fileIndex}`;
+
                 // Сначала проверяем кеш
-                const cached = imageCache.get(src);
+                const cached = imageCache.get(cacheKey);
                 if (cached) {
                     setBlobUrl(cached.blobUrl);
                     setIsZipFile(cached.isZipFile);
@@ -281,16 +288,15 @@ const AuthImage: React.FC<{
                     return;
                 }
 
-                // Быстрая проверка типа файла для ZIP
-                const isLikelyZip = await checkIfNeedsViewport(src, token);
-                if (isLikelyZip && !isInViewport) {
-                    setIsZipFile(true);
+                // Загружаем только когда элемент в viewport или это не ZIP
+                if (!isInViewport) {
+                    // Пока не загружаем, просто показываем лоадер
                     setLoading(false);
                     return;
                 }
 
                 // Загружаем и кешируем
-                const cacheEntry = await getCachedImage(src, token);
+                const cacheEntry = await getCachedImage(messageId, fileIndex, token);
                 if (cacheEntry) {
                     setBlobUrl(cacheEntry.blobUrl);
                     setIsZipFile(cacheEntry.isZipFile);
@@ -307,23 +313,8 @@ const AuthImage: React.FC<{
         };
 
         loadImage();
-    }, [src, token, isInViewport]);
+    }, [messageId, fileIndex, token, isInViewport]);
 
-    // Функция для быстрой проверки типа файла без полной загрузки
-    const checkIfNeedsViewport = async (src: string, token: string): Promise<boolean> => {
-        try {
-            const response = await fetch(src, {
-                method: 'HEAD',
-                headers: {
-                    'Authorization': `Token ${token}`,
-                }
-            });
-            const contentType = response.headers.get('content-type') || '';
-            return contentType === 'application/zip' || contentType === 'application/x-zip-compressed';
-        } catch {
-            return false;
-        }
-    };
 
     if (loading) {
         return (
@@ -341,14 +332,7 @@ const AuthImage: React.FC<{
         );
     }
 
-    // Если это ZIP файл и изображение не в viewport - показываем кнопку скачивания
-    // if (isZipFile && !isInViewport) {
-    //     return (
-    //         <div ref={imageRef} className={`${styles.message__imageDownload} ${className || ''}`}>
-    //             <ImageDownloadButton src={src} token={token} />
-    //         </div>
-    //     );
-    // }
+    // Если это ZIP файл и изображение не в viewport - показываем лоадер
     if (isZipFile && !isInViewport) {
         return (
             <div ref={imageRef} className={`${styles.message__imageLoading} ${className || ''}`}>
@@ -357,15 +341,7 @@ const AuthImage: React.FC<{
         );
     }
 
-
-    // Если нет blobUrl(например, ZIP вне viewport)
-    // if (!blobUrl) {
-    //     return (
-    //         <div ref={imageRef} className={`${styles.message__imageDownload} ${className || ''}`}>
-    //             <ImageDownloadButton src={src} token={token} />
-    //         </div>
-    //     );
-    // }
+    // Если нет blobUrl - показываем лоадер
     if (!blobUrl) {
         return (
             <div ref={imageRef} className={`${styles.message__imageLoading} ${className || ''}`}>
@@ -428,26 +404,38 @@ const isImageUrl = (url?: string | null) => {
         urlWithoutParams.endsWith(".svg") || urlWithoutParams.endsWith(".tiff") ||
         urlWithoutParams.endsWith(".ico");
 
-    // Проверяем специфические API endpoints твоего сервера (Ranks API)
-    const isRanksFileApi = u.includes("get_files_question") && u.includes("id=");
-
     // Проверяем по ключевым словам в URL (для других API)
     const hasImageKeywords = u.includes("/image") || u.includes("image/") || u.includes("img/") ||
         u.includes("/photo") || u.includes("photo/") || u.includes("/picture");
 
     // Файл считается изображением если:
     // 1. Имеет расширение изображения ИЛИ
-    // 2. Это API Ranks для файлов ИЛИ  
-    // 3. Содержит ключевые слова изображений
-    return hasImageExtension || isRanksFileApi || hasImageKeywords;
+    // 2. Содержит ключевые слова изображений
+    return hasImageExtension || hasImageKeywords;
 };
 
 export const UserMessage = ({ message, token }: { message: ChatMessage; token: string }) => {
-    // Для optimistic сообщений используем optimisticFiles, для обычных - file_url
-    const files = (message as any).optimisticFiles || (message.file_url ? [{ url: message.file_url }] : []);
     const isOptimistic = (message as any).optimistic === true;
     const hasError = (message as any).error === true;
-    
+
+    // Для всех сообщений используем file_url (массив URL или одиночный URL)
+    let files: any[] = [];
+
+    if (message.file_url) {
+        const urls = Array.isArray(message.file_url) ? message.file_url : [message.file_url];
+
+        if (isOptimistic && (message as any).optimisticFilesCount > 0) {
+            // Для оптимистичных сообщений используем blob URL из кеша
+            files = urls.map(url => ({ url }));
+        } else {
+            // Для обычных сообщений используем URL
+            files = urls.map(url => ({ url }));
+        }
+    }
+
+    // Используем text_for_files с сервера или локальный fileDescription для optimistic сообщений
+    const fileDescription = message.text_for_files;
+
     return (
         <div className={styles.message_user}>
             <span className={styles.message__date}>
@@ -459,62 +447,66 @@ export const UserMessage = ({ message, token }: { message: ChatMessage; token: s
                     <span className={styles.message__error}> ошибка отправки</span>
                 )}
             </span>
+
+            {/* fileDescription + файлы в одном блоке с фоном */}
+            {(fileDescription || files.length > 0) && (
+                <div className={styles.message__attachment}>
+
+
+                    {/* Файлы */}
+                    {files.length > 0 && (
+                        <div className={styles.message__imageContainer}>
+                            {files.map((file: any, index: number) => {
+                                const fileUrl = file.url || file;
+                                if (typeof fileUrl === 'string') {
+                                    if (fileUrl.startsWith('blob:')) {
+                                        // Для optimistic файлов (blob URL)
+                                        return <OptimisticImage key={index} blobUrl={fileUrl} index={index} />;
+                                    } else {
+                                        // Используем новый API с messageId и fileIndex для серверных файлов
+                                        const messageId = (message as any).id;
+                                        if (messageId) {
+                                            return (
+                                                <AuthImage
+                                                    key={index}
+                                                    messageId={messageId}
+                                                    fileIndex={index}
+                                                    className={styles.message__fullImage}
+                                                    token={token}
+                                                />
+                                            );
+                                        }
+                                    }
+                                }
+                                return null;
+                            })}
+                        </div>
+                    )}
+                    {/* Описание файлов */}
+                    {fileDescription && (
+                        <p className={`${styles.message__message_user} ${isOptimistic ? styles.message__sending_text : ''} ${hasError ? styles.message__error_text : ''}`} style={{ marginBottom: files.length > 0 ? '0' : '0' }}>
+                            {fileDescription}
+                        </p>
+                    )}
+                </div>
+            )}
+
+            {/* Основной текст в отдельном блоке */}
             {message.text && (
                 <p className={`${styles.message__message_user} ${isOptimistic ? styles.message__sending_text : ''} ${hasError ? styles.message__error_text : ''}`}>
                     {message.text}
                 </p>
-            )}
-            
-            {/* Отображение файлов */}
-            {files.length > 0 && (
-                <div className={styles.message__attachment}>
-                    <div className={styles.message__imageContainer}>
-                        {files.map((file: any, index: number) => {
-                            // Для optimistic файлов создаем blob URL
-                            if (file instanceof File) {
-                                const blobUrl = URL.createObjectURL(file);
-                                return (
-                                    <img
-                                        key={index}
-                                        src={blobUrl}
-                                        alt={`attachment ${index + 1}`}
-                                        className={`${styles.message__fullImage} ${styles.clickableImage}`}
-                                        onClick={() => window.open(blobUrl, '_blank')}
-                                        onLoad={() => {
-                                            // Освобождаем URL после загрузки изображения для экономии памяти
-                                            setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
-                                        }}
-                                    />
-                                );
-                            }
-                            
-                            // Для обычных файлов с сервера
-                            const fileUrl = file.url || file;
-                            return fileUrl?.startsWith('blob:') ? (
-                                <img
-                                    key={index}
-                                    src={fileUrl}
-                                    alt={`attachment ${index + 1}`}
-                                    className={`${styles.message__fullImage} ${styles.clickableImage}`}
-                                    onClick={() => window.open(fileUrl, '_blank')}
-                                />
-                            ) : (
-                                <AuthImage
-                                    key={index}
-                                    src={fileUrl || ''}
-                                    className={styles.message__fullImage}
-                                    token={token}
-                                />
-                            );
-                        })}
-                    </div>
-                </div>
             )}
         </div>
     );
 };
 
 export const SupportMessage = ({ message, highlight, token }: { message: ChatMessage; highlight?: boolean; token: string }) => {
+    // Обрабатываем file_url как массив или одиночный файл
+    const fileUrls = message.file_url ?
+        (Array.isArray(message.file_url) ? message.file_url : [message.file_url]) :
+        [];
+
     return (
         <div className={styles.message_support}>
             <span className={styles.message__date}>
@@ -522,24 +514,28 @@ export const SupportMessage = ({ message, highlight, token }: { message: ChatMes
                 {highlight && <div className={styles.highlight}></div>}
             </span>
             {message.text ? <p className={styles.message__message_support}>{message.text}</p> : null}
-            {message.file_url ? (
+            {fileUrls.length > 0 ? (
                 <div className={styles.message__attachment}>
-                    {message.file_url && isImageUrl(message.file_url) ? (
-                        <div className={styles.message__imageContainer}>
-                            <AuthImage
-                                src={message.file_url}
-                                alt="attachment"
-                                className={styles.message__fullImage}
-                                token={token}
-                            />
-                        </div>
-                    ) : message.file_url ? (
-                        <div className={styles.message__fileContainer}>
-                            <a href={message.file_url} target="_blank" rel="noreferrer" className={styles.message__fileLink}>
-                                📁 Скачать файл
-                            </a>
-                        </div>
-                    ) : null}
+                    <div className={styles.message__imageContainer}>
+                        {fileUrls.map((fileUrl, index) => {
+                            if (!fileUrl) return null;
+
+                            const messageId = (message as any).id;
+                            if (messageId) {
+                                return (
+                                    <AuthImage
+                                        key={index}
+                                        messageId={messageId}
+                                        fileIndex={index}
+                                        alt={`attachment ${index + 1}`}
+                                        className={styles.message__fullImage}
+                                        token={token}
+                                    />
+                                );
+                            }
+                            return null;
+                        })}
+                    </div>
                 </div>
             ) : null}
         </div>
@@ -556,6 +552,8 @@ export const SupportChat = () => {
     const token = useSelector((state: RootState) => state.user.token);
 
     const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+    const [fileDescription, setFileDescription] = useState<string>("");
+    const [fileDescriptionError, setFileDescriptionError] = useState<string>("");
     const [isScrolled, setIsScrolled] = useState(false);
     const [isBottom, setIsBottom] = useState(true);
 
@@ -569,53 +567,123 @@ export const SupportChat = () => {
         },
         validationSchema: Yup.object({
             message: Yup.string().when([], {
-                is: () => attachedFiles.length === 0,
-                then: (schema) => schema.required("Введите сообщение или прикрепите файл"),
+                is: () => {
+                    // Если нет прикрепленных файлов, требуем текст минимум 50 символов
+                    return attachedFiles.length === 0;
+                },
+                then: (schema) => {
+                    return schema
+                        .required("Введите сообщение или прикрепите файл")
+                        .min(50, "мин. 50 символов");
+                },
                 otherwise: (schema) => schema.notRequired(),
             }),
         }),
-        onSubmit: async (values, { resetForm }) => {
-            console.log('=== FORMIK SUBMIT STARTED ===');
-            console.log('values.message:', values.message);
-            console.log('attachedFiles.length:', attachedFiles.length);
 
+        // Включаем валидацию при изменении значений
+        validate: (values) => {
+            const errors: any = {};
             const messageText = values.message.trim();
+            const fileDescriptionText = fileDescription.trim();
+
+            if (attachedFiles.length > 0) {
+                // Если есть файлы, требуем И описание файлов (20 символов), И основное сообщение (50 символов)
+                if (!messageText) {
+                    errors.message = "Введите основное сообщение";
+                } else if (messageText.length < 50) {
+                    errors.message = "мин. 50 символов";
+                }
+                // Ошибки для описания файлов будут показаны через отдельное состояние
+            } else {
+                // Если нет файлов, проверяем только основное сообщение (50 символов)
+                if (!messageText) {
+                    errors.message = "Введите сообщение или прикрепите файл";
+                } else if (messageText.length < 50) {
+                    errors.message = "мин. 50 символов";
+                }
+            }
+
+            return errors;
+        },
+        onSubmit: async (values, { resetForm }) => {
+            const messageText = values.message.trim();
+            const fileDescriptionText = fileDescription.trim();
+
+            // Очищаем ошибку описания файлов
+            setFileDescriptionError("");
 
             // Валидация в функции
             if (!messageText && attachedFiles.length === 0) {
-                console.log('No message and no files - skipping');
                 return;
+            }
+
+            if (attachedFiles.length > 0) {
+                // Если есть файлы, требуем И описание файлов (20+ символов), И основное сообщение (50+ символов)
+                let hasError = false;
+
+                // Проверяем описание файлов
+                if (!fileDescriptionText) {
+                    setFileDescriptionError("Введите описание файлов");
+                    hasError = true;
+                } else if (fileDescriptionText.length < 20) {
+                    setFileDescriptionError("мин. 20 символов");
+                    hasError = true;
+                }
+
+                // Проверяем основное сообщение
+                if (!messageText) {
+                    formik.setFieldTouched('message', true);
+                    formik.setFieldError('message', 'Введите основное сообщение');
+                    hasError = true;
+                } else if (messageText.length < 50) {
+                    formik.setFieldTouched('message', true);
+                    formik.setFieldError('message', 'мин. 50 символов');
+                    hasError = true;
+                }
+
+                if (hasError) {
+                    return;
+                }
+            } else {
+                // Если нет файлов, проверяем только основное сообщение (50+ символов)
+                if (messageText.length < 50) {
+                    formik.setFieldTouched('message', true);
+                    formik.setFieldError('message', 'мин. 50 символов');
+                    return;
+                }
             }
 
             // Optimistic update - сразу показываем сообщение пользователя
             dispatch(addOptimisticMessage({
                 text: messageText,
+                fileDescription: attachedFiles.length > 0 ? fileDescription.trim() || undefined : undefined,
                 files: attachedFiles.length > 0 ? attachedFiles : undefined
             }));
 
             // Очищаем форму сразу для UX
             resetForm();
             const filesToSend = [...attachedFiles]; // копируем массив файлов
+            const descriptionToSend = attachedFiles.length > 0 ? fileDescription.trim() : "";
             setAttachedFiles([]);
+            setFileDescription("");
+            setFileDescriptionError("");
 
             // Формируем payload правильно
             const payload = filesToSend.length > 0
                 ? {
-                    text_for_files: messageText, // текст для файлов
+                    text: messageText, // основной текст
+                    text_for_files: descriptionToSend, // описание файлов
                     files: filesToSend,
                 }
                 : {
                     text: messageText, // обычный текст
                 };
 
-            console.log('Final payload:', payload);
 
             try {
                 await dispatch(postMessage(payload) as any);
-                console.log('=== FORMIK SUBMIT COMPLETED ===');
             } catch (error) {
                 console.error('Error sending message:', error);
-                // TODO: можно добавить логику отката optimistic update при ошибке
             }
         },
     });
@@ -689,6 +757,28 @@ export const SupportChat = () => {
     const removeAttached = (idx: number) => {
         setAttachedFiles((prev) => prev.filter((_, i) => i !== idx));
     };
+
+    // Обработка изменений в описании файлов с валидацией
+    const handleFileDescriptionChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const value = e.target.value;
+        setFileDescription(value);
+
+        // Очищаем ошибку при изменении
+        if (fileDescriptionError) {
+            const trimmedValue = value.trim();
+            if (trimmedValue.length >= 20 || trimmedValue.length === 0) {
+                setFileDescriptionError("");
+            }
+        }
+    };
+
+    // Очищаем описание файлов когда все файлы удалены
+    useEffect(() => {
+        if (attachedFiles.length === 0 && fileDescription) {
+            setFileDescription("");
+            setFileDescriptionError("");
+        }
+    }, [attachedFiles.length, fileDescription]);
 
     // Отключаем прокрутку страницы при открытом чате и чистим WS при размонтировании
     useEffect(() => {
@@ -780,20 +870,28 @@ export const SupportChat = () => {
                     />
                 </div>
 
-                <Input
-                    placeholder="Написать сообщение..."
-                    name="message"
-                    type="text"
-                    value={formik.values.message}
-                    onChange={formik.handleChange}
-                    onBlur={(e) => {
-                        formik.handleBlur(e);
-                        dispatch(setScrollToTop(true));
-                    }}
-                    onKeyDown={handleKeyDown}
-                    withoutCloudyLabel
-                    error={formik.touched.message && Boolean(formik.errors.message)}
-                />
+                <div className={styles.input}>
+                    <Input
+                        placeholder="Написать сообщение..."
+                        name="message"
+                        type="text"
+                        value={formik.values.message}
+                        onChange={formik.handleChange}
+                        onBlur={(e) => {
+                            formik.handleBlur(e);
+                            dispatch(setScrollToTop(true));
+                        }}
+
+                        onKeyDown={handleKeyDown}
+                        withoutCloudyLabel
+                        error={formik.touched.message && Boolean(formik.errors.message)}
+                    />
+                    {formik.touched.message && formik.errors.message && (
+                        <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px', paddingLeft: '4px' }}>
+                            {formik.errors.message}
+                        </div>
+                    )}
+                </div>
                 <Icon
                     className={styles.chat__input__icon}
                     Svg={ChatSendIcon}
@@ -807,6 +905,23 @@ export const SupportChat = () => {
             {/* превью выбранных файлов перед отправкой - полупрозрачная полоска на всю ширину */}
             {attachedFiles.length > 0 && (
                 <div className={styles.chat__imagePreviewBar}>
+                    {/* Поле для описания файлов */}
+                    <div className={styles.chat__fileDescriptionContainer}>
+                        <Input
+                            placeholder="Описание файлов..."
+                            name="fileDescription"
+                            type="text"
+                            value={fileDescription}
+                            onChange={handleFileDescriptionChange}
+                            withoutCloudyLabel
+                            error={Boolean(fileDescriptionError)}
+                        />
+                        {fileDescriptionError && (
+                            <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px', paddingLeft: '4px' }}>
+                                {fileDescriptionError}
+                            </div>
+                        )}
+                    </div>
                     <div className={styles.chat__imagePreviewContainer}>
                         {attachedFiles.map((f, idx) => {
                             const url = URL.createObjectURL(f);

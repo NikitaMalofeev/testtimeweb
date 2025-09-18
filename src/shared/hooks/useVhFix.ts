@@ -10,6 +10,11 @@ export function useVhFix(opts: Opts = { observeBody: true }) {
         let raf = 0;
 
         const setVH = () => {
+            // Для страницы авторизации не обновляем --app-vh
+            if (document.body.classList.contains('authorization-page')) {
+                return;
+            }
+
             const h = Math.round(window.visualViewport?.height ?? window.innerHeight);
             document.documentElement.style.setProperty('--app-vh', `${h}px`);
         };

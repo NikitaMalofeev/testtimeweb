@@ -280,6 +280,7 @@ export const Input: React.FC<InputProps> = ({
                                                 value={value}
                                                 autoComplete={restProps.autoComplete}
                                                 disabled={disabled}
+                                                readOnly={true}
                                                 onFocus={handleFocus}
                                                 onBlur={handleBlur}
                                                 onKeyDown={onKeyDown}

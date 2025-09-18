@@ -95,3 +95,18 @@ export const getAllMessages = async (token: string) => {
     });
     return response.data;
 };
+
+// Новая функция для получения файлов сообщения по ID и индексу
+export const getFileByQuestionIdAndIndex = async (id: number, index: number, token: string) => {
+    const response = await axios.get(
+        `${apiUrl}user_lk/get_files_question/?id=${id}&index=${index}`,
+        {
+            headers: {
+                "Accept-Language": "ru",
+                "Authorization": `Token ${token}`,
+            },
+            responseType: 'blob', // Важно для получения файла как blob
+        }
+    );
+    return response.data;
+};

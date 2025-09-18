@@ -122,7 +122,7 @@ export const PasportScanForm: React.FC = () => {
                 data: formData,
                 onSuccess: () => {
                     // dispatch(addNotification({ color: 'blue', createdAt: new Date(), status: 'unread', id: "pasport", description: "Данные вашего паспорта загружены и проходят проверку, мы сообщим об окончании" }));
-                    //timeweb 
+                    //timewe
 
                     dispatch(getUserDocumentsStateThunk())
                     dispatch(

@@ -23,6 +23,7 @@ import {
     addMessage,
     closeWebSocketConnection,
     addOptimisticMessage,
+    fetchChatSettings,
 } from "entities/SupportChat/slice/supportChatSlice";
 import { Loader, LoaderSize } from "shared/ui/Loader/Loader";
 import { closeAllModals } from "entities/ui/Modal/slice/modalSlice";
@@ -589,15 +590,27 @@ export const SupportChat = () => {
             const minTextLength = chatSettings?.min_length_text || 50;
 
             if (attachedFiles.length > 0) {
-                // Если есть файлы, требуем основное сообщение (min_length_text символов), описание файлов - опционально
-                if (!messageText) {
-                    errors.message = "Введите основное сообщение";
-                } else if (messageText.length < minTextLength) {
-                    errors.message = `мин. ${minTextLength} символов`;
+                // Если есть файлы, проверяем только тот инпут где есть текст
+                if (messageText && fileDescriptionText) {
+                    // Если оба поля заполнены, проверяем оба
+                    if (messageText.length < minTextLength) {
+                        errors.message = `мин. ${minTextLength} символов`;
+                    }
+                    // Ошибка для fileDescription будет показана через отдельное состояние
+                } else if (messageText) {
+                    // Только основное сообщение заполнено
+                    if (messageText.length < minTextLength) {
+                        errors.message = `мин. ${minTextLength} символов`;
+                    }
+                } else if (fileDescriptionText) {
+                    // Только описание файлов заполнено - основное сообщение не требуется
+                    // Ошибка для fileDescription будет показана через отдельное состояние
+                } else {
+                    // Ни одно поле не заполнено
+                    errors.message = "Введите сообщение или описание файлов";
                 }
-                // Ошибки для описания файлов будут показаны через отдельное состояние
             } else {
-                // Если нет файлов, проверяем только основное сообщение (min_length_text символов)
+                // Если нет файлов, проверяем только основное сообщение
                 if (!messageText) {
                     errors.message = "Введите сообщение или прикрепите файл";
                 } else if (messageText.length < minTextLength) {
@@ -617,28 +630,42 @@ export const SupportChat = () => {
             setFileDescriptionError("");
 
             // Валидация в функции
-            if (!messageText && attachedFiles.length === 0) {
+            if (!messageText && !fileDescriptionText && attachedFiles.length === 0) {
                 return;
             }
 
             if (attachedFiles.length > 0) {
-                // Если есть файлы, требуем основное сообщение (min_length_text+ символов), описание файлов - опционально
+                // Если есть файлы, проверяем только тот инпут где есть текст
                 let hasError = false;
 
-                // Проверяем описание файлов только если оно заполнено
-                if (fileDescriptionText && fileDescriptionText.length < minTextForFilesLength) {
-                    setFileDescriptionError(`мин. ${minTextForFilesLength} символов`);
-                    hasError = true;
-                }
-
-                // Проверяем основное сообщение
-                if (!messageText) {
+                if (messageText && fileDescriptionText) {
+                    // Если оба поля заполнены, проверяем оба
+                    if (messageText.length < minTextLength) {
+                        formik.setFieldTouched('message', true);
+                        formik.setFieldError('message', `мин. ${minTextLength} символов`);
+                        hasError = true;
+                    }
+                    if (fileDescriptionText.length < minTextForFilesLength) {
+                        setFileDescriptionError(`мин. ${minTextForFilesLength} символов`);
+                        hasError = true;
+                    }
+                } else if (messageText) {
+                    // Только основное сообщение заполнено
+                    if (messageText.length < minTextLength) {
+                        formik.setFieldTouched('message', true);
+                        formik.setFieldError('message', `мин. ${minTextLength} символов`);
+                        hasError = true;
+                    }
+                } else if (fileDescriptionText) {
+                    // Только описание файлов заполнено
+                    if (fileDescriptionText.length < minTextForFilesLength) {
+                        setFileDescriptionError(`мин. ${minTextForFilesLength} символов`);
+                        hasError = true;
+                    }
+                } else {
+                    // Ни одно поле не заполнено
                     formik.setFieldTouched('message', true);
-                    formik.setFieldError('message', 'Введите основное сообщение');
-                    hasError = true;
-                } else if (messageText.length < minTextLength) {
-                    formik.setFieldTouched('message', true);
-                    formik.setFieldError('message', `мин. ${minTextLength} символов`);
+                    formik.setFieldError('message', 'Введите сообщение или описание файлов');
                     hasError = true;
                 }
 
@@ -646,7 +673,7 @@ export const SupportChat = () => {
                     return;
                 }
             } else {
-                // Если нет файлов, проверяем только основное сообщение (min_length_text+ символов)
+                // Если нет файлов, проверяем только основное сообщение
                 if (messageText.length < minTextLength) {
                     formik.setFieldTouched('message', true);
                     formik.setFieldError('message', `мин. ${minTextLength} символов`);
@@ -656,29 +683,35 @@ export const SupportChat = () => {
 
             // Optimistic update - сразу показываем сообщение пользователя
             dispatch(addOptimisticMessage({
-                text: messageText,
-                fileDescription: attachedFiles.length > 0 ? fileDescription.trim() || undefined : undefined,
+                text: messageText || undefined,
+                fileDescription: fileDescriptionText || undefined,
                 files: attachedFiles.length > 0 ? attachedFiles : undefined
             }));
 
             // Очищаем форму сразу для UX
             resetForm();
             const filesToSend = [...attachedFiles]; // копируем массив файлов
-            const descriptionToSend = attachedFiles.length > 0 ? fileDescription.trim() : "";
+            const descriptionToSend = fileDescriptionText;
             setAttachedFiles([]);
             setFileDescription("");
             setFileDescriptionError("");
 
             // Формируем payload правильно
-            const payload = filesToSend.length > 0
-                ? {
-                    text: messageText, // основной текст
-                    text_for_files: descriptionToSend, // описание файлов
-                    files: filesToSend,
+            const payload: any = {};
+
+            if (filesToSend.length > 0) {
+                // Есть файлы - отправляем только те поля, которые заполнены
+                if (messageText) {
+                    payload.text = messageText;
                 }
-                : {
-                    text: messageText, // обычный текст
-                };
+                if (descriptionToSend) {
+                    payload.text_for_files = descriptionToSend;
+                }
+                payload.files = filesToSend;
+            } else {
+                // Нет файлов - отправляем только основной текст
+                payload.text = messageText;
+            }
 
 
             try {
@@ -698,6 +731,8 @@ export const SupportChat = () => {
                     dispatch(openWebSocketConnection(result.payload));
                 }
             });
+            // Загружаем настройки чата
+            dispatch(fetchChatSettings() as any);
         }
     }, [token, dispatch]);
 
@@ -768,7 +803,10 @@ export const SupportChat = () => {
         if (fileDescriptionError) {
             const trimmedValue = value.trim();
             const minTextForFilesLength = chatSettings?.min_length_text_for_files || 20;
-            if (trimmedValue.length >= minTextForFilesLength || trimmedValue.length === 0) {
+            // Очищаем ошибку если длина достаточна или поле пустое (но только если есть основной текст)
+            const messageText = formik.values.message.trim();
+            if (trimmedValue.length >= minTextForFilesLength ||
+                (trimmedValue.length === 0 && messageText.length > 0)) {
                 setFileDescriptionError("");
             }
         }

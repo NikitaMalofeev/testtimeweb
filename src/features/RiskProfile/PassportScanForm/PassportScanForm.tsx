@@ -123,7 +123,7 @@ export const PasportScanForm: React.FC = () => {
                 onSuccess: () => {
                     // dispatch(addNotification({ color: 'blue', createdAt: new Date(), status: 'unread', id: "pasport", description: "Данные вашего паспорта загружены и проходят проверку, мы сообщим об окончании" }));
 
-                    
+
                     dispatch(getUserDocumentsStateThunk())
                     dispatch(
                         setIsRiksProfileComplete({
@@ -137,6 +137,7 @@ export const PasportScanForm: React.FC = () => {
                             closeModal(ModalType.PROGRESS)
                         }, 2000)
                     } else {
+                        navigate('/documents')
                         setTimeout(() => {
                             dispatch(getUserDocumentsStateThunk())
                             closeModal(ModalType.PROGRESS)

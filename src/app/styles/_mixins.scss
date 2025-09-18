@@ -11,7 +11,7 @@ $breakpoints: (
   '350-500': (350px, 500px)          // ⬅️ алиас, чтобы не падали include'ы из стилей
 );
 
-/* Универсальный миксин + спец-кейс для tablet-desktop */
+/* Универсальный миксин + спец-кейс для tablet-dsktop */
 @mixin respond-to($bp) {
   // 1) tablet-desktop: ширина + высота
   @if $bp == 'tablet-desktop' {

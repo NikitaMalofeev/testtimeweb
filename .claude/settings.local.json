@@ -42,7 +42,8 @@
       "Read(/C:\\Users\\admin\\Desktop\\WORK\\Ranks\\Ranks.autopilot\\src\\features\\SupportChat/**)",
       "Read(/C:\\Users\\admin\\Desktop\\WORK\\Ranks\\Ranks.autopilot\\src\\shared\\ui\\Input/**)",
       "Bash(npm install:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(npm run typecheck:*)"
     ],
     "deny": [],
     "ask": []

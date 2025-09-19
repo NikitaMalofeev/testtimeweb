@@ -48,23 +48,27 @@ export const BrokerConnectionForm: React.FC = () => {
             label: 'Т-инвестиции'
         },
         {
-            value: 'finam',
+            value: 'finam_broker ',
             label: 'Финам'
         },
         {
-            value: 'alfa',
+            value: 'alfa_broker',
             label: 'Альфа'
         },
         {
-            value: 'bcs',
+            value: 'bks_broker',
             label: 'БКС'
         },
         {
-            value: 'vtb',
+            valuy: "tradernet_ff",
+            label: 'Трейдернет'
+        },
+        {
+            value: 'vtb_broker',
             label: 'ВТБ'
         },
         {
-            value: 'sberbank',
+            value: 'sberbank_broker',
             label: 'Сбербанк'
         },
         {
@@ -107,14 +111,35 @@ export const BrokerConnectionForm: React.FC = () => {
     });
 
     const handleSubmit = () => {
-        const submitData = {
-            ...formik.values,
-            // Если выбран "other", используем customBrokerName как broker
-            broker: formik.values.broker === 'other' ? formik.values.customBrokerName : formik.values.broker
-        };
+        const isOtherBroker = formik.values.broker === 'other';
+        const isStandardBroker = formik.values.broker && formik.values.broker !== 'other' && formik.values.broker !== 'tinkoff_brokers';
+
+        let submitData;
+
+        if (isOtherBroker) {
+            // Для "other" - отправляем seventh_set_broker payload
+            submitData = {
+                broker: "other_unknown_broker",
+                description_from_user: formik.values.customBrokerName
+            };
+        } else if (isStandardBroker) {
+            // Для обычных брокеров (кроме Тинькофф) - отправляем seventh_set_broker payload
+            submitData = {
+                broker: formik.values.broker,
+                description_from_user: ""
+            };
+        } else {
+            // Для Тинькофф - обычный payload с токеном
+            submitData = {
+                ...formik.values,
+                broker: formik.values.broker
+            };
+        }
 
         dispatch(postBrokerApiTokenThunk({
-            data: submitData, onSuccess: () => {
+            data: submitData,
+            isOther: isOtherBroker || isStandardBroker,
+            onSuccess: () => {
                 dispatch(openModal({ type: ModalType.INFO, animation: ModalAnimation.BOTTOM, size: ModalSize.MC }))
             }
         }))
@@ -219,8 +244,24 @@ export const BrokerConnectionForm: React.FC = () => {
                         </>
                     )}
                     <div className={styles.broker__site}>
-                        <span className={styles.broker__site__title}> Личный кабинет на сайте брокера</span>
-                        <Button onClick={() => window.open(tinkoffExternalLink, '_blank')} className={styles.broker__site__button} children='подключить брокера' theme={ButtonTheme.UNDERLINE} padding='19px 42px' />
+                        {formik.values.broker === 'tinkoff_brokers' && (
+                            <span className={styles.broker__site__title}> Личный кабинет на сайте брокера</span>
+                        )}
+                        <Button
+                            onClick={
+                                formik.values.broker === 'tinkoff_brokers'
+                                    ? () => window.open(tinkoffExternalLink, '_blank')
+                                    : handleSubmit
+                            }
+                            className={styles.broker__site__button}
+                            children='подключить брокера'
+                            theme={ButtonTheme.UNDERLINE}
+                            padding='19px 42px'
+                            disabled={
+                                formik.values.broker === 'other' && !formik.values.customBrokerName.trim() ||
+                                !formik.values.broker
+                            }
+                        />
                     </div>
                 </div>
             </div>

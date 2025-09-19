@@ -217,13 +217,30 @@ export const postLegalInfoThunk = createAsyncThunk<
 
 export const postBrokerApiTokenThunk = createAsyncThunk<
     void,
-    { data: BrokerSetTokenPayload, onSuccess: () => void },
+    { data: BrokerSetTokenPayload, onSuccess: () => void, isOther?: boolean },
     { state: RootState; rejectValue: string }
 >(
     "riskProfile/postBrokerApiTokenThunk",
-    async ({ data, onSuccess }, { dispatch, rejectWithValue, getState }) => {
+    async ({ data, onSuccess, isOther = false }, { dispatch, rejectWithValue, getState }) => {
         try {
             const token = getState().user.token;
+
+            if (isOther) {
+                // Для другого брокера показываем уведомление
+                dispatch(
+                    setWarning({
+                        active: true,
+                        description: "С вами свяжутся для подключения в течение 24 часов",
+                        buttonLabel: "ОК",
+                        action: () => {
+                            window.location.href = '/payments';
+                            dispatch(setWarning({ active: false }));
+                        },
+                    })
+                );
+                return;
+            }
+
             const response = await postBrokerApiToken(data, token);
             if (response) {
                 dispatch(

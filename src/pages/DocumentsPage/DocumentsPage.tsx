@@ -370,6 +370,17 @@ const DocumentsPage: React.FC = () => {
                             animation: ModalAnimation.LEFT,
                         })
                     );
+                } else if (!hasTariff && paidTariffKeys !== null) {
+                    // Тариф не активен, но есть оплаченные тарифы - подписываем документ
+                    dispatch(setCurrentConfirmableDoc(docId));
+                    dispatch(setStepAdditionalMenuUI(4));
+                    dispatch(
+                        openModal({
+                            type: ModalType.IDENTIFICATION,
+                            size: ModalSize.FULL,
+                            animation: ModalAnimation.LEFT,
+                        })
+                    );
                 } else {
                     // Тарифа нет - переходим к оплате
                     navigate('/payments');
@@ -564,7 +575,7 @@ const DocumentsPage: React.FC = () => {
                     : `Для подписания${!hasPassport ? ' заполните паспорт' : ''}${!hasPassport && !hasBroker ? ',' : ''}${!hasBroker ? ' подключите брокерский счет' : ''}${!hasTariff ? ' и тариф' : ''}`.replace(/,\s*$/, '');
             } else if (!hasTariff) {                 // всё есть, кроме тарифа → красная
                 colorClass = styles.button__gray;
-                additionalMessages = 'Для подписания оплатите тариф';
+                additionalMessages = 'Оплатите тариф';
             }
         }
 

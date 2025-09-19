@@ -53,11 +53,22 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
     const [isContentReady, setIsContentReady] = useState(false);
 
     useEffect(() => {
-        console.log(docId)
-        console.log(allDocumentsHtml)
-        console.log(isSignedDoc)
+        console.log('=== DocumentPreviewModal Debug ===')
+        console.log('docId:', docId)
+        console.log('isSignedDoc:', isSignedDoc)
+        console.log('hasCurrentSighedDocument:', hasCurrentSighedDocument)
+        console.log('isContentReady:', isContentReady)
+        console.log('loading:', loading)
 
-    }, [docId, isContentReady, allDocumentsHtml])
+        if (docId === "type_doc_agreement_investment_advisor_app_1") {
+            console.log('App1 specific check:')
+            console.log('- hasCurrentSighedDocument.type:', hasCurrentSighedDocument?.type)
+            console.log('- document length:', hasCurrentSighedDocument?.document?.length)
+            console.log('- type starts with tariff_:', hasCurrentSighedDocument?.type?.startsWith('tariff_'))
+        }
+        console.log('==================================')
+
+    }, [docId, isContentReady, hasCurrentSighedDocument, isSignedDoc, loading])
 
     useEffect(() => {
 
@@ -86,7 +97,21 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
             }
             // Если документ подписан – проверяем наличие бинарных данных
             if (isSignedDoc && hasCurrentSighedDocument && hasCurrentSighedDocument.document) {
-                if (hasCurrentSighedDocument.document.length > 0) {
+                console.log('Document length:', hasCurrentSighedDocument.document.length);
+                console.log('Document type:', hasCurrentSighedDocument.type);
+
+                // Для Приложения 1 проверяем документы тарифа
+                if (docId === "type_doc_agreement_investment_advisor_app_1" && hasCurrentSighedDocument.type.startsWith('tariff_')) {
+                    if (hasCurrentSighedDocument.document.length > 0) {
+                        console.log('App1 document ready');
+                        setIsContentReady(true);
+                        return;
+                    } else {
+                        console.log('App1 document is empty, waiting for data...');
+                    }
+                }
+                // Для остальных документов обычная проверка
+                else if (hasCurrentSighedDocument.document.length > 0) {
                     setIsContentReady(true);
                     return;
                 }
@@ -170,7 +195,9 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                         <Loader />
                     ) : (isSignedDoc && hasCurrentSighedDocument &&
                         hasCurrentSighedDocument.document &&
-                        Object.keys(hasCurrentSighedDocument.document).length > 0) ? (
+                        Object.keys(hasCurrentSighedDocument.document).length > 0 &&
+                        // Для Приложения 1 проверяем что это тариф, для остальных - обычная проверка
+                        (docId === "type_doc_agreement_investment_advisor_app_1" ? hasCurrentSighedDocument.type.startsWith('tariff_') : true)) ? (
 
                         <div className={styles.htmlContainer}>
                             <PdfViewer pdfBinary={hasCurrentSighedDocument.document} />

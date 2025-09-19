@@ -38,7 +38,7 @@ import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/D
 import { selectIsAnyModalOpen } from "entities/ui/Modal/selectors/selectorsModals";
 import { getAllUserInfoThunk, getUserPersonalAccountInfoThunk } from "entities/User/slice/userSlice";
 import WarningIcon from 'shared/assets/svg/Warning.svg'
-import { getAllUserChecksThunk } from "entities/Payments/slice/paymentsSlice";
+import { getAllUserChecksThunk, getSignedTariffDocThunk } from "entities/Payments/slice/paymentsSlice";
 import { useDevice } from "shared/hooks/useDevice";
 import { CheckPreviewModal } from "features/Payments/CheckPreviewModal/CheckPreviewModal";
 import { PasportScanForm } from "features/RiskProfile/PassportScanForm/PassportScanForm";
@@ -687,6 +687,35 @@ const DocumentsPage: React.FC = () => {
             //         docId,
             //     })
             // );
+        } else if (docId === "type_doc_agreement_investment_advisor_app_1") {
+            // Для Приложения 1 вызываем специальную ручку get_signed_tariff_document
+            if (currentUserTariffIdForPayments) {
+                console.log('Calling getSignedTariffDocThunk with tariff_id:', currentUserTariffIdForPayments);
+                dispatch(getSignedTariffDocThunk({
+                    tariff_id: currentUserTariffIdForPayments,
+                    purpose: 'preview'
+                })).then((result) => {
+                    console.log('getSignedTariffDocThunk result:', result);
+                }).catch((error) => {
+                    console.error('getSignedTariffDocThunk error:', error);
+                });
+                setSelectedDocId(docId);
+                console.log('Opening modal with params:', {
+                    type: ModalType.DOCUMENTS_PREVIEW_SIGNED,
+                    docId,
+                    isSignedDoc: true
+                });
+                dispatch(
+                    openModal({
+                        type: ModalType.DOCUMENTS_PREVIEW_SIGNED,
+                        animation: ModalAnimation.LEFT,
+                        size: ModalSize.FULL,
+                        docId,
+                    })
+                );
+            } else {
+                console.error('No currentUserTariffIdForPayments available');
+            }
         } else {
             dispatch(
                 getUserDocumentsSignedThunk({

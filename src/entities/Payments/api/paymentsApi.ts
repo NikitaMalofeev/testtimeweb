@@ -177,6 +177,7 @@ export const getSignedTariffDoc = async (tariff_id: string, token: string) => {
                 "Content-Type": "application/x-www-form-urlencoded",
                 Authorization: `Token ${token}`,
             },
+            responseType: 'arraybuffer',  // Важно! Получаем бинарные данные
         },
     );
     return data;

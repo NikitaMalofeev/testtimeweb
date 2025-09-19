@@ -288,14 +288,23 @@ export const getSignedTariffDocThunk = createAsyncThunk<
 >('payments/getSignedTariffDoc', async ({ tariff_id, purpose = 'preview', onSuccess }, { dispatch, getState, rejectWithValue }) => {
     try {
         const token = getState().user.token;
+        console.log('getSignedTariffDocThunk: calling API with tariff_id:', tariff_id);
         const arrayBuf = await getSignedTariffDoc(tariff_id, token);
+        console.log('getSignedTariffDocThunk: received arrayBuf:', arrayBuf);
+        console.log('getSignedTariffDocThunk: arrayBuf type:', typeof arrayBuf);
+        console.log('getSignedTariffDocThunk: arrayBuf length:', arrayBuf?.byteLength || 'no byteLength');
+
         const pdfBytes = new Uint8Array(arrayBuf);
+        console.log('getSignedTariffDocThunk: created pdfBytes:', pdfBytes);
+        console.log('getSignedTariffDocThunk: pdfBytes length:', pdfBytes.length);
+
         dispatch(
             setCurrentSignedDocuments({
                 type: `tariff_${tariff_id}`,
                 document: pdfBytes,
             }),
         );
+        console.log('getSignedTariffDocThunk: dispatched setCurrentSignedDocuments');
         if (purpose === 'download') onSuccess?.();
         return pdfBytes;
     } catch (err: any) {

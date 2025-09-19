@@ -237,6 +237,11 @@ export interface BrokerSetTokenPayload {
     token: string;
 }
 
+export interface OtherBrokerPayload {
+    broker: string;
+    description_from_user: string;
+}
+
 export interface LegalFormData {
     /* реквизиты (вариант #1) */
     organization_name: string;

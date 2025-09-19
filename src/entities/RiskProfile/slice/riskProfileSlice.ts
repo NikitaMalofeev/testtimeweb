@@ -14,6 +14,7 @@ import {
     SendCodeDocsConfirmPayload,
     SecondRiskProfileFinalPayload,
     BrokerSetTokenPayload,
+    OtherBrokerPayload,
     PassportFormData,
     LegalFormData,
     LegalDataFormRequest,
@@ -219,7 +220,7 @@ export const postLegalInfoThunk = createAsyncThunk<
 
 export const postBrokerApiTokenThunk = createAsyncThunk<
     void,
-    { data: BrokerSetTokenPayload, onSuccess: () => void, isOther?: boolean },
+    { data: BrokerSetTokenPayload | OtherBrokerPayload, onSuccess: () => void, isOther?: boolean },
     { state: RootState; rejectValue: string }
 >(
     "riskProfile/postBrokerApiTokenThunk",

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { IdentificationProfileData, ConfirmationCodeData, NeedHelpData, TrustedPersonInfo, SecondRiskProfilePayload, PasportFormData, ConfirmationDocsData, BrokerSetTokenPayload, LegalFormData, LegalDataFormRequest } from "entities/RiskProfile/model/types";
+import { IdentificationProfileData, ConfirmationCodeData, NeedHelpData, TrustedPersonInfo, SecondRiskProfilePayload, PasportFormData, ConfirmationDocsData, BrokerSetTokenPayload, OtherBrokerPayload, LegalFormData, LegalDataFormRequest } from "entities/RiskProfile/model/types";
 import { PasportScanData } from "features/RiskProfile/PassportScanForm/PassportScanForm";
 
 
@@ -252,7 +252,7 @@ export const getAllSelects = async () => {
     return response.data;
 };
 
-export const postBrokerApiToken = async (data: BrokerSetTokenPayload, token: string) => {
+export const postBrokerApiToken = async (data: BrokerSetTokenPayload | OtherBrokerPayload, token: string) => {
     const response = await axios.post(
         `${apiUrl}create_doc_user/seventh_set_broker_token/`,
         data,

@@ -525,112 +525,11 @@ export const SupportChat = () => {
         is: () => {
           return attachedFiles.length === 0;
         },
-        onSubmit: async (values, { resetForm }) => {
-            const messageText = values.message.trim();
-            const fileDescriptionText = fileDescription.trim();
-            const minTextLength = chatSettings?.min_length_text || 50;
-            const minTextForFilesLength = chatSettings?.min_length_text_for_files || 20;
-
-            // Очищаем ошибку описания файлов
-            setFileDescriptionError("");
-
-            // Валидация в функции
-            if (!messageText && !fileDescriptionText && attachedFiles.length === 0) {
-                return;
-            }
-
-            if (attachedFiles.length > 0) {
-                // Если есть файлы, проверяем только тот инпут где есть текст
-                let hasError = false;
-
-                if (messageText && fileDescriptionText) {
-                    // Если оба поля заполнены, проверяем оба
-                    if (messageText.length < minTextLength) {
-                        formik.setFieldTouched('message', true);
-                        formik.setFieldError('message', `мин. ${minTextLength} символов`);
-                        hasError = true;
-                    }
-                    if (fileDescriptionText.length < minTextForFilesLength) {
-                        setFileDescriptionError(`мин. ${minTextForFilesLength} символов`);
-                        hasError = true;
-                    }
-                } else if (messageText) {
-                    // Только основное сообщение заполнено
-                    if (messageText.length < minTextLength) {
-                        formik.setFieldTouched('message', true);
-                        formik.setFieldError('message', `мин. ${minTextLength} символов`);
-                        hasError = true;
-                    }
-                } else if (fileDescriptionText) {
-                    // Только описание файлов заполнено
-                    if (fileDescriptionText.length < minTextForFilesLength) {
-                        setFileDescriptionError(`мин. ${minTextForFilesLength} символов`);
-                        hasError = true;
-                    }
-                } else {
-                    // Ни одно поле не заполнено
-                    formik.setFieldTouched('message', true);
-                    formik.setFieldError('message', 'Введите сообщение или описание файлов');
-                    hasError = true;
-                }
-
-                if (hasError) {
-                    return;
-                }
-            } else {
-                // Если нет файлов, проверяем только основное сообщение
-                if (messageText.length < minTextLength) {
-                    formik.setFieldTouched('message', true);
-                    formik.setFieldError('message', `мин. ${minTextLength} символов`);
-                    return;
-                }
-            }
-
-            // Optimistic update - сразу показываем сообщение пользователя
-            dispatch(addOptimisticMessage({
-                text: messageText || '',
-                fileDescription: fileDescriptionText || '',
-                files: attachedFiles.length > 0 ? attachedFiles : undefined
-            }));
-
-            // Очищаем форму сразу для UX
-            resetForm();
-            const filesToSend = [...attachedFiles]; // копируем массив файлов
-            const descriptionToSend = fileDescriptionText;
-            setAttachedFiles([]);
-            setFileDescription("");
-            setFileDescriptionError("");
-
-            // Формируем payload правильно
-            const payload: any = {};
-
-            if (filesToSend.length > 0) {
-                // Есть файлы - отправляем только те поля, которые заполнены
-                if (messageText) {
-                    payload.text = messageText;
-                }
-                if (descriptionToSend) {
-                    payload.text_for_files = descriptionToSend;
-                }
-                payload.files = filesToSend;
-            } else {
-                // Нет файлов - отправляем только основной текст
-                payload.text = messageText;
-            }
-
-
-            try {
-                await dispatch(postMessage(payload) as any);
-            } catch (error) {
-                console.error('Error sending message:', error);
-            }
-
         then: (schema) => {
           const minLength = chatSettings?.min_length_text || 50;
           return schema
             .required("Введите сообщение или прикрепите файл")
             .min(minLength, `мин. ${minLength} символов`);
-
         },
         otherwise: (schema) => schema.notRequired(),
       }),
@@ -1008,4 +907,3 @@ export const SupportChat = () => {
     </div>
   );
 };
-

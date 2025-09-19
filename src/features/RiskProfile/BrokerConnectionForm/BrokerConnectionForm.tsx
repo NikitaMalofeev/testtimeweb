@@ -60,7 +60,7 @@ export const BrokerConnectionForm: React.FC = () => {
             label: 'БКС'
         },
         {
-            valuy: "tradernet_ff",
+            value: "tradernet_ff",
             label: 'Трейдернет'
         },
         {
@@ -138,7 +138,7 @@ export const BrokerConnectionForm: React.FC = () => {
 
         dispatch(postBrokerApiTokenThunk({
             data: submitData,
-            isOther: isOtherBroker || isStandardBroker,
+            isOther: Boolean(isOtherBroker || isStandardBroker),
             onSuccess: () => {
                 dispatch(openModal({ type: ModalType.INFO, animation: ModalAnimation.BOTTOM, size: ModalSize.MC }))
             }

@@ -24,7 +24,8 @@ export const ErrorPopup = () => {
     const location = useLocation()
 
     useEffect(() => {
-        if ((error && error.trim()) || (purpose && purpose.trim())) {
+        if ((error && typeof error === 'string' && error.trim()) ||
+            (purpose && typeof purpose === 'string' && purpose.trim())) {
             setVisible(true);
 
             const hideTimer = setTimeout(() => setVisible(false), 10000);
@@ -50,7 +51,8 @@ export const ErrorPopup = () => {
 
 
     // Не показываем попап если нет текста ошибки
-    if (!error?.trim() && !purpose?.trim()) {
+    if ((!error || typeof error !== 'string' || !error.trim()) &&
+        (!purpose || typeof purpose !== 'string' || !purpose.trim())) {
         return null;
     }
 

@@ -38,7 +38,7 @@ import { DocumentPreviewModal } from "features/Documents/DocumentsPreviewModal/D
 import { selectIsAnyModalOpen } from "entities/ui/Modal/selectors/selectorsModals";
 import { getAllUserInfoThunk, getUserPersonalAccountInfoThunk } from "entities/User/slice/userSlice";
 import WarningIcon from 'shared/assets/svg/Warning.svg'
-import { getAllUserChecksThunk, getSignedTariffDocThunk } from "entities/Payments/slice/paymentsSlice";
+import { getAllUserChecksThunk, getSignedTariffDocThunk, isSignedTariffThunk } from "entities/Payments/slice/paymentsSlice";
 import { useDevice } from "shared/hooks/useDevice";
 import { CheckPreviewModal } from "features/Payments/CheckPreviewModal/CheckPreviewModal";
 import { PasportScanForm } from "features/RiskProfile/PassportScanForm/PassportScanForm";
@@ -359,6 +359,9 @@ const DocumentsPage: React.FC = () => {
                 if (isDocSigned && !hasTariff) {
                     // Документ подписан, но тариф не оплачен - переходим к оплате
                     navigate('/payments');
+                } else if (isTariffSigned) {
+                    // Тариф уже подписан - переходим к оплате
+                    navigate('/payments');
                 } else if (hasTariff) {
                     // Тариф есть - подписываем документ
                     dispatch(setCurrentConfirmableDoc(docId));
@@ -625,6 +628,24 @@ const DocumentsPage: React.FC = () => {
 
 
     const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
+    const [isTariffSigned, setIsTariffSigned] = useState<boolean | null>(null);
+
+    // Проверяем подписанность тарифа для Приложения 1Ghjcv
+    useEffect(() => {
+        if (currentUserTariffIdForPayments) {
+            dispatch(isSignedTariffThunk({ tariff_id: currentUserTariffIdForPayments }))
+                .then((result) => {
+                    if (result.payload && result.payload.is_confirmed_type_doc_agreement_investment_advisor_app_1) {
+                        setIsTariffSigned(true);
+                    } else {
+                        setIsTariffSigned(false);
+                    }
+                })
+                .catch(() => {
+                    setIsTariffSigned(false);
+                });
+        }
+    }, [currentUserTariffIdForPayments, dispatch]);
 
     const handleOpenPreview = (docId: string) => {
         // console.log(docId);
@@ -848,6 +869,9 @@ const DocumentsPage: React.FC = () => {
                         } else if (isAdvisorAgreement) {
                             if (hasTariffAttempt) {
                                 buttonText = 'Оплатить';
+                            } else if (isTariffSigned) {
+                                // Если тариф уже подписан - показываем "Оплатить"
+                                buttonText = 'Оплатить';
                             } else {
                                 buttonText =
                                     !hasTariff && paidTariffKeys !== null
@@ -910,7 +934,7 @@ const DocumentsPage: React.FC = () => {
                                                                         >
                                                                             Просмотр
                                                                         </Button>
-                                                                        {doc.id !== "type_doc_passport" && (
+                                                                        {doc.id !== "type_doc_passport" && doc.id !== "type_doc_agreement_investment_advisor_app_1" && (
                                                                             <Icon
                                                                                 Svg={DownloadIcon}
                                                                                 onClick={() => handleDownloadPdf(doc.id)}

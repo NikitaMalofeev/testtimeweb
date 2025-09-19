@@ -183,6 +183,21 @@ export const getSignedTariffDoc = async (tariff_id: string, token: string) => {
     return data;
 };
 
+export const isSignedTariff = async (tariff_id: string, token: string) => {
+    const { data } = await axios.post(
+        `${apiPaymentsUrl}is_signed_tariff/`,
+        { tariff_id },
+        {
+            headers: {
+                "Accept-Language": "ru",
+                "Content-Type": "application/x-www-form-urlencoded",
+                Authorization: `Token ${token}`,
+            },
+        },
+    );
+    return data;
+};
+
 export const getNotSignedTariffDoc = async (
     tariff_id: string,
     token: string,

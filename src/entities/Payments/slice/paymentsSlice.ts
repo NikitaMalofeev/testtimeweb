@@ -12,6 +12,7 @@ import {
     getNotSignedTariffDoc,
     getOrderStatus,
     getSignedTariffDoc,
+    isSignedTariff,
     paymentsSetTariff,
     robokassaResult,
     signingTariff,
@@ -311,6 +312,23 @@ export const getSignedTariffDocThunk = createAsyncThunk<
         const msg = err.response?.data?.errorText || err.message;
         dispatch(setError(msg));
         return rejectWithValue(msg);
+    }
+});
+
+// 2.1. проверить подписан ли тариф
+export const isSignedTariffThunk = createAsyncThunk<
+    any,
+    { tariff_id: string },
+    { rejectValue: string; state: RootState }
+>('payments/isSignedTariff', async ({ tariff_id }, { dispatch, getState, rejectWithValue }) => {
+    try {
+        const token = getState().user.token;
+        const response = await isSignedTariff(tariff_id, token);
+        return response;
+    } catch (err: any) {
+        // const msg = err.response?.data?.errorText || err.message;
+        // dispatch(setError(msg));
+        // return rejectWithValue(msg);
     }
 });
 

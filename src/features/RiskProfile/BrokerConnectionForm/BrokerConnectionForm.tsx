@@ -129,10 +129,10 @@ export const BrokerConnectionForm: React.FC = () => {
                 description_from_user: ""
             };
         } else {
-            // Для Тинькофф - обычный payload с токеном
+            // Для Тинькофф - обычный payload с токеном (исключаем customBrokerName)
             submitData = {
-                ...formik.values,
-                broker: formik.values.broker
+                broker: formik.values.broker,
+                token: formik.values.token
             };
         }
 

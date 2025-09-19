@@ -65,6 +65,7 @@ const DocumentsPage: React.FC = () => {
     const userChecks = useSelector((s: RootState) => s.payments.checks);
     const tariff = useSelector((s: RootState) => s.payments.payments_info);
     const activeTariffs = useSelector((s: RootState) => s.payments.activeTariffs);
+    const paidTariffKeys = useSelector((s: RootState) => s.payments.paidTariffKeys);
     const user = useSelector((s: RootState) => s.user.userPersonalAccountInfo);
     const isVip = useSelector((s: RootState) => s.user.is_vip);
     const currentUserTariffIdForPayments = useSelector((s: RootState) => s.payments.currentUserTariffIdForPayments);
@@ -350,7 +351,16 @@ const DocumentsPage: React.FC = () => {
             }
             case 'type_doc_agreement_investment_advisor_app_1': {
                 if (isVip) return;
-                if (hasTariff) {
+
+                // Проверяем, подписан ли документ
+                const advisorDoc = userDocuments.find(d => d.key === "type_doc_agreement_investment_advisor_app_1");
+                const isDocSigned = !!advisorDoc?.date_last_confirmed;
+
+                if (isDocSigned && !hasTariff) {
+                    // Документ подписан, но тариф не оплачен - переходим к оплате
+                    navigate('/payments');
+                } else if (hasTariff) {
+                    // Тариф есть - подписываем документ
                     dispatch(setCurrentConfirmableDoc(docId));
                     dispatch(setStepAdditionalMenuUI(4));
                     dispatch(
@@ -361,7 +371,8 @@ const DocumentsPage: React.FC = () => {
                         })
                     );
                 } else {
-                    navigate('/payments')
+                    // Тарифа нет - переходим к оплате
+                    navigate('/payments');
                 }
                 break
             }
@@ -389,16 +400,11 @@ const DocumentsPage: React.FC = () => {
                 }
                 break
             }
-            case "type_doc_EDS_agreement":
             case "type_doc_agreement_investment_advisor":
             case "type_doc_risk_declarations":
             case "type_doc_agreement_personal_data_policy":
             case "type_doc_investment_profile_certificate":
 
-                if (docId === "type_doc_EDS_agreement" && !isIdentityScanExist) {
-                    // Если паспорт не существует, не даём подписывать документ
-                    return;
-                }
                 dispatch(setCurrentConfirmableDoc(docId));
                 dispatch(setStepAdditionalMenuUI(4));
                 dispatch(
@@ -523,6 +529,7 @@ const DocumentsPage: React.FC = () => {
     const hasPassport = isIdentityScanExist;
     const hasBroker = brokersCount > 0;             // или !!brokerIds.length
     const hasTariff = activeTariffs.some(tariff => tariff.is_active);
+    const hasTariffAttempt = activePaidTariffs.length > 0
 
     const renderedDocuments = allDocuments.map((doc) => {
         /* ───────── базовые флаги ───────── */
@@ -535,7 +542,9 @@ const DocumentsPage: React.FC = () => {
 
         /* ───────── isDisabled ───────── */
         const isDisabled = isAdvisorAgreement
-            ? !(hasPassport && hasBroker)                         // «Приложение 1»
+            ? isAnotherBroker
+                ? !hasPassport
+                : !(hasPassport && hasBroker)                         // «Приложение 1»
             : isBroker
                 ? !hasPassport                                         // брокер: нужен паспорт
                 : isPassport
@@ -548,11 +557,11 @@ const DocumentsPage: React.FC = () => {
 
         /* 1) Приложение 1 (логика без изменений) */
         if (isAdvisorAgreement) {
-            if (!hasPassport || !hasBroker) {        // нет паспорта / брокера → серая
+            if (isAnotherBroker ? !hasPassport : (!hasPassport || !hasBroker)) {        // нет паспорта / брокера → серая
                 colorClass = styles.button__gray;
-                additionalMessages =
-                    `Для подписания${!hasPassport ? ' заполните паспорт,' : ''}` +
-                    `${!hasBroker ? ' подключите брокерский счет' : ''}` + `${!hasTariff ? ' и тариф' : ''}`.replace(/,\s*$/, '');
+                additionalMessages = isAnotherBroker
+                    ? `Для подписания${!hasPassport ? ' заполните паспорт' : ''}${!hasTariff ? ' и тариф' : ''}`.replace(/,\s*$/, '')
+                    : `Для подписания${!hasPassport ? ' заполните паспорт' : ''}${!hasPassport && !hasBroker ? ',' : ''}${!hasBroker ? ' подключите брокерский счет' : ''}${!hasTariff ? ' и тариф' : ''}`.replace(/,\s*$/, '');
             } else if (!hasTariff) {                 // всё есть, кроме тарифа → красная
                 colorClass = styles.button__gray;
                 additionalMessages = 'Для подписания оплатите тариф';
@@ -772,15 +781,18 @@ const DocumentsPage: React.FC = () => {
                     {renderedDocuments.map((doc) => {
                         const isInBulk = false; // убираем возможность выбора отдельных документов
 
-
+                        const isAdvisorAgreement = doc.id === 'type_doc_agreement_investment_advisor_app_1';
                         // Вынесем логику определения отображения кнопки/статуса
-                        const isSigned = doc.status === "signed";
+                        const isSignedApp1 = hasTariffAttempt && !hasTariff;
+                        const isSigned = isAdvisorAgreement ? isSignedApp1 : doc.status === "signed";
                         const isPassport = doc.id === "type_doc_passport";
                         const isBroker = doc.id === "type_doc_broker_api_token";
-                        const isAdvisorAgreement = doc.id === 'type_doc_agreement_investment_advisor_app_1';
+
 
                         const isDisabled = isAdvisorAgreement
-                            ? !(hasPassport && hasBroker && hasTariff)
+                            ? isAnotherBroker
+                                ? !hasPassport
+                                : !(hasPassport && hasBroker && hasTariff)
                             : isBroker
                                 ? !hasPassport
                                 : isPassport
@@ -794,16 +806,19 @@ const DocumentsPage: React.FC = () => {
                         } else if (doc.id === "type_doc_RP_questionnairy") {
                             buttonText = filledRiskProfileChapters.is_risk_profile_complete_final ? "Подписать" : "Заполнить";
                         } else if (isAdvisorAgreement) {
-                            buttonText =
-                                !hasTariff &&
-                                    currentConfirmableDocument === 'type_doc_agreement_investment_advisor_app_1'
-                                    ? 'Подключить'
-                                    : 'Подписать';
+                            if (hasTariffAttempt) {
+                                buttonText = 'Оплатить';
+                            } else {
+                                buttonText =
+                                    !hasTariff && paidTariffKeys !== null
+                                        ? 'Подписать'
+                                        : 'Подключить';
+                            }
                         }
 
                         const showSuccess =
                             (isPassport && isSigned && isIdentityScanExist) ||
-                            (!isPassport && isSigned);
+                            (!isPassport && isSigned && !(isAdvisorAgreement && !hasTariff)); // Исключаем показ "Подписано" для Приложения 1 без тарифа
                         const shouldHideBrokerWhenBulk =
                             isBroker && buttonText === 'Подписать' && showBulkToolbar;
 
@@ -811,6 +826,9 @@ const DocumentsPage: React.FC = () => {
                             !isInBulk &&
                             !showSuccess &&
                             !shouldHideBrokerWhenBulk;
+
+                        // Показываем кнопку просмотра для подписанных документов
+                        const shouldShowViewButton = isSigned && !doc.isPayment;
 
 
 
@@ -836,7 +854,7 @@ const DocumentsPage: React.FC = () => {
                                                                 Просмотр
                                                             </Button>
                                                         )}
-                                                        {doc.status === "signed" && !doc.isPayment && (
+                                                        {shouldShowViewButton && (
                                                             <>
                                                                 {doc.timeoutPending && doc.timeoutPending > 0 ? (
                                                                     <span className={styles.documents__timer}>
@@ -953,7 +971,7 @@ const DocumentsPage: React.FC = () => {
                                                             Просмотр
                                                         </Button>
                                                     )}
-                                                    {doc.status === "signed" && !doc.isPayment && (
+                                                    {shouldShowViewButton && (
                                                         <>
                                                             {doc.timeoutPending && doc.timeoutPending > 0 ? (
                                                                 <span className={styles.documents__timer}>

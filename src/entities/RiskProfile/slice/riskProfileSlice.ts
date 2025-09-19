@@ -227,7 +227,7 @@ export const postBrokerApiTokenThunk = createAsyncThunk<
     async ({ data, onSuccess, isOther = false }, { dispatch, rejectWithValue, getState }) => {
         try {
             const token = getState().user.token;
-            const response = await postBrokerApiToken(data, token);
+            const response = await postBrokerApiToken(data, token, isOther);
 
             if (response) {
                 if (isOther) {

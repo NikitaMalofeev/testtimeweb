@@ -45,7 +45,8 @@
       "Bash(npm run dev:*)",
       "Bash(npm run typecheck:*)",
       "Bash(npm run:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

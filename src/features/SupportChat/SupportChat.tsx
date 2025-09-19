@@ -860,7 +860,7 @@ export const SupportChat = () => {
 
       {attachedFiles.length > 0 && (
         <div className={styles.chat__imagePreviewBar}>
-          <div className={styles.chat__fileDescriptionContainer}>
+          {/* <div className={styles.chat__fileDescriptionContainer}>
             <Input
               placeholder="Описание файлов..."
               name="fileDescription"
@@ -875,7 +875,7 @@ export const SupportChat = () => {
                 {fileDescriptionError}
               </div>
             )}
-          </div>
+          </div> */}
           <div className={styles.chat__imagePreviewContainer}>
             {attachedFiles.map((f, idx) => {
               const url = URL.createObjectURL(f);

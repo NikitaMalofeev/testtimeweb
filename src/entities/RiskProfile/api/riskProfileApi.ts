@@ -252,9 +252,14 @@ export const getAllSelects = async () => {
     return response.data;
 };
 
-export const postBrokerApiToken = async (data: BrokerSetTokenPayload | OtherBrokerPayload, token: string) => {
+export const postBrokerApiToken = async (data: BrokerSetTokenPayload | OtherBrokerPayload, token: string, isOther?: boolean) => {
+    // Используем разные эндпоинты в зависимости от типа брокера
+    const endpoint = isOther
+        ? `${apiUrl}create_doc_user/seventh_set_broker/`  // Для других брокеров (без токена)
+        : `${apiUrl}create_doc_user/seventh_set_broker_token/`;  // Для Тинькофф (с токеном)
+
     const response = await axios.post(
-        `${apiUrl}create_doc_user/seventh_set_broker_token/`,
+        endpoint,
         data,
         {
             headers: {

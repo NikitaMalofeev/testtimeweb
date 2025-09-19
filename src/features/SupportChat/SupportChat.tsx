@@ -592,7 +592,7 @@ export const SupportChat = () => {
         } else if (messageText) {
           if (messageText.length < minTextLength) {
             formik.setFieldTouched('message', true);
-            formik.setFieldError('message', `мин. ${минTextLength} символов`);
+            formik.setFieldError('message', `мин. ${minTextLength} символов`);
             hasError = true;
           }
         } else if (fileDescriptionText) {

@@ -520,11 +520,11 @@ export const SupportChat = () => {
     initialValues: {
       message: "",
     },
+
+    // 1) Схема ВАЛИДАЦИИ — без onSubmit внутри
     validationSchema: Yup.object({
       message: Yup.string().when([], {
-        is: () => {
-          return attachedFiles.length === 0;
-        },
+        is: () => attachedFiles.length === 0,
         then: (schema) => {
           const minLength = chatSettings?.min_length_text || 50;
           return schema
@@ -534,6 +534,8 @@ export const SupportChat = () => {
         otherwise: (schema) => schema.notRequired(),
       }),
     }),
+
+    // 2) Доп. валидация (как у тебя была)
     validate: (values) => {
       const errors: any = {};
       const messageText = values.message.trim();
@@ -564,14 +566,18 @@ export const SupportChat = () => {
 
       return errors;
     },
-    onSubmit: async (values, { resetForm }) => {
+
+    // 3) onSubmit — ВНЕ validationSchema
+    onSubmit: async (values, { resetForm, setFieldTouched, setFieldError }) => {
       const messageText = values.message.trim();
       const fileDescriptionText = fileDescription.trim();
       const minTextLength = chatSettings?.min_length_text || 50;
       const minTextForFilesLength = chatSettings?.min_length_text_for_files || 20;
 
+      // Очищаем ошибку описания файлов
       setFileDescriptionError("");
 
+      // Ничего не введено
       if (!messageText && !fileDescriptionText && attachedFiles.length === 0) {
         return;
       }
@@ -581,8 +587,8 @@ export const SupportChat = () => {
 
         if (messageText && fileDescriptionText) {
           if (messageText.length < minTextLength) {
-            formik.setFieldTouched('message', true);
-            formik.setFieldError('message', `мин. ${minTextLength} символов`);
+            setFieldTouched('message', true);
+            setFieldError('message', `мин. ${minTextLength} символов`);
             hasError = true;
           }
           if (fileDescriptionText.length < minTextForFilesLength) {
@@ -591,8 +597,8 @@ export const SupportChat = () => {
           }
         } else if (messageText) {
           if (messageText.length < minTextLength) {
-            formik.setFieldTouched('message', true);
-            formik.setFieldError('message', `мин. ${minTextLength} символов`);
+            setFieldTouched('message', true);
+            setFieldError('message', `мин. ${minTextLength} символов`);
             hasError = true;
           }
         } else if (fileDescriptionText) {
@@ -601,28 +607,28 @@ export const SupportChat = () => {
             hasError = true;
           }
         } else {
-          formik.setFieldTouched('message', true);
-          formik.setFieldError('message', 'Введите сообщение или описание файлов');
+          setFieldTouched('message', true);
+          setFieldError('message', 'Введите сообщение или описание файлов');
           hasError = true;
         }
 
-        if (hasError) {
-          return;
-        }
+        if (hasError) return;
       } else {
         if (messageText.length < minTextLength) {
-          formik.setFieldTouched('message', true);
-          formik.setFieldError('message', `мин. ${minTextLength} символов`);
+          setFieldTouched('message', true);
+          setFieldError('message', `мин. ${minTextLength} символов`);
           return;
         }
       }
 
+      // Optimistic update
       dispatch(addOptimisticMessage({
         text: messageText || '',
         fileDescription: fileDescriptionText || '',
         files: attachedFiles.length > 0 ? attachedFiles : undefined
       }));
 
+      // Очистка формы
       resetForm();
       const filesToSend = [...attachedFiles];
       const descriptionToSend = fileDescriptionText;
@@ -630,15 +636,11 @@ export const SupportChat = () => {
       setFileDescription("");
       setFileDescriptionError("");
 
+      // Формируем payload
       const payload: any = {};
-
       if (filesToSend.length > 0) {
-        if (messageText) {
-          payload.text = messageText;
-        }
-        if (descriptionToSend) {
-          payload.text_for_files = descriptionToSend;
-        }
+        if (messageText) payload.text = messageText;
+        if (descriptionToSend) payload.text_for_files = descriptionToSend;
         payload.files = filesToSend;
       } else {
         payload.text = messageText;
@@ -651,6 +653,7 @@ export const SupportChat = () => {
       }
     },
   });
+
 
   // Получение ID веб-сокета и всех сообщений
   useEffect(() => {
@@ -840,7 +843,7 @@ export const SupportChat = () => {
             }}
             onKeyDown={handleKeyDown}
             withoutCloudyLabel
-            error={!!(formik.touched.message && formik.errors.message)}
+            error={!!(formik.touched.message && formik.errors.message)} // строго boolean
           />
           {formik.touched.message && formik.errors.message && (
             <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px', paddingLeft: '4px' }}>
@@ -907,3 +910,4 @@ export const SupportChat = () => {
     </div>
   );
 };
+

@@ -840,7 +840,7 @@ export const SupportChat = () => {
             }}
             onKeyDown={handleKeyDown}
             withoutCloudyLabel
-            error={!!(formik.touched.message && formik.errors.message)} // строго boolean
+            error={!!(formik.touched.message && formik.errors.message)}
           />
           {formik.touched.message && formik.errors.message && (
             <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px', paddingLeft: '4px' }}>

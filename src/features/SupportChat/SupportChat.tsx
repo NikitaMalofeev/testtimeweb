@@ -23,6 +23,7 @@ import {
     addMessage,
     closeWebSocketConnection,
     addOptimisticMessage,
+    fetchChatSettings,
 } from "entities/SupportChat/slice/supportChatSlice";
 import { Loader, LoaderSize } from "shared/ui/Loader/Loader";
 import { closeAllModals } from "entities/ui/Modal/slice/modalSlice";
@@ -546,7 +547,7 @@ export const SupportChat = () => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
 
-    const { websocketId, messages, loading, unreadAnswersCount, isWsConnected } = useSelector(
+    const { websocketId, messages, loading, unreadAnswersCount, isWsConnected, chatSettings } = useSelector(
         (state: RootState) => state.supportChat
     );
     const token = useSelector((state: RootState) => state.user.token);
@@ -568,13 +569,14 @@ export const SupportChat = () => {
         validationSchema: Yup.object({
             message: Yup.string().when([], {
                 is: () => {
-                    // Если нет прикрепленных файлов, требуем текст минимум 50 символов
+                    // Если нет прикрепленных файлов, требуем текст минимум min_length_text символов
                     return attachedFiles.length === 0;
                 },
                 then: (schema) => {
+                    const minLength = chatSettings?.min_length_text || 50;
                     return schema
                         .required("Введите сообщение или прикрепите файл")
-                        .min(50, "мин. 50 символов");
+                        .min(minLength, `мин. ${minLength} символов`);
                 },
                 otherwise: (schema) => schema.notRequired(),
             }),
@@ -585,21 +587,34 @@ export const SupportChat = () => {
             const errors: any = {};
             const messageText = values.message.trim();
             const fileDescriptionText = fileDescription.trim();
+            const minTextLength = chatSettings?.min_length_text || 50;
 
             if (attachedFiles.length > 0) {
-                // Если есть файлы, требуем И описание файлов (20 символов), И основное сообщение (50 символов)
-                if (!messageText) {
-                    errors.message = "Введите основное сообщение";
-                } else if (messageText.length < 50) {
-                    errors.message = "мин. 50 символов";
+                // Если есть файлы, проверяем только тот инпут где есть текст
+                if (messageText && fileDescriptionText) {
+                    // Если оба поля заполнены, проверяем оба
+                    if (messageText.length < minTextLength) {
+                        errors.message = `мин. ${minTextLength} символов`;
+                    }
+                    // Ошибка для fileDescription будет показана через отдельное состояние
+                } else if (messageText) {
+                    // Только основное сообщение заполнено
+                    if (messageText.length < minTextLength) {
+                        errors.message = `мин. ${minTextLength} символов`;
+                    }
+                } else if (fileDescriptionText) {
+                    // Только описание файлов заполнено - основное сообщение не требуется
+                    // Ошибка для fileDescription будет показана через отдельное состояние
+                } else {
+                    // Ни одно поле не заполнено
+                    errors.message = "Введите сообщение или описание файлов";
                 }
-                // Ошибки для описания файлов будут показаны через отдельное состояние
             } else {
-                // Если нет файлов, проверяем только основное сообщение (50 символов)
+                // Если нет файлов, проверяем только основное сообщение
                 if (!messageText) {
                     errors.message = "Введите сообщение или прикрепите файл";
-                } else if (messageText.length < 50) {
-                    errors.message = "мин. 50 символов";
+                } else if (messageText.length < minTextLength) {
+                    errors.message = `мин. ${minTextLength} символов`;
                 }
             }
 
@@ -608,36 +623,49 @@ export const SupportChat = () => {
         onSubmit: async (values, { resetForm }) => {
             const messageText = values.message.trim();
             const fileDescriptionText = fileDescription.trim();
+            const minTextLength = chatSettings?.min_length_text || 50;
+            const minTextForFilesLength = chatSettings?.min_length_text_for_files || 20;
 
             // Очищаем ошибку описания файлов
             setFileDescriptionError("");
 
             // Валидация в функции
-            if (!messageText && attachedFiles.length === 0) {
+            if (!messageText && !fileDescriptionText && attachedFiles.length === 0) {
                 return;
             }
 
             if (attachedFiles.length > 0) {
-                // Если есть файлы, требуем И описание файлов (20+ символов), И основное сообщение (50+ символов)
+                // Если есть файлы, проверяем только тот инпут где есть текст
                 let hasError = false;
 
-                // Проверяем описание файлов
-                if (!fileDescriptionText) {
-                    setFileDescriptionError("Введите описание файлов");
-                    hasError = true;
-                } else if (fileDescriptionText.length < 20) {
-                    setFileDescriptionError("мин. 20 символов");
-                    hasError = true;
-                }
-
-                // Проверяем основное сообщение
-                if (!messageText) {
+                if (messageText && fileDescriptionText) {
+                    // Если оба поля заполнены, проверяем оба
+                    if (messageText.length < minTextLength) {
+                        formik.setFieldTouched('message', true);
+                        formik.setFieldError('message', `мин. ${minTextLength} символов`);
+                        hasError = true;
+                    }
+                    if (fileDescriptionText.length < minTextForFilesLength) {
+                        setFileDescriptionError(`мин. ${minTextForFilesLength} символов`);
+                        hasError = true;
+                    }
+                } else if (messageText) {
+                    // Только основное сообщение заполнено
+                    if (messageText.length < minTextLength) {
+                        formik.setFieldTouched('message', true);
+                        formik.setFieldError('message', `мин. ${minTextLength} символов`);
+                        hasError = true;
+                    }
+                } else if (fileDescriptionText) {
+                    // Только описание файлов заполнено
+                    if (fileDescriptionText.length < minTextForFilesLength) {
+                        setFileDescriptionError(`мин. ${minTextForFilesLength} символов`);
+                        hasError = true;
+                    }
+                } else {
+                    // Ни одно поле не заполнено
                     formik.setFieldTouched('message', true);
-                    formik.setFieldError('message', 'Введите основное сообщение');
-                    hasError = true;
-                } else if (messageText.length < 50) {
-                    formik.setFieldTouched('message', true);
-                    formik.setFieldError('message', 'мин. 50 символов');
+                    formik.setFieldError('message', 'Введите сообщение или описание файлов');
                     hasError = true;
                 }
 
@@ -645,39 +673,45 @@ export const SupportChat = () => {
                     return;
                 }
             } else {
-                // Если нет файлов, проверяем только основное сообщение (50+ символов)
-                if (messageText.length < 50) {
+                // Если нет файлов, проверяем только основное сообщение
+                if (messageText.length < minTextLength) {
                     formik.setFieldTouched('message', true);
-                    formik.setFieldError('message', 'мин. 50 символов');
+                    formik.setFieldError('message', `мин. ${minTextLength} символов`);
                     return;
                 }
             }
 
             // Optimistic update - сразу показываем сообщение пользователя
             dispatch(addOptimisticMessage({
-                text: messageText,
-                fileDescription: attachedFiles.length > 0 ? fileDescription.trim() || undefined : undefined,
+                text: messageText || undefined,
+                fileDescription: fileDescriptionText || undefined,
                 files: attachedFiles.length > 0 ? attachedFiles : undefined
             }));
 
             // Очищаем форму сразу для UX
             resetForm();
             const filesToSend = [...attachedFiles]; // копируем массив файлов
-            const descriptionToSend = attachedFiles.length > 0 ? fileDescription.trim() : "";
+            const descriptionToSend = fileDescriptionText;
             setAttachedFiles([]);
             setFileDescription("");
             setFileDescriptionError("");
 
             // Формируем payload правильно
-            const payload = filesToSend.length > 0
-                ? {
-                    text: messageText, // основной текст
-                    text_for_files: descriptionToSend, // описание файлов
-                    files: filesToSend,
+            const payload: any = {};
+
+            if (filesToSend.length > 0) {
+                // Есть файлы - отправляем только те поля, которые заполнены
+                if (messageText) {
+                    payload.text = messageText;
                 }
-                : {
-                    text: messageText, // обычный текст
-                };
+                if (descriptionToSend) {
+                    payload.text_for_files = descriptionToSend;
+                }
+                payload.files = filesToSend;
+            } else {
+                // Нет файлов - отправляем только основной текст
+                payload.text = messageText;
+            }
 
 
             try {
@@ -697,6 +731,8 @@ export const SupportChat = () => {
                     dispatch(openWebSocketConnection(result.payload));
                 }
             });
+            // Загружаем настройки чата
+            dispatch(fetchChatSettings() as any);
         }
     }, [token, dispatch]);
 
@@ -766,7 +802,11 @@ export const SupportChat = () => {
         // Очищаем ошибку при изменении
         if (fileDescriptionError) {
             const trimmedValue = value.trim();
-            if (trimmedValue.length >= 20 || trimmedValue.length === 0) {
+            const minTextForFilesLength = chatSettings?.min_length_text_for_files || 20;
+            // Очищаем ошибку если длина достаточна или поле пустое (но только если есть основной текст)
+            const messageText = formik.values.message.trim();
+            if (trimmedValue.length >= minTextForFilesLength ||
+                (trimmedValue.length === 0 && messageText.length > 0)) {
                 setFileDescriptionError("");
             }
         }
@@ -905,7 +945,7 @@ export const SupportChat = () => {
             {/* превью выбранных файлов перед отправкой - полупрозрачная полоска на всю ширину */}
             {attachedFiles.length > 0 && (
                 <div className={styles.chat__imagePreviewBar}>
-                    {/* Поле для описания файлов */}
+                    {/* Поле для описания файлов - всегда показывается */}
                     <div className={styles.chat__fileDescriptionContainer}>
                         <Input
                             placeholder="Описание файлов..."

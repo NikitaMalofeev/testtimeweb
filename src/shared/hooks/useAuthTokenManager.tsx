@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
-import { setUserToken } from 'entities/User/slice/userSlice';
+import { setUserToken, logoutUser } from 'entities/User/slice/userSlice';
 import { useNavigate } from 'react-router-dom';
 import { RootState } from 'app/providers/store/config/store';
 import { closeAllModals } from 'entities/ui/Modal/slice/modalSlice';
@@ -123,11 +123,7 @@ export function useAuthTokenManagement() {
             if (now - lastActivity > 10 * 60_000) {
                 // Логаутим
                 //FIXME Убрал сброс логина пока не закончим mvp
-                // localStorage.removeItem('savedToken');
-                // localStorage.removeItem('lastExit');
-                // localStorage.removeItem('lastExitSignature');
-
-                // dispatch(setUserToken(''));
+                // dispatch(logoutUser() as any);
                 // dispatch(closeAllModals());
                 // navigate('/');
             } else {

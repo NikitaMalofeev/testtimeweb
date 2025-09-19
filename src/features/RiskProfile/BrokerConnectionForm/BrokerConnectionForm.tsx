@@ -48,7 +48,7 @@ export const BrokerConnectionForm: React.FC = () => {
             label: 'Т-инвестиции'
         },
         {
-            value: 'finam_broker ',
+            value: 'finam_broker',
             label: 'Финам'
         },
         {

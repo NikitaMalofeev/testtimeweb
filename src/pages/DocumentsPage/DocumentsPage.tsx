@@ -55,6 +55,7 @@ const DocumentsPage: React.FC = () => {
     const { documentsPreview, documentsPreviewSigned } = modalState;
 
     const { userDocuments, loading, filledRiskProfileChapters, brokerIds, brokersCount } = useSelector((state: RootState) => state.documents);
+    const { isAnotherBroker } = useSelector((state: RootState) => state.riskProfile);
     const currentDocument = useSelector((state: RootState) => state.documents.currentSugnedDocument.document);
 
     const currentConfirmableDocument = useSelector((state: RootState) => state.documents.currentConfirmableDoc);
@@ -172,12 +173,20 @@ const DocumentsPage: React.FC = () => {
 
         /* ------------------------------------------------------------------
            Шаг 1. Если пользователь VIP - удаляем «Приложение 1» из baseOrder.
+           Шаг 1.1. Если isAnotherBroker = true - удаляем документ брокера.
         ------------------------------------------------------------------ */
-        const vipFiltered: string[] = isVip
+        let vipFiltered: string[] = isVip
             ? baseOrder.filter(
                 (id) => id !== "type_doc_agreement_investment_advisor_app_1",
             )
             : baseOrder;
+
+        // Если выбран другой брокер - убираем документ broker_api_token
+        if (isAnotherBroker) {
+            vipFiltered = vipFiltered.filter(
+                (id) => id !== "type_doc_broker_api_token"
+            );
+        }
 
         /* ------------------------------------------------------------------
            Шаг 2. Если массовая подпись (one-code) неактивна → просто возвращаем
@@ -206,8 +215,13 @@ const DocumentsPage: React.FC = () => {
         /* ------------------------------------------------------------------
            Итоговый порядок документов
         ------------------------------------------------------------------ */
-        return [...head, ...tail];
-    }, [isBulkEnabled, isVip]);
+        // Если isAnotherBroker = true, убираем broker_api_token из head тоже
+        const finalHead = isAnotherBroker
+            ? head.filter(id => id !== "type_doc_broker_api_token")
+            : head;
+
+        return [...finalHead, ...tail];
+    }, [isBulkEnabled, isVip, isAnotherBroker]);
 
 
     /** «Чистые» названия без нумерации  */

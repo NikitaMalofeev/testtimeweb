@@ -87,6 +87,8 @@ const persistConfig = getPersistConfig({
         'riskProfile.passportFormData',
         'riskProfile.legalFormData',
         'riskProfile.legalConfirmData',
+        //сбрасывать при логауте
+        'riskProfile.isAnotherBroker',
 
         // 'payments.tariffs',
         // 'payments.currentUserTariffIdForPayments',

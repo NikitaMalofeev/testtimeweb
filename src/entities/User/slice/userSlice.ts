@@ -5,6 +5,7 @@ import { getAllCountryCodes, getAllUserInfo, getUserPersonalAccountInfo, userLog
 import { setError } from "entities/Error/slice/errorSlice";
 import { RootState } from "app/providers/store/config/store";
 import { setIsWaitingDocumentsVerification } from "entities/Documents/slice/documentsSlice";
+import { resetRiskProfile } from "entities/RiskProfile/slice/riskProfileSlice";
 
 interface UserState {
     is_active: boolean;
@@ -208,6 +209,26 @@ export const getAllCountryCodesThunk = createAsyncThunk<
                 error.response?.data?.message || "Ошибка при получении кодов стран"
             );
         }
+    }
+);
+
+export const logoutUser = createAsyncThunk<
+    void,
+    void,
+    { rejectValue: string }
+>(
+    "user/logoutUser",
+    async (_, { dispatch }) => {
+        // Очищаем localStorage
+        localStorage.removeItem("savedToken");
+        localStorage.removeItem("lastExit");
+        localStorage.removeItem("lastExitSignature");
+
+        // Сбрасываем токен
+        dispatch(setUserToken(""));
+
+        // Сбрасываем riskProfile
+        dispatch(resetRiskProfile());
     }
 );
 

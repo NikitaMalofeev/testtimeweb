@@ -38,7 +38,7 @@ import {
     postSecondRiskProfileFinal,
     postTrustedPersonInfoApi
 } from "entities/RiskProfile/api/riskProfileApi";
-import { setUserId, setUserIsActive, setUserToken, updateUserAllData } from "entities/User/slice/userSlice";
+import { setUserId, setUserIsActive, setUserToken, updateUserAllData, logoutUser } from "entities/User/slice/userSlice";
 import { setConfirmationEmailSuccess, setConfirmationPhoneSuccess, setConfirmationStatusSuccess, setConfirmationWhatsappSuccess, setTooltipActive, setWarning } from "entities/ui/Ui/slice/uiSlice";
 import { setError } from "entities/Error/slice/errorSlice";
 import { RootState } from "app/providers/store/config/store";
@@ -67,7 +67,8 @@ interface RiskProfileFormState {
     legalConfirmData: LegalConfirmData | null;
     currentConfirmingDoc: string;
     pasportScanSocketId: string;
-    pasportScanProgress: number
+    pasportScanProgress: number;
+    isAnotherBroker: boolean;
 }
 
 const initialState: RiskProfileFormState = {
@@ -113,7 +114,8 @@ const initialState: RiskProfileFormState = {
     },
     currentConfirmingDoc: 'type_doc_passport',
     pasportScanSocketId: '',
-    pasportScanProgress: 0
+    pasportScanProgress: 0,
+    isAnotherBroker: false
 };
 
 export const createRiskProfile = createAsyncThunk<
@@ -228,23 +230,30 @@ export const postBrokerApiTokenThunk = createAsyncThunk<
 
             if (response) {
                 if (isOther) {
-                    // Для другого брокера показываем уведомление после успешного ответа
+                    // Устанавливаем флаг для всех брокеров кроме Тинькофф
+                    dispatch(setIsAnotherBroker(true));
+
+                    // Сразу закрываем модалку и редиректим
+                    dispatch(closeModal(ModalType.IDENTIFICATION));
+
+                    // Показываем уведомление
                     dispatch(
                         setWarning({
                             active: true,
                             description: "С вами свяжутся для подключения в течение 24 часов",
-                            buttonLabel: "ОК",
+                            buttonLabel: "Ок, перейти к оплате",
                             action: () => {
-
-                                window.location.href = '/payments';
-
                                 dispatch(setWarning({ active: false }));
-                                setTimeout(() => {
-                                    dispatch(closeModal(ModalType.IDENTIFICATION))
-                                }, 1000)
+                                window.location.href = '/lk';
                             },
                         })
                     );
+
+
+                    setTimeout(() => {
+                        dispatch(setWarning({ active: false }));
+                        window.location.href = '/lk';
+                    }, 3000);
                 } else {
                     // Для обычных брокеров (например, Тинькофф)
                     dispatch(
@@ -755,6 +764,15 @@ const riskProfileSlice = createSlice({
         ) => {
             Object.assign(state.legalFormData, action.payload);
         },
+        setIsAnotherBroker: (state, action: PayloadAction<boolean>) => {
+            state.isAnotherBroker = action.payload;
+        },
+        resetRiskProfile: (state) => {
+            return {
+                ...initialState,
+                riskProfileSelectors: state.riskProfileSelectors,
+            };
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -851,6 +869,24 @@ const riskProfileSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload as string;
             })
+            // Сбрасываем рискпрофиль при смене токена пользователя
+            .addCase(setUserToken, (state, action) => {
+                const newToken = action.payload;
+                // Если токен сбросился (logout), сбрасываем весь рискпрофиль
+                if (!newToken) {
+                    return {
+                        ...initialState,
+                        riskProfileSelectors: state.riskProfileSelectors,
+                    };
+                }
+            })
+            // Обработка logout через thunk
+            .addCase(logoutUser.fulfilled, (state) => {
+                return {
+                    ...initialState,
+                    riskProfileSelectors: state.riskProfileSelectors,
+                };
+            })
 
     }
 });
@@ -868,6 +904,8 @@ export const {
     setPassportScanProgress,
     updatePassportFormData,
     setLegalConfirmData,
-    updateLegalFormData
+    updateLegalFormData,
+    setIsAnotherBroker,
+    resetRiskProfile
 } = riskProfileSlice.actions;
 export default riskProfileSlice.reducer;

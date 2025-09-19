@@ -46,6 +46,7 @@ const PersonalAccountMenu: React.FC = () => {
     const token = useSelector((state: RootState) => state.user.token);
     const modalRPState = useSelector((state: RootState) => state.modal.identificationModal);
     const { userDocuments, filledRiskProfileChapters, currentConfirmableDoc, brokerIds, brokersCount } = useSelector((state: RootState) => state.documents);
+    const { isAnotherBroker } = useSelector((state: RootState) => state.riskProfile);
     const pushNotifications = useSelector((state: RootState) => state.push.notifications);
     const activePush = pushNotifications.find((n) => n.active);
     // Используем новое значение unreadAnswersCount вместо personalNewAnswersCount
@@ -148,7 +149,7 @@ const PersonalAccountMenu: React.FC = () => {
             icon: AccountBrokerIcon,
             title: "Брокер",
             action: () => {
-                if (availableMenuItems?.broker && brokersCount === 0) {
+                if (availableMenuItems?.broker && brokersCount === 0 && !isAnotherBroker) {
                     const hasBrokerKey = brokerIds.length > 0;
                     const hasPassport = hasIdentityDocs
                     const hasTariff = hasActiveTariff;
@@ -223,18 +224,19 @@ const PersonalAccountMenu: React.FC = () => {
                     }
                 }
             },
-            message: brokersCount > 0 && 'подключен',
+            message: (brokersCount > 0 || isAnotherBroker) && 'подключен',
             iconWidth: 28,
             iconHeight: 28,
             warningMessage: (!hasActiveTariff
                 && !hasIdentityDocs
+                && !isAnotherBroker
             ) ? (
                 <div className={styles.warning}>
                     <Icon Svg={WarningIcon} width={16} height={16} />
                     <div>Для подключения заполните документы</div>
                 </div>
             ) : null,
-            disabled: !availableMenuItems?.broker,
+            disabled: !availableMenuItems?.broker || isAnotherBroker,
         },
 
         {

@@ -14,7 +14,7 @@ import { closeAllModals } from 'entities/ui/Modal/slice/modalSlice';
 import { setError } from 'entities/Error/slice/errorSlice';
 import PhoneIcon from 'shared/assets/svg/phone.svg'
 import { Button, ButtonTheme } from 'shared/ui/Button/Button';
-import { setUserToken } from 'entities/User/slice/userSlice';
+import { logoutUser } from 'entities/User/slice/userSlice';
 
 interface HeaderProps {
     currentNotificationsCount?: number;
@@ -31,10 +31,7 @@ export const Header = ({ currentNotificationsCount, variant }: HeaderProps) => {
     }
 
     const handleLogout = () => {
-        localStorage.removeItem("savedToken");
-        localStorage.removeItem("lastExit");
-        localStorage.removeItem("lastExitSignature");
-        dispatch(setUserToken(""));
+        dispatch(logoutUser() as any);
         navigate("/");
         window.scrollTo({ top: 0, behavior: "smooth" });
     };

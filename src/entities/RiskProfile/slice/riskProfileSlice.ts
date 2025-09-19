@@ -224,36 +224,43 @@ export const postBrokerApiTokenThunk = createAsyncThunk<
     async ({ data, onSuccess, isOther = false }, { dispatch, rejectWithValue, getState }) => {
         try {
             const token = getState().user.token;
-
-            if (isOther) {
-                // Для другого брокера показываем уведомление
-                dispatch(
-                    setWarning({
-                        active: true,
-                        description: "С вами свяжутся для подключения в течение 24 часов",
-                        buttonLabel: "ОК",
-                        action: () => {
-                            window.location.href = '/payments';
-                            dispatch(setWarning({ active: false }));
-                        },
-                    })
-                );
-                return;
-            }
-
             const response = await postBrokerApiToken(data, token);
+
             if (response) {
-                dispatch(
-                    setBrokerSuccessResponseInfo({
-                        brokerId: response.broker_id,
-                        notSignedDocBroker: response.not_signed_doc_broker,
-                    })
-                );
-                onSuccess();
+                if (isOther) {
+                    // Для другого брокера показываем уведомление после успешного ответа
+                    dispatch(
+                        setWarning({
+                            active: true,
+                            description: "С вами свяжутся для подключения в течение 24 часов",
+                            buttonLabel: "ОК",
+                            action: () => {
+
+                                window.location.href = '/payments';
+
+                                dispatch(setWarning({ active: false }));
+                                setTimeout(() => {
+                                    dispatch(closeModal(ModalType.IDENTIFICATION))
+                                }, 1000)
+                            },
+                        })
+                    );
+                } else {
+                    // Для обычных брокеров (например, Тинькофф)
+                    dispatch(
+                        setBrokerSuccessResponseInfo({
+                            brokerId: response.broker_id,
+                            notSignedDocBroker: response.not_signed_doc_broker,
+                        })
+                    );
+                    onSuccess();
+                }
             }
         } catch (error: any) {
             if (error.response.data.token) {
                 dispatch(setError(error.response.data.token));
+            } else if (error.response.data.broker) {
+                dispatch(setError(error.response.data.broker));
             } else {
                 dispatch(
                     setWarning({

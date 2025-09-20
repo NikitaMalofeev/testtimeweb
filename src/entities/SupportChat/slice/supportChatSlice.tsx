@@ -1,6 +1,6 @@
 // entities/SupportChat/slice/supportChatSlice.ts
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { getAllQuestions, getGroupWs, getWebSocketUrl, getChatSettings } from "../api/supportChatApi";
+import { getAllQuestions, getGroupWs, getWebSocketUrl, getChatSettings, getChatNotifications } from "../api/supportChatApi";
 import { RootState } from "app/providers/store/config/store";
 import { ChatMessage } from "../model/chatModel";
 import axios from "axios";
@@ -24,17 +24,27 @@ interface SupportChatState {
     isWsConnected: boolean;
     unreadAnswersCount: number;
     chatSettings: ChatSettings | null;
+    chatNotifications: ChatMessage[];
 }
 
 const initialState: SupportChatState = {
     websocketId: "",
-    messages: [],
+    messages: [
+        {
+            id: -1,
+            text: "Пожалуйста, кратко опишите вашу проблему, чтобы мы могли оперативно её решить.\n\nЕсли вы отправляете файлы, добавьте к ним комментарий — это поможет нам быстрее разобраться с вашим запросом. Спасибо!",
+            created: new Date().toISOString(),
+            is_answer: true,
+            user_id: 0,
+        }
+    ],
     loading: false,
     error: null,
     success: false,
     isWsConnected: false,
     unreadAnswersCount: 0,
     chatSettings: null,
+    chatNotifications: [],
 };
 
 // --------------------------------------------------
@@ -226,6 +236,20 @@ export const fetchChatSettings = createAsyncThunk<
     }
 });
 
+export const fetchChatNotifications = createAsyncThunk<
+    ChatMessage[],
+    void,
+    { rejectValue: string; state: RootState }
+>("supportChat/fetchChatNotifications", async (_, { rejectWithValue, getState }) => {
+    try {
+        const token = getState().user.token;
+        const response = await getChatNotifications(token);
+        return response;
+    } catch (error: any) {
+        return rejectWithValue(error.response?.data?.message || "Ошибка получения уведомлений чата");
+    }
+});
+
 export const closeWebSocketConnection = createAsyncThunk<
     void,
     void,
@@ -305,7 +329,16 @@ export const supportChatSlice = createSlice({
             state.websocketId = action.payload;
         },
         setMessages: (state, action: PayloadAction<ChatMessage[]>) => {
-            state.messages = action.payload ?? [];
+            const defaultMessage = {
+                id: -1,
+                text: "Пожалуйста, кратко опишите вашу проблему, чтобы мы могли оперативно её решить.\n\nЕсли вы отправляете файлы, добавьте к ним комментарий — это поможет нам быстрее разобраться с вашим запросом. Спасибо!",
+                created: new Date().toISOString(),
+                is_answer: true,
+                user_id: 0,
+            };
+            const messages = action.payload ?? [];
+            // Добавляем дефолтное сообщение в конец массива, чтобы оно было первым при отображении
+            state.messages = [...messages, defaultMessage];
         },
 
         // Универсальный upsert + анти-дубль
@@ -405,6 +438,10 @@ export const supportChatSlice = createSlice({
 
         setChatSettings: (state, action: PayloadAction<ChatSettings>) => {
             state.chatSettings = action.payload;
+        },
+
+        setChatNotifications: (state, action: PayloadAction<ChatMessage[]>) => {
+            state.chatNotifications = action.payload ?? [];
         },
 
         // Optimistic update — добавляем сразу с blob-URL и меткой optimistic
@@ -586,11 +623,23 @@ export const supportChatSlice = createSlice({
             .addCase(fetchChatSettings.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
+            })
+            .addCase(fetchChatNotifications.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchChatNotifications.fulfilled, (state, action) => {
+                state.loading = false;
+                state.chatNotifications = action.payload;
+            })
+            .addCase(fetchChatNotifications.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
             });
     },
 });
 
-export const { setWebsocketId, setMessages, addMessage, setUnreadAnswersCount, addOptimisticMessage, setChatSettings } =
+export const { setWebsocketId, setMessages, addMessage, setUnreadAnswersCount, addOptimisticMessage, setChatSettings, setChatNotifications } =
     supportChatSlice.actions;
 
 export default supportChatSlice.reducer;

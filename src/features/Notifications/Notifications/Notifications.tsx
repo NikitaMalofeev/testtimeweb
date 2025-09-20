@@ -1,4 +1,4 @@
-    import React from 'react';
+    import React, { useEffect } from 'react';
     import { useNavigate } from 'react-router-dom';
     import { useSelector } from 'react-redux';
 
@@ -20,17 +20,24 @@
         updateAllNotificationsThunk,
     } from 'entities/Notification/slice/notificationSlice';
 
+    import { fetchChatNotifications } from 'entities/SupportChat/slice/supportChatSlice';
+
     import { NotificationCard } from '../NotificationCard/NotificationCard';
 
     export const Notifications: React.FC = () => {
         const navigate = useNavigate();
         const dispatch = useAppDispatch();
 
-        const { unreadAnswersCount } = useSelector((s: RootState) => s.supportChat);
+        const { unreadAnswersCount, chatNotifications } = useSelector((s: RootState) => s.supportChat);
         const notifications = useSelector((state: RootState) => selectNotifications(state));
 
         const unreadCount = notifications.filter((n) => !n.is_read).length;
-        const allNotificationsCount = unreadAnswersCount + unreadCount;
+        const chatNotificationsCount = chatNotifications.length;
+        const allNotificationsCount = unreadAnswersCount + unreadCount + chatNotificationsCount;
+
+        useEffect(() => {
+            dispatch(fetchChatNotifications());
+        }, [dispatch]);
 
         const handleMarkAllRead = () => {
             const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id);
@@ -50,6 +57,11 @@
             dispatch(deactivateNotification({ id }));
             dispatch(updateAllNotificationsThunk({ is_read: false, id: id, edit_is_read: true }));
             // Запроса на бэк нет — эндпоинт одиночные не поддерживает
+        };
+
+        const handleChatNotificationClick = (id: number) => {
+            // Переход в чат поддержки при клике на уведомление чата
+            navigate('/support');
         };
 
         return (
@@ -78,6 +90,22 @@
                 </div>
 
                 <div className={styles.notifications__content}>
+                    {/* Уведомления чата */}
+                    {chatNotifications.map((chatMsg) => (
+                        <NotificationCard
+                            key={`chat-${chatMsg.id}`}
+                            id={chatMsg.id?.toString() || ''}
+                            title="Новое сообщение в чате поддержки"
+                            text={chatMsg.text || 'Получено новое сообщение от службы поддержки'}
+                            color="blue"
+                            date={chatMsg.created || ''}
+                            isActive={true}
+                            isRead={false}
+                            onClick={() => handleChatNotificationClick(chatMsg.id || 0)}
+                        />
+                    ))}
+
+                    {/* Обычные уведомления */}
                     {notifications.map((n) => (
                         <NotificationCard
                             key={n.id}

@@ -684,13 +684,13 @@ export const SupportChat = () => {
     }
   }, [messages]);
 
-  // Сбрасываем счётчик непрочитанных через 5 сек
+  // Сбрасываем счётчик непрочитанных через 2 сек
   useEffect(() => {
     const timer = setTimeout(() => {
       const currentAnswerCount = messages.filter((m) => m.is_answer).length;
       localStorage.setItem("chatAnswerCount", String(currentAnswerCount));
       dispatch(setUnreadAnswersCount(0));
-    }, 5000);
+    }, 2000);
     return () => clearTimeout(timer);
   }, [messages, dispatch]);
 

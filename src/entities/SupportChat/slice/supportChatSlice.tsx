@@ -1,6 +1,6 @@
 // entities/SupportChat/slice/supportChatSlice.ts
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { getAllQuestions, getGroupWs, getWebSocketUrl, getChatSettings, getChatNotifications } from "../api/supportChatApi";
+import { getAllQuestions, getGroupWs, getWebSocketUrl, getChatSettings } from "../api/supportChatApi";
 import { RootState } from "app/providers/store/config/store";
 import { ChatMessage } from "../model/chatModel";
 import axios from "axios";
@@ -24,7 +24,6 @@ interface SupportChatState {
     isWsConnected: boolean;
     unreadAnswersCount: number;
     chatSettings: ChatSettings | null;
-    chatNotifications: ChatMessage[];
 }
 
 const initialState: SupportChatState = {
@@ -44,7 +43,6 @@ const initialState: SupportChatState = {
     isWsConnected: false,
     unreadAnswersCount: 0,
     chatSettings: null,
-    chatNotifications: [],
 };
 
 // --------------------------------------------------
@@ -236,19 +234,7 @@ export const fetchChatSettings = createAsyncThunk<
     }
 });
 
-export const fetchChatNotifications = createAsyncThunk<
-    ChatMessage[],
-    void,
-    { rejectValue: string; state: RootState }
->("supportChat/fetchChatNotifications", async (_, { rejectWithValue, getState }) => {
-    try {
-        const token = getState().user.token;
-        const response = await getChatNotifications(token);
-        return response;
-    } catch (error: any) {
-        return rejectWithValue(error.response?.data?.message || "Ошибка получения уведомлений чата");
-    }
-});
+
 
 export const closeWebSocketConnection = createAsyncThunk<
     void,
@@ -440,10 +426,6 @@ export const supportChatSlice = createSlice({
             state.chatSettings = action.payload;
         },
 
-        setChatNotifications: (state, action: PayloadAction<ChatMessage[]>) => {
-            state.chatNotifications = action.payload ?? [];
-        },
-
         // Optimistic update — добавляем сразу с blob-URL и меткой optimistic
         addOptimisticMessage: (state, action: PayloadAction<{ text: string; fileDescription?: string; files?: File[] }>) => {
             const { text, fileDescription, files } = action.payload;
@@ -623,23 +605,11 @@ export const supportChatSlice = createSlice({
             .addCase(fetchChatSettings.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
-            })
-            .addCase(fetchChatNotifications.pending, (state) => {
-                state.loading = true;
-                state.error = null;
-            })
-            .addCase(fetchChatNotifications.fulfilled, (state, action) => {
-                state.loading = false;
-                state.chatNotifications = action.payload;
-            })
-            .addCase(fetchChatNotifications.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.payload as string;
             });
     },
 });
 
-export const { setWebsocketId, setMessages, addMessage, setUnreadAnswersCount, addOptimisticMessage, setChatSettings, setChatNotifications } =
+export const { setWebsocketId, setMessages, addMessage, setUnreadAnswersCount, addOptimisticMessage, setChatSettings } =
     supportChatSlice.actions;
 
 export default supportChatSlice.reducer;

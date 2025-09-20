@@ -147,16 +147,4 @@ export const getChatSettings = async (token: string) => {
     return response.data;
 };
 
-// Функция для получения уведомлений чата (непрочитанные ответы поддержки)
-export const getChatNotifications = async (token: string) => {
-    const response = await axios.get(
-        `${apiUrl}user_lk/get_all_question/?is_answer=true&is_read=true`,
-        {
-            headers: {
-                "Accept-Language": "ru",
-                "Authorization": `Token ${token}`,
-            },
-        }
-    );
-    return response.data;
-};
+

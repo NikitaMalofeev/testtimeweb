@@ -79,6 +79,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     const lockToLoading = useSelector((s: RootState) => s.payments.lockToLoading);
     const balance = useSelector((s: RootState) => s.payments.balance);
     const activeTariff = useSelector((s: RootState) => s.payments.activeTariffs?.[0]);
+    const isAnotherBroker = useSelector((s: RootState) => s.riskProfile.isAnotherBroker);
     const isConfirming = useSelector((s: RootState) => s.payments.isConfirming);
 
     const tariffsRequestedRef = useRef(false);
@@ -214,22 +215,26 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
 
     const handleSetTariff = useCallback(() => {
         dispatch(closeModal(ModalType.SUCCESS));
-        if (brokersCount < 1) {
-            dispatch(
-                setWarning({
-                    active: true,
-                    description: 'Для оплаты тарифа пожалуйста подпишите все документы и подключите брокерский счёт',
-                    buttonLabel: 'Перейти к заполнению',
-                    action: () => {
-                        dispatch(closeAllModals());
-                        navigate('/documents');
-                    },
-                }),
-            );
+        if (isAnotherBroker) {
+            handleConfirmPayment()
         } else {
-            setIsDetailsOpen(true);
-
+            if (brokersCount < 1) {
+                dispatch(
+                    setWarning({
+                        active: true,
+                        description: 'Для оплаты тарифа пожалуйста подпишите все документы и подключите брокерский счёт',
+                        buttonLabel: 'Перейти к заполнению',
+                        action: () => {
+                            dispatch(closeAllModals());
+                            navigate('/documents');
+                        },
+                    }),
+                );
+            } else {
+                setIsDetailsOpen(true);
+            }
         }
+
     }, [dispatch, brokersCount, navigate]);
 
     useEffect(() => {
@@ -340,22 +345,25 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                         exit={{ y: 100, opacity: 0 }}
                         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     >
-                        <Select
-                            items={brokersItems}
-                            value={formik.values.broker_id}
-                            onChange={(val) => {
-                                formik.setFieldValue('broker_id', val);
-                            }}
-                            noMargin
-                            needValue
-                            hideArrow
-                            title="Выберите брокера для подключения тарифа"
-                            label="Брокерский счёт для подключения тарифа"
-                        />
+                        {!isAnotherBroker && (
+                            <Select
+                                items={brokersItems}
+                                value={formik.values.broker_id}
+                                onChange={(val) => {
+                                    formik.setFieldValue('broker_id', val);
+                                }}
+                                noMargin
+                                needValue
+                                hideArrow
+                                title="Выберите брокера для подключения тарифа"
+                                label="Брокерский счёт для подключения тарифа"
+                            />
+                        )}
+
 
 
                         <Button
-                            disabled={!formik.values.broker_id}
+                            disabled={!isAnotherBroker ? !formik.values.broker_id : false}
                             theme={ButtonTheme.BLUE}
                             className={styles.button}
                             padding="10px 25px"

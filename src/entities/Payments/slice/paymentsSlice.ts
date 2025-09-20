@@ -622,11 +622,9 @@ export const paymentsSlice = createSlice({
             })
 
             /** Очистка paidTariffKeys при смене токена пользователя */
-            .addCase(setUserToken, (state, { payload }) => {
-                // Если новый токен отличается от текущего, очищаем оплаченные ключи тарифов
-                if (payload !== state.paidTariffKeys && payload) {
-                    state.paidTariffKeys = {};
-                }
+            .addCase(setUserToken, (state) => {
+                // Очищаем оплаченные ключи тарифов при смене пользователя
+                state.paidTariffKeys = {};
             });
     },
 });

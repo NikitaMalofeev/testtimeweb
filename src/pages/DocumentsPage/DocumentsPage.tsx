@@ -359,6 +359,9 @@ const DocumentsPage: React.FC = () => {
                 if (isDocSigned && !hasTariff) {
                     // Документ подписан, но тариф не оплачен - переходим к оплате
                     navigate('/payments');
+                } else if (isAnotherBroker && !hasTariff) {
+                    navigate('/payments');
+                    return
                 } else if (isTariffSigned) {
                     // Тариф уже подписан - переходим к оплате
                     navigate('/payments');
@@ -867,17 +870,32 @@ const DocumentsPage: React.FC = () => {
                         } else if (doc.id === "type_doc_RP_questionnairy") {
                             buttonText = filledRiskProfileChapters.is_risk_profile_complete_final ? "Подписать" : "Заполнить";
                         } else if (isAdvisorAgreement) {
-                            if (hasTariffAttempt) {
-                                buttonText = 'Оплатить';
-                            } else if (isTariffSigned) {
-                                // Если тариф уже подписан - показываем "Оплатить"
-                                buttonText = 'Оплатить';
+                            if (isAnotherBroker) {
+                                if (hasTariffAttempt) {
+                                    buttonText = 'Оплатить';
+                                } else if (isTariffSigned) {
+                                    // Если тариф уже подписан - показываем "Оплатить"
+                                    buttonText = 'Оплатить';
+                                } else {
+                                    buttonText =
+                                        !hasTariff
+                                            ? 'Подключить'
+                                            : 'Подписать';
+                                }
                             } else {
-                                buttonText =
-                                    !hasTariff && paidTariffKeys !== null
-                                        ? 'Подписать'
-                                        : 'Подключить';
+                                if (hasTariffAttempt) {
+                                    buttonText = 'Оплатить';
+                                } else if (isTariffSigned) {
+                                    // Если тариф уже подписан - показываем "Оплатить"
+                                    buttonText = 'Оплатить';
+                                } else {
+                                    buttonText =
+                                        !hasTariff && paidTariffKeys !== null
+                                            ? 'Подписать'
+                                            : 'Подключить';
+                                }
                             }
+
                         }
 
                         const showSuccess =

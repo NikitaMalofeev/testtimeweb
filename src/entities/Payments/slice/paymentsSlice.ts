@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from 'app/providers/store/config/store';
 import { setError } from 'entities/Error/slice/errorSlice';
+import { setUserToken } from 'entities/User/slice/userSlice';
 import {
     calculateProfitability,
     checkConfirmationCodeTariff,
@@ -618,6 +619,14 @@ export const paymentsSlice = createSlice({
             /** NEW: сохранить полученный баланс */
             .addCase(getBrokerBalanceThunk.fulfilled, (state, { payload }) => {
                 state.balance = payload;
+            })
+
+            /** Очистка paidTariffKeys при смене токена пользователя */
+            .addCase(setUserToken, (state, { payload }) => {
+                // Если новый токен отличается от текущего, очищаем оплаченные ключи тарифов
+                if (payload !== state.paidTariffKeys && payload) {
+                    state.paidTariffKeys = {};
+                }
             });
     },
 });

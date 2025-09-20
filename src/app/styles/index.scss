@@ -77,13 +77,14 @@ body {
 html::-webkit-scrollbar,
 body::-webkit-scrollbar,
 *::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
+
 }
 
 html::-webkit-scrollbar-track,
 body::-webkit-scrollbar-track,
 *::-webkit-scrollbar-track {
-  
+  background: #b0b9c6;
 }
 
 html::-webkit-scrollbar-thumb,

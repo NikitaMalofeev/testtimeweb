@@ -448,7 +448,7 @@ export const postPasportScanThunk = createAsyncThunk<
 
             if (errorText && errorText.trim() === 'Сканы уже загружены. Для изменения сканов обратитесь в поддержку') {
                 dispatch(setError(errorText));
-            } else {
+            } else if (errorText && errorText.trim()) {
                 dispatch(setError(errorText, 'pasportScan'));
             }
         }
@@ -480,7 +480,7 @@ export const postINNScanThunk = createAsyncThunk<
 
             if (errorText && errorText.trim() === 'Сканы уже загружены. Для изменения сканов обратитесь в поддержку') {
                 dispatch(setError(errorText));
-            } else {
+            } else if (errorText && errorText.trim()) {
                 dispatch(setError(errorText, 'pasportScan'));
             }
         }

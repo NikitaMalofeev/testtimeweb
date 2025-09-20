@@ -1,5 +1,6 @@
 import React from 'react';
 import styles from './styles.module.scss';
+import { renderParsedText } from 'shared/lib/parseHtmlLinks';
 
 export type NotificationStatus = 'unread' | 'read' | 'archived';
 export type NotificationColor = 'red' | 'blue' | 'green';
@@ -64,7 +65,10 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({
                             color === 'blue' ? '' : color === 'green' ? '#52C41733' : '#FF405333',
                     }}
                 >
-                    {text}
+                    {renderParsedText(text, {
+                        color: '#1890ff',
+                        textDecoration: 'underline'
+                    })}
                 </div>
             )}
         </div >

@@ -8,6 +8,7 @@ import { Input } from "shared/ui/Input/Input";
 import ArrowBack from "shared/assets/svg/ArrowBack.svg";
 import ChatSendIcon from "shared/assets/svg/ChatSendIcon.svg";
 import styles from "./styles.module.scss";
+import { renderParsedText } from "shared/lib/parseHtmlLinks";
 import { RootState } from "app/providers/store/config/store";
 import { ChatMessage } from "entities/SupportChat/model/chatModel";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
@@ -443,7 +444,10 @@ export const UserMessage = ({ message, token }: { message: ChatMessage; token?: 
           )}
           {fileDescription && (
             <p className={`${styles.message__message_user} ${isOptimistic ? styles.message__sending_text : ''} ${hasError ? styles.message__error_text : ''}`} style={{ marginBottom: files.length > 0 ? '0' : '0' }}>
-              {fileDescription}
+              {renderParsedText(fileDescription, {
+                color: '#1890ff',
+                textDecoration: 'underline'
+              })}
             </p>
           )}
         </div>
@@ -451,7 +455,10 @@ export const UserMessage = ({ message, token }: { message: ChatMessage; token?: 
 
       {message.text && (
         <p className={`${styles.message__message_user} ${isOptimistic ? styles.message__sending_text : ''} ${hasError ? styles.message__error_text : ''}`}>
-          {message.text}
+          {renderParsedText(message.text, {
+            color: '#1890ff',
+            textDecoration: 'underline'
+          })}
         </p>
       )}
     </div>
@@ -469,7 +476,14 @@ export const SupportMessage = ({ message, highlight, token }: { message: ChatMes
         {formatDateTime(message.created)}
         {highlight && <div className={styles.highlight}></div>}
       </span>
-      {message.text ? <p className={styles.message__message_support}>{message.text}</p> : null}
+      {message.text ? (
+        <p className={styles.message__message_support}>
+          {renderParsedText(message.text, {
+            color: '#1890ff',
+            textDecoration: 'underline'
+          })}
+        </p>
+      ) : null}
       {fileUrls.length > 0 ? (
         <div className={styles.message__attachment}>
           <div className={styles.message__imageContainer}>

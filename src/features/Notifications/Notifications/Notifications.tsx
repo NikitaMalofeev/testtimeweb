@@ -93,8 +93,8 @@ export const Notifications: React.FC = () => {
                     <NotificationCard
                         key={`chat-${chatMsg.id}`}
                         id={chatMsg.id?.toString() || ''}
-                        title="Новое сообщение в чате поддержки"
-                        text={chatMsg.text || 'Получено новое сообщение от службы поддержки'}
+                        title={'Получено новое сообщение от службы поддержки'}
+                        text={chatMsg.text || chatMsg.text_for_files || 'Получено новое сообщение от службы поддержки'}
                         color="blue"
                         date={chatMsg.created || ''}
                         isActive={true}

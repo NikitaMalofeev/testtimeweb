@@ -142,7 +142,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
 
     // ===== Запрос баланса по первому брокеру (если есть) ✨ ДОБАВЛЕНО
     useEffect(() => {
-        if (brokerIds?.length > 0 && brokerIds[0]) {
+        if (brokerIds?.length > 0 && brokerIds[0] && !isAnotherBroker) {
             dispatch(getBrokerBalanceThunk({ broker_id: brokerIds[0] }));
         }
     }, [brokerIds, dispatch]);
@@ -345,20 +345,18 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                         exit={{ y: 100, opacity: 0 }}
                         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     >
-                        {!isAnotherBroker && (
-                            <Select
-                                items={brokersItems}
-                                value={formik.values.broker_id}
-                                onChange={(val) => {
-                                    formik.setFieldValue('broker_id', val);
-                                }}
-                                noMargin
-                                needValue
-                                hideArrow
-                                title="Выберите брокера для подключения тарифа"
-                                label="Брокерский счёт для подключения тарифа"
-                            />
-                        )}
+                        <Select
+                            items={brokersItems}
+                            value={formik.values.broker_id}
+                            onChange={(val) => {
+                                formik.setFieldValue('broker_id', val);
+                            }}
+                            noMargin
+                            needValue
+                            hideArrow
+                            title="Выберите брокера для подключения тарифа"
+                            label="Брокерский счёт для подключения тарифа"
+                        />
 
 
 

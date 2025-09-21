@@ -283,7 +283,7 @@ export const confirmTariffRequestThunk = createAsyncThunk<
         } catch (error: any) {
             dispatch(setConfirmationDocsSuccess("не пройдено"));
             const msg = error.response?.data?.errorText;
-            dispatch(setError(msg));
+            if (msg.length > 0) { dispatch(setError(msg)); }
         }
     }
 );
@@ -325,7 +325,7 @@ export const confirmDocsRequestThunk = createAsyncThunk<
         } catch (error: any) {
             dispatch(setConfirmationDocsSuccess("не пройдено"));
             const msg = error.response?.data?.errorText;
-            dispatch(setError(msg));
+            if (msg.length > 0) { dispatch(setError(msg)); }
         }
     }
 );
@@ -421,7 +421,7 @@ export const sendDocsConfirmationCode = createAsyncThunk<
         } catch (error: any) {
             dispatch(setConfirmationDocsSuccess("не пройдено"));
             const msg = error.response?.data?.errorText;
-            dispatch(setError(msg));
+            if (msg.length > 0) { dispatch(setError(msg)); }
         }
     }
 );
@@ -445,7 +445,7 @@ export const sendDocsConfirmationAllDocuments = createAsyncThunk<
             dispatch(setConfirmationDocsSuccess("не пройдено"));
             onError();
             const msg = error.response?.data?.errorText;
-            dispatch(setError(msg));
+            if (msg.length > 0) { dispatch(setError(msg)); }
         }
     }
 );
@@ -467,7 +467,7 @@ export const sendDocsConfirmationCodeLegal = createAsyncThunk<
         } catch (error: any) {
             dispatch(setConfirmationDocsSuccess("не пройдено"));
             const msg = error.response?.data?.errorText;
-            dispatch(setError(msg));
+            if (msg.length > 0) { dispatch(setError(msg)); }
         }
     }
 );
@@ -485,7 +485,7 @@ export const sendCustomDocsConfirmationCode = createAsyncThunk<
         } catch (error: any) {
             dispatch(setConfirmationDocsSuccess("не пройдено"));
             const msg = error.response?.data?.errorText;
-            dispatch(setError(msg));
+            if (msg.length > 0) { dispatch(setError(msg)); }
         }
     }
 );
@@ -547,7 +547,7 @@ export const getUserDocumentsStateThunk = createAsyncThunk<
         dispatch(setUserDocuments(mergedDocs));
     } catch (error: any) {
         const msg = error.response?.data?.errorText;
-        dispatch(setError(msg));
+        if (msg.length > 0) { dispatch(setError(msg)); }
     }
 });
 
@@ -563,7 +563,7 @@ export const getUserDocumentsInfoThunk = createAsyncThunk<
         dispatch(setUserPasportData(response));
     } catch (error: any) {
         const msg = error.response?.data?.errorText;
-        dispatch(setError(msg));
+        if (msg.length > 0) { dispatch(setError(msg)); }
     }
 });
 
@@ -588,7 +588,7 @@ export const getUserDocumentsNotSignedThunk = createAsyncThunk<
         }
     } catch (error: any) {
         const msg = error.response?.data?.errorText ?? error.message;
-        dispatch(setError(msg));
+        if (msg.length > 0) { dispatch(setError(msg)); }
         return rejectWithValue(msg);
     }
 });
@@ -626,7 +626,7 @@ export const getUserDocumentNotSignedThunk = createAsyncThunk<
             dispatch(setNotSignedDocumentsHtmls({ [docId]: htmlString }));
         } catch (err: any) {
             const msg = err.response?.data?.errorText ?? err.message;
-            dispatch(setError(msg));
+            if (msg.length > 0) { dispatch(setError(msg)); }
             return rejectWithValue(msg);
         }
     }
@@ -680,7 +680,7 @@ export const getBrokerDocumentsSignedThunk = createAsyncThunk<
             return pdfBytes;
         } catch (error: any) {
             const msg = error.response?.request?.errorText || "Брокер не подтвержден. Обратитесь в поддержку";
-            dispatch(setError(msg));
+            if (msg.length > 0) { dispatch(setError(msg)); }
             return rejectWithValue(msg);
         }
     }
@@ -721,7 +721,7 @@ export const getAllCustomDocumentUserThunk = createAsyncThunk<
         dispatch(setCustomDocumentsUser(response.data || []));
     } catch (error: any) {
         const msg = error.response?.data?.errorText || "Ошибка при получении списка кастомных документов";
-        dispatch(setError(msg));
+        if (msg.length > 0) { dispatch(setError(msg)); }
         return rejectWithValue(msg);
     }
 });
@@ -742,7 +742,7 @@ export const confirmCustomDocumentUserThunk = createAsyncThunk<
             return response;
         } catch (error: any) {
             const msg = error.response?.data?.errorText || "Ошибка при подписании документа";
-            dispatch(setError(msg));
+            if (msg.length > 0) { dispatch(setError(msg)); }
             return rejectWithValue(msg);
         }
     }
@@ -768,7 +768,7 @@ export const checkConfirmationCodeUserThunk = createAsyncThunk<
             return response;
         } catch (error: any) {
             const msg = error.response?.data?.errorText || "Ошибка при проверке кода подтверждения";
-            dispatch(setError(msg));
+            if (msg.length > 0) { dispatch(setError(msg)); }
             return rejectWithValue(msg);
         }
     }
@@ -794,7 +794,7 @@ export const getSignedCustomDocumentUserThunk = createAsyncThunk<
             return pdfBytes;
         } catch (error: any) {
             const msg = error.response?.data?.errorText || "Ошибка при получении подписанного документа";
-            dispatch(setError(msg));
+            if (msg.length > 0) { dispatch(setError(msg)); }
             return rejectWithValue(msg);
         }
     }
@@ -821,7 +821,7 @@ export const getUserNotSignedDocumentHtmlThunk = createAsyncThunk<
             return response;
         } catch (error: any) {
             const msg = error.response?.data?.errorText || "Ошибка при получении HTML документа";
-            dispatch(setError(msg));
+            if (msg.length > 0) { dispatch(setError(msg)); }
             return rejectWithValue(msg);
         }
     }

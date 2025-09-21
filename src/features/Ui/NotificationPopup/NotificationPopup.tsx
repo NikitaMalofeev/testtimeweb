@@ -56,6 +56,12 @@ export const NotificationPopup: React.FC = () => {
         dispatch(deactivateNotification({ id: current.id }));
     };
 
+    useEffect(() => {
+        if (current?.text?.trim()) {
+            dispatch(deactivateNotification({ id: current.id }));
+        }
+    }, [current])
+
     const bg =
         (current?.color === 'blue' && '#C3D7F5') ||
         (current?.color === 'green' && '#dcf3d1') ||

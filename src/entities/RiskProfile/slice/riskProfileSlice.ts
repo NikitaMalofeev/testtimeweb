@@ -150,7 +150,7 @@ export const createRiskProfile = createAsyncThunk<
 
             if (error.response.status === 502) {
                 const msg = "Ошибка сервера. Пожалуйста, повторите попытку";
-                dispatch(setError(msg));
+                if (msg.length > 0) { dispatch(setError(msg)); }
                 return rejectWithValue(msg);
             }
             if (error.response.data.password) {
@@ -604,7 +604,7 @@ export const sendPhoneConfirmationCode = createAsyncThunk<
                 } else {
                     const msg =
                         responsePhone.data?.errorText
-                    dispatch(setError(msg));
+                    if (msg.length > 0) { dispatch(setError(msg)); }
                     onSuccess?.(responsePhone);
                 }
             }
@@ -612,7 +612,7 @@ export const sendPhoneConfirmationCode = createAsyncThunk<
             dispatch(setConfirmationPhoneSuccess('не пройдено'));
             const msg =
                 error.response.data?.errorText
-            dispatch(setError(msg));
+            if (msg.length > 0) { dispatch(setError(msg)); }
         }
     }
 );
@@ -640,7 +640,7 @@ export const sendEmailConfirmationCode = createAsyncThunk<
             dispatch(setConfirmationEmailSuccess('не пройдено'));
             const msg =
                 error.response.data?.errorText
-            dispatch(setError(msg));
+            if (msg.length > 0) { dispatch(setError(msg)); }
         }
     }
 );

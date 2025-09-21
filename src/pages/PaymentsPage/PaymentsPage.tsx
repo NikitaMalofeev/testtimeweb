@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import styles from "./styles.module.scss";
 import { Icon } from "shared/ui/Icon/Icon";
 import BackIcon from "shared/assets/svg/ArrowBack.svg";
@@ -13,6 +13,7 @@ import { closeModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalType } from "entities/ui/Modal/model/modalTypes";
 import { useDevice } from "shared/hooks/useDevice";
 import { resetTariffSelection } from "entities/Payments/slice/paymentsSlice";
+import { Button, ButtonTheme } from "shared/ui/Button/Button";
 
 
 const PaymentsPage: React.FC = () => {
@@ -23,8 +24,15 @@ const PaymentsPage: React.FC = () => {
     const [isPaid, setIsPaid] = useState<boolean>(false)
     const paymentStatus = useSelector((state: RootState) => state.payments.currentOrderStatus)
     const currentPaidTariffs = useSelector((s: RootState) => s.payments.paidTariffKeys)
+    const paidTariffs = useSelector((s: RootState) => s.payments.paidTariffKeys)
+    const activeTariffs = useSelector((s: RootState) => s.payments.activeTariffs)
     const currentOrderId = useSelector((s: RootState) => s.payments.currentOrderId)
-
+    const { pathname } = useLocation();
+    const handleOpenPayment = () => {
+        if (activeTariffs.length > 0) {
+            navigate('/payments/loading');
+        }
+    }
 
     // useEffect(() => {
     //     if (currentPaidTsfdfariffs !== null) {
@@ -86,6 +94,15 @@ const PaymentsPage: React.FC = () => {
                     </div>
                 )}
                 <Payments isPaid={(value) => setIsPaid(value)} />
+                {activeTariffs.length > 0 && pathname !== '/payments/loading' && (
+                    <Button
+                        className={styles.payment}
+                        theme={ButtonTheme.BLUE}
+                        onClick={handleOpenPayment}
+                    >
+                        Оплатить тариф
+                    </Button>
+                )}
             </div>
             <DocumentPreviewModal
                 isOpen={documentPreview.isOpen}

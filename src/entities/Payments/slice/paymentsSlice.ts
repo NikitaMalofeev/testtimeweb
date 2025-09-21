@@ -191,7 +191,7 @@ export const createOrderThunk = createAsyncThunk<
         return response;
     } catch (err: any) {
         const msg = err.response?.data?.info || err.response?.data?.errorText || err.message;
-        dispatch(setError(msg));
+        if (msg.length > 0) { dispatch(setError(msg)); }
         return rejectWithValue(msg);
     }
 });
@@ -224,7 +224,7 @@ export const getAllUserTariffsThunk = createAsyncThunk<
         return response.payments_info;
     } catch (err: any) {
         const msg = err.response?.data?.info || err.message;
-        dispatch(setError(msg));
+        if (msg.length > 0) { dispatch(setError(msg)); }
         return rejectWithValue(msg);
     }
 });
@@ -242,7 +242,7 @@ export const getAllUserChecksThunk = createAsyncThunk<
         return data;
     } catch (err: any) {
         const msg = err.response?.data?.info || err.message;
-        dispatch(setError(msg));
+        if (msg.length > 0) { dispatch(setError(msg)); }
         return rejectWithValue(msg);
     }
 });
@@ -277,7 +277,7 @@ export const checkConfirmationCodeTariffThunk = createAsyncThunk<
         onSuccess?.();
     } catch (err: any) {
         const msg = err.response?.data?.errorText || err.message;
-        dispatch(setError(msg));
+        if (msg.length > 0) { dispatch(setError(msg)); }
         return rejectWithValue(msg);
     }
 });
@@ -311,7 +311,7 @@ export const getSignedTariffDocThunk = createAsyncThunk<
         return pdfBytes;
     } catch (err: any) {
         const msg = err.response?.data?.errorText || err.message;
-        dispatch(setError(msg));
+        if (msg.length > 0) { dispatch(setError(msg)); }
         return rejectWithValue(msg);
     }
 });
@@ -328,7 +328,7 @@ export const isSignedTariffThunk = createAsyncThunk<
         return response;
     } catch (err: any) {
         // const msg = err.response?.data?.errorText || err.message;
-        // dispatch(setError(msg));
+        // if(msg.length > 0) {dispatch(setError(msg));}
         // return rejectWithValue(msg);
     }
 });
@@ -349,7 +349,7 @@ export const getNotSignedTariffDocThunk = createAsyncThunk<
         );
     } catch (err: any) {
         const msg = err.response?.data?.errorText || err.message;
-        dispatch(setError(msg));
+        if (msg.length > 0) { dispatch(setError(msg)); }
         return rejectWithValue(msg);
     }
 });
@@ -366,7 +366,7 @@ export const signingTariffThunk = createAsyncThunk<
         onSuccess?.();
     } catch (err: any) {
         const msg = err.response?.data?.errorText || err.message;
-        dispatch(setError(msg));
+        if (msg.length > 0) { dispatch(setError(msg)); }
         return rejectWithValue(msg);
     }
 });
@@ -384,7 +384,7 @@ export const getAllTariffsThunk = createAsyncThunk<
         return data;
     } catch (err: any) {
         const msg = err.response?.data?.errorText || err.message;
-        dispatch(setError(msg));
+        if (msg.length > 0) { dispatch(setError(msg)); }
         return rejectWithValue(msg);
     }
 });
@@ -467,7 +467,7 @@ export const getOrderStatusThunk = createAsyncThunk<
         return data;
     } catch (err: any) {
         const msg = err.response?.data?.errorText || err.message;
-        dispatch(setError(msg));
+        if (msg.length > 0) { dispatch(setError(msg)); }
         return rejectWithValue(msg);
     }
 });
@@ -483,7 +483,7 @@ export const robokassaResultThunk = createAsyncThunk<
         return data;
     } catch (err: any) {
         const msg = err.response?.data?.errorText || err.message;
-        dispatch(setError(msg));
+        if (msg.length > 0) { dispatch(setError(msg)); }
         return rejectWithValue(msg);
     }
 });
@@ -505,7 +505,7 @@ export const getBrokerBalanceThunk = createAsyncThunk<
         return data;
     } catch (err: any) {
         const msg = err?.response?.data?.errorText || err?.message || 'Не удалось получить баланс';
-        dispatch(setError(msg));
+        if (msg.length > 0) { dispatch(setError(msg)); }
         return rejectWithValue(msg);
     }
 });

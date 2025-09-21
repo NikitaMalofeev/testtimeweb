@@ -109,6 +109,8 @@ const DocumentsPage: React.FC = () => {
     };
 
     //Логика с подписанием всех документов 
+    const isEmptyObj = (v: unknown): v is Record<string, never> =>
+        v != null && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 0;
 
 
     const normalize = (id: string) => id.replace(/-/g, '');
@@ -355,15 +357,15 @@ const DocumentsPage: React.FC = () => {
                 // Проверяем, подписан ли документ
                 const advisorDoc = userDocuments.find(d => d.key === "type_doc_agreement_investment_advisor_app_1");
                 const isDocSigned = !!advisorDoc?.date_last_confirmed;
-
-                if (isDocSigned && !hasTariff) {
+                if (Object.keys(paidTariffKeys).length > 0) {
+                    navigate('/payments/loading')
+                } else if (isDocSigned && !hasTariff && activeTariffs.length > 0) {
                     // Документ подписан, но тариф не оплачен - переходим к оплате
                     navigate('/payments');
                 } else if (isAnotherBroker && !hasTariff) {
                     navigate('/payments');
                     return
                 } else if (isTariffSigned) {
-                    // Тариф уже подписан - переходим к оплате
                     navigate('/payments');
                 } else if (hasTariff) {
                     // Тариф есть - подписываем документ
@@ -376,7 +378,7 @@ const DocumentsPage: React.FC = () => {
                             animation: ModalAnimation.LEFT,
                         })
                     );
-                } else if (!hasTariff && paidTariffKeys !== null) {
+                } else if (!hasTariff && activeTariffs.length > 0) {
                     // Тариф не активен, но есть оплаченные тарифы - подписываем документ
                     dispatch(setCurrentConfirmableDoc(docId));
                     dispatch(setStepAdditionalMenuUI(4));
@@ -890,7 +892,7 @@ const DocumentsPage: React.FC = () => {
                                     buttonText = 'Оплатить';
                                 } else {
                                     buttonText =
-                                        !hasTariff && paidTariffKeys !== null
+                                        !hasTariff && activeTariffs.length > 0
                                             ? 'Подписать'
                                             : 'Подключить';
                                 }

@@ -17,9 +17,10 @@ const BalancePage = () => {
     const balance = useSelector((s: RootState) => s.payments.balance);
     const activeTariff = useSelector((s: RootState) => s.payments.activeTariffs[0])
     const brokerIds = useSelector((s: RootState) => s.documents.brokerIds)
+    const isAnotherBroker = useSelector((s: RootState) => s.riskProfile.isAnotherBroker)
 
     useEffect(() => {
-        if (brokerIds.length > 0) {
+        if (brokerIds.length > 0 && !isAnotherBroker) {
             dispatch(getBrokerBalanceThunk({ broker_id: brokerIds[0] }));
         }
     }, [brokerIds])

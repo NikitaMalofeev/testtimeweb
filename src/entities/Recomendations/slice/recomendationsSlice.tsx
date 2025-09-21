@@ -59,7 +59,7 @@ export const getUserIirsThunk = createAsyncThunk<
         return data;
     } catch (err: any) {
         const msg = err.response?.data?.errorText || err.message;
-        dispatch(setError(msg));
+        if (msg.length > 0) { dispatch(setError(msg)); }
         return rejectWithValue(msg);
     }
 });
@@ -98,7 +98,7 @@ export const rejectIirDocumentThunk = createAsyncThunk<
         onSuccess?.();
     } catch (err: any) {
         const msg = err.response?.data?.errorText || err.message;
-        dispatch(setError(msg));
+        if (msg.length > 0) { dispatch(setError(msg)); }
         return rejectWithValue(msg);
     }
 });

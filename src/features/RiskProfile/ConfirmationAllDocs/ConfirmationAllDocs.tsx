@@ -86,6 +86,13 @@ export const ConfirmAllDocs: React.FC = () => {
     const currentOrderId = useSelector((s: RootState) => s.payments.currentOrderId);
     const deposit = useSelector((s: RootState) => s.payments.calculator.min_deposit);
     const brokerId = useSelector((s: RootState) => s.documents.brokerIds[0]);
+    const isAnotherBroker = useSelector((s: RootState) => s.riskProfile.isAnotherBroker);
+    const selectedBrokerData = useSelector((s: RootState) => s.riskProfile.selectedBrokerData);
+
+    // Если выбран другой брокер, используем его broker_id, иначе стандартный brokerId
+    const effectiveBrokerId = isAnotherBroker && selectedBrokerData
+        ? selectedBrokerData.broker_id
+        : brokerId;
     const currentTypeDoc = useSelector(
         (state: RootState) => state.documents.currentConfirmableDoc
     );
@@ -215,7 +222,7 @@ export const ConfirmAllDocs: React.FC = () => {
                     dispatch(
                         setTariffIdThunk({
                             tariff_key: currentOrderId,
-                            broker_id: brokerId,
+                            broker_id: effectiveBrokerId,
                             type_message: formik.values.type_message,
                             manual_price: deposit,
                             is_agree: formik.values.is_agree,

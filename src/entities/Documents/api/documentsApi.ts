@@ -169,7 +169,22 @@ export const getDocumentsInfo = async (token: string) => {
 };
 
 export const getAllBrokers = async (token: string, is_confirmed_type_doc_agreement_transfer_broker: boolean) => {
-    const response = await axios.post(`${apiUrl}user_lk/get_all_brokers/`, { is_confirmed_type_doc_agreement_transfer_broker: is_confirmed_type_doc_agreement_transfer_broker, broker: "tinkoff_brokers" }, {
+    // Все брокеры из BrokerConnectionForm
+    const allBrokers = [
+        'tinkoff_brokers',
+        'finam_broker',
+        'alfa_broker',
+        'bks_broker',
+        'tradernet_ff',
+        'vtb_broker',
+        'sberbank_broker'
+    ];
+    // const allBrokers = [
+
+    // ];
+
+    const response = await axios.post(`${apiUrl}user_lk/get_all_brokers/`, {
+    }, {
         headers: {
             "Accept-Language": "ru",
             "Authorization": `Token ${token}`
@@ -258,7 +273,7 @@ export const getSignedCustomDocumentUser = async (data: { id: string }, token: s
 export const getUserNotSignedDocumentHtml = async (data: { id: string }, token: string) => {
     console.log('API getUserNotSignedDocumentHtml called with data:', data);
     console.log('Full URL:', `${apiDocUrl}view_custom_document_user/get_user_not_signed_document_html/`);
-    
+
     const response = await axios.post(`${apiDocUrl}view_custom_document_user/get_user_not_signed_document_html/`, data, {
         headers: {
             "Accept-Language": "ru",

@@ -254,7 +254,7 @@ export const BrokerConnectionForm: React.FC = () => {
                                     : handleSubmit
                             }
                             className={styles.broker__site__button}
-                            children='подключить брокера'
+                            children='Подключить брокера'
                             theme={ButtonTheme.UNDERLINE}
                             padding='19px 42px'
                             disabled={

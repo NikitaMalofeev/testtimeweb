@@ -50,6 +50,12 @@ import { EMPTY_LEGAL_FORM } from "../constants/constansRiskProfile";
 import { closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 
+interface BrokerData {
+    broker_id: string;
+    broker_name: string;
+    broker_value: string;
+}
+
 interface RiskProfileFormState {
     loading: boolean;
     error: string | null;
@@ -70,6 +76,7 @@ interface RiskProfileFormState {
     pasportScanSocketId: string;
     pasportScanProgress: number;
     isAnotherBroker: boolean;
+    selectedBrokerData: BrokerData | null;
 }
 
 const initialState: RiskProfileFormState = {
@@ -116,7 +123,8 @@ const initialState: RiskProfileFormState = {
     currentConfirmingDoc: 'type_doc_passport',
     pasportScanSocketId: '',
     pasportScanProgress: 0,
-    isAnotherBroker: false
+    isAnotherBroker: false,
+    selectedBrokerData: null
 };
 
 export const createRiskProfile = createAsyncThunk<
@@ -233,6 +241,15 @@ export const postBrokerApiTokenThunk = createAsyncThunk<
                 if (isOther) {
                     // Устанавливаем флаг для всех брокеров кроме Тинькофф
                     dispatch(setIsAnotherBroker(true));
+
+                    // Сохраняем данные выбранного брокера из response
+                    if (response.broker_id && response.broker_name) {
+                        dispatch(setSelectedBrokerData({
+                            broker_id: response.broker_id,
+                            broker_name: response.broker_name,
+                            broker_value: (data as any).broker || 'other_unknown_broker'
+                        }));
+                    }
 
                     // Сразу закрываем модалку и редиректим
                     dispatch(closeModal(ModalType.IDENTIFICATION));
@@ -768,6 +785,9 @@ const riskProfileSlice = createSlice({
         setIsAnotherBroker: (state, action: PayloadAction<boolean>) => {
             state.isAnotherBroker = action.payload;
         },
+        setSelectedBrokerData: (state, action: PayloadAction<BrokerData | null>) => {
+            state.selectedBrokerData = action.payload;
+        },
         resetRiskProfile: (state) => {
             return {
                 ...initialState,
@@ -907,6 +927,7 @@ export const {
     setLegalConfirmData,
     updateLegalFormData,
     setIsAnotherBroker,
+    setSelectedBrokerData,
     resetRiskProfile
 } = riskProfileSlice.actions;
 export default riskProfileSlice.reducer;

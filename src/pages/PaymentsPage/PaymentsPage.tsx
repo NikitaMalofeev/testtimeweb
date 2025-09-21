@@ -27,6 +27,7 @@ const PaymentsPage: React.FC = () => {
     const paidTariffs = useSelector((s: RootState) => s.payments.paidTariffKeys)
     const activeTariffs = useSelector((s: RootState) => s.payments.activeTariffs)
     const currentOrderId = useSelector((s: RootState) => s.payments.currentOrderId)
+    const isConfirming = useSelector((s: RootState) => s.payments.isConfirming);
     const { pathname } = useLocation();
     const handleOpenPayment = () => {
         if (activeTariffs.length > 0) {
@@ -94,7 +95,7 @@ const PaymentsPage: React.FC = () => {
                     </div>
                 )}
                 <Payments isPaid={(value) => setIsPaid(value)} />
-                {activeTariffs.length > 0 && pathname !== '/payments/loading' && (
+                {activeTariffs.length > 0 && pathname !== '/payments/loading' && isConfirming && (
                     <Button
                         className={styles.payment}
                         theme={ButtonTheme.BLUE}

@@ -30,20 +30,17 @@ export const NotificationPopup: React.FC = () => {
     // есть ли что показать
     const hasContent = Boolean(current?.title?.trim()) || Boolean(current?.text?.trim());
 
-    // показываем только синие уведомления
-    const isBlueNotification = current?.color === 'blue';
-
-    // попап показываем только если есть уведомление, есть title || text, и это синее уведомление
-    const isOpen = Boolean(current && hasContent && isBlueNotification);
+    // попап показываем только если есть уведомление и есть title || text
+    const isOpen = Boolean(current && hasContent);
 
     const autoHideMs = 6000;
 
-    // если уведомление пустое или не синее — сразу выключаем его
+    // если уведомление пустое — сразу выключаем его
     useEffect(() => {
-        if (current && (!hasContent || !isBlueNotification)) {
+        if (current && !hasContent) {
             dispatch(deactivateNotification({ id: current.id }));
         }
-    }, [current, hasContent, isBlueNotification, dispatch]);
+    }, [current, hasContent, dispatch]);
 
     // автозакрытие только когда реально открыт
     useEffect(() => {

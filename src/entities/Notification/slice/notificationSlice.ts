@@ -222,9 +222,9 @@ export default notificationSlice.reducer;
 export const selectNotifications = (state: RootState) =>
   state.notifications.notifications;
 
-// Попап выводим по одному: активно и непрочитано
+// Попап выводим по одному: активно, непрочитано и только синие уведомления
 export const selectFirstActive = (state: RootState) =>
-  state.notifications.notifications.find(n => n.is_active && !n.is_read);
+  state.notifications.notifications.find(n => n.is_active && !n.is_read && n.color === 'blue');
 
 export const selectUnreadCount = (state: RootState) =>
   state.notifications.notifications.filter(n => !n.is_read).length;

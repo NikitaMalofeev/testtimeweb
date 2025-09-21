@@ -194,6 +194,8 @@ export const checkPushNotificationsThunk = createAsyncThunk<void, void, { state:
             waiting_manual_document_verification
         } = state.documents;
 
+        const isAnotherBroker = state.riskProfile.isAnotherBroker;
+
         // важно: отличать "undefined" от false
         const isIpRaw = state.user.userPersonalAccountInfo?.is_individual_entrepreneur;
         if (typeof isIpRaw === 'undefined') return;
@@ -241,19 +243,19 @@ export const checkPushNotificationsThunk = createAsyncThunk<void, void, { state:
                 // 3) Подключение брокера
                 if (brokerIds.length === 0) {
                     nextId = 'type_doc_broker_api_token_fill';
-                } else if (brokerIds.length > 0 && brokersCount === 0) {
+                } else if (brokerIds.length > 0 && brokersCount === 0 && !isAnotherBroker) {
                     nextId = 'type_doc_broker_api_token_sign';
                 } else if (waiting_manual_document_verification.type_doc_agreement_transfer_broker) {
                     // логика у тебя такая — оставляю как есть
                     nextId = 'startWork';
-                } else if (Object.values(waiting_manual_document_verification).length === 0 && brokersCount > 0) {
+                } else if (Object.values(waiting_manual_document_verification).length === 0 && (brokersCount > 0 || isAnotherBroker)) {
                     // логика у тебя такая — оставляю как есть
                     nextId = 'startWorkReady';
                 } else {
                     // 4) Старт работы
                     const confirmableCount = confirmableDocs.length;
                     const allDocsSigned = Object.values(userDocuments).length === confirmableCount;
-                    if (allDocsSigned && brokersCount > 0) {
+                    if (allDocsSigned && (brokersCount > 0 || isAnotherBroker)) {
                         nextId = 'startWork';
                     }
                 }

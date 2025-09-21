@@ -125,7 +125,7 @@ const PersonalAccountMenu: React.FC = () => {
                     navigate("/documents")
                 }
             },
-            notificationsCount: 10 - userDocuments.length,
+            notificationsCount: !isAnotherBroker ? 10 - userDocuments.length : 10 - userDocuments.length,
             iconWidth: 28,
             iconHeight: 28,
             warningMessage: filledRiskProfileChapters.is_risk_profile_complete_final

@@ -5,6 +5,7 @@ import styles from './styles.module.scss';
 import CloseIcon from 'shared/assets/svg/close.svg';
 import WarningIcon from 'shared/assets/svg/warningIcon.svg';
 import { Icon } from 'shared/ui/Icon/Icon';
+import { renderParsedText } from 'shared/lib/parseHtmlLinks';
 
 import { useSelector } from 'react-redux';
 import { useAppDispatch } from 'shared/hooks/useAppDispatch';
@@ -29,17 +30,20 @@ export const NotificationPopup: React.FC = () => {
     // есть ли что показать
     const hasContent = Boolean(current?.title?.trim()) || Boolean(current?.text?.trim());
 
-    // попап показываем только если есть уведомление и есть title || text
-    const isOpen = Boolean(current && hasContent);
+    // показываем только синие уведомления
+    const isBlueNotification = current?.color === 'blue';
+
+    // попап показываем только если есть уведомление, есть title || text, и это синее уведомление
+    const isOpen = Boolean(current && hasContent && isBlueNotification);
 
     const autoHideMs = 6000;
 
-    // если уведомление пустое — сразу выключаем его
+    // если уведомление пустое или не синее — сразу выключаем его
     useEffect(() => {
-        if (current && !hasContent) {
+        if (current && (!hasContent || !isBlueNotification)) {
             dispatch(deactivateNotification({ id: current.id }));
         }
-    }, [current, hasContent, dispatch]);
+    }, [current, hasContent, isBlueNotification, dispatch]);
 
     // автозакрытие только когда реально открыт
     useEffect(() => {
@@ -56,11 +60,6 @@ export const NotificationPopup: React.FC = () => {
         dispatch(deactivateNotification({ id: current.id }));
     };
 
-    useEffect(() => {
-        if (current?.text?.trim()) {
-            dispatch(deactivateNotification({ id: current.id }));
-        }
-    }, [current])
 
     const bg =
         (current?.color === 'blue' && '#C3D7F5') ||
@@ -96,7 +95,10 @@ export const NotificationPopup: React.FC = () => {
                     {/* Показать текст, если есть */}
                     {current?.text?.trim() && (
                         <div className={styles.text}>
-                            <span>{current.text}</span>
+                            {renderParsedText(current.text, {
+                                color: '#1890ff',
+                                textDecoration: 'underline'
+                            })}
                         </div>
                     )}
                 </div>

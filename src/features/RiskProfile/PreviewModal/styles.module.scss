@@ -70,7 +70,7 @@
 
   @include mix.respond-to('tablet-desktop') {
     .modal {
-      top: 51px;
+      top: 50px;
       max-width: 100dvw;
       width: 100%;
       left: 0;      

@@ -101,6 +101,18 @@ export interface CustomDocUserData {
     modified_at: string | null;
 }
 
+export interface BrokerData {
+    id: string;
+    name_for_list: string;
+    broker: string;
+    date_last_confirmed_type_doc_agreement_transfer_broker: string | null;
+    is_confirmed_type_doc_agreement_transfer_broker: boolean;
+    is_waiting_manual_verification_broker: boolean;
+    strategy_name: string | null;
+    created: string;
+    modified: string;
+}
+
 // Массив очередности документов
 export const docTypes = [
     "type_doc_passport",
@@ -154,6 +166,7 @@ interface DocumentsState {
 
     brokerIds: string[];
     brokersCount: number;
+    brokers: BrokerData[];
 
     filledRiskProfileChapters: FilledRiskProfileChapters;
     userPassportData: UserPassportData | null;
@@ -205,6 +218,7 @@ const initialState: DocumentsState = {
 
     brokerIds: [],
     brokersCount: 0,
+    brokers: [],
 
     userPassportData: null,
     customDocumentsData: null,
@@ -698,7 +712,10 @@ export const getAllBrokersThunk = createAsyncThunk<
             if (!token) return rejectWithValue("Отсутствует токен авторизации");
             const response = await getAllBrokers(token, is_confirmed_type_doc_agreement_transfer_broker);
             dispatch(setIsWaitingBrokerVerification(response.is_waiting_manual_verification_broker));
-            dispatch(setBrokerIds({ brokerId: response.data[0].id, count: response.count }));
+            dispatch(setBrokers(response.data));
+            if (response.data.length > 0) {
+                dispatch(setBrokerIds({ brokerId: response.data[0].id, count: response.count }));
+            }
         } catch (error: any) {
             const msg = error.response?.data?.errorText || "Ошибка при получении подписанного документа";
             return rejectWithValue(msg);
@@ -855,6 +872,9 @@ export const documentsSlice = createSlice({
         setBrokerIds(state, action: PayloadAction<{ brokerId: string; count: number }>) {
             state.brokerIds = [action.payload.brokerId];
             state.brokersCount = action.payload.count;
+        },
+        setBrokers(state, action: PayloadAction<BrokerData[]>) {
+            state.brokers = action.payload;
         },
 
         // HTML не подписанных документов
@@ -1048,6 +1068,7 @@ export const {
     setUserPasportData,
     setBrokerSuccessResponseInfo,
     setBrokerIds,
+    setBrokers,
     setCustomDocumentData,
     setUploadDocSocket,
     setUploadDocStatus,

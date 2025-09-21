@@ -32,7 +32,7 @@ import { ModalAnimation, ModalSize, ModalType } from 'entities/ui/Modal/model/mo
 import BackIcon from 'shared/assets/svg/ArrowBack.svg';
 import { Icon } from 'shared/ui/Icon/Icon';
 import { ConfirmDocsModal } from 'features/RiskProfile/ConfirmDocsModal/ConfirmDocsModal';
-import { getAllBrokersThunk, setCurrentConfirmableDoc, setCurrentConfirmationMethod } from 'entities/Documents/slice/documentsSlice';
+import { getAllBrokersThunk, setCurrentConfirmableDoc, setCurrentConfirmationMethod, setBrokers } from 'entities/Documents/slice/documentsSlice';
 import { PaymentsStatus } from '../PaymentsStatus/PaymentsStatus';
 import { Select } from 'shared/ui/Select/Select';
 import { useDevice } from 'shared/hooks/useDevice';
@@ -147,8 +147,25 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         }
     }, [brokerIds, dispatch]);
 
-    const brokersItems = brokerIds[0]
-        ? [{ value: brokerIds[0], label: 'Т-брокер' }]
+    // Маппинг кодов брокеров на человекочитаемые названия
+    const brokerNameMap: Record<string, string> = {
+        'tinkoff_brokers': 'Т-инвестиции',
+        'finam_broker': 'Финам',
+        'alfa_broker': 'Альфа-Банк',
+        'bks_broker': 'БКС',
+        'tradernet_ff': 'Tradernet',
+        'vtb_broker': 'ВТБ',
+        'sberbank_broker': 'Сбербанк'
+    };
+
+    // Получаем данные брокеров из Redux state
+    const brokers = useSelector((s: RootState) => s.documents.brokers || []);
+
+    const brokersItems = brokers.length > 0
+        ? brokers.map(broker => ({
+            value: broker.id,
+            label: brokerNameMap[broker.broker] || broker.name_for_list || broker.broker
+        }))
         : [{ value: '', label: 'Брокер ещё не выбран' }];
 
     // ===== Локальный UI
@@ -193,6 +210,13 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
             );
         },
     });
+
+    // ===== Обновление formik broker_id при загрузке данных брокеров
+    useEffect(() => {
+        if (brokers.length > 0 && !formik.values.broker_id) {
+            formik.setFieldValue('broker_id', brokers[0].id);
+        }
+    }, [brokers]);
 
     const handleChooseTariff = (id: string) => {
         dispatch(setCurrentTariff(id));

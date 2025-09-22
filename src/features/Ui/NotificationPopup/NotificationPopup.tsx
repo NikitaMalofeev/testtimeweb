@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import styles from './styles.module.scss';
 
@@ -27,11 +27,19 @@ export const NotificationPopup: React.FC = () => {
     const dispatch = useAppDispatch();
     const current = useSelector(selectFirstActive);
 
+    // Сохраняем данные текущего уведомления для анимации
+    const currentNotificationRef = useRef<typeof current>(null);
+
     // есть ли что показать
     const hasContent = Boolean(current?.title?.trim()) || Boolean(current?.text?.trim());
 
     // попап показываем только если есть уведомление и есть title || text
     const isOpen = Boolean(current && hasContent);
+
+    // Обновляем сохраненные данные только когда уведомление открывается
+    if (isOpen && current) {
+        currentNotificationRef.current = current;
+    }
 
     const autoHideMs = 6000;
 
@@ -58,9 +66,11 @@ export const NotificationPopup: React.FC = () => {
     };
 
 
+    // Используем сохраненные данные для фона во время анимации
+    const displayNotification = isOpen ? current : currentNotificationRef.current;
     const bg =
-        (current?.color === 'blue' && '#C3D7F5') ||
-        (current?.color === 'green' && '#dcf3d1') ||
+        (displayNotification?.color === 'blue' && '#C3D7F5') ||
+        (displayNotification?.color === 'green' && '#dcf3d1') ||
         '#ffd9dd';
 
     return (

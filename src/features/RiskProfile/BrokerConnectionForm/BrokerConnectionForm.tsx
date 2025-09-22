@@ -258,8 +258,9 @@ export const BrokerConnectionForm: React.FC = () => {
                             theme={ButtonTheme.UNDERLINE}
                             padding='19px 42px'
                             disabled={
-                                formik.values.broker === 'other' && !formik.values.customBrokerName.trim() ||
-                                !formik.values.broker
+                                !formik.values.broker ||
+                                formik.values.broker === '' ||
+                                (formik.values.broker === 'other' && !formik.values.customBrokerName.trim())
                             }
                         />
                     </div>

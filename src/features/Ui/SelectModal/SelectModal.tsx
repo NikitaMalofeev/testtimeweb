@@ -135,7 +135,7 @@ export const SelectModal: React.FC<SelectModalProps> = ({
                     </ul>
                 </div>
 
-                {/* Блок кнопок. Если не дошли до низа — добавляем тень. */}
+                {/* Блок кdнопок. Если не дошли до низа — добавляем тень. */}
             </div>
             {/* <div
                 className={`${styles.buttons} ${!isBottom ? styles.shadow : ""

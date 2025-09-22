@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
 import { useLocation, useNavigate } from "react-router-dom";
 import styles from "./styles.module.scss";
@@ -14,6 +14,7 @@ import { ModalType } from "entities/ui/Modal/model/modalTypes";
 import { useDevice } from "shared/hooks/useDevice";
 import { resetTariffSelection } from "entities/Payments/slice/paymentsSlice";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
+import { normalize } from "path";
 
 
 const PaymentsPage: React.FC = () => {
@@ -28,6 +29,14 @@ const PaymentsPage: React.FC = () => {
     const activeTariffs = useSelector((s: RootState) => s.payments.activeTariffs)
     const currentOrderId = useSelector((s: RootState) => s.payments.currentOrderId)
     const isConfirming = useSelector((s: RootState) => s.payments.isConfirming);
+    const activePaidTariffs = useMemo(
+        () => activeTariffs.filter(t => normalize(t.id) === normalize(currentOrderId)),
+        [activeTariffs, currentOrderId]
+    );
+
+    const hasTariffAttempt = activePaidTariffs.length > 0
+
+
     const { pathname } = useLocation();
     const handleOpenPayment = () => {
         if (activeTariffs.length > 0) {
@@ -95,7 +104,7 @@ const PaymentsPage: React.FC = () => {
                     </div>
                 )}
                 <Payments isPaid={(value) => setIsPaid(value)} />
-                {!isPaid && !paymentStatus && (
+                {hasTariffAttempt && !paymentStatus && (
                     <Button
                         className={styles.payment}
                         theme={ButtonTheme.BLUE}

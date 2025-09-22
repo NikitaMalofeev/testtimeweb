@@ -539,6 +539,18 @@ const DocumentsPage: React.FC = () => {
     // Ищем первый документ, у которого status === "signable" (то есть не подписан)
     const firstNotConfirmed = documents.find((doc) => doc.status === "signable")?.id;
 
+    // Функция для проверки, что все документы до брокера подписаны
+    const areAllDocumentsBeforeBrokerSigned = () => {
+        const brokerIndex = docOrder.findIndex(docId => docId === "type_doc_broker_api_token");
+        if (brokerIndex === -1) return true; // если брокер не найден, не блокируем
+
+        const documentsBeforeBroker = docOrder.slice(0, brokerIndex);
+        return documentsBeforeBroker.every(docId => {
+            const docInfo = userDocuments.find(doc => doc.key === docId);
+            return docInfo?.date_last_confirmed !== null;
+        });
+    };
+
     // Генерируем нужный цвет кнопки (или "подписано").
     // Логика:
     // - Если документ подписан => зелёная плашка "Подписано"
@@ -565,7 +577,7 @@ const DocumentsPage: React.FC = () => {
                 ? !hasPassport
                 : !(hasPassport && hasBroker)                         // «Приложение 1»
             : isBroker
-                ? !hasPassport                                         // брокер: нужен паспорт
+                ? !hasPassport || !areAllDocumentsBeforeBrokerSigned()  // брокер: нужен паспорт И все документы до брокера подписаны
                 : isPassport
                     ? false                                                     // паспорт всегда активен
                     : doc.id !== firstNotConfirmed || !hasPassport;             // прочие
@@ -860,7 +872,7 @@ const DocumentsPage: React.FC = () => {
                                 ? !hasPassport
                                 : !(hasPassport && hasBroker && hasTariff)
                             : isBroker
-                                ? !hasPassport
+                                ? !hasPassport || !areAllDocumentsBeforeBrokerSigned()
                                 : isPassport
                                     ? false
                                     : doc.id !== firstNotConfirmed || !hasPassport;

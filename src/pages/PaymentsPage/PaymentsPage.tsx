@@ -95,7 +95,7 @@ const PaymentsPage: React.FC = () => {
                     </div>
                 )}
                 <Payments isPaid={(value) => setIsPaid(value)} />
-                {activeTariffs.length > 0 && pathname !== '/payments/loading' && isConfirming && (
+                {!isPaid && !paymentStatus && (
                     <Button
                         className={styles.payment}
                         theme={ButtonTheme.BLUE}

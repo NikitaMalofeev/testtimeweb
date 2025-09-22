@@ -28,7 +28,7 @@ export const NotificationPopup: React.FC = () => {
     const current = useSelector(selectFirstActive);
 
     // Сохраняем данные текущего уведомления для анимации
-    const currentNotificationRef = useRef<typeof current>(null);
+    const currentNotificationRef = useRef<typeof current>(current);
 
     // есть ли что показать
     const hasContent = Boolean(current?.title?.trim()) || Boolean(current?.text?.trim());

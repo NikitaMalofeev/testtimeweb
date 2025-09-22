@@ -14,7 +14,6 @@ import { ModalType } from "entities/ui/Modal/model/modalTypes";
 import { useDevice } from "shared/hooks/useDevice";
 import { resetTariffSelection } from "entities/Payments/slice/paymentsSlice";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
-import { normalize } from "path";
 
 
 const PaymentsPage: React.FC = () => {
@@ -29,6 +28,7 @@ const PaymentsPage: React.FC = () => {
     const activeTariffs = useSelector((s: RootState) => s.payments.activeTariffs)
     const currentOrderId = useSelector((s: RootState) => s.payments.currentOrderId)
     const isConfirming = useSelector((s: RootState) => s.payments.isConfirming);
+    const normalize = (id: string) => id.replace(/-/g, '');
     const activePaidTariffs = useMemo(
         () => activeTariffs.filter(t => normalize(t.id) === normalize(currentOrderId)),
         [activeTariffs, currentOrderId]

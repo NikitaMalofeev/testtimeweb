@@ -107,7 +107,7 @@ export const SelectModal: React.FC<SelectModalProps> = ({
           ${isScrolled && styles.modalContent__shadow_top} 
             `}
                 ref={contentRef}
-                style={{ overflow: "auto" }}>
+                style={{ overflow: "auto", marginTop: '20px' }}>
                 <Input
                     type="search"
                     placeholder="Поиск"

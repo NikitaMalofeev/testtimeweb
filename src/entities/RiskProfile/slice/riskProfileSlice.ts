@@ -255,17 +255,17 @@ export const postBrokerApiTokenThunk = createAsyncThunk<
                     dispatch(closeModal(ModalType.IDENTIFICATION));
 
                     // Показываем уведомление
-                    dispatch(
-                        setWarning({
-                            active: true,
-                            description: "С вами свяжутся для подключения в течение 24 часов",
-                            buttonLabel: "Ок, перейти к оплате",
-                            action: () => {
-                                dispatch(setWarning({ active: false }));
-                                window.location.href = '/lk';
-                            },
-                        })
-                    );
+                    // dispatch(
+                    //     setWarning({
+                    //         active: true,
+                    //         description: "С вами свяжутся для подключения в течение 24 часов",
+                    //         buttonLabel: "Ок, перейти к оплате",
+                    //         action: () => {
+                    //             dispatch(setWarning({ active: false }));
+                    //             window.location.href = '/lk';
+                    //         },
+                    //     })
+                    // );
 
 
                     setTimeout(() => {

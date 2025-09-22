@@ -31,6 +31,7 @@ import { closeAllModals } from "entities/ui/Modal/slice/modalSlice";
 import { setScrollToTop } from "entities/ui/Ui/slice/uiSlice";
 import JSZip from "jszip";
 import { createPortal } from "react-dom";
+import { Tooltip } from "shared/ui/Tooltip/Tooltip";
 
 // Глобальный кеш для изображений в рамках сессии
 interface ImageCacheEntry {
@@ -803,6 +804,17 @@ export const SupportChat = () => {
             onClick={() => navigate(-1)}
           />
           <h2 className={styles.chat__header__title}>Чат поддержки</h2>
+          <div style={{ position: 'relative', display: 'inline-block' }}>
+
+            <Tooltip
+              positionBox={{ top: "126px", left: "-120px" }}
+              squerePosition={{ top: "-4px", left: "124px" }}
+              topForCenteringIcons="20px"
+              className={styles.chat__tooltip}
+              boxWidth={{ maxWidth: '240px' }}
+              description="Пожалуйста, кратко опишите вашу проблему, чтобы мы могли оперативно её решить. Если вы отправляете файлы, добавьте к ним комментарий — это поможет нам быстрее разобраться с вашим запросом. Спасибо!"
+            />
+          </div>
         </div>
         <div className={styles.chat__header__status}>онлайн</div>
         {messages.length < 1 && (

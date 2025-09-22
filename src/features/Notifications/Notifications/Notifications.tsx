@@ -35,7 +35,7 @@ export const Notifications: React.FC = () => {
     const allNotificationsCount = unreadAnswersCount + unreadCount;
 
     // Получаем последние ответы поддержки для отображения уведомлений
-    const supportAnswers = messages.filter(m => m.is_answer && m.id !== -1).slice(0, unreadAnswersCount);
+    const supportAnswers = messages.filter(m => m.is_answer).slice(0, unreadAnswersCount);
 
     const handleMarkAllRead = () => {
         const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id);

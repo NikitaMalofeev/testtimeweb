@@ -28,15 +28,7 @@ interface SupportChatState {
 
 const initialState: SupportChatState = {
     websocketId: "",
-    messages: [
-        {
-            id: -1,
-            text: "Пожалуйста, кратко опишите вашу проблему, чтобы мы могли оперативно её решить.\n\nЕсли вы отправляете файлы, добавьте к ним комментарий — это поможет нам быстрее разобраться с вашим запросом. Спасибо!",
-            created: new Date().toISOString(),
-            is_answer: true,
-            user_id: 0,
-        }
-    ],
+    messages: [],
     loading: false,
     error: null,
     success: false,
@@ -315,16 +307,8 @@ export const supportChatSlice = createSlice({
             state.websocketId = action.payload;
         },
         setMessages: (state, action: PayloadAction<ChatMessage[]>) => {
-            const defaultMessage = {
-                id: -1,
-                text: "Пожалуйста, кратко опишите вашу проблему, чтобы мы могли оперативно её решить.\n\nЕсли вы отправляете файлы, добавьте к ним комментарий — это поможет нам быстрее разобраться с вашим запросом. Спасибо!",
-                created: new Date().toISOString(),
-                is_answer: true,
-                user_id: 0,
-            };
             const messages = action.payload ?? [];
-            // Добавляем дефолтное сообщение в конец массива, чтобы оно было первым при отображении
-            state.messages = [...messages, defaultMessage];
+            state.messages = messages;
         },
 
         // Универсальный upsert + анти-дубль

@@ -104,7 +104,7 @@ const PaymentsPage: React.FC = () => {
                     </div>
                 )}
                 <Payments isPaid={(value) => setIsPaid(value)} />
-                {hasTariffAttempt && !paymentStatus && (
+                {/* {hasTariffAttempt && !paymentStatus && (
                     <Button
                         className={styles.payment}
                         theme={ButtonTheme.BLUE}
@@ -112,7 +112,7 @@ const PaymentsPage: React.FC = () => {
                     >
                         Оплатить тариф
                     </Button>
-                )}
+                )} */}
             </div>
             <DocumentPreviewModal
                 isOpen={documentPreview.isOpen}

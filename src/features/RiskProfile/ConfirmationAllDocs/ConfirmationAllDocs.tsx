@@ -272,6 +272,7 @@ export const ConfirmAllDocs: React.FC = () => {
                     is_agree: false,
                 },
             });
+            dispatch(setCurrentConfirmationMethod("EMAIL"));
             window.scrollTo({ top: 0, behavior: "smooth" });
         }
     }, [currentTypeDoc]);

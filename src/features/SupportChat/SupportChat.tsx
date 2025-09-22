@@ -444,10 +444,12 @@ export const UserMessage = ({ message, token }: { message: ChatMessage; token?: 
           )}
           {fileDescription && (
             <p className={`${styles.message__message_user} ${isOptimistic ? styles.message__sending_text : ''} ${hasError ? styles.message__error_text : ''}`} style={{ marginBottom: files.length > 0 ? '0' : '0' }}>
+
               {renderParsedText(fileDescription, {
                 color: '#1890ff',
                 textDecoration: 'underline'
               })}
+
             </p>
           )}
         </div>
@@ -455,10 +457,12 @@ export const UserMessage = ({ message, token }: { message: ChatMessage; token?: 
 
       {message.text && (
         <p className={`${styles.message__message_user} ${isOptimistic ? styles.message__sending_text : ''} ${hasError ? styles.message__error_text : ''}`}>
+
           {renderParsedText(message.text, {
             color: '#1890ff',
             textDecoration: 'underline'
           })}
+
         </p>
       )}
     </div>
@@ -476,6 +480,7 @@ export const SupportMessage = ({ message, highlight, token }: { message: ChatMes
         {formatDateTime(message.created)}
         {highlight && <div className={styles.highlight}></div>}
       </span>
+
       {message.text ? (
         <p className={styles.message__message_support}>
           {renderParsedText(message.text, {
@@ -484,6 +489,7 @@ export const SupportMessage = ({ message, highlight, token }: { message: ChatMes
           })}
         </p>
       ) : null}
+
       {fileUrls.length > 0 ? (
         <div className={styles.message__attachment}>
           <div className={styles.message__imageContainer}>
@@ -534,6 +540,7 @@ export const SupportChat = () => {
     initialValues: {
       message: "",
     },
+
     validationSchema: Yup.object({
       message: Yup.string().when([], {
         is: () => {
@@ -548,6 +555,7 @@ export const SupportChat = () => {
         otherwise: (schema) => schema.notRequired(),
       }),
     }),
+
     validate: (values) => {
       const errors: any = {};
       const messageText = values.message.trim();
@@ -567,6 +575,7 @@ export const SupportChat = () => {
           // ок
         } else {
           errors.message = "Введите сообщение или описание файлов";
+
         }
       } else {
         if (!messageText) {
@@ -666,6 +675,7 @@ export const SupportChat = () => {
     },
   });
 
+
   // Получение ID веб-сокета и всех сообщений
   useEffect(() => {
     if (token) {
@@ -698,13 +708,17 @@ export const SupportChat = () => {
     }
   }, [messages]);
 
+
   // Сбрасываем счётчик непрочитанных через 2 сек
+
   useEffect(() => {
     const timer = setTimeout(() => {
       const currentAnswerCount = messages.filter((m) => m.is_answer).length;
       localStorage.setItem("chatAnswerCount", String(currentAnswerCount));
       dispatch(setUnreadAnswersCount(0));
+
     }, 2000);
+
     return () => clearTimeout(timer);
   }, [messages, dispatch]);
 
@@ -874,7 +888,9 @@ export const SupportChat = () => {
 
       {attachedFiles.length > 0 && (
         <div className={styles.chat__imagePreviewBar}>
+
           {/* <div className={styles.chat__fileDescriptionContainer}>
+
             <Input
               placeholder="Описание файлов..."
               name="fileDescription"
@@ -889,7 +905,9 @@ export const SupportChat = () => {
                 {fileDescriptionError}
               </div>
             )}
+
           </div> */}
+
           <div className={styles.chat__imagePreviewContainer}>
             {attachedFiles.map((f, idx) => {
               const url = URL.createObjectURL(f);
@@ -921,3 +939,4 @@ export const SupportChat = () => {
     </div>
   );
 };
+

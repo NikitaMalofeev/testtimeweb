@@ -57,19 +57,19 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
     const [searchQuery, setSearchQuery] = useState<string>('');
     const { handlePhoneChange, getPhoneValidationRegex } = usePhoneFormat();
 
-    // Получаем значение без кода страны
+    // Получаем значение без кода страны (убираем пробелы)
     const getPhoneWithoutCountryCode = (phoneValue: string, countryCode: string) => {
         if (phoneValue.startsWith(countryCode)) {
-            return phoneValue.slice(countryCode.length).trim();
+            return phoneValue.slice(countryCode.length).replace(/\s+/g, '');
         }
-        return phoneValue;
+        return phoneValue.replace(/\s+/g, '');
     };
 
-    // Добавляем код страны к номеру
+    // Добавляем код страны к номеру (без пробелов для отправки на сервер)
     const addCountryCodeToPhone = (phoneNumber: string, countryCode: string) => {
         if (!phoneNumber) return countryCode;
         if (phoneNumber.startsWith(countryCode)) return phoneNumber;
-        return `${countryCode} ${phoneNumber}`;
+        return `${countryCode}${phoneNumber}`;
     };
 
     // Загружаем коды стран при монтировании компонента
@@ -122,19 +122,19 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
     // Обработчик изменения номера телефона с автоподстановкой кода
     const handlePhoneInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const inputValue = e.target.value;
-        
-        // Разрешаем только цифры, плюс и пробелы
-        const cleanValue = inputValue.replace(/[^\d+ ]/g, "");
-        
+
+        // Разрешаем только цифры и плюс (убираем пробелы)
+        const cleanValue = inputValue.replace(/[^\d+]/g, "");
+
         if (autoInitializeWithCountryCode) {
             // Режим с автоинициализацией - защищаем код страны
             if (!cleanValue.startsWith(selectedCountryCode)) {
                 // Если код страны удален, восстанавливаем его
-                const phoneWithoutCode = cleanValue.replace(/^\+?\d+\s?/, ''); // удаляем любой оставшийся код
+                const phoneWithoutCode = cleanValue.replace(/^\+?\d+/, ''); // удаляем любой оставшийся код
                 const finalValue = addCountryCodeToPhone(phoneWithoutCode, selectedCountryCode);
                 onChange(finalValue);
             } else {
-                // Код страны на месте, просто обновляем значение
+                // Код страны на месте, просто обновляем значение (без пробелов)
                 onChange(cleanValue);
             }
         } else {

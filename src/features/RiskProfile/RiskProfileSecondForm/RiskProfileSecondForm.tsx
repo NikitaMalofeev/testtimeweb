@@ -39,7 +39,7 @@ export const SWIPER_PARAM_VALUES: SwiperParametrValues = {
     risk_prof_balanced: 'Сбалансированный',
     risk_prof_aggressive_moderately: 'Умеренно-агрессивный',
     risk_prof_aggressive: 'Агрессивный',
-    risk_prof_aggressive_super: 'Супер-агрессивный',
+    risk_prof_aggressive_super: 'Сверх-агрессивный',
 };
 const RISK_PROFILE_DESCRIPTIONS: { [key: string]: string } = {
     risk_prof_conservative: "Главная цель — сохранение и защита капитала. Инвесторам с таким профилем подходят наиболее безопасные финансовые инструменты: депозиты и государственные облигации. До 100% - государственные облигации.",

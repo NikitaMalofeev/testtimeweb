@@ -7,6 +7,7 @@ import {
   UpdateAllNotificationsParams,
 } from '../api/notificationApi';
 import { ApiNotification, Notification } from '../types/types';
+import { setUserToken, logoutUser } from 'entities/User/slice/userSlice';
 
 /* ----------------------------- Состояние ----------------------------- */
 
@@ -217,7 +218,26 @@ export const notificationSlice = createSlice({
       .addCase(updateAllNotificationsThunk.fulfilled, (state, action) => {
         state.notifications = applyServerPatch(state.notifications, action.payload);
       })
-      .addCase(updateAllNotificationsThunk.rejected, () => { });
+      .addCase(updateAllNotificationsThunk.rejected, () => { })
+
+      // Очищаем чат-уведомления при смене токена пользователя
+      .addCase(setUserToken, (state, action) => {
+        const newToken = action.payload;
+        // Если токен сбросился (logout), очищаем все чат-уведомления
+        if (!newToken) {
+          state.notifications = state.notifications.filter(n =>
+            !(typeof n.id === 'string' && n.id.startsWith('chat-'))
+          );
+        }
+      })
+
+      // Обработка logout через thunk
+      .addCase(logoutUser.fulfilled, (state) => {
+        // Очищаем все чат-уведомления при выходе
+        state.notifications = state.notifications.filter(n =>
+          !(typeof n.id === 'string' && n.id.startsWith('chat-'))
+        );
+      });
   },
 });
 

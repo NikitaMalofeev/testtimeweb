@@ -6,6 +6,7 @@ import { ChatMessage } from "../model/chatModel";
 import axios from "axios";
 import apiUrl from "../api/supportChatApi"; // default export = base API url
 import { setError } from "entities/Error/slice/errorSlice";
+import { setUserToken, logoutUser } from "entities/User/slice/userSlice";
 
 interface ChatSettings {
     min_length_text: number;
@@ -589,6 +590,31 @@ export const supportChatSlice = createSlice({
             .addCase(fetchChatSettings.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
+            })
+
+            // Очищаем сообщения чата при смене токена пользователя
+            .addCase(setUserToken, (state, action) => {
+                const newToken = action.payload;
+                // Если токен сбросился (logout), очищаем сообщения чата
+                if (!newToken) {
+                    state.messages = [];
+                    state.unreadAnswersCount = 0;
+                    // Очищаем localStorage от старых данных чата
+                    if (typeof window !== 'undefined') {
+                        localStorage.removeItem('chatAnswerCount');
+                    }
+                }
+            })
+
+            // Обработка logout через thunk
+            .addCase(logoutUser.fulfilled, (state) => {
+                // Очищаем все сообщения чата при выходе
+                state.messages = [];
+                state.unreadAnswersCount = 0;
+                // Очищаем localStorage от старых данных чата
+                if (typeof window !== 'undefined') {
+                    localStorage.removeItem('chatAnswerCount');
+                }
             });
     },
 });

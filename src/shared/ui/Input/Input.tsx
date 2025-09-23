@@ -115,6 +115,7 @@ export const Input: React.FC<InputProps> = ({
 }) => {
     const [isFocused, setIsFocused] = useState(false);
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+    const [hideErrorOnFocus, setHideErrorOnFocus] = useState(false);
     const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
 
     const minAmountInputNumberSlider = useSelector(
@@ -124,21 +125,29 @@ export const Input: React.FC<InputProps> = ({
 
     const handleFocus = () => {
         setIsFocused(true);
+        setHideErrorOnFocus(true); // Скрываем ошибку только визуально при фокусе
         onFocus?.();
-        // Очищаем ошибку при фокусе на input
-        if (error) {
-            onClearError?.();
-        }
     };
 
     const handleBlur = (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setIsFocused(!!value);
+        setHideErrorOnFocus(false); // Показываем ошибку обратно при потере фокуса
         onBlur?.(e);
     };
 
     const handleTogglePassword = () => {
         setIsPasswordVisible((prev) => !prev);
     };
+
+    // Сбрасываем скрытие ошибки если ошибка изменилась
+    useEffect(() => {
+        if (!error) {
+            setHideErrorOnFocus(false);
+        }
+    }, [error]);
+
+    // Определяем, нужно ли показывать ошибку (скрываем только при фокусе)
+    const shouldShowError = error && !hideErrorOnFocus;
     const blockNumberSpin = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown'].includes(e.key)) {
             e.preventDefault();
@@ -326,7 +335,7 @@ export const Input: React.FC<InputProps> = ({
                                             }}
                                         />
 
-                                        {error && (
+                                        {shouldShowError && (
                                             <div className={styles.input__error}>
                                                 <Icon
                                                     Svg={ErrorIcon}
@@ -353,7 +362,7 @@ export const Input: React.FC<InputProps> = ({
                                 risk_prof_balanced: 'Сбалансированный',
                                 risk_prof_aggressive_moderately: 'Умеренно-агрессивный',
                                 risk_prof_aggressive: 'Агрессивный',
-                                risk_prof_aggressive_super: 'Супер-агрессивный',
+                                risk_prof_aggressive_super: 'Сверх-агрессивный',
                             };
 
 
@@ -463,7 +472,7 @@ export const Input: React.FC<InputProps> = ({
                                             </span>
                                         </div>
 
-                                        {error && (
+                                        {shouldShowError && (
                                             <div className={styles.input__error}>
                                                 <Icon
                                                     Svg={ErrorIcon}
@@ -529,7 +538,7 @@ export const Input: React.FC<InputProps> = ({
                                             height={18}
                                         />
                                     </button>
-                                    {error && (
+                                    {shouldShowError && (
                                         <div className={styles.input__error}>
                                             <Icon
                                                 Svg={ErrorIcon}
@@ -583,7 +592,7 @@ export const Input: React.FC<InputProps> = ({
                                             onKeyDown?.(e);
                                         }}
                                     />
-                                    {error && (
+                                    {shouldShowError && (
                                         <div className={styles.input__error}>
                                             <Icon
                                                 Svg={ErrorIcon}
@@ -616,7 +625,7 @@ export const Input: React.FC<InputProps> = ({
                                         className={`${styles.input} ${needValue && !value.length ? styles.error : ""
                                             }`}
                                     />
-                                    {error && (
+                                    {shouldShowError && (
                                         <div className={styles.input__error}>
                                             <Icon
                                                 Svg={ErrorIcon}

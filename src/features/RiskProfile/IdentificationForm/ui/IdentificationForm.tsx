@@ -373,7 +373,7 @@ const IdentificationProfileForm: React.FC = () => {
                         }}
 
                         title="Тип дополнительного контакта"
-                        label="Выберите тип дополнительного контакта"
+                        label="Доп. контакт (мессенджер)"
                         needValue
                         error={formik.touched.contact_communication_type && formik.errors.contact_communication_type}
                     />

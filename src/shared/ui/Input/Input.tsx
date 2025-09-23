@@ -38,6 +38,7 @@ interface InputProps extends CommonHTMLProps {
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
     onBlur?: (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
     onFocus?: () => void;
+    onClearError?: () => void;
     onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
     placeholder?: string;
     disabled?: boolean;
@@ -94,6 +95,7 @@ export const Input: React.FC<InputProps> = ({
     onChange,
     onBlur,
     onFocus,
+    onClearError,
     onKeyDown,
     error,
     placeholder = "",
@@ -121,8 +123,12 @@ export const Input: React.FC<InputProps> = ({
     );
 
     const handleFocus = () => {
-        setIsFocused(true)
-        onFocus?.()
+        setIsFocused(true);
+        onFocus?.();
+        // Очищаем ошибку при фокусе на input
+        if (error) {
+            onClearError?.();
+        }
     };
 
     const handleBlur = (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {

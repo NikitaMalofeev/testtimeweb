@@ -407,7 +407,17 @@ export const postTrustedPersonInfo = createAsyncThunk<
                 onSuccess();
             }
         } catch (error: any) {
-            dispatch(setError(error.response.data.trusted_person_phone));
+            // Обрабатываем ошибки полей
+            if (error.response?.data?.trusted_person_fio) {
+                dispatch(setError(error.response.data.trusted_person_fio[0] || error.response.data.trusted_person_fio));
+            }
+            if (error.response?.data?.trusted_person_phone) {
+                dispatch(setError(error.response.data.trusted_person_phone[0] || error.response.data.trusted_person_phone));
+            }
+            // Если есть общая ошибка
+            if (error.response?.data?.errorText) {
+                dispatch(setError(error.response.data.errorText));
+            }
         }
     }
 );

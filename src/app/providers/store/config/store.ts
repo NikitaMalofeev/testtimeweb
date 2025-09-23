@@ -26,6 +26,7 @@ import paymentsReducer from 'entities/Payments/slice/paymentsSlice';
 import recomendationsReducer from 'entities/Recomendations/slice/recomendationsSlice';
 import notificationsReducer from 'entities/Notification/slice/notificationSlice';
 import { initBroadcastListener, broadcastSyncMiddleware } from 'shared/lib/middleware/broadcastChannelSyncMiddleware';
+import { chatNotificationMiddleware } from 'shared/middleware/chatNotificationMiddleware';
 import { Recomendations } from 'widgets/Recomendations/Recomendations';
 
 const rootReducer = combineReducers({
@@ -128,7 +129,7 @@ export const store = configureStore({
                 // говорим middleware не ходить в этот путь
                 ignoredPaths: ['recomendations.signedDocs', 'recomendations.notSignedHtmls', 'documents.allNotSignedDocumentsHtml'],
             },
-        }).concat(broadcastSyncMiddleware),
+        }).concat(broadcastSyncMiddleware, chatNotificationMiddleware),
 });
 
 initBroadcastListener(store.dispatch);

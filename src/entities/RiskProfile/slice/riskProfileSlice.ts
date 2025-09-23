@@ -408,7 +408,6 @@ export const postTrustedPersonInfo = createAsyncThunk<
             }
         } catch (error: any) {
             dispatch(setError(error.response.data.trusted_person_phone));
-
         }
     }
 );

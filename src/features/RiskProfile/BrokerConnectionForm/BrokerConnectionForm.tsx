@@ -201,7 +201,7 @@ export const BrokerConnectionForm: React.FC = () => {
 
             <div className={styles.desktop__container}>
                 <div className={styles.desktop__item}>
-                    <p className={styles.broker__description}>Создайте брокерский счет и получите в личном кабинете ключи, которые позволят подключить ваш торговый счет. Подробнее в PDF.</p>
+                    <p className={styles.broker__description}>Создайте брокерский счет и получите в личном кабинете ключи, которые позволят подключить ваш торговый счет</p>
                     {formik.values.broker === 'tinkoff_brokers' && (
                         <div className={styles.broker__instruction}>
                             <Icon Svg={PdfIcon} width={37} height={37} /> <span className={styles.broker__instruction__text} onClick={() => dispatch(openModal({ type: ModalType.DOCUMENTS_PREVIEW_PDF, animation: ModalAnimation.LEFT, size: ModalSize.FULL }))}>Инструкция подключения к брокеру</span>

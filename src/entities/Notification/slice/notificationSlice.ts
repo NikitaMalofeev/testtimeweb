@@ -85,7 +85,10 @@ function mergeReplaceFromServerHydrateAware(
   wasHydrated: boolean
 ): Notification[] {
   const byId = new Map(oldList.map(n => [n.id, n]));
-  return serverList.map(srv => {
+  const serverIds = new Set(serverList.map(n => n.id));
+
+  // Обрабатываем серверные уведомления
+  const updatedServerNotifications = serverList.map(srv => {
     const prev = byId.get(srv.id);
     if (prev) {
       return { ...srv, is_active: prev.is_active };
@@ -93,6 +96,16 @@ function mergeReplaceFromServerHydrateAware(
     // Новый элемент: активируем только синие уведомления после первого гидрата
     return { ...srv, is_active: wasHydrated ? (!srv.is_read && srv.status === 'notif_info') : false };
   });
+
+  // Сохраняем локальные уведомления (например, чат-уведомления), которых нет на сервере
+  const localOnlyNotifications = oldList.filter(n =>
+    typeof n.id === 'string' &&
+    n.id.startsWith('chat-') &&
+    !serverIds.has(n.id)
+  );
+
+  // Объединяем серверные и локальные уведомления
+  return [...updatedServerNotifications, ...localOnlyNotifications];
 }
 
 function applyServerPatch(
@@ -146,10 +159,13 @@ export const notificationSlice = createSlice({
         color: raw.color,
         created: raw.created,
         is_read: !!(raw.is_read ?? raw.isRead),
-        is_active: raw.status === 'notif_info', // активируем только info уведомления
+        is_active: raw.is_active !== undefined ? raw.is_active : (raw.status === 'notif_info'), // используем переданный is_active или активируем только info уведомления
       };
-      if (idx >= 0) state.notifications[idx] = { ...state.notifications[idx], ...next, is_active: raw.status === 'notif_info' };
-      else state.notifications.unshift(next);
+      if (idx >= 0) {
+        state.notifications[idx] = { ...state.notifications[idx], ...next, is_active: raw.is_active !== undefined ? raw.is_active : (raw.status === 'notif_info') };
+      } else {
+        state.notifications.unshift(next);
+      }
     },
 
     // Закрыть попап у конкретной карточки

@@ -31,14 +31,17 @@ export const Notifications: React.FC = () => {
     const notifications = useSelector((state: RootState) => selectNotifications(state));
 
     const unreadCount = notifications.filter((n) => !n.is_read).length;
-    // Используем unreadAnswersCount напрямую из чата (он учитывает локальный статус)
-    const allNotificationsCount = unreadAnswersCount + unreadCount;
+    const unreadNonChatCount = notifications.filter((n) => !n.is_read && !(typeof n.id === 'string' && n.id.startsWith('chat-'))).length;
+    // Теперь unreadAnswersCount не нужен для подсчета, так как чат-уведомления идут через notifications
+    const allNotificationsCount = unreadCount;
 
-    // Получаем последние ответы поддержки для отображения уведомлений
-    const supportAnswers = messages.filter(m => m.is_answer).slice(0, unreadAnswersCount);
+    // Больше не нужно отображать supportAnswers отдельно, так как они теперь идут через notifications
 
     const handleMarkAllRead = () => {
-        const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id);
+        // Исключаем чат-уведомления, так как их статус управляется через логику чата
+        const unreadIds = notifications
+            .filter((n) => !n.is_read && !(typeof n.id === 'string' && n.id.startsWith('chat-')))
+            .map((n) => n.id);
         if (!unreadIds.length) return;
 
         // 1) Оптимистично локально
@@ -53,12 +56,19 @@ export const Notifications: React.FC = () => {
         // ОДНА карточка: только локально
         dispatch(markAsRead({ id }));
         dispatch(deactivateNotification({ id }));
-        dispatch(updateAllNotificationsThunk({ is_read: false, id: id, edit_is_read: true }));
+
+        // Для чат-уведомлений не отправляем запрос на сервер
+        if (!(typeof id === 'string' && id.startsWith('chat-'))) {
+            dispatch(updateAllNotificationsThunk({ is_read: false, id: id, edit_is_read: true }));
+        }
         // Запроса на бэк нет — эндпоинт одиночные не поддерживает
     };
 
-    const handleChatNotificationClick = () => {
-        // Переход в чат поддержки (unreadAnswersCount сбросится автоматически через 2 сек в чате)
+    const handleChatNotificationClick = (id: string) => {
+        // Сначала помечаем уведомление как прочитанное и деактивируем его
+        dispatch(markAsRead({ id }));
+        dispatch(deactivateNotification({ id }));
+        // Переход в чат поддержки
         navigate('/support');
     };
 
@@ -81,42 +91,35 @@ export const Notifications: React.FC = () => {
                     type="button"
                     className={styles.notifications__viewAllBtn}
                     onClick={handleMarkAllRead}
-                    disabled={unreadCount === 0}
+                    disabled={unreadNonChatCount === 0}
                 >
                     Прочитать все
                 </Button>
             </div>
 
             <div className={styles.notifications__content}>
-                {/* Уведомления чата */}
-                {supportAnswers.map((chatMsg) => (
-                    <NotificationCard
-                        key={`chat-${chatMsg.id}`}
-                        id={chatMsg.id?.toString() || ''}
-                        title={'Получено новое сообщение от службы поддержки'}
-                        text={chatMsg.text || chatMsg.text_for_files || 'Получено новое сообщение от службы поддержки'}
-                        color="blue"
-                        date={chatMsg.created || ''}
-                        isActive={true}
-                        isRead={false} // Всегда false, так как это непрочитанные
-                        onClick={handleChatNotificationClick}
-                    />
-                ))}
+                {/* Все уведомления (включая чат-уведомления) */}
+                {notifications.map((n) => {
+                    // Определяем, это чат-уведомление или обычное
+                    const isChatNotification = typeof n.id === 'string' && n.id.startsWith('chat-');
+                    const handleClick = isChatNotification
+                        ? () => handleChatNotificationClick(n.id || '')
+                        : () => handleCardClick(n.id || '');
 
-                {/* Обычные уведомления */}
-                {notifications.map((n) => (
-                    <NotificationCard
-                        key={n.id}
-                        id={n.id}
-                        title={n.title || ''}
-                        text={n.text}
-                        color={n.color || 'blue'}
-                        date={n.created}
-                        isActive={n.is_active}   // кружок только от локального флага
-                        isRead={n.is_read}
-                        onClick={handleCardClick}
-                    />
-                ))}
+                    return (
+                        <NotificationCard
+                            key={n.id}
+                            id={n.id}
+                            title={n.title || ''}
+                            text={n.text}
+                            color={n.color || 'blue'}
+                            date={n.created}
+                            isActive={n.is_active}   // кружок только от локального флага
+                            isRead={n.is_read}
+                            onClick={handleClick}
+                        />
+                    );
+                })}
             </div>
         </div>
     );

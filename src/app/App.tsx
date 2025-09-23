@@ -54,7 +54,8 @@ function App() {
 
   useEffect(() => {
     if (!token) {
-      console.log("WebSocket init: No token available");
+      console.log("WebSocket init: No token available, closing connection");
+      dispatch(closeWebSocketConnection());
       return;
     }
 
@@ -79,6 +80,12 @@ function App() {
         console.error("WebSocket init error:", err);
       }
     })();
+
+    // Cleanup функция для закрытия WebSocket при размонтировании
+    return () => {
+      console.log("WebSocket cleanup: Closing connection");
+      dispatch(closeWebSocketConnection());
+    };
   }, [token, userId, dispatch]);
   // // Обновляем сообщения в личном кабинете каждые 30 секунд
   // useEffect(() => {

@@ -16,7 +16,6 @@ import { useSelector } from "react-redux";
 import uploadIcon from 'shared/assets/svg/ChatImportIcon.svg';
 import closeIcon from 'shared/assets/svg/close.svg';
 import {
-  fetchWebsocketId,
   getAllMessagesThunk,
   openWebSocketConnection,
   postMessage,
@@ -677,20 +676,15 @@ export const SupportChat = () => {
   });
 
 
-  // Получение ID веб-сокета и всех сообщений
+  // Получение сообщений и настроек чата (WebSocket уже открыт в App.tsx)
   useEffect(() => {
     if (token) {
       dispatch(getAllMessagesThunk());
-      dispatch(fetchWebsocketId()).then((result: any) => {
-        if (result.payload) {
-          dispatch(openWebSocketConnection(result.payload));
-        }
-      });
       dispatch(fetchChatSettings() as any);
     }
   }, [token, dispatch]);
 
-  // Переоткрываем WebSocket если он закрылся
+  // Переоткрываем WebSocket если он закрылся (только если уже есть websocketId)
   useEffect(() => {
     if (websocketId && !isWsConnected) {
       dispatch(openWebSocketConnection(websocketId));

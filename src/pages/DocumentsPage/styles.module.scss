@@ -303,3 +303,19 @@ justify-content: start;
 //     max-height: 520px;
 //     box-shadow: inset 0 -6px 6px -4px rgba(0, 0, 0, 0.1);
 //   }
+
+// Стили для скелета документа брокера
+.document__item_skeleton {
+    opacity: 0.5;
+    pointer-events: none;
+
+    .document__info__title {
+        color: #999 !important;
+    }
+
+    .button__gray {
+        background-color: #f5f5f5 !important;
+        color: #999 !important;
+        cursor: not-allowed !important;
+    }
+}

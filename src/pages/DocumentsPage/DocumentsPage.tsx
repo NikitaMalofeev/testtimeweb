@@ -54,8 +54,11 @@ const DocumentsPage: React.FC = () => {
     const modalState = useSelector((state: RootState) => state.modal);
     const { documentsPreview, documentsPreviewSigned } = modalState;
 
-    const { userDocuments, loading, filledRiskProfileChapters, brokerIds, brokersCount } = useSelector((state: RootState) => state.documents);
+    const { userDocuments, loading, filledRiskProfileChapters, brokerIds, brokersCount, brokers } = useSelector((state: RootState) => state.documents);
     const { isAnotherBroker } = useSelector((state: RootState) => state.riskProfile);
+
+    // Проверяем, есть ли брокер с is_confirmed_and_with_key: true
+    const isBrokerConfirmedWithKey = brokers.some(broker => broker.is_confirmed_and_with_key);
     const currentDocument = useSelector((state: RootState) => state.documents.currentSugnedDocument.document);
 
     const currentConfirmableDocument = useSelector((state: RootState) => state.documents.currentConfirmableDoc);
@@ -184,12 +187,13 @@ const DocumentsPage: React.FC = () => {
             )
             : baseOrder;
 
-        // Если выбран другой брокер - убираем документ broker_api_token
-        if (isAnotherBroker) {
-            vipFiltered = vipFiltered.filter(
-                (id) => id !== "type_doc_broker_api_token"
-            );
-        }
+        // Если выбран другой брокер - НЕ убираем документ broker_api_token,
+        // а показываем его как скелет, пока не придет is_confirmed_and_with_key: true
+        // if (isAnotherBroker) {
+        //     vipFiltered = vipFiltered.filter(
+        //         (id) => id !== "type_doc_broker_api_token"
+        //     );
+        // }
 
         /* ------------------------------------------------------------------
            Шаг 2. Если массовая подпись (one-code) неактивна → просто возвращаем
@@ -224,7 +228,7 @@ const DocumentsPage: React.FC = () => {
             : head;
 
         return [...finalHead, ...tail];
-    }, [isBulkEnabled, isVip, isAnotherBroker]);
+    }, [isBulkEnabled, isVip, isAnotherBroker, isBrokerConfirmedWithKey]);
 
 
     /** «Чистые» названия без нумерации  */
@@ -461,8 +465,12 @@ const DocumentsPage: React.FC = () => {
                 isIdentityScanExist ? 'signed' :
                     date ? 'signed' : 'signable';
         }
-        if (type === "type_doc_broker_api_token" && isBrokerSigned) {
-            status = "signed";
+        if (type === "type_doc_broker_api_token") {
+            if (isAnotherBroker && !isBrokerConfirmedWithKey) {
+                status = "disabled"; // Скелет брокера - неактивен
+            } else if (isBrokerSigned) {
+                status = "signed";
+            }
         }
         return {
             id: type,
@@ -577,7 +585,9 @@ const DocumentsPage: React.FC = () => {
                 ? !hasPassport
                 : !(hasPassport && hasBroker)                         // «Приложение 1»
             : isBroker
-                ? !hasPassport || !areAllDocumentsBeforeBrokerSigned()  // брокер: нужен паспорт И все документы до брокера подписаны
+                ? isAnotherBroker && !isBrokerConfirmedWithKey
+                    ? true  // Для другого брокера показываем скелет пока не подтвердится
+                    : !hasPassport || !areAllDocumentsBeforeBrokerSigned()  // брокер: нужен паспорт И все документы до брокера подписаны
                 : isPassport
                     ? false                                                     // паспорт всегда активен
                     : doc.id !== firstNotConfirmed || !hasPassport;             // прочие
@@ -601,7 +611,10 @@ const DocumentsPage: React.FC = () => {
 
         /* 2) Брокерский токен */
         else if (isBroker) {
-            if (brokerIds.length === 0) {
+            if (isAnotherBroker && !isBrokerConfirmedWithKey) {
+                colorClass = styles.button__gray;
+                additionalMessages = 'Документ будет доступен для подписи после подключения брокера';
+            } else if (brokerIds.length === 0) {
                 colorClass = styles.button__gray;
                 additionalMessages = 'Для подписания подключите брокерский счёт';
             } else {
@@ -860,11 +873,16 @@ const DocumentsPage: React.FC = () => {
                         const isInBulk = false; // убираем возможность выбора отдельных документов
 
                         const isAdvisorAgreement = doc.id === 'type_doc_agreement_investment_advisor_app_1';
-                        // Вынесем логику определения отображения кнопки/статуса
-                        const isSignedApp1 = hasTariffAttempt && !hasTariff;
-                        const isSigned = isAdvisorAgreement ? isSignedApp1 : doc.status === "signed";
                         const isPassport = doc.id === "type_doc_passport";
                         const isBroker = doc.id === "type_doc_broker_api_token";
+
+                        // Вынесем логику определения отображения кнопки/статуса
+                        const isSignedApp1 = hasTariffAttempt && !hasTariff;
+                        const isSigned = isAdvisorAgreement
+                            ? isSignedApp1
+                            : isBroker && isAnotherBroker && !isBrokerConfirmedWithKey
+                                ? false  // Для скелета брокера никогда не показываем как подписанный
+                                : doc.status === "signed";
 
 
                         const isDisabled = isAdvisorAgreement
@@ -872,12 +890,16 @@ const DocumentsPage: React.FC = () => {
                                 ? !hasPassport
                                 : !(hasPassport && hasBroker && hasTariff)
                             : isBroker
-                                ? !hasPassport || !areAllDocumentsBeforeBrokerSigned()
+                                ? isAnotherBroker && !isBrokerConfirmedWithKey
+                                    ? true  // Для другого брокера показываем скелет пока не подтвердится
+                                    : !hasPassport || !areAllDocumentsBeforeBrokerSigned()
                                 : isPassport
                                     ? false
                                     : doc.id !== firstNotConfirmed || !hasPassport;
                         let buttonText = "Подписать";
-                        if (isBroker && brokersCount === 0) {
+                        if (isBroker && isAnotherBroker && !isBrokerConfirmedWithKey) {
+                            buttonText = "Ожидается подтверждение";
+                        } else if (isBroker && brokersCount === 0) {
                             buttonText = brokerIds && brokerIds.length ? "Подписать" : "Заполнить";
                         } else if (isPassport) {
                             buttonText = isIdentityScanExist ? "Подписать" : "Заполнить";
@@ -914,17 +936,18 @@ const DocumentsPage: React.FC = () => {
 
                         const showSuccess =
                             (isPassport && isSigned && isIdentityScanExist) ||
-                            (!isPassport && isSigned && !(isAdvisorAgreement && !hasTariff)); // Исключаем показ "Подписано" для Приложения 1 без тарифа
+                            (!isPassport && isSigned && !(isAdvisorAgreement && !hasTariff) && !(isBroker && isAnotherBroker && !isBrokerConfirmedWithKey)); // Исключаем показ "Подписано" для Приложения 1 без тарифа и для скелета брокера
                         const shouldHideBrokerWhenBulk =
                             isBroker && buttonText === 'Подписать' && showBulkToolbar;
 
                         const shouldShowButton =
                             !isInBulk &&
                             !showSuccess &&
-                            !shouldHideBrokerWhenBulk;
+                            !shouldHideBrokerWhenBulk &&
+                            !(isBroker && isAnotherBroker && !isBrokerConfirmedWithKey); // Не показываем кнопки для скелета брокера
 
-                        // Показываем кнопку просмотра для подписанных документов
-                        const shouldShowViewButton = isSigned && !doc.isPayment;
+                        // Показываем кнопку просмотра для подписанных документов, но не для скелета брокера
+                        const shouldShowViewButton = isSigned && !doc.isPayment && !(isBroker && isAnotherBroker && !isBrokerConfirmedWithKey);
 
 
 
@@ -935,7 +958,7 @@ const DocumentsPage: React.FC = () => {
                             <>
                                 {device === 'mobile' ? (
                                     <div style={{ display: 'flex', gap: '10px' }}>
-                                        <div key={doc.id} className={styles.document__item}>
+                                        <div key={doc.id} className={`${styles.document__item} ${isBroker && isAnotherBroker && !isBrokerConfirmedWithKey ? styles.document__item_skeleton : ''}`}>
                                             <div>
 
                                                 <div className={styles.document__info}>
@@ -1035,7 +1058,7 @@ const DocumentsPage: React.FC = () => {
                                 ) : (
 
                                     <div style={{ display: 'flex', gap: '10px' }}>
-                                        <div key={doc.id} className={styles.document__item}>
+                                        <div key={doc.id} className={`${styles.document__item} ${isBroker && isAnotherBroker && !isBrokerConfirmedWithKey ? styles.document__item_skeleton : ''}`}>
                                             <div className={styles.document__info}>
                                                 {/* Показываем дату, если документ подписан */}
                                                 <span className={styles.document__date}>

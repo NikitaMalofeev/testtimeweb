@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from 'app/providers/store/config/store';
 import { setError } from 'entities/Error/slice/errorSlice';
-import { setUserToken } from 'entities/User/slice/userSlice';
+import { setUserToken, logoutUser } from 'entities/User/slice/userSlice';
 import {
     calculateProfitability,
     checkConfirmationCodeTariff,
@@ -621,10 +621,42 @@ export const paymentsSlice = createSlice({
                 state.balance = payload;
             })
 
-            /** Очистка paidTariffKeys при смене токена пользователя */
-            .addCase(setUserToken, (state) => {
-                // Очищаем оплаченные ключи тарифов при смене пользователя
+            /** Очистка состояний тарифов при смене токена пользователя */
+            .addCase(setUserToken, (state, action) => {
+                const newToken = action.payload;
+                // Если токен изменился (включая сброс на null), сбрасываем все состояния тарифов
+                // Очищаем оплаченные ключи тарифов
                 state.paidTariffKeys = {};
+                // Сбрасываем выбранный тариф и связанные состояния
+                state.currentTariffId = '';
+                state.currentUserTariffIdForPayments = '';
+                state.currentOrderId = '';
+                state.currentOrder = null;
+                state.currentOrderStatus = '';
+                state.isConfirming = false;
+                // Сбрасываем калькулятор
+                state.calculator = {
+                    min_deposit: 1_000_000,
+                    loading: false,
+                    error: null,
+                    result: null,
+                };
+                // Если токен сбросился (logout), очищаем все данные
+                if (!newToken) {
+                    state.tariffs = [];
+                    state.activeTariffs = [];
+                    state.payments_info = [];
+                    state.checks = {};
+                    state.balance = null;
+                    state.orderStatus = null;
+                    state.robokassaData = null;
+                }
+            })
+
+            /** Полная очистка при логауте пользователя */
+            .addCase(logoutUser.fulfilled, (state) => {
+                // Полностью сбрасываем состояние до начального
+                return initialState;
             });
     },
 });

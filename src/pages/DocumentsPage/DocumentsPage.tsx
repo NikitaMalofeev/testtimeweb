@@ -880,8 +880,10 @@ const DocumentsPage: React.FC = () => {
 
                         // Вынесем логику определения отображения кнопки/статуса
                         const isSignedApp1 = hasTariffAttempt && !hasTariff;
+                        // НОВАЯ ЛОГИКА: также считаем app_1 подписанным если есть активный тариф
+                        const isSignedApp1WithActiveTariff = hasTariff && activeTariffs.some(tariff => tariff.is_active === true);
                         const isSigned = isAdvisorAgreement
-                            ? isSignedApp1
+                            ? isSignedApp1 || isSignedApp1WithActiveTariff
                             : isBroker && isAnotherBroker && !isBrokerConfirmedWithKey
                                 ? false  // Для скелета брокера никогда не показываем как подписанный
                                 : doc.status === "signed";
@@ -938,7 +940,7 @@ const DocumentsPage: React.FC = () => {
 
                         const showSuccess =
                             (isPassport && isSigned && isIdentityScanExist) ||
-                            (!isPassport && isSigned && !(isAdvisorAgreement && !hasTariff) && !(isBroker && isAnotherBroker && !isBrokerConfirmedWithKey)); // Исключаем показ "Подписано" для Приложения 1 без тарифа и для скелета брокера
+                            (!isPassport && isSigned && !(isAdvisorAgreement && !hasTariff && !isSignedApp1WithActiveTariff) && !(isBroker && isAnotherBroker && !isBrokerConfirmedWithKey)); // ОБНОВЛЕНА ЛОГИКА: показываем "Подписано" для app_1 если есть активный тариф
                         const shouldHideBrokerWhenBulk =
                             isBroker && buttonText === 'Подписать' && showBulkToolbar;
 

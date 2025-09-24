@@ -127,6 +127,21 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         };
     }, [dispatch]);
 
+    // ===== НОВАЯ ЛОГИКА: Автоматический редирект на success при активном тарифе
+    useEffect(() => {
+        // Проверяем есть ли активные тарифы с is_active: true
+        const hasActiveTariff = activeTariffs.some(tariff => tariff.is_active === true);
+
+        if (hasActiveTariff && !currentOrderStatus) {
+            // Если есть активный тариф и нет текущего статуса, переключаем на success
+            dispatch(setCurrentOrderStatus('success'));
+            // Редирект на страницу success
+            if (!location.pathname.endsWith('/success')) {
+                navigate('/payments/success', { replace: true });
+            }
+        }
+    }, [activeTariffs, currentOrderStatus, dispatch, navigate, location.pathname]);
+
     // ===== Каталог тарифов
     useEffect(() => {
         if (tariffs.length < 1) {

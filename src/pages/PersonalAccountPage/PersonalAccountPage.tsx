@@ -255,6 +255,7 @@ const PersonalAccountMenu: React.FC = () => {
             route: '/balance',
             iconWidth: 28,
             iconHeight: 25,
+            disabled: isAnotherBroker,
         },
         {
             icon: AccountChatIcon,

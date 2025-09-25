@@ -314,6 +314,11 @@ const DocumentsPage: React.FC = () => {
                 break;
             }
             case "type_doc_broker_api_token": {
+                // Если выбран другой брокер, не позволяем подписывать документ
+                if (isAnotherBroker) {
+                    return;
+                }
+
                 const firstBroker = brokerIds[0];
                 const isBrokerFilled = firstBroker !== null && firstBroker !== undefined;
 
@@ -901,7 +906,7 @@ const DocumentsPage: React.FC = () => {
                                     ? false
                                     : doc.id !== firstNotConfirmed || !hasPassport;
                         let buttonText = "Подписать";
-                        if (isBroker && isAnotherBroker && !isBrokerConfirmedWithKey) {
+                        if (isBroker && isAnotherBroker) {
                             buttonText = "Ожидается подтверждение";
                         } else if (isBroker && brokersCount === 0) {
                             buttonText = brokerIds && brokerIds.length ? "Подписать" : "Заполнить";
@@ -940,7 +945,7 @@ const DocumentsPage: React.FC = () => {
 
                         const showSuccess =
                             (isPassport && isSigned && isIdentityScanExist) ||
-                            (!isPassport && isSigned && !(isAdvisorAgreement && !hasTariff && !isSignedApp1WithActiveTariff) && !(isBroker && isAnotherBroker && !isBrokerConfirmedWithKey)); // ОБНОВЛЕНА ЛОГИКА: показываем "Подписано" для app_1 если есть активный тариф
+                            (!isPassport && isSigned && !(isAdvisorAgreement && !hasTariff && !isSignedApp1WithActiveTariff) && !(isBroker && isAnotherBroker)); // Не показываем "Подписано" для брокера при isAnotherBroker
                         const shouldHideBrokerWhenBulk =
                             isBroker && buttonText === 'Подписать' && showBulkToolbar;
 
@@ -948,10 +953,10 @@ const DocumentsPage: React.FC = () => {
                             !isInBulk &&
                             !showSuccess &&
                             !shouldHideBrokerWhenBulk &&
-                            !(isBroker && isAnotherBroker && !isBrokerConfirmedWithKey); // Не показываем кнопки для скелета брокера
+                            !(isBroker && isAnotherBroker); // Не показываем кнопки для брокера при isAnotherBroker
 
-                        // Показываем кнопку просмотра для подписанных документов, но не для скелета брокера
-                        const shouldShowViewButton = isSigned && !doc.isPayment && !(isBroker && isAnotherBroker && !isBrokerConfirmedWithKey);
+                        // Показываем кнопку просмотра для подписанных документов, но не для брокера при isAnotherBroker
+                        const shouldShowViewButton = isSigned && !doc.isPayment && !(isBroker && isAnotherBroker);
 
 
 
@@ -962,7 +967,7 @@ const DocumentsPage: React.FC = () => {
                             <>
                                 {device === 'mobile' ? (
                                     <div style={{ display: 'flex', gap: '10px' }}>
-                                        <div key={doc.id} className={`${styles.document__item} ${isBroker && isAnotherBroker && !isBrokerConfirmedWithKey ? styles.document__item_skeleton : ''}`}>
+                                        <div key={doc.id} className={`${styles.document__item} ${isBroker && isAnotherBroker ? styles.document__item_skeleton : ''}`}>
                                             <div>
 
                                                 <div className={styles.document__info}>
@@ -1055,6 +1060,10 @@ const DocumentsPage: React.FC = () => {
                                                     >
                                                         {buttonText}
                                                     </Button>
+                                                ) : (isBroker && isAnotherBroker) ? (
+                                                    <div className={styles.document__waitingStatus}>
+                                                        <span>Ожидается подтверждение</span>
+                                                    </div>
                                                 ) : null}
 
                                             </div>
@@ -1062,7 +1071,7 @@ const DocumentsPage: React.FC = () => {
                                 ) : (
 
                                     <div style={{ display: 'flex', gap: '10px' }}>
-                                        <div key={doc.id} className={`${styles.document__item} ${isBroker && isAnotherBroker && !isBrokerConfirmedWithKey ? styles.document__item_skeleton : ''}`}>
+                                        <div key={doc.id} className={`${styles.document__item} ${isBroker && isAnotherBroker ? styles.document__item_skeleton : ''}`}>
                                             <div className={styles.document__info}>
                                                 {/* Показываем дату, если документ подписан */}
                                                 <span className={styles.document__date}>
@@ -1154,6 +1163,10 @@ const DocumentsPage: React.FC = () => {
                                                     >
                                                         {buttonText}
                                                     </Button>
+                                                ) : (isBroker && isAnotherBroker) ? (
+                                                    <div className={styles.document__waitingStatus}>
+                                                        <span>Ожидается подтверждение</span>
+                                                    </div>
                                                 ) : null}
 
                                             </div>

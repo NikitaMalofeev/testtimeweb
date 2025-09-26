@@ -60,7 +60,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     const location = useLocation();
 
     const device = useDevice();
-    const { status: statusParam } = useParams<{
+    const { status: statusParam, uuid } = useParams<{
         status?: 'success' | 'loading' | 'failed';
         uuid?: string;
     }>();
@@ -94,7 +94,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
             const st = statusParam as 'success' | 'loading' | 'failed';
             dispatch(setCurrentOrderStatus(st));
             if (st === 'loading') dispatch(setLockToLoading(true));
-            if (st === 'success') dispatch(setLockToLoading(false));
+            if (st === 'success' || st === 'failed') dispatch(setLockToLoading(false));
         }
     }, [statusParam, dispatch]);
 
@@ -110,13 +110,14 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         }
     }, [lockToLoading, location.pathname, navigate]);
 
-    // ===== SUCCESS → подтянуть свежие данные один раз
+    // ===== SUCCESS, LOADING или FAILED → подтянуть свежие данные
     useEffect(() => {
-        if (currentOrderStatus === 'success' && !tariffsRequestedRef.current) {
+        if (currentOrderStatus === 'success' || currentOrderStatus === 'loading' || currentOrderStatus === 'failed') {
             dispatch(getAllActiveTariffsThunk({ onSuccess() { } }));
             dispatch(getAllUserTariffsThunk({ onSuccess() { } }));
-            tariffsRequestedRef.current = true;
         }
+        // Сбрасываем флаг при смене статуса для возможности повторного запроса
+        tariffsRequestedRef.current = false;
     }, [currentOrderStatus, dispatch]);
 
     // ===== На монтировании: активные тарифы; при размонтировании — очистить только статус
@@ -127,13 +128,21 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         };
     }, [dispatch]);
 
+    // ===== При возврате на /payments (без статуса) - проверяем свежие данные тарифов
+    useEffect(() => {
+        if (location.pathname === '/payments' && !statusParam && !currentOrderStatus) {
+            dispatch(getAllActiveTariffsThunk({ onSuccess() { } }));
+            dispatch(getAllUserTariffsThunk({ onSuccess() { } }));
+        }
+    }, [location.pathname, statusParam, currentOrderStatus, dispatch]);
+
     // ===== НОВАЯ ЛОГИКА: Автоматический редирект на success при активном тарифе
     useEffect(() => {
         // Проверяем есть ли активные тарифы с is_active: true
         const hasActiveTariff = activeTariffs.some(tariff => tariff.is_active === true);
 
-        if (hasActiveTariff && !currentOrderStatus) {
-            // Если есть активный тариф и нет текущего статуса, переключаем на success
+        if (hasActiveTariff && (currentOrderStatus === '' || currentOrderStatus === 'loading' || currentOrderStatus === 'failed')) {
+            // Если есть активный тариф и статус пустой/loading/failed, переключаем на success
             dispatch(setCurrentOrderStatus('success'));
             // Редирект на страницу success
             if (!location.pathname.endsWith('/success')) {
@@ -141,6 +150,15 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
             }
         }
     }, [activeTariffs, currentOrderStatus, dispatch, navigate, location.pathname]);
+
+    // ===== ОБРАБОТКА СЛУЧАЯ /payments/failed/:uuid при успешной оплате
+    useEffect(() => {
+        if (statusParam === 'failed' && uuid) {
+            // Принудительно загружаем свежие данные тарифов для проверки статуса оплаты
+            dispatch(getAllActiveTariffsThunk({ onSuccess() { } }));
+            dispatch(getAllUserTariffsThunk({ onSuccess() { } }));
+        }
+    }, [statusParam, uuid, dispatch]);
 
     // ===== Каталог тарифов
     useEffect(() => {

@@ -44,16 +44,7 @@ const PaymentsPage: React.FC = () => {
         }
     }
 
-    // ===== НОВАЯ ЛОГИКА: Редирект на success если есть активный тариф
-    useEffect(() => {
-        // Проверяем есть ли активные тарифы с is_active: true
-        const hasActiveTariff = activeTariffs.some(tariff => tariff.is_active === true);
-
-        if (hasActiveTariff && !paymentStatus && !pathname.endsWith('/success')) {
-            // Если есть активный тариф и нет текущего статуса, редирект на success
-            navigate('/payments/success', { replace: true });
-        }
-    }, [activeTariffs, paymentStatus, pathname, navigate]);
+    // Логика редиректа теперь находится в Payments компоненте для избежания дублирования
 
     // useEffect(() => {
     //     if (currentPaidTsfdfariffs !== null) {

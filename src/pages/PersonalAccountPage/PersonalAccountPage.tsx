@@ -115,6 +115,11 @@ const PersonalAccountMenu: React.FC = () => {
                 }
             },
             message: filledRiskProfileChapters.is_risk_profile_complete_final && 'пройдено',
+            warningMessage: filledRiskProfileChapters.is_risk_profile_complete_final ? (
+                <div className={styles.warning}>
+                    <div>Для изменения риск-профиля, пожалуйста, обратитесь в чат поддержки</div>
+                </div>
+            ) : null,
             iconWidth: 28,
             iconHeight: 28,
             disabled: !availableMenuItems?.risk_profile,
@@ -226,7 +231,7 @@ const PersonalAccountMenu: React.FC = () => {
                     }
                 }
             },
-            message: ((!isAnotherBroker && brokersCount > 0) || brokers.some((broker) => broker.is_confirmed_and_with_key)) && 'подключен',
+            message: ((!isAnotherBroker && brokersCount > 0) || (brokers.some((broker) => broker.is_confirmed_and_with_key) && isAnotherBroker)) && 'Подключен',
             iconWidth: 28,
             iconHeight: 28,
             warningMessage: (!hasActiveTariff

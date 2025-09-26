@@ -30,6 +30,7 @@ import { RiskProfileModal } from "features/RiskProfile/RiskProfileModal/RiskProf
 import { closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import WarningIcon from 'shared/assets/svg/Warning.svg'
+import QuestionIcon from 'shared/assets/svg/question.svg'
 import { setStepAdditionalMenuUI, setWarning } from "entities/ui/Ui/slice/uiSlice";
 import { ProblemsCodeModal } from "features/RiskProfile/ProblemsCodeModal/ProblemsCodeModal";
 import { postPasportScanThunk } from "entities/RiskProfile/slice/riskProfileSlice";
@@ -115,8 +116,9 @@ const PersonalAccountMenu: React.FC = () => {
                 }
             },
             message: filledRiskProfileChapters.is_risk_profile_complete_final && 'пройдено',
-            warningMessage: filledRiskProfileChapters.is_risk_profile_complete_final ? (
+            largeWarningMessage: filledRiskProfileChapters.is_risk_profile_complete_final ? (
                 <div className={styles.warning}>
+                    <Icon Svg={QuestionIcon} width={16} height={16} />
                     <div>Для изменения риск-профиля, пожалуйста, обратитесь в чат поддержки</div>
                 </div>
             ) : null,

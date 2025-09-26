@@ -226,7 +226,7 @@ const PersonalAccountMenu: React.FC = () => {
                     }
                 }
             },
-            message: (brokersCount > 0 || brokers.some((broker) => broker.is_confirmed_and_with_key)) && 'подключен',
+            message: ((!isAnotherBroker && brokersCount > 0) || brokers.some((broker) => broker.is_confirmed_and_with_key)) && 'подключен',
             iconWidth: 28,
             iconHeight: 28,
             warningMessage: (!hasActiveTariff

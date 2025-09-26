@@ -94,8 +94,8 @@ function mergeReplaceFromServerHydrateAware(
     if (prev) {
       return { ...srv, is_active: prev.is_active };
     }
-    // Новый элемент: активируем только синие уведомления после первого гидрата
-    return { ...srv, is_active: wasHydrated ? (!srv.is_read && srv.status === 'notif_info') : false };
+    // Новый элемент: активируем только синие и зеленые уведомления после первого гидрата
+    return { ...srv, is_active: wasHydrated ? (!srv.is_read && (srv.status === 'notif_info' || srv.status === 'notif_success')) : false };
   });
 
   // Сохраняем локальные уведомления (например, чат-уведомления), которых нет на сервере
@@ -122,10 +122,10 @@ function applyServerPatch(
     return { ...prev, ...srv, is_active: prev.is_active };
   });
 
-  // добавляем новые из патча и СРАЗУ активируем (если они непрочитанные и синие)
+  // добавляем новые из патча и СРАЗУ активируем (если они непрочитанные и синие/зеленые)
   patchList.forEach(srv => {
     if (!oldList.find(p => p.id === srv.id)) {
-      updated.unshift({ ...srv, is_active: !srv.is_read && srv.status === 'notif_info' });
+      updated.unshift({ ...srv, is_active: !srv.is_read && (srv.status === 'notif_info' || srv.status === 'notif_success') });
     }
   });
 
@@ -160,10 +160,10 @@ export const notificationSlice = createSlice({
         color: raw.color,
         created: raw.created,
         is_read: !!(raw.is_read ?? raw.isRead),
-        is_active: raw.is_active !== undefined ? raw.is_active : (raw.status === 'notif_info'), // используем переданный is_active или активируем только info уведомления
+        is_active: raw.is_active !== undefined ? raw.is_active : (raw.status === 'notif_info' || raw.status === 'notif_success'), // используем переданный is_active или активируем info/success уведомления
       };
       if (idx >= 0) {
-        state.notifications[idx] = { ...state.notifications[idx], ...next, is_active: raw.is_active !== undefined ? raw.is_active : (raw.status === 'notif_info') };
+        state.notifications[idx] = { ...state.notifications[idx], ...next, is_active: raw.is_active !== undefined ? raw.is_active : (raw.status === 'notif_info' || raw.status === 'notif_success') };
       } else {
         state.notifications.unshift(next);
       }
@@ -256,11 +256,11 @@ export default notificationSlice.reducer;
 /* --------------------------- Селекторы -------------------------- */
 
 export const selectNotifications = (state: RootState) =>
-  state.notifications.notifications.filter(n => n.status === 'notif_info');
+  state.notifications.notifications.filter(n => n.status === 'notif_info' || n.status === 'notif_success');
 
-// Попап выводим по одному: активно, непрочитано и только info уведомления
+// Попап выводим по одному: активно, непрочитано и только info/success уведомления
 export const selectFirstActive = (state: RootState) =>
-  state.notifications.notifications.find(n => n.is_active && !n.is_read && n.status === 'notif_info');
+  state.notifications.notifications.find(n => n.is_active && !n.is_read && (n.status === 'notif_info' || n.status === 'notif_success'));
 
 export const selectUnreadCount = (state: RootState) =>
   state.notifications.notifications.filter(n => !n.is_read).length;

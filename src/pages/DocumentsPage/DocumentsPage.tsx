@@ -311,6 +311,7 @@ const DocumentsPage: React.FC = () => {
                         })
                     );
                 }
+
                 break;
             }
             case "type_doc_broker_api_token": {

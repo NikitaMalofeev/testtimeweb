@@ -47,6 +47,7 @@ const PersonalAccountMenu: React.FC = () => {
     const modalRPState = useSelector((state: RootState) => state.modal.identificationModal);
     const { userDocuments, filledRiskProfileChapters, currentConfirmableDoc, brokerIds, brokersCount } = useSelector((state: RootState) => state.documents);
     const { isAnotherBroker } = useSelector((state: RootState) => state.riskProfile);
+    const { brokers } = useSelector((state: RootState) => state.documents);
     const pushNotifications = useSelector((state: RootState) => state.push.notifications);
     const activePush = pushNotifications.find((n) => n.active);
     // Используем новое значение unreadAnswersCount вместо personalNewAnswersCount
@@ -225,7 +226,7 @@ const PersonalAccountMenu: React.FC = () => {
                     }
                 }
             },
-            message: (brokersCount > 0 || isAnotherBroker) && 'подключен',
+            message: (brokersCount > 0 || brokers.some((broker) => broker.is_confirmed_and_with_key)) && 'подключен',
             iconWidth: 28,
             iconHeight: 28,
             warningMessage: (!hasActiveTariff

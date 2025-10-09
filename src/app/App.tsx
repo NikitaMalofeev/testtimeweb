@@ -52,6 +52,14 @@ function App() {
 
   // Убрано - useVhFix уже устанавливает --app-vh и следит за изменениями
 
+  // ПЕРВЫЙ ЗАПРОС: Загружаем данные пользователя сразу при наличии токена
+  useEffect(() => {
+    if (token) {
+      dispatch(getUserPersonalAccountInfoThunk());
+      dispatch(getAllUserTariffsThunk({ onSuccess: () => { } }))
+    }
+  }, [token, dispatch]);
+
   useEffect(() => {
     if (!token) {
       console.log("WebSocket init: No token available, closing connection");
@@ -129,12 +137,6 @@ function App() {
       // dispatch(setScrollToTop(false));
     }
   }, [isNeedScrollToTop]);
-
-  useEffect(() => {
-    dispatch(getUserPersonalAccountInfoThunk());
-
-    dispatch(getAllUserTariffsThunk({ onSuccess: () => { } }))
-  }, []);
 
   useEffect(() => {
     dispatch(getAllNotificationsThunk({

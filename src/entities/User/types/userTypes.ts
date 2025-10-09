@@ -30,6 +30,8 @@ export interface UserPersonalAccount {
     risk_profiling_text_name: string;
     tariff_created: string | null;
     tariff_expiry: string | null;
+    is_vip: boolean;
+    waiting_manual_document_verification: boolean;
 }
 
 

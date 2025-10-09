@@ -262,6 +262,7 @@ export const userSlice = createSlice({
         },
         setUserPersonalAccountInfo: (state, action: PayloadAction<UserPersonalAccount>) => {
             state.userPersonalAccountInfo = action.payload;
+            state.is_vip = action.payload.is_vip;
         },
         // Частичное обновление userForPersonalAccount
         updateUserAllData: (state, action: PayloadAction<Partial<userAllData>>) => {

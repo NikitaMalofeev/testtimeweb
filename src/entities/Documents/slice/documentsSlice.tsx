@@ -96,7 +96,8 @@ export interface CustomDocData {
 export interface CustomDocUserData {
     id: string;
     title: string;
-    is_confirmed: boolean;
+    is_confirmed_type_doc_custom_for_user: boolean;
+    date_last_confirmed_type_doc_custom_for_user: string | null;
     created_at: string;
     modified_at: string | null;
 }

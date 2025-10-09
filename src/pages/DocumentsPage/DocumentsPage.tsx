@@ -287,15 +287,9 @@ const DocumentsPage: React.FC = () => {
         const customDoc = customDocumentsUser.find(d => String(d.id) === cleanDocId);
 
         if (customDoc) {
-            if (!customDoc.is_confirmed) {
-                dispatch(setCurrentCustomDocUser(customDoc));
-                dispatch(
-                    openModal({
-                        type: ModalType.CONFIRM_CUSTOM_DOCS,
-                        size: ModalSize.FULL,
-                        animation: ModalAnimation.LEFT,
-                    })
-                );
+            if (!customDoc.is_confirmed_type_doc_custom_for_user) {
+                // Перенаправляем на страницу подписания кастомного документа
+                navigate(`/custom_document/${cleanDocId}`);
             }
             return;
         }
@@ -734,7 +728,7 @@ const DocumentsPage: React.FC = () => {
                 onSuccess: () => {
                     dispatch(
                         openModal({
-                            type: customDoc.is_confirmed ? ModalType.DOCUMENTS_PREVIEW_SIGNED : ModalType.DOCUMENTS_PREVIEW,
+                            type: customDoc.is_confirmed_type_doc_custom_for_user ? ModalType.DOCUMENTS_PREVIEW_SIGNED : ModalType.DOCUMENTS_PREVIEW,
                             animation: ModalAnimation.LEFT,
                             size: ModalSize.FULL,
                             docId: cleanDocId,
@@ -1244,7 +1238,7 @@ const DocumentsPage: React.FC = () => {
 
                     {/* Рендер кастомных документов */}
                     {(customDocumentsUser || []).map((customDoc) => {
-                        const isSigned = customDoc.is_confirmed;
+                        const isSigned = customDoc.is_confirmed_type_doc_custom_for_user;
                         const customDocId = customDoc.id;
 
                         return (
@@ -1268,12 +1262,11 @@ const DocumentsPage: React.FC = () => {
                                             </div>
                                             <div className={styles.document__status}>
                                                 {isSigned ? (
-                                                    <div className={styles.document__success}>
+                                                    <div className={styles.document__button_success}>
                                                         <Icon
                                                             Svg={SuccessBlueIcon}
-                                                            width={16}
-                                                            height={16}
-                                                            pointer
+                                                            width={24}
+                                                            height={24}
                                                         />
                                                         <span>Подписано</span>
                                                     </div>
@@ -1317,15 +1310,14 @@ const DocumentsPage: React.FC = () => {
                                                     </Button>
                                                 </div>
                                                 {isSigned ? (
-                                                    <div className={styles.document__success}>
+                                                    <div className={styles.document__button_success}>
                                                         <Icon
                                                             Svg={SuccessBlueIcon}
-                                                            width={16}
-                                                            height={16}
-                                                            pointer
+                                                            width={24}
+                                                            height={24}
                                                         />
                                                         <span>
-                                                            {customDoc.is_confirmed
+                                                            {customDoc.is_confirmed_type_doc_custom_for_user
                                                                 ? "Подтверждено"
                                                                 : "Подписано"}
                                                         </span>

@@ -109,6 +109,7 @@ export interface BrokerData {
     is_confirmed_type_doc_agreement_transfer_broker: boolean;
     is_waiting_manual_verification_broker: boolean;
     is_confirmed_and_with_key: boolean;
+    is_exist_key: boolean;
     strategy_name: string | null;
     created: string;
     modified: string;

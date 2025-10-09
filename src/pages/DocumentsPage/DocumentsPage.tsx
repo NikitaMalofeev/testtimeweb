@@ -15,6 +15,9 @@ import {
     getUserDocumentNotSignedThunk,
     getAllBrokersThunk,
     getUserDocumentsInfoThunk,
+    getAllCustomDocumentUserThunk,
+    setCurrentCustomDocUser,
+    getUserNotSignedDocumentHtmlThunk,
     // Удалён старый setNotConfirmedDocuments
 } from "entities/Documents/slice/documentsSlice";
 
@@ -45,6 +48,8 @@ import { PasportScanForm } from "features/RiskProfile/PassportScanForm/PassportS
 import { Checkbox } from "shared/ui/Checkbox/Checkbox";
 import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { BulkSignModal } from "features/Documents/BulkSignModal/BulkSignModal";
+import { ConfirmCustomDocUserModal } from "features/RiskProfile/ConfirmCustomDocUserModal/ConfirmCustomDocUserModal";
+import { SuccessModal } from "features/RiskProfile/SuccessModal/SuccessModal";
 import { ConfirmAllDocsOneCodeModal } from "features/RiskProfile/ConfirmAllDocsOneCode/ConfirmAllDocsOneCode";
 
 const DocumentsPage: React.FC = () => {
@@ -54,8 +59,9 @@ const DocumentsPage: React.FC = () => {
     const modalState = useSelector((state: RootState) => state.modal);
     const { documentsPreview, documentsPreviewSigned } = modalState;
 
-    const { userDocuments, loading, filledRiskProfileChapters, brokerIds, brokersCount, brokers } = useSelector((state: RootState) => state.documents);
+    const { userDocuments, loading, filledRiskProfileChapters, brokerIds, brokersCount, brokers, customDocumentsUser } = useSelector((state: RootState) => state.documents);
     const { isAnotherBroker } = useSelector((state: RootState) => state.riskProfile);
+    const currentCustomDocUser = useSelector((state: RootState) => state.documents.currentCustomDocUser);
 
     // Проверяем, есть ли брокер с is_confirmed_and_with_key: true
     const isBrokerConfirmedWithKey = brokers.some(broker => broker.is_confirmed_and_with_key);
@@ -113,6 +119,20 @@ const DocumentsPage: React.FC = () => {
             : []
     ];
 
+    /** обработчик успешного подписания кастомного документа */
+    const handleSuccessCustomDoc = () => {
+        dispatch(
+            openModal({
+                type: ModalType.SUCCESS,
+                size: ModalSize.MC,
+                animation: ModalAnimation.BOTTOM,
+            })
+        );
+        dispatch(closeModal(ModalType.CONFIRM_CUSTOM_DOCS));
+        // Обновляем список кастомных документов
+        dispatch(getAllCustomDocumentUserThunk());
+    };
+
     /** обработчик подписания всех документов - автоматически выбираются все документы */
     const handleSignAllDocs = () => {
         const selectableDocIds = bulkSelectableDocs.map(d => d.id);
@@ -137,6 +157,7 @@ const DocumentsPage: React.FC = () => {
         dispatch(getAllUserInfoThunk());
         dispatch(getAllUserChecksThunk({ onSuccess: () => { } }))
         dispatch(getAllBrokersThunk({ is_confirmed_type_doc_agreement_transfer_broker: true, onSuccess: () => { } }));
+        dispatch(getAllCustomDocumentUserThunk());
     }, []);
 
     useEffect(() => {
@@ -260,6 +281,25 @@ const DocumentsPage: React.FC = () => {
 
     // Метод для подписания конкретного документа
     const handleSignDocument = (docId: string) => {
+        // Обработка кастомных документов - проверяем по ID или префиксу
+        const docIdStr = String(docId);
+        const cleanDocId = docIdStr.startsWith('custom_') ? docIdStr.replace('custom_', '') : docIdStr;
+        const customDoc = customDocumentsUser.find(d => String(d.id) === cleanDocId);
+
+        if (customDoc) {
+            if (!customDoc.is_confirmed) {
+                dispatch(setCurrentCustomDocUser(customDoc));
+                dispatch(
+                    openModal({
+                        type: ModalType.CONFIRM_CUSTOM_DOCS,
+                        size: ModalSize.FULL,
+                        animation: ModalAnimation.LEFT,
+                    })
+                );
+            }
+            return;
+        }
+
         switch (docId) {
             case "type_doc_RP_questionnairy":
                 dispatch(setCurrentConfirmableDoc("type_doc_RP_questionnairy"));
@@ -543,7 +583,7 @@ const DocumentsPage: React.FC = () => {
         (d) => !documents.some((doc) => doc.id === d.id),
     );
 
-    // 4. Итоговый список
+    // 4. Итоговый список (без кастомных документов - они рендерятся отдельно)
     const allDocuments = [...uniquePaymentDocs, ...documents];
 
     // Ищем первый документ, у которого status === "signable" (то есть не подписан)
@@ -679,6 +719,32 @@ const DocumentsPage: React.FC = () => {
     }, [currentUserTariffIdForPayments, dispatch]);
 
     const handleOpenPreview = (docId: string) => {
+        // Обработка кастомных документов - проверяем по ID или префиксу
+        const docIdStr = String(docId);
+        const cleanDocId = docIdStr.startsWith('custom_') ? docIdStr.replace('custom_', '') : docIdStr;
+        const customDoc = customDocumentsUser.find(d => String(d.id) === cleanDocId);
+
+        if (customDoc) {
+            dispatch(setCurrentCustomDocUser(customDoc));
+            setSelectedDocId(docId);
+
+            // Загружаем HTML документа
+            dispatch(getUserNotSignedDocumentHtmlThunk({
+                data: { id: cleanDocId },
+                onSuccess: () => {
+                    dispatch(
+                        openModal({
+                            type: customDoc.is_confirmed ? ModalType.DOCUMENTS_PREVIEW_SIGNED : ModalType.DOCUMENTS_PREVIEW,
+                            animation: ModalAnimation.LEFT,
+                            size: ModalSize.FULL,
+                            docId: cleanDocId,
+                        })
+                    );
+                }
+            }));
+            return;
+        }
+
         // console.log(docId);
         if (docId === "type_doc_passport") {
             setSelectedDocId(docId);
@@ -1175,6 +1241,112 @@ const DocumentsPage: React.FC = () => {
 
                         );
                     })}
+
+                    {/* Рендер кастомных документов */}
+                    {(customDocumentsUser || []).map((customDoc) => {
+                        const isSigned = customDoc.is_confirmed;
+                        const customDocId = customDoc.id;
+
+                        return (
+                            <>
+                                {device === 'mobile' ? (
+                                    <div style={{ display: 'flex', gap: '10px' }} key={customDocId}>
+                                        <div className={styles.document__item}>
+                                            <div>
+                                                <div className={styles.document__info}>
+                                                    <span className={styles.document__info__title}>{customDoc.title}</span>
+                                                    <div className={styles.document__info__flex}>
+                                                        <Button
+                                                            className={styles.document__preview}
+                                                            theme={ButtonTheme.UNDERLINE}
+                                                            onClick={() => handleOpenPreview(customDocId)}
+                                                        >
+                                                            Просмотр
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className={styles.document__status}>
+                                                {isSigned ? (
+                                                    <div className={styles.document__success}>
+                                                        <Icon
+                                                            Svg={SuccessBlueIcon}
+                                                            width={16}
+                                                            height={16}
+                                                            pointer
+                                                        />
+                                                        <span>Подписано</span>
+                                                    </div>
+                                                ) : (
+                                                    <Button
+                                                        onClick={() => handleSignDocument(customDocId)}
+                                                        disabled={false}
+                                                        className={`${styles.button__gray} ${styles.button}`}
+                                                        theme={ButtonTheme.BLUE}
+                                                    >
+                                                        Подписать
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div style={{ display: 'flex', gap: '10px' }} key={customDocId}>
+                                        <div className={styles.document__item}>
+                                            <div className={styles.document__info}>
+                                                <span className={styles.document__date}>
+                                                    {customDoc.modified_at || customDoc.created_at
+                                                        ? new Date(customDoc.modified_at || customDoc.created_at).toLocaleDateString("ru-RU", {
+                                                            day: "2-digit",
+                                                            month: "2-digit",
+                                                            year: "numeric",
+                                                        })
+                                                        : "—"}
+                                                </span>
+                                                <span className={styles.document__info__title}>{customDoc.title}</span>
+                                            </div>
+
+                                            <div className={styles.document__info__flex} style={!isSigned ? { flexDirection: 'column', alignItems: 'end', justifyContent: 'end' } : {}}>
+                                                <div className={styles.document__status} style={{ display: 'flex' }}>
+                                                    <Button
+                                                        className={styles.document__preview}
+                                                        theme={ButtonTheme.UNDERLINE}
+                                                        onClick={() => handleOpenPreview(customDocId)}
+                                                    >
+                                                        Просмотр
+                                                    </Button>
+                                                </div>
+                                                {isSigned ? (
+                                                    <div className={styles.document__success}>
+                                                        <Icon
+                                                            Svg={SuccessBlueIcon}
+                                                            width={16}
+                                                            height={16}
+                                                            pointer
+                                                        />
+                                                        <span>
+                                                            {customDoc.is_confirmed
+                                                                ? "Подтверждено"
+                                                                : "Подписано"}
+                                                        </span>
+                                                    </div>
+                                                ) : (
+                                                    <Button
+                                                        onClick={() => handleSignDocument(customDocId)}
+                                                        disabled={false}
+                                                        className={`${styles.button__gray} ${styles.button}`}
+                                                        theme={ButtonTheme.BLUE}
+                                                    >
+                                                        Подписать
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </>
+                        );
+                    })}
                 </div>
             </div>
 
@@ -1212,6 +1384,17 @@ const DocumentsPage: React.FC = () => {
                     }}
                 />
             )}
+            <ConfirmCustomDocUserModal
+                isOpen={modalState.confirmCustomDocsModal.isOpen}
+                onClose={() => dispatch(closeModal(ModalType.CONFIRM_CUSTOM_DOCS))}
+                documentId={currentCustomDocUser?.id || ''}
+                openSuccessModal={handleSuccessCustomDoc}
+            />
+            <SuccessModal
+                isOpen={modalState.success.isOpen}
+                onClose={() => dispatch(closeModal(ModalType.SUCCESS))}
+                text="Документ успешно подписан"
+            />
         </div>
     );
 };

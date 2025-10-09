@@ -216,7 +216,7 @@ const ConfirmCustomDocsPage: React.FC = () => {
     const handleOpenPreview = async () => {
         if (isUserAuthorized) {
             // Для авторизованных пользователей
-            if (id && currentCustomDocUser?.is_confirmed) {
+            if (id && currentCustomDocUser?.is_confirmed_type_doc_custom_for_user) {
                 await dispatch(getSignedCustomDocumentUserThunk({
                     data: { id: id },
                     onSuccess: () => { },
@@ -317,7 +317,7 @@ const ConfirmCustomDocsPage: React.FC = () => {
                 </div>
             </div>
             {(isUserAuthorized
-                ? currentCustomDocUser?.is_confirmed
+                ? currentCustomDocUser?.is_confirmed_type_doc_custom_for_user
                 : customData?.is_confirmed_type_doc_custom
             ) ? (
                 <div className={styles.end}>
@@ -413,9 +413,9 @@ const ConfirmCustomDocsPage: React.FC = () => {
             {isUserAuthorized ? (
                 <DocumentPreviewModal
                     isOpen={documentsPreviewState.isOpen}
-                    onClose={() => dispatch(closeModal(currentCustomDocUser?.is_confirmed ? ModalType.DOCUMENTS_PREVIEW : ModalType.DOCUMENTS_PREVIEW_SIGNED))}
+                    onClose={() => dispatch(closeModal(currentCustomDocUser?.is_confirmed_type_doc_custom_for_user ? ModalType.DOCUMENTS_PREVIEW : ModalType.DOCUMENTS_PREVIEW_SIGNED))}
                     docId={`custom_doc_user_${id}`}
-                    isSignedDoc={currentCustomDocUser?.is_confirmed}
+                    isSignedDoc={currentCustomDocUser?.is_confirmed_type_doc_custom_for_user}
                     title={currentCustomDocUser?.title || 'Кастомный документ'}
                 />
             ) : (

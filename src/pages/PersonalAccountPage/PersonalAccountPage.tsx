@@ -72,6 +72,8 @@ const PersonalAccountMenu: React.FC = () => {
         : filledRiskProfileChapters.is_exist_scan_passport;
 
     const hasIdentityDocs = isIdentityDataComplete && isIdentityScanExist;
+    // Проверяем есть ли у брокера ключ (is_exist_key)
+    const isBrokerExistKey = brokers.some(broker => broker.is_exist_key);
     // Теперь чат-уведомления включены в notifications, поэтому не нужно дублировать
     const allNotificationsCount = notifications.filter((item) => !item.is_read).length;
     useEffect(() => {
@@ -251,11 +253,18 @@ const PersonalAccountMenu: React.FC = () => {
         {
             icon: AccountTarifsIcon,
             title: "Тарифы",
-            message: hasActiveTariff && 'подключен',
+            message: (isUserVip && isBrokerExistKey) ? 'оплатите тариф' : (hasActiveTariff && 'подключен'),
+            largeWarningMessage: (isUserVip && isBrokerExistKey) ? (
+                <div className={styles.warning}>
+                    <Icon Svg={QuestionIcon} width={16} height={16} />
+                    <div>Для начала работы оплатите тариф</div>
+                </div>
+            ) : null,
             // action: () => availableMenuItems?.tariffs && navigate("/payments"),
             action: () => navigate("/payments"),
             iconWidth: 24.54,
             iconHeight: 24.24,
+            disabled: (isUserVip && isBrokerExistKey),
         },
         {
             icon: AccountBalanceIcon,
@@ -317,9 +326,9 @@ const PersonalAccountMenu: React.FC = () => {
         },
     ];
 
-    // Фильтруем items для VIP пользователей - убираем "Тарифы" и "Баланс"
+    // Фильтруем для VIP: убираем "Баланс", оставляем "Тарифы" с disabled статусом
     const items = isUserVip
-        ? allItems.filter(item => item.title !== "Тарифы" && item.title !== "Баланс")
+        ? allItems.filter(item => item.title !== "Баланс")
         : allItems;
 
     // useEffect(() => {

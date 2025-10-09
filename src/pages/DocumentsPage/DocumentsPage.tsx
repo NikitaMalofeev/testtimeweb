@@ -86,7 +86,7 @@ const DocumentsPage: React.FC = () => {
     const brokerConfirmation = userDocuments.find(
         d => d.is_confirmed_type_doc_agreement_transfer_broker === true,
     );
-    const isBrokerSigned = !!brokerDoc;
+    const isBrokerSigned = !!brokerDoc?.date_last_confirmed_type_doc_agreement_transfer_broker;
 
     const isIp = !!user?.is_individual_entrepreneur;
 
@@ -505,9 +505,7 @@ const DocumentsPage: React.FC = () => {
                     date ? 'signed' : 'signable';
         }
         if (type === "type_doc_broker_api_token") {
-            if (isAnotherBroker && !isBrokerConfirmedWithKey && !isBrokerExistKey) {
-                status = "disabled"; // Скелет брокера без ключа - неактивен
-            } else if (isBrokerSigned) {
+            if (isBrokerSigned) {
                 status = "signed";
             }
         }
@@ -583,7 +581,21 @@ const DocumentsPage: React.FC = () => {
     const allDocuments = [...uniquePaymentDocs, ...documents];
 
     // Ищем первый документ, у которого status === "signable" (то есть не подписан)
-    const firstNotConfirmed = documents.find((doc) => doc.status === "signable")?.id;
+    // Для VIP и another broker после множественного подписания следующим должен быть брокер
+    const firstNotConfirmed = (() => {
+        const signableDocs = documents.filter((doc) => doc.status === "signable");
+
+        // Проверяем есть ли брокер среди неподписанных
+        const brokerDoc = signableDocs.find(doc => doc.id === "type_doc_broker_api_token");
+
+        // Если есть неподписанный брокер и пользователь VIP или another broker, брокер идет первым
+        if (brokerDoc && (isVip || isAnotherBroker)) {
+            return brokerDoc.id;
+        }
+
+        // Иначе возвращаем первый неподписанный документ по порядку
+        return signableDocs[0]?.id;
+    })();
 
     // Функция для проверки, что все документы до брокера подписаны
     const areAllDocumentsBeforeBrokerSigned = () => {
@@ -622,8 +634,8 @@ const DocumentsPage: React.FC = () => {
                 ? !hasPassport || !hasTariff
                 : !(hasPassport && hasBroker && hasTariff)                         // «Приложение 1»
             : isBroker
-                ? isAnotherBroker && !isBrokerConfirmedWithKey
-                    ? true  // Для другого брокера показываем скелет пока не подтвердится
+                ? isAnotherBroker && !isBrokerConfirmedWithKey && !isBrokerExistKey
+                    ? true  // Для другого брокера без ключа показываем скелет
                     : !hasPassport || !areAllDocumentsBeforeBrokerSigned()  // брокер: нужен паспорт И все документы до брокера подписаны
                 : isPassport
                     ? false                                                     // паспорт всегда активен
@@ -648,10 +660,7 @@ const DocumentsPage: React.FC = () => {
 
         /* 2) Брокерский токен */
         else if (isBroker) {
-            if (isAnotherBroker && !isBrokerConfirmedWithKey && !isBrokerExistKey) {
-                colorClass = styles.button__gray;
-                additionalMessages = 'Документ будет доступен для подписи после подключения брокера';
-            } else if (brokerIds.length === 0) {
+            if (brokerIds.length === 0) {
                 colorClass = styles.button__gray;
                 additionalMessages = 'Для подписания подключите брокерский счёт';
             } else {
@@ -947,9 +956,7 @@ const DocumentsPage: React.FC = () => {
                         const isSignedApp1WithActiveTariff = hasTariff && activeTariffs.some(tariff => tariff.is_active === true);
                         const isSigned = isAdvisorAgreement
                             ? isSignedApp1 || isSignedApp1WithActiveTariff
-                            : isBroker && isAnotherBroker && !isBrokerConfirmedWithKey && !isBrokerExistKey
-                                ? false  // Для скелета брокера без ключа никогда не показываем как подписанный
-                                : doc.status === "signed";
+                            : doc.status === "signed";
 
 
                         const isDisabled = isAdvisorAgreement
@@ -957,16 +964,12 @@ const DocumentsPage: React.FC = () => {
                                 ? !hasPassport || !hasTariff
                                 : !(hasPassport && hasBroker && hasTariff)
                             : isBroker
-                                ? isAnotherBroker && !isBrokerConfirmedWithKey && !isBrokerExistKey
-                                    ? true  // Для другого брокера показываем скелет пока не подтвердится и нет ключа
-                                    : !hasPassport || !areAllDocumentsBeforeBrokerSigned()
+                                ? !hasPassport || !areAllDocumentsBeforeBrokerSigned()
                                 : isPassport
                                     ? false
                                     : doc.id !== firstNotConfirmed || !hasPassport;
                         let buttonText = "Подписать";
-                        if (isBroker && isAnotherBroker && !isBrokerExistKey) {
-                            buttonText = "Ожидается подтверждение";
-                        } else if (isBroker && brokersCount === 0) {
+                        if (isBroker && brokersCount === 0) {
                             buttonText = brokerIds && brokerIds.length ? "Подписать" : "Заполнить";
                         } else if (isPassport) {
                             buttonText = isIdentityScanExist ? "Подписать" : "Заполнить";
@@ -1003,29 +1006,26 @@ const DocumentsPage: React.FC = () => {
 
                         const showSuccess =
                             (isPassport && isSigned && isIdentityScanExist) ||
-                            (!isPassport && isSigned && !(isAdvisorAgreement && !hasTariff && !isSignedApp1WithActiveTariff) && !(isBroker && isAnotherBroker && !isBrokerExistKey)); // Не показываем "Подписано" для брокера при isAnotherBroker без ключа
+                            (!isPassport && isSigned && !(isAdvisorAgreement && !hasTariff && !isSignedApp1WithActiveTariff));
                         const shouldHideBrokerWhenBulk =
                             isBroker && buttonText === 'Подписать' && showBulkToolbar;
 
                         const shouldShowButton =
                             !isInBulk &&
                             !showSuccess &&
-                            !shouldHideBrokerWhenBulk &&
-                            !(isBroker && isAnotherBroker && !isBrokerExistKey); // Не показываем кнопки для брокера при isAnotherBroker без ключа
+                            !shouldHideBrokerWhenBulk;
 
-                        // Показываем кнопку просмотра для подписанных документов, но не для брокера при isAnotherBroker без ключа
-                        const shouldShowViewButton = isSigned && !doc.isPayment && !(isBroker && isAnotherBroker && !isBrokerExistKey);
-
-
-
+                        // Показываем кнопку просмотра для подписанных документов
+                        const shouldShowViewButton = isSigned && !doc.isPayment;
 
                         const showCheckbox = false; // убираем все чекбоксы
+
                         return (
 
                             <>
                                 {device === 'mobile' ? (
                                     <div style={{ display: 'flex', gap: '10px' }}>
-                                        <div key={doc.id} className={`${styles.document__item} ${isBroker && isAnotherBroker && !isBrokerExistKey ? styles.document__item_skeleton : ''}`}>
+                                        <div key={doc.id} className={styles.document__item}>
                                             <div>
 
                                                 <div className={styles.document__info}>
@@ -1118,10 +1118,6 @@ const DocumentsPage: React.FC = () => {
                                                     >
                                                         {buttonText}
                                                     </Button>
-                                                ) : (isBroker && isAnotherBroker && !isBrokerExistKey) ? (
-                                                    <div className={styles.document__waitingStatus}>
-                                                        <span>Ожидается подтверждение</span>
-                                                    </div>
                                                 ) : null}
 
                                             </div>
@@ -1129,7 +1125,7 @@ const DocumentsPage: React.FC = () => {
                                 ) : (
 
                                     <div style={{ display: 'flex', gap: '10px' }}>
-                                        <div key={doc.id} className={`${styles.document__item} ${isBroker && isAnotherBroker && !isBrokerExistKey ? styles.document__item_skeleton : ''}`}>
+                                        <div key={doc.id} className={styles.document__item}>
                                             <div className={styles.document__info}>
                                                 {/* Показываем дату, если документ подписан */}
                                                 <span className={styles.document__date}>
@@ -1221,10 +1217,6 @@ const DocumentsPage: React.FC = () => {
                                                     >
                                                         {buttonText}
                                                     </Button>
-                                                ) : (isBroker && isAnotherBroker && !isBrokerExistKey) ? (
-                                                    <div className={styles.document__waitingStatus}>
-                                                        <span>Ожидается подтверждение</span>
-                                                    </div>
                                                 ) : null}
 
                                             </div>
@@ -1387,7 +1379,9 @@ const DocumentsPage: React.FC = () => {
             <SuccessModal
                 isOpen={modalState.success.isOpen}
                 onClose={() => dispatch(closeModal(ModalType.SUCCESS))}
-                text="Документ успешно подписан"
+                title="Успешно"
+                description={<>Документ успешно подписан</>}
+                action={() => dispatch(closeModal(ModalType.SUCCESS))}
             />
         </div>
     );

@@ -90,7 +90,9 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                 return;
             }
             // Если документ не подписан – ожидаем наличие HTML (даже если пустая строка)
-            if (allDocumentsHtml && allDocumentsHtml.hasOwnProperty(docId)) {
+            // Для кастомных документов проверяем ключ custom_doc_user_${docId}
+            const customDocKey = `custom_doc_user_${docId}`;
+            if (allDocumentsHtml && (allDocumentsHtml.hasOwnProperty(docId) || allDocumentsHtml.hasOwnProperty(customDocKey))) {
                 setTimeout(() => {
                     setIsContentReady(true);
                 }, 1000);
@@ -208,11 +210,11 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                         <div className={styles.htmlContainer}>
                             <RiskProfileAllData />
                         </div>
-                    ) : !isSignedDoc && docId && (allDocumentsHtml && allDocumentsHtml.hasOwnProperty(docId)) ? (
+                    ) : !isSignedDoc && docId && allDocumentsHtml && (allDocumentsHtml.hasOwnProperty(docId) || allDocumentsHtml.hasOwnProperty(`custom_doc_user_${docId}`)) ? (
                         <div
                             className={styles.htmlContainer}
                             style={docId === 'type_doc_RP_questionnairy' ? { minWidth: 'min-content', padding: '10px' } : { padding: '10px' }}
-                            dangerouslySetInnerHTML={{ __html: allDocumentsHtml[docId] }}
+                            dangerouslySetInnerHTML={{ __html: allDocumentsHtml[docId] || allDocumentsHtml[`custom_doc_user_${docId}`] }}
                         />
                     ) : (
                         <div className={styles.error}>

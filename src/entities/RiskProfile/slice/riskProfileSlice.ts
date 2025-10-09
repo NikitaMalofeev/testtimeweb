@@ -251,7 +251,7 @@ export const postBrokerApiTokenThunk = createAsyncThunk<
                         }));
                     }
 
-                    // Сразу закрываем модалку и редиректим
+                    // Сразу закрываем модалку
                     dispatch(closeModal(ModalType.IDENTIFICATION));
 
                     // Показываем уведомление
@@ -262,7 +262,6 @@ export const postBrokerApiTokenThunk = createAsyncThunk<
                     //         buttonLabel: "Ок, перейти к оплате",
                     //         action: () => {
                     //             dispatch(setWarning({ active: false }));
-                    //             window.location.href = '/lk';
                     //         },
                     //     })
                     // );
@@ -270,7 +269,6 @@ export const postBrokerApiTokenThunk = createAsyncThunk<
 
                     setTimeout(() => {
                         dispatch(setWarning({ active: false }));
-                        window.location.href = '/lk';
                     }, 3000);
                 } else {
                     // Для обычных брокеров (например, Тинькофф)

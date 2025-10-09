@@ -102,7 +102,7 @@ const PersonalAccountMenu: React.FC = () => {
     };
 
 
-    const items: PersonalAccountItem[] = [
+    const allItems: PersonalAccountItem[] = [
         {
             icon: AccountRPIcon,
             title: "Риск-профиль",
@@ -316,6 +316,11 @@ const PersonalAccountMenu: React.FC = () => {
             iconHeight: 21,
         },
     ];
+
+    // Фильтруем items для VIP пользователей - убираем "Тарифы" и "Баланс"
+    const items = isUserVip
+        ? allItems.filter(item => item.title !== "Тарифы" && item.title !== "Баланс")
+        : allItems;
 
     // useEffect(() => {
     //     dispatch(setStepAdditionalMenuUI(1))

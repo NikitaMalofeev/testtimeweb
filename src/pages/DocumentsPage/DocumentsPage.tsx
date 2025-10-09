@@ -92,17 +92,26 @@ const DocumentsPage: React.FC = () => {
         : filledRiskProfileChapters.is_exist_scan_passport;
 
 
-    //Логика с подписанием всех документов 
+    //Логика с подписанием всех документов
 
     const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
     const [bulkOpen, setBulkOpen] = useState(false);
 
+    // Проверяем наличие активного тарифа (нужно для EXCLUDED_BULK)
+    const hasTariff = activeTariffs.some(tariff => tariff.is_active);
+
     /** документы, недоступные для массовой подписи */
     const EXCLUDED_BULK = [
-        "type_doc_agreement_investment_advisor_app_1",
         "type_doc_broker_api_token", // исключаем брокера из массового выбора
         "type_doc_passport", // исключаем паспорт из массового выбора
-    ].filter(id => !isVip || id !== "type_doc_agreement_investment_advisor_app_1");
+        // Приложение 1 исключается:
+        // - Для VIP (если не another broker)
+        // - Если нет тарифа
+        // - Для another broker: если НЕТ with_key (не подтвержден брокер с ключом) ИЛИ нет тарифа
+        ...((isVip && !isAnotherBroker) || !hasTariff || (isAnotherBroker && !isBrokerConfirmedWithKey))
+            ? ["type_doc_agreement_investment_advisor_app_1"]
+            : []
+    ];
 
     /** обработчик подписания всех документов - автоматически выбираются все документы */
     const handleSignAllDocs = () => {
@@ -179,21 +188,13 @@ const DocumentsPage: React.FC = () => {
 
         /* ------------------------------------------------------------------
            Шаг 1. Если пользователь VIP - удаляем «Приложение 1» из baseOrder.
-           Шаг 1.1. Если isAnotherBroker = true - удаляем документ брокера.
+           НО для another broker всегда показываем Приложение 1
         ------------------------------------------------------------------ */
-        let vipFiltered: string[] = isVip
+        let vipFiltered: string[] = (isVip && !isAnotherBroker)
             ? baseOrder.filter(
                 (id) => id !== "type_doc_agreement_investment_advisor_app_1",
             )
             : baseOrder;
-
-        // Если выбран другой брокер - НЕ убираем документ broker_api_token,
-        // а показываем его как скелет, пока не придет is_confirmed_and_with_key: true
-        // if (isAnotherBroker) {
-        //     vipFiltered = vipFiltered.filter(
-        //         (id) => id !== "type_doc_broker_api_token"
-        //     );
-        // }
 
         /* ------------------------------------------------------------------
            Шаг 2. Если массовая подпись (one-code) неактивна → просто возвращаем
@@ -221,13 +222,9 @@ const DocumentsPage: React.FC = () => {
 
         /* ------------------------------------------------------------------
            Итоговый порядок документов
+           Для another broker всегда показываем документ брокера и Приложение 1
         ------------------------------------------------------------------ */
-        // Если isAnotherBroker = true, убираем broker_api_token из head тоже
-        const finalHead = isAnotherBroker
-            ? head.filter(id => id !== "type_doc_broker_api_token")
-            : head;
-
-        return [...finalHead, ...tail];
+        return [...head, ...tail];
     }, [isBulkEnabled, isVip, isAnotherBroker, isBrokerConfirmedWithKey]);
 
 
@@ -496,12 +493,11 @@ const DocumentsPage: React.FC = () => {
         [documents]
     );
 
-    // Показать кнопку "Подписать все" только после того, как подписан брокерский документ
+    // Показать кнопку "Подписать все" только после того, как подключен брокер
     const showSignAllButton =
         isBulkEnabled &&
         bulkSelectableDocs.length > 0 &&
-        brokerIds.length > 0 &&
-        isBrokerSigned;
+        brokerIds.length > 0;
 
     useEffect(() => {
         console.log(isBulkEnabled)
@@ -573,7 +569,6 @@ const DocumentsPage: React.FC = () => {
     //условия для проверки Договора ИС
     const hasPassport = isIdentityScanExist;
     const hasBroker = brokersCount > 0;             // или !!brokerIds.length
-    const hasTariff = activeTariffs.some(tariff => tariff.is_active);
     const hasTariffAttempt = activePaidTariffs.length > 0
 
     const renderedDocuments = allDocuments.map((doc) => {
@@ -588,8 +583,8 @@ const DocumentsPage: React.FC = () => {
         /* ───────── isDisabled ───────── */
         const isDisabled = isAdvisorAgreement
             ? isAnotherBroker
-                ? !hasPassport
-                : !(hasPassport && hasBroker)                         // «Приложение 1»
+                ? !hasPassport || !hasTariff
+                : !(hasPassport && hasBroker && hasTariff)                         // «Приложение 1»
             : isBroker
                 ? isAnotherBroker && !isBrokerConfirmedWithKey
                     ? true  // Для другого брокера показываем скелет пока не подтвердится
@@ -897,7 +892,7 @@ const DocumentsPage: React.FC = () => {
 
                         const isDisabled = isAdvisorAgreement
                             ? isAnotherBroker
-                                ? !hasPassport
+                                ? !hasPassport || !hasTariff
                                 : !(hasPassport && hasBroker && hasTariff)
                             : isBroker
                                 ? isAnotherBroker && !isBrokerConfirmedWithKey

@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 import * as path from 'path';
 import svgr from 'vite-plugin-svgr';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react(), svgr({
     svgrOptions: {
       icon: true, // Позволяет использовать SVG как иконки
@@ -34,4 +34,8 @@ export default defineConfig({
       'widgets': path.resolve(__dirname, 'src/widgets'),
     },
   },
-});
+  esbuild: {
+    // Удаляет все console.* и debugger только в production сборке
+    drop: mode === 'production' ? ['console', 'debugger'] : [],
+  },
+}));

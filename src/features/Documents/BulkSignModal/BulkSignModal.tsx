@@ -37,7 +37,8 @@ export const BulkSignModal: React.FC<Props> = ({ docs, onClose }) => {
     const dispatch = useAppDispatch();
     const [channel, setChannel] = useState<"SMS" | "EMAIL" | "WHATSAPP">("EMAIL");
     const [agreeAll, setAgreeAll] = useState(false);
-    const brokerIds = useSelector((s: RootState) => s.documents.brokerIds)
+    const brokerIds = useSelector((s: RootState) => s.documents.brokerIds);
+    const { isAnotherBroker } = useSelector((s: RootState) => s.riskProfile);
 
     const buildFlags = (selected: { id: string }[]) =>
         selected.reduce<Record<string, boolean>>((acc, d) => {
@@ -123,19 +124,26 @@ export const BulkSignModal: React.FC<Props> = ({ docs, onClose }) => {
                 <h3 className={styles.title}>Документы к подписанию</h3>
 
                 <ul className={styles.list}>
-                    {docs.map((d) => (
-                        <li key={d.id} className={styles.list__item}>
-                            <span>{d.title}</span>
-                            <Button
-                                theme={ButtonTheme.UNDERLINE}
-                                className={styles.preview}
-                                onClick={() => handlePreview(d.id)}
-                                padding="10px"
-                            >
-                                Просмотр
-                            </Button>
-                        </li>
-                    ))}
+                    {docs.map((d) => {
+                        // Для another broker документ type_doc_broker_api_token показываем как "Документ брокера"
+                        const displayTitle = (d.id === "type_doc_broker_api_token" && isAnotherBroker)
+                            ? "Документ брокера"
+                            : d.title;
+
+                        return (
+                            <li key={d.id} className={styles.list__item}>
+                                <span>{displayTitle}</span>
+                                <Button
+                                    theme={ButtonTheme.UNDERLINE}
+                                    className={styles.preview}
+                                    onClick={() => handlePreview(d.id)}
+                                    padding="10px"
+                                >
+                                    Просмотр
+                                </Button>
+                            </li>
+                        );
+                    })}
                 </ul>
 
                 <div className={styles.channel}>

@@ -46,14 +46,17 @@ export const UploadProgressModal: React.FC<UploadProgressModalProps> = ({
                 <div>
 
                     <div className={styles.header}>
-                        <span className={styles.title}>{processTitle}</span><span className={styles.percentage}>{progress}%</span>
+                        <span className={styles.title}>{processTitle}</span>
+                        {progress === 100 && (
+                            <span className={styles.uploaded}>Загружено</span>
+                        )}
                     </div>
                     <div>
                         <h3 className={styles.name}>{processName}</h3>
                     </div>
                 </div>
                 <div>
-                    <ProgressBar progress={progress} />
+                    <ProgressBar progress={100} />
                 </div>
                 <div className={styles.description}>
                     <span className={styles.title}>{description}</span>

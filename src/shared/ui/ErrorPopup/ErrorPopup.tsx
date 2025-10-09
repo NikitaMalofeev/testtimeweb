@@ -28,10 +28,10 @@ export const ErrorPopup = () => {
             (purpose && typeof purpose === 'string' && purpose.trim())) {
             setVisible(true);
 
-            const hideTimer = setTimeout(() => setVisible(false), 10000);
+            const hideTimer = setTimeout(() => setVisible(false), 4500);
             const clearErrorTimer = setTimeout(() => {
                 dispatch(setError('', ''))
-            }, 10500);
+            }, 5500);
 
             return () => {
                 clearTimeout(hideTimer);
@@ -64,7 +64,7 @@ export const ErrorPopup = () => {
             className={styles.errorModal}
         >
             <div className={styles.errorModal__content}>
-                <Icon Svg={CloseIcon} width={20} height={20} className={styles.closeIcon} onClick={handleClose} pointer/>
+                <Icon Svg={CloseIcon} width={20} height={20} className={styles.closeIcon} onClick={handleClose} pointer />
                 {error}
                 {purpose === 'pasportScan' && (
                     <div className={styles.purpose}>

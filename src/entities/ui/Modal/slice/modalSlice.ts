@@ -194,6 +194,21 @@ const modalSlice = createSlice({
                     // Удаляем из стека
                     state.modalStack = state.modalStack.filter((m) => m !== ModalType.SUCCESS);
                 }
+                // Также закрываем PROGRESS если он открыт
+                const existingProgressIndex = state.modalStack.indexOf(ModalType.PROGRESS);
+                if (existingProgressIndex !== -1) {
+                    state[ModalType.PROGRESS].isOpen = false;
+                    state.modalStack = state.modalStack.filter((m) => m !== ModalType.PROGRESS);
+                }
+            }
+
+            // Если открывается PROGRESS модалка, закрываем SUCCESS если он открыт
+            if (type === ModalType.PROGRESS) {
+                const existingSuccessIndex = state.modalStack.indexOf(ModalType.SUCCESS);
+                if (existingSuccessIndex !== -1) {
+                    state[ModalType.SUCCESS].isOpen = false;
+                    state.modalStack = state.modalStack.filter((m) => m !== ModalType.SUCCESS);
+                }
             }
 
             state[type].isOpen = true;

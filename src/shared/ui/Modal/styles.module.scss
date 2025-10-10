@@ -43,6 +43,7 @@
     background: #fff;
     -webkit-overflow-scrolling: touch;
     transition: transform 0.3s ease, opacity 0.3s ease;
+    overflow-y: auto;
   }
   
   /* Размеры */
@@ -82,7 +83,7 @@
     height: 100%;
       max-width: 500px;
     width: calc(100% - 32px);
-    max-height: 30dvh;
+    max-height: 50dvh;
     border-radius: 10px 10px 40px 40px;
     bottom: 16px;
     transform: translate(-50%, -50%);
@@ -101,10 +102,10 @@
 
   .mc {
     position: fixed;
-      max-width: 380px; 
+      max-width: 380px;
     width: calc(100% - 32px);
     min-height: max-content;
-    max-height: max-content;
+    max-height: 50dvh;
     border-radius: 10px 10px 40px 40px;
     bottom: 16px;
     transform: translate(-50%, -50%);
@@ -154,7 +155,7 @@
     .mc {
       max-width: 350px;
       width: 100%;
-      top: 10%;
+      max-height: 50dvh;
     }
   }
 

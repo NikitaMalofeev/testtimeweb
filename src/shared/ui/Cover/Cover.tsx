@@ -82,20 +82,20 @@ const CoverDefault = ({ onLoadComplete }: { onLoadComplete: () => void }) => {
         <AnimatePresence mode="wait">
             <motion.div
                 key="cover-default"
-                className={styles.Cover_vip}
+                className={styles.Cover}
                 initial={{ scale: 1, opacity: 1 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 1.2, opacity: 0 }}
                 transition={{ duration: 0.5, ease: 'easeInOut' }}
             >
-                <div className={styles.Cover_vip__content}>
-                    <Icon
-                        Svg={CoverIcon}
-                        width={73}
-                        height={73}
-                        objectFit="contain"
-                    />
-                </div>
+                <Icon
+                    Svg={CoverIcon}
+                    width="100%"
+                    height="100%"
+                    maxWidth={window.innerWidth}
+                    maxHeight={window.innerHeight}
+                    objectFit="cover"
+                />
             </motion.div>
         </AnimatePresence>
     );

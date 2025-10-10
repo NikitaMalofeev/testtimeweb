@@ -184,6 +184,18 @@ const modalSlice = createSlice({
             const { type, size, animation, title, docId } = action.payload;
             if (state[type].isOpen) return;
 
+            // Если открывается SUCCESS модалка и в стеке уже есть SUCCESS,
+            // то закрываем предыдущую
+            if (type === ModalType.SUCCESS) {
+                const existingSuccessIndex = state.modalStack.indexOf(ModalType.SUCCESS);
+                if (existingSuccessIndex !== -1) {
+                    // Закрываем предыдущую SUCCESS модалку
+                    state[ModalType.SUCCESS].isOpen = false;
+                    // Удаляем из стека
+                    state.modalStack = state.modalStack.filter((m) => m !== ModalType.SUCCESS);
+                }
+            }
+
             state[type].isOpen = true;
             state[type].size = size;
             state[type].animation = animation;

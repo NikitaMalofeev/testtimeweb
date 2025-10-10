@@ -216,11 +216,38 @@ const ConfirmCustomDocsPage: React.FC = () => {
     const handleOpenPreview = async () => {
         if (isUserAuthorized) {
             // Для авторизованных пользователей
-            if (id && currentCustomDocUser?.is_confirmed_type_doc_custom_for_user) {
-                await dispatch(getSignedCustomDocumentUserThunk({
-                    data: { id: id },
-                    onSuccess: () => { },
-                }));
+            if (id) {
+                if (currentCustomDocUser?.is_confirmed_type_doc_custom_for_user) {
+                    // Документ подписан - загружаем подписанный PDF
+                    await dispatch(getSignedCustomDocumentUserThunk({
+                        data: { id: id },
+                        onSuccess: () => {
+                            dispatch(
+                                openModal({
+                                    type: ModalType.DOCUMENTS_PREVIEW_SIGNED,
+                                    size: ModalSize.FULL,
+                                    animation: ModalAnimation.LEFT,
+                                    docId: `custom_doc_user_${id}`,
+                                })
+                            );
+                        },
+                    }));
+                } else {
+                    // Документ НЕ подписан - всегда загружаем HTML перед открытием
+                    await dispatch(getUserNotSignedDocumentHtmlThunk({
+                        data: { id: id },
+                        onSuccess: () => {
+                            dispatch(
+                                openModal({
+                                    type: ModalType.DOCUMENTS_PREVIEW,
+                                    size: ModalSize.FULL,
+                                    animation: ModalAnimation.LEFT,
+                                    docId: `custom_doc_user_${id}`,
+                                })
+                            );
+                        }
+                    }));
+                }
             }
         } else {
             // Для неавторизованных пользователей
@@ -229,21 +256,31 @@ const ConfirmCustomDocsPage: React.FC = () => {
                     getUserDocumentsSignedThunk({
                         type_document: 'type_doc_custom',
                         purpose: 'preview',
-                        onSuccess: () => { },
+                        onSuccess: () => {
+                            dispatch(
+                                openModal({
+                                    type: ModalType.DOCUMENTS_PREVIEW,
+                                    size: ModalSize.FULL,
+                                    animation: ModalAnimation.LEFT,
+                                    docId: previewDocId,
+                                })
+                            );
+                        },
                         id_sign: id,
+                    })
+                );
+            } else {
+                // Документ НЕ подписан - загружаем HTML перед открытием
+                dispatch(
+                    openModal({
+                        type: ModalType.DOCUMENTS_PREVIEW,
+                        size: ModalSize.FULL,
+                        animation: ModalAnimation.LEFT,
+                        docId: previewDocId,
                     })
                 );
             }
         }
-
-        dispatch(
-            openModal({
-                type: ModalType.DOCUMENTS_PREVIEW,
-                size: ModalSize.FULL,
-                animation: ModalAnimation.LEFT,
-                docId: isUserAuthorized ? `custom_doc_user_${id}` : previewDocId,
-            })
-        );
     };
 
     const handleSuccessEffect = () => {
@@ -413,7 +450,7 @@ const ConfirmCustomDocsPage: React.FC = () => {
             {isUserAuthorized ? (
                 <DocumentPreviewModal
                     isOpen={documentsPreviewState.isOpen}
-                    onClose={() => dispatch(closeModal(currentCustomDocUser?.is_confirmed_type_doc_custom_for_user ? ModalType.DOCUMENTS_PREVIEW : ModalType.DOCUMENTS_PREVIEW_SIGNED))}
+                    onClose={() => dispatch(closeModal(currentCustomDocUser?.is_confirmed_type_doc_custom_for_user ? ModalType.DOCUMENTS_PREVIEW_SIGNED : ModalType.DOCUMENTS_PREVIEW))}
                     docId={`custom_doc_user_${id}`}
                     isSignedDoc={currentCustomDocUser?.is_confirmed_type_doc_custom_for_user}
                     title={currentCustomDocUser?.title || 'Кастомный документ'}

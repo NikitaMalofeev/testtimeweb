@@ -808,7 +808,7 @@ export const getSignedCustomDocumentUserThunk = createAsyncThunk<
             const arrayBuffer = await getSignedCustomDocumentUser(data, token);
             const pdfBytes = new Uint8Array(arrayBuffer);
 
-            dispatch(setCurrentSignedDocuments({ type: `custom_doc_${data.id}`, document: pdfBytes }));
+            dispatch(setCurrentSignedDocuments({ type: `custom_doc_user_${data.id}`, document: pdfBytes }));
             onSuccess?.();
 
             return pdfBytes;

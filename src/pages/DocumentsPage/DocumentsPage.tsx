@@ -18,6 +18,7 @@ import {
     getAllCustomDocumentUserThunk,
     setCurrentCustomDocUser,
     getUserNotSignedDocumentHtmlThunk,
+    getSignedCustomDocumentUserThunk,
     // Удалён старый setNotConfirmedDocuments
 } from "entities/Documents/slice/documentsSlice";
 
@@ -733,20 +734,37 @@ const DocumentsPage: React.FC = () => {
             dispatch(setCurrentCustomDocUser(customDoc));
             setSelectedDocId(docId);
 
-            // Загружаем HTML документа
-            dispatch(getUserNotSignedDocumentHtmlThunk({
-                data: { id: cleanDocId },
-                onSuccess: () => {
-                    dispatch(
-                        openModal({
-                            type: customDoc.is_confirmed_type_doc_custom_for_user ? ModalType.DOCUMENTS_PREVIEW_SIGNED : ModalType.DOCUMENTS_PREVIEW,
-                            animation: ModalAnimation.LEFT,
-                            size: ModalSize.FULL,
-                            docId: cleanDocId,
-                        })
-                    );
-                }
-            }));
+            if (customDoc.is_confirmed_type_doc_custom_for_user) {
+                // Документ подписан - загружаем подписанный PDF
+                dispatch(getSignedCustomDocumentUserThunk({
+                    data: { id: cleanDocId },
+                    onSuccess: () => {
+                        dispatch(
+                            openModal({
+                                type: ModalType.DOCUMENTS_PREVIEW_SIGNED,
+                                animation: ModalAnimation.LEFT,
+                                size: ModalSize.FULL,
+                                docId: `custom_doc_user_${cleanDocId}`,
+                            })
+                        );
+                    }
+                }));
+            } else {
+                // Документ НЕ подписан - загружаем HTML документа
+                dispatch(getUserNotSignedDocumentHtmlThunk({
+                    data: { id: cleanDocId },
+                    onSuccess: () => {
+                        dispatch(
+                            openModal({
+                                type: ModalType.DOCUMENTS_PREVIEW,
+                                animation: ModalAnimation.LEFT,
+                                size: ModalSize.FULL,
+                                docId: `custom_doc_user_${cleanDocId}`,
+                            })
+                        );
+                    }
+                }));
+            }
             return;
         }
 

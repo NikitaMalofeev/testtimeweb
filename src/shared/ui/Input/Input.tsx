@@ -213,31 +213,61 @@ export const Input: React.FC<InputProps> = ({
     };
 
     // -------------------------------------------------
-    // Пример вычисления шагов для "swiper" (сложный кейс)
+    // Динамическое вычисление шагов для "swiper"
     // -------------------------------------------------
-    const range1Count = (1_000_000 - minAmountInputNumberSlider) / 100_000; // 5 шагов
-    const range2Count = (10_000_000 - 1_000_000) / minAmountInputNumberSlider; // 18 шагов
-    const range3Count = (100_000_000 - 10_000_000) / 2_000_000; // 45 шагов
+    // Диапазон 1: от min до 1_000_000 шагом 100_000 (только если min < 1_000_000)
+    // Диапазон 2: от 1_000_000 до 10_000_000 шагом 500_000
+    // Диапазон 3: от 10_000_000 до 100_000_000 шагом 2_000_000
 
-    const totalSteps = range1Count + range2Count + range3Count; // 68
+    const RANGE1_END = 1_000_000;
+    const RANGE2_END = 10_000_000;
+    const MAX_VALUE = 100_000_000;
+    const RANGE1_STEP = 100_000;
+    const RANGE2_STEP = 500_000;
+    const RANGE3_STEP = 2_000_000;
+
+    // Вычисляем количество шагов для каждого диапазона
+    const range1Count = minAmountInputNumberSlider < RANGE1_END
+        ? (RANGE1_END - minAmountInputNumberSlider) / RANGE1_STEP
+        : 0;
+
+    const range2Start = Math.max(minAmountInputNumberSlider, RANGE1_END);
+    const range2Count = minAmountInputNumberSlider < RANGE2_END
+        ? (RANGE2_END - range2Start) / RANGE2_STEP
+        : 0;
+
+    const range3Start = Math.max(minAmountInputNumberSlider, RANGE2_END);
+    const range3Count = (MAX_VALUE - range3Start) / RANGE3_STEP;
+
+    const totalSteps = range1Count + range2Count + range3Count;
 
     const mapValueToSliderIndex = (val: number): number => {
-        if (val <= 1_000_000) {
-            return (val - minAmountInputNumberSlider) / 100_000;
-        } else if (val <= 10_000_000) {
-            return range1Count + (val - 1_000_000) / minAmountInputNumberSlider;
-        } else {
-            return range1Count + range2Count + (val - 10_000_000) / 2_000_000;
+        // Если значение в первом диапазоне (и он существует)
+        if (range1Count > 0 && val <= RANGE1_END) {
+            return (val - minAmountInputNumberSlider) / RANGE1_STEP;
+        }
+        // Если значение во втором диапазоне (и он существует)
+        else if (range2Count > 0 && val <= RANGE2_END) {
+            return range1Count + (val - range2Start) / RANGE2_STEP;
+        }
+        // Значение в третьем диапазоне
+        else {
+            return range1Count + range2Count + (val - range3Start) / RANGE3_STEP;
         }
     };
 
     const mapSliderIndexToValue = (index: number): number => {
-        if (index <= range1Count) {
-            return minAmountInputNumberSlider + index * 100_000;
-        } else if (index <= range1Count + range2Count) {
-            return 1_000_000 + (index - range1Count) * minAmountInputNumberSlider;
-        } else {
-            return 10_000_000 + (index - range1Count - range2Count) * 2_000_000;
+        // Если индекс в первом диапазоне (и он существует)
+        if (range1Count > 0 && index <= range1Count) {
+            return minAmountInputNumberSlider + index * RANGE1_STEP;
+        }
+        // Если индекс во втором диапазоне (и он существует)
+        else if (range2Count > 0 && index <= range1Count + range2Count) {
+            return range2Start + (index - range1Count) * RANGE2_STEP;
+        }
+        // Индекс в третьем диапазоне
+        else {
+            return range3Start + (index - range1Count - range2Count) * RANGE3_STEP;
         }
     };
 

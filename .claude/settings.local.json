@@ -50,7 +50,8 @@
       "Bash(npx tsc:*)",
       "Bash(git add:*)",
       "Bash(git commit -m \"$(cat <<''EOF''\nИсправлены ошибки типизации в кастомных документах\n\n- Заменено свойство is_confirmed на is_confirmed_type_doc_custom_for_user в ConfirmCustomDocsPage\n- Исправлены пропсы SuccessModal в DocumentsPage (заменено text на title/description/action)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []

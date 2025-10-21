@@ -344,6 +344,18 @@ export const RiskProfileSecondForm: React.FC = () => {
                                             />
                                             <p className={styles.report}>Рекомендуемый риск-профиль по результатам риск-профилирования </p>
                                             <b className={styles.report__value}>{Object.values(secondRiskProfileData.recommended_risk_profiles)[Object.keys(secondRiskProfileData.recommended_risk_profiles).length - 1]}</b>
+                                            <span
+                                                className={styles.report__link}
+                                                onClick={() => {
+                                                    dispatch(openModal({
+                                                        type: ModalType.PREVIEW,
+                                                        animation: ModalAnimation.LEFT,
+                                                        size: ModalSize.FULL,
+                                                    }));
+                                                }}
+                                            >
+                                                подробнее о риск профиле
+                                            </span>
                                         </div>
                                         <Select
                                             label="Подтвердить выбор риск профиля"
@@ -512,6 +524,18 @@ export const RiskProfileSecondForm: React.FC = () => {
                                             <div className={styles.report__container}>
                                                 <p className={styles.report}>Рекомендуемый риск-профиль по результатам риск-профилирования </p>
                                                 <b className={styles.report__value}>{Object.values(secondRiskProfileData.recommended_risk_profiles)[Object.keys(secondRiskProfileData.recommended_risk_profiles).length - 1]}</b>
+                                                <span
+                                                    className={styles.report__link}
+                                                    onClick={() => {
+                                                        dispatch(openModal({
+                                                            type: ModalType.PREVIEW,
+                                                            animation: ModalAnimation.LEFT,
+                                                            size: ModalSize.FULL,
+                                                        }));
+                                                    }}
+                                                >
+                                                    подробнее о риск профиле
+                                                </span>
                                             </div>
                                             <Select
                                                 label="Подтвердить выбор риск профиля"

@@ -368,14 +368,17 @@ export const ConfirmAllDocs: React.FC = () => {
 
                 <div className={styles.page__container}>
                     <div className={styles.page__preview}>
-                        <span className={styles.page__doctype}>{renderDocLabel()}</span>
-                        <Button
-                            onClick={handleOpenPreview}
-                            theme={ButtonTheme.UNDERLINE}
-                            className={styles.button_preview}
-                        >
-                            Просмотр
-                        </Button>
+                        <span className={styles.page__notice}>Просьба внимательно ознакомиться с документом</span>
+                        <div className={styles.page__preview__row}>
+                            <span className={styles.page__doctype}>{renderDocLabel()}</span>
+                            <Button
+                                onClick={handleOpenPreview}
+                                theme={ButtonTheme.UNDERLINE}
+                                className={styles.button_preview}
+                            >
+                                Просмотр
+                            </Button>
+                        </div>
                     </div>
                 </div>
 

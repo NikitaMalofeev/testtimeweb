@@ -437,14 +437,19 @@ export const postPasportInfo = createAsyncThunk<
             onSuccess();
             return response;
         } catch (error: any) {
-            if (error.response.data.birth_date) {
-                dispatch(setError(error.response.data.birth_date));
+            if (error?.response?.data?.birth_date) {
+                const birthDateError = error.response.data.birth_date;
+                // Если ошибка - массив, берем первый элемент, иначе преобразуем в строку
+                const errorMessage = Array.isArray(birthDateError) ? birthDateError[0] : String(birthDateError);
+                dispatch(setError(errorMessage));
             }
-            else {
+            else if (error?.response?.data?.errorText) {
                 dispatch(setError(error.response.data.errorText));
             }
-
-
+            else {
+                dispatch(setError("Произошла ошибка при отправке данных"));
+            }
+            return rejectWithValue(error?.response?.data?.errorText || "Ошибка отправки данных");
         }
     }
 );

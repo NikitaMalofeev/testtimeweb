@@ -1,10 +1,20 @@
 
 @use '../../../app/styles/mixins' as mix;
 
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+}
+
 .container {
     position: fixed;
     top: calc(50dvh - 331px);
-    left: calc(50dvw - 480px);
+    left: calc(50dvw - 452px);
     display: flex;
     flex-direction: column;
     align-items: end;
@@ -15,7 +25,7 @@
 
 .widgetContent {
     position: relative;
-    width: 960px;
+    width: 896px;
     height: 556px;
     padding: 60px;
     z-index: 1000;
@@ -65,7 +75,7 @@
 
 .buttons {
     display: flex;
-    max-width: 960px;
+    max-width: 896px;
     width: 100%;
     z-index: 1000;
     padding: 16px 60px;

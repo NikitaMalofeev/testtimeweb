@@ -380,7 +380,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                             <>
                                 <TariffCalculator
                                     tariff_key={currentOrderId}
-                                    min_deposit_value={t.min_amount_start || (t.title === 'Базовый тариф' ? 1_000_000 : 5_000_000)}
+                                    min_deposit_value={t.min_amount_start ?? 0}
                                 />
                                 <div>
                                     <span className={styles.disclaimer}>

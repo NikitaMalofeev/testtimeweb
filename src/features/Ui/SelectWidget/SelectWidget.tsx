@@ -82,6 +82,23 @@ export const SelectWidget: React.FC<SelectModalProps> = ({
         };
     }, []);
 
+    // Управление скроллом body
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+            document.documentElement.style.overflow = 'hidden';
+        }
+
+        return () => {
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.width = '';
+            document.documentElement.style.overflow = '';
+        };
+    }, [isOpen]);
+
     // При выборе опции — запоминаем значение
     const handleSelectOption = (optionValue: string) => {
         setLocalSelectedValue(optionValue);
@@ -99,7 +116,9 @@ export const SelectWidget: React.FC<SelectModalProps> = ({
     }
 
     return (
-        <div className={styles.container}>
+        <>
+            <div className={styles.overlay} onClick={onClose}></div>
+            <div className={styles.container}>
             <div
                 className={`
           ${styles.widgetContent} 
@@ -155,5 +174,6 @@ export const SelectWidget: React.FC<SelectModalProps> = ({
                 </Button> */}
             </div>
         </div>
+        </>
     );
 };

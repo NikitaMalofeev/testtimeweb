@@ -231,9 +231,10 @@
         justify-content: space-between;
         flex-direction: row;
         max-width: 950px;
-        max-height: 662px;
-                 background-color: white;
-                 border-radius: 25px;
+        min-height: 662px; /* Изменено с max-height на min-height, чтобы контейнер мог расти */
+        background-color: white;
+        border-radius: 25px;
+        margin-bottom: 40px; /* Отступ снизу, чтобы не перекрывался footer */
     }
 
     .desktop__container {

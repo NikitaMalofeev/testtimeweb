@@ -15,7 +15,7 @@ import IdentificationProfileForm from "features/RiskProfile/IdentificationForm/u
 import { ResetPasswordModal } from "features/Account/ResetPasswordModal/ResetPasswordModal";
 import { closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import BooleanTabs from "shared/ui/BooleanTabs/BooleanTabs";
 
 const AuthorizationPage = () => {
@@ -24,6 +24,10 @@ const AuthorizationPage = () => {
     const [activeTab, setActiveTab] = useState<"login" | "registration">("login");
     const ModalState = useSelector((state: RootState) => state.modal.resetPassword)
     const navigate = useNavigate();
+    const { partner_link } = useParams<{ partner_link?: string }>();
+
+    // Получаем полный URL из браузера
+    const fullUrl = typeof window !== 'undefined' ? window.location.href : undefined;
 
     // Добавляем класс к body для отключения глобальных фиксов высоты
     useEffect(() => {
@@ -140,7 +144,7 @@ const AuthorizationPage = () => {
 
 
                         {activeTab === 'registration' && (
-                            <IdentificationProfileForm />
+                            <IdentificationProfileForm partnerLink={partner_link ? fullUrl : undefined} />
                         )}
                     </div>
                 </div>

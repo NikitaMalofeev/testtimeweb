@@ -33,14 +33,6 @@ function AppRouter() {
                 }
             /> */}
             <Route
-                path="/*"
-                element={
-                    <Suspense fallback={<PageLoader />}>
-                        <NotFoundPage />
-                    </Suspense>
-                }
-            />
-            <Route
                 path="/"
                 element={
                     <PublicRoute>
@@ -86,9 +78,11 @@ function AppRouter() {
             <Route
                 path="/support"
                 element={
-                    <Suspense fallback={<PageLoader />}>
-                        <SupportChatPage />
-                    </Suspense>
+                    <RequireAuthRoute>
+                        <Suspense fallback={<PageLoader />}>
+                            <SupportChatPage />
+                        </Suspense>
+                    </RequireAuthRoute>
 
                 }
             />
@@ -158,6 +152,24 @@ function AppRouter() {
                         <ConfirmCustomDocsPage />
                     </Suspense>
 
+                }
+            />
+            <Route
+                path="/:partner_link"
+                element={
+                    <PublicRoute>
+                        <Suspense fallback={<PageLoader />}>
+                            <AuthorizationPage />
+                        </Suspense>
+                    </PublicRoute>
+                }
+            />
+            <Route
+                path="/*"
+                element={
+                    <Suspense fallback={<PageLoader />}>
+                        <NotFoundPage />
+                    </Suspense>
                 }
             />
         </Routes >

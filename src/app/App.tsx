@@ -167,9 +167,11 @@ function App() {
       <div className='page__content'>
         <Header currentNotificationsCount={allNotificationsCount} variant='main' />
         <div className="page__scroll" ref={scrollRef}>
-          {/* <button onClick={handleResetTariffs}>reset</button> */}
-          <Cover />
-          <AppRouter />
+          <div className="page__scroll-content">
+            {/* <button onClick={handleResetTariffs}>reset</button> */}
+            <Cover />
+            <AppRouter />
+          </div>
           {isMainPages && <Footer />}
         </div>
       </div>

@@ -1,2 +1,2 @@
 // Используем те же стили, что и в ConfirmCustomDocModal
-@import "../ConfirmCustomDocModal/styles.module.scss";
+@use "../ConfirmCustomDocModal/styles.module.scss" as *;

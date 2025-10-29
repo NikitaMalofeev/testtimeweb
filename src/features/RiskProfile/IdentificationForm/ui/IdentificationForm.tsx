@@ -38,7 +38,11 @@ import { resetBrokerIds, setBrokerIds } from "entities/Documents/slice/documents
 import { setActiveTariffs } from "entities/Payments/slice/paymentsSlice";
 import { Select } from "shared/ui/Select/Select";
 
-const IdentificationProfileForm: React.FC = () => {
+interface IdentificationProfileFormProps {
+    partnerLink?: string;
+}
+
+const IdentificationProfileForm: React.FC<IdentificationProfileFormProps> = ({ partnerLink }) => {
     const dispatch = useAppDispatch();
     const gcaptchaSiteKey = import.meta.env.VITE_RANKS_GRCAPTCHA_SITE_KEY;
     const [numberPlaceholder, setNumberPlaceholder] = useState('Введите номер телефона')
@@ -59,6 +63,29 @@ const IdentificationProfileForm: React.FC = () => {
 
     /* ───────────── хук для форматирования телефона ───────────── */
     const { handlePhoneChange, getPhoneValidationRegex } = usePhoneFormat();
+
+    /* ───────────── состояния для отслеживания ошибок ввода кириллицы ───────────── */
+    const [cyrillicErrors, setCyrillicErrors] = useState({
+        lastName: false,
+        firstName: false,
+        patronymic: false,
+    });
+
+    /* ───────────── автоматическое скрытие ошибок кириллицы через 3 секунды ───────────── */
+    useEffect(() => {
+        const timers: NodeJS.Timeout[] = [];
+
+        Object.entries(cyrillicErrors).forEach(([field, hasError]) => {
+            if (hasError) {
+                const timer = setTimeout(() => {
+                    setCyrillicErrors(prev => ({ ...prev, [field]: false }));
+                }, 3000);
+                timers.push(timer);
+            }
+        });
+
+        return () => timers.forEach(timer => clearTimeout(timer));
+    }, [cyrillicErrors]);
 
     /* ───────────── простая валидация телефона ───────────── */
     const validatePhoneNumber = (value: string | undefined) => {
@@ -84,15 +111,15 @@ const IdentificationProfileForm: React.FC = () => {
     /* ───────────── схема валидации с доступом к validatePhoneNumber ───────────── */
     const validationSchema = useMemo(() => Yup.object({
         lastName: Yup.string()
-            .matches(NAME_REGEX, "Допустимы только буквы, пробел и дефис")
+            .matches(NAME_REGEX, "Ввод только кириллицей")
             .min(2, "Минимум 2 символа")
             .required("Фамилия обязательна"),
         firstName: Yup.string()
-            .matches(NAME_REGEX, "Допустимы только буквы, пробел и дефис")
+            .matches(NAME_REGEX, "Ввод только кириллицей")
             .min(2, "Минимум 2 символа")
             .required("Имя обязательно"),
         patronymic: Yup.string()
-            .matches(NAME_REGEX, "Допустимы только буквы, пробел и дефис")
+            .matches(NAME_REGEX, "Ввод только кириллицей")
             .min(2, "Минимум 2 символа")
             .nullable(),
         email: Yup.string()
@@ -154,6 +181,7 @@ const IdentificationProfileForm: React.FC = () => {
         },
         validationSchema: validationSchema,
         validateOnMount: true,
+        validateOnChange: true, // Включаем валидацию при изменении
         onSubmit: () => { },
     });
 
@@ -198,11 +226,32 @@ const IdentificationProfileForm: React.FC = () => {
     };
 
     /* ───────────── ввод ФИО только кириллицей с капитализацией ───────────── */
-    const handleNameChange = (field: string) =>
+    const handleNameChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const inputValue = e.target.value;
+        const currentValue = formik.values[field as keyof typeof formik.values] as string;
+
+        // Проверяем есть ли не-кириллические символы в новом вводе
+        const nonCyrillicRegex = /[^А-Яа-яЁё\s-]/;
+        const hasNonCyrillic = nonCyrillicRegex.test(inputValue);
+
+        // Если есть попытка ввода не-кириллических символов
+        if (hasNonCyrillic && inputValue.length > currentValue.length) {
+            setCyrillicErrors(prev => ({ ...prev, [field]: true }));
+            formik.setFieldTouched(field, true, false);
+        }
+
+        // Применяем капитализацию и фильтрацию
         handleCapitalizedNameChange(
-            (value: string) => formik.setFieldValue(field, value),
+            (value: string) => {
+                formik.setFieldValue(field, value);
+                // Если после фильтрации значение не изменилось и нет ошибки, сбрасываем ошибку
+                if (!hasNonCyrillic) {
+                    setCyrillicErrors(prev => ({ ...prev, [field]: false }));
+                }
+            },
             /[^А-Яа-яЁё\s-]/g
-        );
+        )(e);
+    };
 
     /* ───────────── открыть политику конфиденциальности ───────────── */
     const handleOpenPrivacy = (e: React.MouseEvent) => {
@@ -243,6 +292,7 @@ const IdentificationProfileForm: React.FC = () => {
             contact_communication_whatsapp: formik.values.contact_communication_whatsapp,
             contact_communication_max: formik.values.contact_communication_max,
             contact_communication_other: formik.values.contact_communication_other,
+            ...(partnerLink && { partner_link: partnerLink }),
         };
 
         const userForRedux: userType = {
@@ -326,7 +376,11 @@ const IdentificationProfileForm: React.FC = () => {
                         placeholder="Фамилия"
                         needValue
                         type="text"
-                        error={formik.touched.lastName && formik.errors.lastName}
+                        error={
+                            cyrillicErrors.lastName
+                                ? "Ввод только кириллицей"
+                                : (formik.touched.lastName && formik.errors.lastName)
+                        }
                     />
                     <Input
                         name="firstName"
@@ -336,7 +390,11 @@ const IdentificationProfileForm: React.FC = () => {
                         placeholder="Имя"
                         needValue
                         type="text"
-                        error={formik.touched.firstName && formik.errors.firstName}
+                        error={
+                            cyrillicErrors.firstName
+                                ? "Ввод только кириллицей"
+                                : (formik.touched.firstName && formik.errors.firstName)
+                        }
                     />
                     <Input
                         name="patronymic"
@@ -345,7 +403,11 @@ const IdentificationProfileForm: React.FC = () => {
                         onBlur={formik.handleBlur}
                         placeholder="Отчество (при наличии)"
                         type="text"
-                        error={formik.touched.patronymic && formik.errors.patronymic}
+                        error={
+                            cyrillicErrors.patronymic
+                                ? "Ввод только кириллицей"
+                                : (formik.touched.patronymic && formik.errors.patronymic)
+                        }
                     />
                     <PhoneInput
                         name="phone"

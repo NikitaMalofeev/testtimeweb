@@ -5,6 +5,7 @@ import { Icon } from 'shared/ui/Icon/Icon';
 import styles from './styles.module.scss';
 import HeaderIcon from 'shared/assets/svg/headerLogo.svg';
 import AccountIcon from 'shared/assets/svg/AccountIcon.svg';
+import SupportChatIcon from 'shared/assets/svg/supportChatBlue.svg';
 import { classNames, Mods } from 'shared/lib/helpers/classNames/classNames';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { RootState } from 'app/providers/store/config/store';
@@ -77,24 +78,7 @@ export const Header = ({ currentNotificationsCount, variant }: HeaderProps) => {
             {!haveUser
                 ?
                 <div className={styles.header__entry}>
-                    {/* <div className={styles.header__contacts} >
-                        <Icon Svg={PhoneIcon} width={24} height={24} />
-                        <a href="tel:+78432126778">+7 843 212 67 78</a>
-                    </div> */}
-                    <Button
-                        theme={ButtonTheme.UNDERLINE}
-                        children='Чат поддержки'
-                        padding='10px 22px'
-                        className={styles.header__button}
-                        onClick={() => navigate('/support')}
-                    />
-                    {/* <Button
-                        theme={ButtonTheme.UNDERLINE}
-                        children='Подключиться'
-                        padding='10px 22px'
-                        className={styles.header__button}
-                    // onClick={() => navigate('/auth')} 
-                    /> */}
+                    {/* Кнопка "Чат поддержки" убрана - доступна только авторизованным пользователям */}
                 </div>
                 // <div
                 //     className={classNames(styles.burger__container, burgerMods, [])}
@@ -108,6 +92,13 @@ export const Header = ({ currentNotificationsCount, variant }: HeaderProps) => {
                 // </div>
                 :
                 <div className={styles.header__account} >
+                    <Button
+                        theme={ButtonTheme.UNDERLINE}
+                        children='Поддержка'
+                        padding='10px 22px'
+                        className={styles.header__button}
+                        onClick={() => navigate('/support')}
+                    />
                     {currentNotificationsCount ? <div className={styles.header__notifications} onClick={() => {
                         dispatch(closeAllModals())
                         navigate('/notifications')

@@ -15,6 +15,7 @@ export interface IdentificationProfileData {
     contact_communication_whatsapp?: string;
     contact_communication_max?: string;
     contact_communication_other?: string;
+    partner_link?: string;
 }
 
 export interface ConfirmationCodeData {

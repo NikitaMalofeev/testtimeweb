@@ -33,41 +33,37 @@ const CoverVIP = ({ onLoadComplete }: { onLoadComplete: () => void }) => {
     }, [isImageLoaded, onLoadComplete]);
 
     return (
-        <AnimatePresence mode="wait">
-            <motion.div
-                key="cover-vip"
-                className={styles.Cover_vip}
-                initial={{ scale: 1, opacity: 1 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 1.2, opacity: 0 }}
-                transition={{ duration: 0.5, ease: 'easeInOut' }}
-            >
-                <img
-                    src={VIPCoverLayer}
-                    style={{
-                        position: 'absolute',
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                        opacity: isImageLoaded ? 1 : 0,
-                        transition: 'opacity 0.3s ease-in-out'
-                    }}
-                    onLoad={() => setIsImageLoaded(true)}
-                    alt=""
+        <motion.div
+            key="cover-vip"
+            className={styles.Cover_vip}
+            initial={{ scale: 1, opacity: 1 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 1.2, opacity: 0 }}
+            transition={{ duration: 0.5, ease: 'easeInOut' }}
+        >
+            <img
+                src={VIPCoverLayer}
+                style={{
+                    position: 'absolute',
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    opacity: isImageLoaded ? 1 : 0,
+                    transition: 'opacity 0.3s ease-in-out'
+                }}
+                onLoad={() => setIsImageLoaded(true)}
+                alt=""
+            />
+            <div className={styles.Cover_vip__content}>
+                <Icon Svg={VIPCoverCrown} width={32} height={32} objectFit="cover" />
+                <Icon
+                    Svg={VIPCoverLogo}
+                    width={249}
+                    height={75}
+                    objectFit="cover"
                 />
-                <div className={styles.Cover_vip__content}>
-                    <Icon Svg={VIPCoverCrown} width={32} height={32} objectFit="cover" />
-                    <Icon
-                        Svg={VIPCoverLogo}
-                        width={249}
-                        height={75}
-                        maxWidth={window.innerWidth}
-                        maxHeight={window.innerHeight}
-                        objectFit="cover"
-                    />
-                </div>
-            </motion.div>
-        </AnimatePresence>
+            </div>
+        </motion.div>
     );
 };
 
@@ -79,25 +75,21 @@ const CoverDefault = ({ onLoadComplete }: { onLoadComplete: () => void }) => {
     }, [onLoadComplete]);
 
     return (
-        <AnimatePresence mode="wait">
-            <motion.div
-                key="cover-default"
-                className={styles.Cover}
-                initial={{ scale: 1, opacity: 1 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 1.2, opacity: 0 }}
-                transition={{ duration: 0.5, ease: 'easeInOut' }}
-            >
-                <Icon
-                    Svg={CoverIcon}
-                    width="100%"
-                    height="100%"
-                    maxWidth={window.innerWidth}
-                    maxHeight={window.innerHeight}
-                    objectFit="cover"
-                />
-            </motion.div>
-        </AnimatePresence>
+        <motion.div
+            key="cover-default"
+            className={styles.Cover}
+            initial={{ scale: 1, opacity: 1 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 1.2, opacity: 0 }}
+            transition={{ duration: 0.5, ease: 'easeInOut' }}
+        >
+            <Icon
+                Svg={CoverIcon}
+                width="auto"
+                height="auto"
+                objectFit="contain"
+            />
+        </motion.div>
     );
 };
 
@@ -123,20 +115,19 @@ export const Cover = () => {
         setIsMounted(false);
     };
 
-    // Скрываем Cover когда isMounted = false
-    if (!isMounted) {
-        return null;
-    }
-
     // Пока данные не готовы - показываем Loading Cover (просто синий фон)
     if (!isDataReady) {
         return <CoverLoading />;
     }
 
-    // Когда данные готовы - рендерим ТОЛЬКО нужный вариант Cover
-    if (isVipUser) {
-        return <CoverVIP onLoadComplete={handleLoadComplete} />;
-    }
-
-    return <CoverDefault onLoadComplete={handleLoadComplete} />;
+    // Когда данные готовы - рендерим с анимацией
+    return (
+        <AnimatePresence mode="wait">
+            {isMounted && (
+                isVipUser
+                    ? <CoverVIP onLoadComplete={handleLoadComplete} />
+                    : <CoverDefault onLoadComplete={handleLoadComplete} />
+            )}
+        </AnimatePresence>
+    );
 };

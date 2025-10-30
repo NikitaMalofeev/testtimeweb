@@ -92,13 +92,6 @@ export const Header = ({ currentNotificationsCount, variant }: HeaderProps) => {
                 // </div>
                 :
                 <div className={styles.header__account} >
-                    <Button
-                        theme={ButtonTheme.UNDERLINE}
-                        children='Поддержка'
-                        padding='10px 22px'
-                        className={styles.header__button}
-                        onClick={() => navigate('/support')}
-                    />
                     {currentNotificationsCount ? <div className={styles.header__notifications} onClick={() => {
                         dispatch(closeAllModals())
                         navigate('/notifications')

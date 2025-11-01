@@ -212,25 +212,21 @@ export const RiskProfileFirstForm: React.FC = () => {
 
     // Вычисляем опции валют на верхнем уровне компонента
     const currencyOptions = React.useMemo(() => {
-        if (!activeCurrencies || !symbolsCurrencies || !riskProfileSelectors) return [];
+        if (!activeCurrencies || !symbolsCurrencies) return [];
 
         // Проверяем формат activeCurrencies (массив или объект)
         const currenciesArray = Array.isArray(activeCurrencies)
             ? activeCurrencies
             : Object.keys(activeCurrencies);
 
-        // Получаем названия валют из riskProfileSelectors
-        const currencyNames = riskProfileSelectors.currency_investment || {};
-
         return currenciesArray.map((currencyCode: string) => {
             const symbol = symbolsCurrencies[currencyCode] || '';
-            const currencyName = currencyNames[currencyCode] || currencyCode;
             return {
-                label: symbol ? `${currencyName} (${symbol})` : currencyName,
+                label: symbol ? `${currencyCode} ${symbol}` : currencyCode,
                 value: currencyCode
             };
         });
-    }, [activeCurrencies, symbolsCurrencies, riskProfileSelectors]);
+    }, [activeCurrencies, symbolsCurrencies]);
 
     // enableReinitialize: true позволит обновлять форму, когда Redux-стейт меняется (например, после загрузки LS)
     const formik = useFormik({
@@ -267,7 +263,6 @@ export const RiskProfileFirstForm: React.FC = () => {
     useEffect(() => {
         if (activeCurrencies && activeCurrencies.length > 0 && !formik.values.currency_investment) {
             const defaultCurrency = activeCurrencies[0];
-            console.log('Setting default currency:', defaultCurrency);
             formik.setFieldValue("currency_investment", defaultCurrency, false);
             dispatch(updateFieldValue({ name: "currency_investment", value: defaultCurrency }));
         }
@@ -314,8 +309,6 @@ export const RiskProfileFirstForm: React.FC = () => {
 
     // ========================= 9. Навигация =========================
     const goNext = () => {
-        console.log('goNext - formik.values:', formik.values);
-        console.log('goNext - currency_investment:', formik.values.currency_investment);
         if (isLastStep) {
             dispatch(postFirstRiskProfileForm(formik.values));
             dispatch(updateUserAllData({ gender: String(formik.values.gender) }));
@@ -451,7 +444,6 @@ export const RiskProfileFirstForm: React.FC = () => {
                         options={currencyOptions}
                         value={String(formik.values.currency_investment || '')}
                         onChange={(name, selectedValue) => {
-                            console.log('Currency changed to:', selectedValue);
                             formik.setFieldValue(name, selectedValue);
                             dispatch(updateFieldValue({ name, value: selectedValue }));
                         }}

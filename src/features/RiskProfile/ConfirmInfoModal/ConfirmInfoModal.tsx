@@ -293,7 +293,9 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
     // ---- Повторная отправка кода (таймеры) ----
     const handleResetPhoneTimer = () => {
         if (!userId) return;
-        dispatch(resendConfirmationCode({ user_id: userId, method: 'phone' }));
+        // Используем правильный метод в зависимости от confirmationMethod
+        const method = confirmationMethod === "WHATSAPP" ? "whatsapp" : "phone";
+        dispatch(resendConfirmationCode({ user_id: userId, method }));
         setPhoneTimeLeft(60);
         setPhoneTimerActive(true);
     };
@@ -310,7 +312,7 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
         if (confirmationMethod === "WHATSAPP") {
             return (
                 <span className={styles.modalContent__description}>
-                    Код направлен в WhatsApp <b>{phone}</b>, указанный при регистрации
+                    Код отправлен на WhatsApp <b>{phone}</b>, указанный при регистрации
                 </span>
             );
         }
@@ -404,7 +406,11 @@ export const ConfirmInfoModal = memo(({ isOpen, onClose }: ConfirmInfoModalProps
             animation={modalState[ModalType.CONFIRM_CODE].animation}
             size={modalState[ModalType.CONFIRM_CODE].size}
             withCloseIcon
-            withTitle={<>Подтвердите <strong>телефон и почту</strong> для успешной регистрации</>}
+            withTitle={
+                confirmationMethod === "WHATSAPP"
+                    ? <>Подтвердите <strong>WhatsApp и почту</strong> для успешной регистрации</>
+                    : <>Подтвердите <strong>телефон и почту</strong> для успешной регистрации</>
+            }
             titleWidth="280px"
             type={ModalType.CONFIRM_CODE}
         >

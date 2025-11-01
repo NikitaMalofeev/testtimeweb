@@ -315,10 +315,7 @@ const IdentificationProfileForm: React.FC<IdentificationProfileFormProps> = ({ p
                     recaptchaRef.current?.reset();
                 },
                 onSuccess: () => {
-                    // НОВАЯ ЛОГИКА: сбрасываем confirmationMethod обратно к SMS после отправки
-                    dispatch(setCurrentConfirmModalType('SMS'));
-                    // Также сбрасываем значение в форме обратно к SMS для следующего использования
-                    formik.setFieldValue("type_sms_message", "SMS");
+                    // Сохраняем выбранный метод confirmationMethod, не сбрасываем
                     dispatch(
                         openModal({
                             type: ModalType.CONFIRM_CODE,

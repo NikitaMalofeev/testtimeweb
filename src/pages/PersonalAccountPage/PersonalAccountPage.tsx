@@ -372,7 +372,7 @@ const PersonalAccountMenu: React.FC = () => {
 
     return (
         <>
-            <div className={styles.page}>
+            <div className={`${styles.page} ${!activePush ? styles.page__no_notifications : ''}`}>
                 <PushNotification pushNotifications={pushNotifications} activePush={activePush} />
                 <div className={styles.page__container}>
                     <div className={styles.desktop__container}>

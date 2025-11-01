@@ -7,6 +7,7 @@ import { useAppDispatch } from 'shared/hooks/useAppDispatch';
 import { Input } from 'shared/ui/Input/Input';
 import { Loader } from 'shared/ui/Loader/Loader';
 import { Tooltip } from 'shared/ui/Tooltip/Tooltip';
+import { Skeleton } from 'shared/ui/Skeleton/Skeleton';
 import styles from './styles.module.scss';
 import { SWIPER_PARAM_VALUES, SwiperParametrValues } from 'features/RiskProfile/RiskProfileSecondForm/RiskProfileSecondForm';
 import {
@@ -206,32 +207,48 @@ export const TariffCalculator: React.FC<Props> = ({ tariff_key, min_deposit_valu
                     />
                 </div>
 
-                {loading && <Loader />}
-
-                {!loading && !error && result && (
-                    <div className={styles.rows}>
-                        <div className={styles.row}>
-                            <span className={styles.label}>Годовая доходность</span>
-                            <span className={styles.value}>{`${result.year_per} %`}</span>
-                        </div>
-                        <div className={styles.row}>
-                            <span className={styles.label}>Доходность с учетом комиссии</span>
-                            <span className={styles.value}>{`${result.year_per_without_commission} %`}</span>
-                        </div>
-                        <div className={styles.row}>
-                            <span className={styles.label}>Годовой доход</span>
-                            <span className={styles.value}>{formatMoneyOut(result.year_money)}</span>
-                        </div>
-                        <div className={styles.row}>
-                            <span className={styles.label}>Комиссия за 365 дней</span>
-                            <span className={styles.value}>{formatMoneyOut(result.commission_365_days)}</span>
-                        </div>
-                        <div className={styles.row}>
-                            <span className={styles.label}>Годовой доход с учетом комиссии</span>
-                            <span className={styles.value}>{formatMoneyOut(result.year_money_without_commission)}</span>
-                        </div>
+                <div className={styles.rows}>
+                    <div className={styles.row}>
+                        <span className={styles.label}>Годовая доходность</span>
+                        {loading ? (
+                            <Skeleton width="80px" height="16px" />
+                        ) : (
+                            <span className={styles.value}>{result ? `${result.year_per} %` : '—'}</span>
+                        )}
                     </div>
-                )}
+                    <div className={styles.row}>
+                        <span className={styles.label}>Доходность с учетом комиссии</span>
+                        {loading ? (
+                            <Skeleton width="80px" height="16px" />
+                        ) : (
+                            <span className={styles.value}>{result ? `${result.year_per_without_commission} %` : '—'}</span>
+                        )}
+                    </div>
+                    <div className={styles.row}>
+                        <span className={styles.label}>Годовой доход</span>
+                        {loading ? (
+                            <Skeleton width="100px" height="16px" />
+                        ) : (
+                            <span className={styles.value}>{result ? formatMoneyOut(result.year_money) : '—'}</span>
+                        )}
+                    </div>
+                    <div className={styles.row}>
+                        <span className={styles.label}>Комиссия за 365 дней</span>
+                        {loading ? (
+                            <Skeleton width="100px" height="16px" />
+                        ) : (
+                            <span className={styles.value}>{result ? formatMoneyOut(result.commission_365_days) : '—'}</span>
+                        )}
+                    </div>
+                    <div className={styles.row}>
+                        <span className={styles.label}>Годовой доход с учетом комиссии</span>
+                        {loading ? (
+                            <Skeleton width="100px" height="16px" />
+                        ) : (
+                            <span className={styles.value}>{result ? formatMoneyOut(result.year_money_without_commission) : '—'}</span>
+                        )}
+                    </div>
+                </div>
             </div>
         </div>
     );

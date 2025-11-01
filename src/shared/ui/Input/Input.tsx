@@ -215,6 +215,10 @@ export const Input: React.FC<InputProps> = ({
     // -------------------------------------------------
     // Динамическое вычисление шагов для "swiper"
     // -------------------------------------------------
+    // Если передан кастомный step (не дефолтный), используем его для простого линейного степпинга
+    // Иначе используем прогрессивные шаги для разных диапазонов
+    const useCustomStep = step !== 1;
+
     // Диапазон 1: от min до 1_000_000 шагом 100_000 (только если min < 1_000_000)
     // Диапазон 2: от 1_000_000 до 10_000_000 шагом 500_000
     // Диапазон 3: от 10_000_000 до 100_000_000 шагом 2_000_000
@@ -222,26 +226,38 @@ export const Input: React.FC<InputProps> = ({
     const RANGE1_END = 1_000_000;
     const RANGE2_END = 10_000_000;
     const MAX_VALUE = 100_000_000;
-    const RANGE1_STEP = 100_000;
-    const RANGE2_STEP = 500_000;
-    const RANGE3_STEP = 2_000_000;
+    const RANGE1_STEP = useCustomStep ? step : 100_000;
+    const RANGE2_STEP = useCustomStep ? step : 500_000;
+    const RANGE3_STEP = useCustomStep ? step : 2_000_000;
 
     // Вычисляем количество шагов для каждого диапазона
-    const range1Count = minAmountInputNumberSlider < RANGE1_END
-        ? (RANGE1_END - minAmountInputNumberSlider) / RANGE1_STEP
-        : 0;
+    const range1Count = useCustomStep
+        ? 0  // При кастомном шаге не используем диапазоны
+        : minAmountInputNumberSlider < RANGE1_END
+            ? (RANGE1_END - minAmountInputNumberSlider) / RANGE1_STEP
+            : 0;
 
     const range2Start = Math.max(minAmountInputNumberSlider, RANGE1_END);
-    const range2Count = minAmountInputNumberSlider < RANGE2_END
-        ? (RANGE2_END - range2Start) / RANGE2_STEP
-        : 0;
+    const range2Count = useCustomStep
+        ? 0  // При кастомном шаге не используем диапазоны
+        : minAmountInputNumberSlider < RANGE2_END
+            ? (RANGE2_END - range2Start) / RANGE2_STEP
+            : 0;
 
     const range3Start = Math.max(minAmountInputNumberSlider, RANGE2_END);
-    const range3Count = (MAX_VALUE - range3Start) / RANGE3_STEP;
+    const range3Count = useCustomStep
+        ? 0  // При кастомном шаге не используем диапазоны
+        : (MAX_VALUE - range3Start) / RANGE3_STEP;
 
-    const totalSteps = range1Count + range2Count + range3Count;
+    const totalSteps = useCustomStep
+        ? (max - min) / step  // Простое линейное количество шагов
+        : range1Count + range2Count + range3Count;
 
     const mapValueToSliderIndex = (val: number): number => {
+        // Если используется кастомный шаг, простая линейная формула
+        if (useCustomStep) {
+            return (val - min) / step;
+        }
         // Если значение в первом диапазоне (и он существует)
         if (range1Count > 0 && val <= RANGE1_END) {
             return (val - minAmountInputNumberSlider) / RANGE1_STEP;
@@ -257,6 +273,10 @@ export const Input: React.FC<InputProps> = ({
     };
 
     const mapSliderIndexToValue = (index: number): number => {
+        // Если используется кастомный шаг, простая линейная формула
+        if (useCustomStep) {
+            return min + index * step;
+        }
         // Если индекс в первом диапазоне (и он существует)
         if (range1Count > 0 && index <= range1Count) {
             return minAmountInputNumberSlider + index * RANGE1_STEP;

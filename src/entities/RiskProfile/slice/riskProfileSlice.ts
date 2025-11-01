@@ -59,6 +59,10 @@ interface BrokerData {
     broker_value: string;
 }
 
+interface StepScrollAmountData {
+    step_scroll_amount: number;
+}
+
 interface RiskProfileFormState {
     loading: boolean;
     error: string | null;
@@ -80,7 +84,7 @@ interface RiskProfileFormState {
     pasportScanProgress: number;
     isAnotherBroker: boolean;
     selectedBrokerData: BrokerData | null;
-    stepScrollAmount: any;
+    stepScrollAmount: StepScrollAmountData | null;
     symbolsCurrencies: Record<string, string> | null;
     activeCurrencies: any;
 }
@@ -749,7 +753,7 @@ export const requestNeedHelp = createAsyncThunk<
 );
 
 export const fetchStepScrollAmount = createAsyncThunk<
-    any,
+    StepScrollAmountData,
     void,
     { rejectValue: string; state: RootState }
 >(

@@ -14,6 +14,7 @@ import {
     calculateProfitabilityThunk,
     setCalculatorDeposit,
 } from 'entities/Payments/slice/paymentsSlice';
+import { fetchStepScrollAmount } from 'entities/RiskProfile/slice/riskProfileSlice';
 import { CalculateProfitabilityPayload } from 'entities/Payments/types/paymentsTypes';
 import { Select } from 'shared/ui/Select/Select';
 
@@ -42,8 +43,8 @@ const formatMoneyOut = (value: number | string | null | undefined) => {
     return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' ₽';
 };
 
-const STEP = 10_000;
 const MAX_DEPOSIT = 100_000_000;
+const DEFAULT_STEP = 10_000;
 
 export const TariffCalculator: React.FC<Props> = ({ tariff_key, min_deposit_value }) => {
     const dispatch = useAppDispatch();
@@ -54,8 +55,15 @@ export const TariffCalculator: React.FC<Props> = ({ tariff_key, min_deposit_valu
     const riskProfileFromUser = useSelector(
         (s: RootState) => s.user.userPersonalAccountInfo?.risk_profiling_text
     );
+    const stepScrollAmount = useSelector(
+        (s: RootState) => s.riskProfile.stepScrollAmount
+    );
 
-    const roundToStep = useCallback((v: number) => Math.round(v / STEP) * STEP, []);
+    // Используем значение из сервера или дефолтное
+    // Сервер возвращает объект {"step_scroll_amount": 10000}
+    const STEP = stepScrollAmount?.step_scroll_amount || DEFAULT_STEP;
+
+    const roundToStep = useCallback((v: number) => Math.round(v / STEP) * STEP, [STEP]);
     const clamp = useCallback(
         (v: number) => Math.min(MAX_DEPOSIT, Math.max(min_deposit_value, v)),
         [min_deposit_value]
@@ -79,6 +87,13 @@ export const TariffCalculator: React.FC<Props> = ({ tariff_key, min_deposit_valu
             setSelectedProfile(riskProfileFromUser);
         }
     }, [riskProfileFromUser, selectedProfile]);
+
+    // Загрузка значения шага скролла с сервера
+    useEffect(() => {
+        if (!stepScrollAmount) {
+            dispatch(fetchStepScrollAmount() as any);
+        }
+    }, [dispatch, stepScrollAmount]);
 
     // Дебаунс запроса расчёта
     const fire = useMemo(

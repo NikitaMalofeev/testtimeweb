@@ -11,6 +11,8 @@ import {
     updateFieldValue,
     updateRiskProfileForm,
     setStep,
+    fetchSymbolsCurrencies,
+    fetchActiveCurrencies,
 } from "entities/RiskProfile/slice/riskProfileSlice";
 import * as Yup from "yup";
 import styles from "./styles.module.scss";
@@ -63,6 +65,8 @@ export const RiskProfileFirstForm: React.FC = () => {
         riskProfileSelectors,
         formValues,
         stepsFirstForm: { currentStep },
+        symbolsCurrencies,
+        activeCurrencies,
     } = useSelector((state: RootState) => state.riskProfile);
     const isBottom = useSelector((state: RootState) => state.ui.isScrollToBottom);
 
@@ -89,9 +93,11 @@ export const RiskProfileFirstForm: React.FC = () => {
         setIsLSLoaded(true);
     }, []);
 
-    // ========================= 2. Получение селекторов =========================
+    // ========================= 2. Получение селекторов и данных валют =========================
     useEffect(() => {
         dispatch(fetchAllSelects() as any);
+        dispatch(fetchSymbolsCurrencies() as any);
+        dispatch(fetchActiveCurrencies() as any);
     }, []);
 
     // ========================= 3. Синхронизация Redux → localStorage (только после загрузки LS) =========================
@@ -204,6 +210,28 @@ export const RiskProfileFirstForm: React.FC = () => {
         ...formValues
     }), [formValues]);
 
+    // Вычисляем опции валют на верхнем уровне компонента
+    const currencyOptions = React.useMemo(() => {
+        if (!activeCurrencies || !symbolsCurrencies || !riskProfileSelectors) return [];
+
+        // Проверяем формат activeCurrencies (массив или объект)
+        const currenciesArray = Array.isArray(activeCurrencies)
+            ? activeCurrencies
+            : Object.keys(activeCurrencies);
+
+        // Получаем названия валют из riskProfileSelectors
+        const currencyNames = riskProfileSelectors.currency_investment || {};
+
+        return currenciesArray.map((currencyCode: string) => {
+            const symbol = symbolsCurrencies[currencyCode] || '';
+            const currencyName = currencyNames[currencyCode] || currencyCode;
+            return {
+                label: symbol ? `${currencyName} (${symbol})` : currencyName,
+                value: currencyCode
+            };
+        });
+    }, [activeCurrencies, symbolsCurrencies, riskProfileSelectors]);
+
     // enableReinitialize: true позволит обновлять форму, когда Redux-стейт меняется (например, после загрузки LS)
     const formik = useFormik({
         enableReinitialize: true,
@@ -235,14 +263,16 @@ export const RiskProfileFirstForm: React.FC = () => {
         },
     });
 
-    //Пока работаем только с РФ брокерaм
+    // Устанавливаем дефолтное значение валюты из activeCurrencies ТОЛЬКО если оно еще не выбрано
     useEffect(() => {
-        const defaultCurrency = "RUR";
-        formik.setFieldValue("currency_investment", defaultCurrency, false);
-        // добавляем строку ↓
-        dispatch(updateFieldValue({ name: "currency_investment", value: defaultCurrency }));
-    }, [dispatch]);
-    //Пока работаем только с РФ брокерами
+        if (activeCurrencies && activeCurrencies.length > 0 && !formik.values.currency_investment) {
+            const defaultCurrency = activeCurrencies[0];
+            console.log('Setting default currency:', defaultCurrency);
+            formik.setFieldValue("currency_investment", defaultCurrency, false);
+            dispatch(updateFieldValue({ name: "currency_investment", value: defaultCurrency }));
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeCurrencies]);
 
 
     const handleChangeAndDispatch =
@@ -284,6 +314,8 @@ export const RiskProfileFirstForm: React.FC = () => {
 
     // ========================= 9. Навигация =========================
     const goNext = () => {
+        console.log('goNext - formik.values:', formik.values);
+        console.log('goNext - currency_investment:', formik.values.currency_investment);
         if (isLastStep) {
             dispatch(postFirstRiskProfileForm(formik.values));
             dispatch(updateUserAllData({ gender: String(formik.values.gender) }));
@@ -410,19 +442,23 @@ export const RiskProfileFirstForm: React.FC = () => {
         }
 
 
-        // Пока работаем только с Российским рынком
+        // Валюта инвестиций - используем опции из верхнего уровня компонента
         if (question.name === "currency_investment" && question.options) {
             return (
                 <div className={styles.currency_investment}>
                     <CheckboxGroup
                         name="currency_investment"
-                        options={[{ label: 'Российский рубль (RUR)', value: 'RUR' }]}
-                        value="RUR"
+                        options={currencyOptions}
+                        value={String(formik.values.currency_investment || '')}
                         onChange={(name, selectedValue) => {
-                            formik.setFieldValue(name, 'RUR');
+                            console.log('Currency changed to:', selectedValue);
+                            formik.setFieldValue(name, selectedValue);
+                            dispatch(updateFieldValue({ name, value: selectedValue }));
                         }}
                     />
-                    <span>На данный момент мы работаем только с Российским рынком ценных бумаг</span>
+                    {currencyOptions.length === 1 && (
+                        <span>На данный момент мы работаем только с Российским рынком ценных бумаг</span>
+                    )}
                 </div>
             );
         }

@@ -37,7 +37,10 @@ import {
     postResendConfirmationCodeLegal,
     postSecondRiskProfile,
     postSecondRiskProfileFinal,
-    postTrustedPersonInfoApi
+    postTrustedPersonInfoApi,
+    getStepScrollAmount,
+    getSymbolsCurrencies,
+    getActiveCurrencies
 } from "entities/RiskProfile/api/riskProfileApi";
 import { setUserId, setUserIsActive, setUserToken, updateUserAllData, logoutUser } from "entities/User/slice/userSlice";
 import { setConfirmationEmailSuccess, setConfirmationPhoneSuccess, setConfirmationStatusSuccess, setConfirmationWhatsappSuccess, setTooltipActive, setWarning } from "entities/ui/Ui/slice/uiSlice";
@@ -77,6 +80,9 @@ interface RiskProfileFormState {
     pasportScanProgress: number;
     isAnotherBroker: boolean;
     selectedBrokerData: BrokerData | null;
+    stepScrollAmount: any;
+    symbolsCurrencies: Record<string, string> | null;
+    activeCurrencies: any;
 }
 
 const initialState: RiskProfileFormState = {
@@ -124,7 +130,10 @@ const initialState: RiskProfileFormState = {
     pasportScanSocketId: '',
     pasportScanProgress: 0,
     isAnotherBroker: false,
-    selectedBrokerData: null
+    selectedBrokerData: null,
+    stepScrollAmount: null,
+    symbolsCurrencies: null,
+    activeCurrencies: null
 };
 
 export const createRiskProfile = createAsyncThunk<
@@ -739,6 +748,72 @@ export const requestNeedHelp = createAsyncThunk<
     }
 );
 
+export const fetchStepScrollAmount = createAsyncThunk<
+    any,
+    void,
+    { rejectValue: string; state: RootState }
+>(
+    "riskProfile/fetchStepScrollAmount",
+    async (_, { rejectWithValue, getState }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+            const response = await getStepScrollAmount(token);
+            return response;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message || "Ошибка при загрузке данных о шаге скролла"
+            );
+        }
+    }
+);
+
+export const fetchSymbolsCurrencies = createAsyncThunk<
+    Record<string, string>,
+    void,
+    { rejectValue: string; state: RootState }
+>(
+    "riskProfile/fetchSymbolsCurrencies",
+    async (_, { rejectWithValue, getState }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+            const response = await getSymbolsCurrencies(token);
+            return response;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message || "Ошибка при загрузке символов валют"
+            );
+        }
+    }
+);
+
+export const fetchActiveCurrencies = createAsyncThunk<
+    any,
+    void,
+    { rejectValue: string; state: RootState }
+>(
+    "riskProfile/fetchActiveCurrencies",
+    async (_, { rejectWithValue, getState }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+            const response = await getActiveCurrencies(token);
+            return response;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message || "Ошибка при загрузке активных валют"
+            );
+        }
+    }
+);
+
 const riskProfileSlice = createSlice({
     name: "riskProfile",
     initialState,
@@ -919,6 +994,42 @@ const riskProfileSlice = createSlice({
                     ...initialState,
                     riskProfileSelectors: state.riskProfileSelectors,
                 };
+            })
+            .addCase(fetchStepScrollAmount.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchStepScrollAmount.fulfilled, (state, action) => {
+                state.loading = false;
+                state.stepScrollAmount = action.payload;
+            })
+            .addCase(fetchStepScrollAmount.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
+            .addCase(fetchSymbolsCurrencies.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchSymbolsCurrencies.fulfilled, (state, action) => {
+                state.loading = false;
+                state.symbolsCurrencies = action.payload;
+            })
+            .addCase(fetchSymbolsCurrencies.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
+            .addCase(fetchActiveCurrencies.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchActiveCurrencies.fulfilled, (state, action) => {
+                state.loading = false;
+                state.activeCurrencies = action.payload;
+            })
+            .addCase(fetchActiveCurrencies.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
             })
 
     }

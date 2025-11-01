@@ -59,12 +59,12 @@ curl -X GET \
   https://test.webbroker.ranks.pro/main/create_doc_user/get_symbols_currencies
   {"RUR":"₽","USD":"$"}
 
-
+https://test.webbroker.ranks.pro/main/create_doc_user/get_active_currencies 
 
   https://autopilotru.ranks.pro повесить на тесттаймвеб
 
 
-риск профиль https://test.webbroker.ranks.pro/main/create_doc_user/get_active_currencies для вопроса про валюты от сервера
+риск профиль для вопроса про валюты от сервера
 
 
 

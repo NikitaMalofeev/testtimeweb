@@ -286,3 +286,33 @@ export const postBrokerApiToken = async (data: BrokerSetTokenPayload | OtherBrok
 //     return response.data;
 // };
 
+export const getStepScrollAmount = async (token: string) => {
+    const response = await axios.get(`${apiUrl}create_doc_user/get_step_scroll_amount/`, {
+        headers: {
+            "Accept-Language": "ru",
+            "Authorization": `Token ${token}`,
+        },
+    });
+    return response.data;
+};
+
+export const getSymbolsCurrencies = async (token: string) => {
+    const response = await axios.get(`${apiUrl}create_doc_user/get_symbols_currencies`, {
+        headers: {
+            "Accept-Language": "ru",
+            "Authorization": `Token ${token}`,
+        },
+    });
+    return response.data;
+};
+
+export const getActiveCurrencies = async (token: string) => {
+    const response = await axios.get(`${apiUrl}create_doc_user/get_active_currencies`, {
+        headers: {
+            "Accept-Language": "ru",
+            "Authorization": `Token ${token}`,
+        },
+    });
+    return response.data;
+};
+

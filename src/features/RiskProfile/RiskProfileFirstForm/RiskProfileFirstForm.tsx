@@ -212,20 +212,24 @@ export const RiskProfileFirstForm: React.FC = () => {
 
     // Вычисляем опции валют на верхнем уровне компонента
     const currencyOptions = React.useMemo(() => {
-        if (!activeCurrencies || !symbolsCurrencies) return [];
+        if (!activeCurrencies) return [];
 
         // Проверяем формат activeCurrencies (массив или объект)
-        const currenciesArray = Array.isArray(activeCurrencies)
-            ? activeCurrencies
-            : Object.keys(activeCurrencies);
-
-        return currenciesArray.map((currencyCode: string) => {
-            const symbol = symbolsCurrencies[currencyCode] || '';
-            return {
-                label: symbol ? `${currencyCode} ${symbol}` : currencyCode,
+        if (Array.isArray(activeCurrencies)) {
+            return activeCurrencies.map((currencyCode: string) => {
+                const symbol = symbolsCurrencies?.[currencyCode] || '';
+                return {
+                    label: symbol ? `${currencyCode} ${symbol}` : currencyCode,
+                    value: currencyCode
+                };
+            });
+        } else {
+            // activeCurrencies - объект типа {"RUR":"Российский рубль (RUB)","USD":"Американский доллар (USD)"}
+            return Object.entries(activeCurrencies).map(([currencyCode, currencyLabel]) => ({
+                label: currencyLabel,
                 value: currencyCode
-            };
-        });
+            }));
+        }
     }, [activeCurrencies, symbolsCurrencies]);
 
     // enableReinitialize: true позволит обновлять форму, когда Redux-стейт меняется (например, после загрузки LS)

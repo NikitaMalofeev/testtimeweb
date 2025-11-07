@@ -18,6 +18,7 @@ const BalancePage = () => {
     const activeTariff = useSelector((s: RootState) => s.payments.activeTariffs[0])
     const brokerIds = useSelector((s: RootState) => s.documents.brokerIds)
     const isAnotherBroker = useSelector((s: RootState) => s.riskProfile.isAnotherBroker)
+    const currencySymbol = useSelector((s: RootState) => s.user.userPersonalAccountInfo?.currency_symbol) || '₽'
 
     useEffect(() => {
         if (brokerIds.length > 0 && !isAnotherBroker) {
@@ -31,7 +32,7 @@ const BalancePage = () => {
             <div className={styles.background}></div>
             <div className={styles.content}>
                 <span className={styles.content__title}>Ваш баланс</span>
-                <span className={styles.content__value}>{balance?.all_total} ₽</span>
+                <span className={styles.content__value}>{balance?.all_total} {currencySymbol}</span>
                 <div className={styles.content__actions}>
                     <div className={styles.content__actions__button} onClick={() => window.open("https://www.tbank.ru/", "_blank", "noopener,noreferrer")}
                     ><div className={styles.content__actions__button__icon}><Icon Svg={WithdrawIcon} width={11} height={11} pointer /></div><span>Пополнить</span></div>

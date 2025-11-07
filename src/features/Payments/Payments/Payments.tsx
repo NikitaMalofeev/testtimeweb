@@ -81,6 +81,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
     const activeTariff = useSelector((s: RootState) => s.payments.activeTariffs?.[0]);
     const isAnotherBroker = useSelector((s: RootState) => s.riskProfile.isAnotherBroker);
     const isConfirming = useSelector((s: RootState) => s.payments.isConfirming);
+    const currencySymbol = useSelector((s: RootState) => s.user.userPersonalAccountInfo?.currency_symbol) || '₽';
 
     const tariffsRequestedRef = useRef(false);
 
@@ -589,7 +590,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                             <div>
                                 <div style={{ fontSize: 13, opacity: 0.7, marginBottom: 4 }}>Ваш текущий баланс</div>
                                 <div style={{ fontSize: 20, fontWeight: 700 }}>
-                                    {balance?.all_total ? balance.all_total : <Loader size={LoaderSize.MEDIUM} />} ₽
+                                    {balance?.all_total ? balance.all_total : <Loader size={LoaderSize.MEDIUM} />} {currencySymbol}
                                 </div>
                             </div>
 

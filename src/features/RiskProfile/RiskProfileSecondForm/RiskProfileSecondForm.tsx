@@ -60,6 +60,7 @@ export const RiskProfileSecondForm: React.FC = () => {
     const navigate = useNavigate();
     const goBack = () => dispatch(prevStep());
     const successModalOpen = useSelector((state: RootState) => state.modal.success.isOpen);
+    const currencySymbol = useSelector((state: RootState) => state.user.userPersonalAccountInfo?.currency_symbol) || '₽';
 
     const profileKeys = Object.keys(SWIPER_PARAM_VALUES) as Array<keyof SwiperParametrValues>;
     const recommendedKeys = Object.keys(
@@ -154,17 +155,17 @@ export const RiskProfileSecondForm: React.FC = () => {
         }));
     };
 
-    // Функция для форматирования числа: 3000000 → "3 000 000 ₽"
+    // Функция для форматирования числа с динамической валютой
     const formatMoney = (num: number) => {
         if (num === 0) return "";
         return String(num)
             .replace(/\B(?=(\d{3})+(?!\d))/g, " ")
-            .concat(" ₽");
+            .concat(" " + currencySymbol);
     };
 
-    // Функция для парсинга форматированной строки: "3 000 000 ₽" → 3000000
+    // Функция для парсинга форматированной строки с динамической валютой
     const parseMoneyStringToNumber = (str: string) => {
-        const raw = str.replace(/\s/g, "").replace("₽", "").trim();
+        const raw = str.replace(/\s/g, "").replace(currencySymbol, "").trim();
         const val = parseInt(raw, 10);
         return isNaN(val) ? 0 : val;
     };
@@ -208,7 +209,7 @@ export const RiskProfileSecondForm: React.FC = () => {
                                             squerePosition={{ bottom: '-4px' }}
                                         />
                                     </div>
-                                    <span>0 ₽</span>
+                                    <span>0 {currencySymbol}</span>
                                 </div>
 
                                 <div className={styles.form__item}>
@@ -301,7 +302,7 @@ export const RiskProfileSecondForm: React.FC = () => {
                                     <span className={styles.form__item__potintial__title_green}>{thirdRiskProfileResponse ? thirdRiskProfileResponse.risk_profiling_potential_income_percent : secondRiskProfileData?.risk_profiling_potential_income_percent}%</span>
                                 </div>
                                 <div className={styles.potential__capital__change}>
-                                    {thirdRiskProfileResponse ? thirdRiskProfileResponse.potential_income : secondRiskProfileData?.potential_income} ₽
+                                    {thirdRiskProfileResponse ? thirdRiskProfileResponse.potential_income : secondRiskProfileData?.potential_income} {currencySymbol}
                                 </div>
                             </div>
                             <div className={styles.form__container} style={{ minHeight: '74px' }}>
@@ -319,7 +320,7 @@ export const RiskProfileSecondForm: React.FC = () => {
                                     <span className={styles.form__item__potintial__title_red}>{thirdRiskProfileResponse ? thirdRiskProfileResponse.risk_profiling_possible_loss_percent : secondRiskProfileData?.risk_profiling_possible_loss_percent}%</span>
                                 </div>
                                 <div className={styles.potential__capital__change}>
-                                    {thirdRiskProfileResponse ? thirdRiskProfileResponse.possible_loss : secondRiskProfileData?.possible_loss} ₽
+                                    {thirdRiskProfileResponse ? thirdRiskProfileResponse.possible_loss : secondRiskProfileData?.possible_loss} {currencySymbol}
                                 </div>
                             </div>
                             {/* <h4 className={styles.title}>Завершение настроек риск профиля</h4> */}
@@ -385,7 +386,7 @@ export const RiskProfileSecondForm: React.FC = () => {
                                                 squerePosition={{ bottom: '-4px' }}
                                             />
                                         </div>
-                                        <span>0 ₽</span>
+                                        <span>0 {currencySymbol}</span>
                                     </div>
 
                                     <div className={styles.form__item__input}>
@@ -441,7 +442,7 @@ export const RiskProfileSecondForm: React.FC = () => {
                                         <span className={styles.form__item__potintial__title_green}>{thirdRiskProfileResponse ? thirdRiskProfileResponse.risk_profiling_potential_income_percent : secondRiskProfileData?.risk_profiling_potential_income_percent}%</span>
                                     </div>
                                     <div className={styles.potential__capital__change}>
-                                        {thirdRiskProfileResponse ? thirdRiskProfileResponse.potential_income : secondRiskProfileData?.potential_income} ₽
+                                        {thirdRiskProfileResponse ? thirdRiskProfileResponse.potential_income : secondRiskProfileData?.potential_income} {currencySymbol}
                                     </div>
                                 </div>
                                 <div className={styles.form__container__first} style={{ minHeight: '74px' }}>
@@ -459,7 +460,7 @@ export const RiskProfileSecondForm: React.FC = () => {
                                         <span className={styles.form__item__potintial__title_red}>{thirdRiskProfileResponse ? thirdRiskProfileResponse.risk_profiling_possible_loss_percent : secondRiskProfileData?.risk_profiling_possible_loss_percent}%</span>
                                     </div>
                                     <div className={styles.potential__capital__change}>
-                                        {thirdRiskProfileResponse ? thirdRiskProfileResponse.possible_loss : secondRiskProfileData?.possible_loss} ₽
+                                        {thirdRiskProfileResponse ? thirdRiskProfileResponse.possible_loss : secondRiskProfileData?.possible_loss} {currencySymbol}
                                     </div>
                                 </div>
                             </div>

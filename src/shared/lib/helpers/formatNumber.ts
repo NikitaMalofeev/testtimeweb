@@ -20,9 +20,10 @@ export const formatNumberWithSpaces = (value: number | string | null | undefined
 /**
  * Форматирует число для отображения с валютой
  * @param value - число для форматирования
- * @returns отформатированная строка с рублями (например, "1 000 000 ₽")
+ * @param currencySymbol - символ валюты (по умолчанию ₽)
+ * @returns отформатированная строка с валютой (например, "1 000 000 ₽")
  */
-export const formatCurrency = (value: number | string | null | undefined): string => {
+export const formatCurrency = (value: number | string | null | undefined, currencySymbol: string = '₽'): string => {
     const formatted = formatNumberWithSpaces(value);
-    return formatted ? `${formatted} ₽` : '';
+    return formatted ? `${formatted} ${currencySymbol}` : '';
 };

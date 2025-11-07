@@ -19,6 +19,7 @@ export function useAuthTokenManagement() {
 
     // Считываем из .env (через Vite). Убедитесь, что VITE_RANKS_AUTHTOKEN_LS_KEY реально определён
     const SECRET_KEY = import.meta.env.VITE_RANKS_AUTHTOKEN_LS_KEY as string | undefined;
+    const APP_PREFIX = import.meta.env.VITE_RANKS_APP_PREFIX as string || 'ranks_autopilot_';
     const rehydrated = useCheckRehydrated();
 
     // Токен в Redux. Если пользователь авторизован, он должен быть != ''
@@ -36,9 +37,18 @@ export function useAuthTokenManagement() {
      */
     useEffect(() => {
         if (!rehydrated) return;
-        const savedToken = localStorage.getItem('savedToken');
-        const lastExit = localStorage.getItem('lastExit');
-        const lastExitSignature = localStorage.getItem('lastExitSignature');
+
+        // Очистка старых ключей без префикса (миграция)
+        const oldToken = localStorage.getItem('savedToken');
+        if (oldToken) {
+            localStorage.removeItem('savedToken');
+            localStorage.removeItem('lastExit');
+            localStorage.removeItem('lastExitSignature');
+        }
+
+        const savedToken = localStorage.getItem(`${APP_PREFIX}savedToken`);
+        const lastExit = localStorage.getItem(`${APP_PREFIX}lastExit`);
+        const lastExitSignature = localStorage.getItem(`${APP_PREFIX}lastExitSignature`);
 
         if (savedToken && lastExit && lastExitSignature && SECRET_KEY) {
             const expectedSignature = btoa(lastExit + SECRET_KEY);
@@ -88,10 +98,10 @@ export function useAuthTokenManagement() {
             // При желании можем сразу обновлять localStorage,
             // чтобы "вживую" видеть последнее время.
             if (token && SECRET_KEY) {
-                localStorage.setItem('savedToken', token);
-                localStorage.setItem('lastExit', now.toString());
+                localStorage.setItem(`${APP_PREFIX}savedToken`, token);
+                localStorage.setItem(`${APP_PREFIX}lastExit`, now.toString());
                 const signature = btoa(now.toString() + SECRET_KEY);
-                localStorage.setItem('lastExitSignature', signature);
+                localStorage.setItem(`${APP_PREFIX}lastExitSignature`, signature);
             }
         };
 
@@ -107,7 +117,7 @@ export function useAuthTokenManagement() {
             window.removeEventListener('click', handleActivity);
             window.removeEventListener('scroll', handleActivity);
         };
-    }, [token, SECRET_KEY, rehydrated]);
+    }, [token, SECRET_KEY, APP_PREFIX, rehydrated]);
 
     /**
      * 3) Каждые 10 секунд проверяем: если (Date.now() - lastActivity) > 3 мин — разлогин,
@@ -129,16 +139,16 @@ export function useAuthTokenManagement() {
             } else {
                 // Иначе пользователь ещё активен => перезапишем время
                 if (token && SECRET_KEY) {
-                    localStorage.setItem('savedToken', token);
-                    localStorage.setItem('lastExit', lastActivity.toString());
+                    localStorage.setItem(`${APP_PREFIX}savedToken`, token);
+                    localStorage.setItem(`${APP_PREFIX}lastExit`, lastActivity.toString());
                     const signature = btoa(lastActivity.toString() + SECRET_KEY);
-                    localStorage.setItem('lastExitSignature', signature);
+                    localStorage.setItem(`${APP_PREFIX}lastExitSignature`, signature);
                 }
             }
         }, 10_000);
 
         return () => clearInterval(interval);
-    }, [lastActivity, token, SECRET_KEY, dispatch, navigate, rehydrated]);
+    }, [lastActivity, token, SECRET_KEY, APP_PREFIX, dispatch, navigate, rehydrated]);
 
     /**
      * 4) Дополнительная проверка для iOS / Safari: при сворачивании / закрытии вкладки
@@ -149,10 +159,10 @@ export function useAuthTokenManagement() {
         const handlePageHide = () => {
             if (token && SECRET_KEY) {
                 const now = Date.now();
-                localStorage.setItem('savedToken', token);
-                localStorage.setItem('lastExit', now.toString());
+                localStorage.setItem(`${APP_PREFIX}savedToken`, token);
+                localStorage.setItem(`${APP_PREFIX}lastExit`, now.toString());
                 const signature = btoa(now.toString() + SECRET_KEY);
-                localStorage.setItem('lastExitSignature', signature);
+                localStorage.setItem(`${APP_PREFIX}lastExitSignature`, signature);
             }
         };
 
@@ -160,7 +170,7 @@ export function useAuthTokenManagement() {
         return () => {
             window.removeEventListener('pagehide', handlePageHide);
         };
-    }, [token, SECRET_KEY, rehydrated]);
+    }, [token, SECRET_KEY, APP_PREFIX, rehydrated]);
 
     // Если где-то надо в компоненте показывать, когда была последняя активность:
     return { lastActivity };

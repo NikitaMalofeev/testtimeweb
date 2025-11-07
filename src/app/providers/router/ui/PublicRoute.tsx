@@ -10,7 +10,8 @@ interface PublicRouteProps {
 
 const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
     const token = useSelector((state: RootState) => state.user.token);
-    const tokenLS = localStorage.getItem('savedToken');
+    const APP_PREFIX = import.meta.env.VITE_RANKS_APP_PREFIX as string || 'ranks_autopilot_';
+    const tokenLS = localStorage.getItem(`${APP_PREFIX}savedToken`);
     const rehydrated = useCheckRehydrated();
 
     if (!rehydrated) {

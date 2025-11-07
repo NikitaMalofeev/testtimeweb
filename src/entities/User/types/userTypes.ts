@@ -32,6 +32,8 @@ export interface UserPersonalAccount {
     tariff_expiry: string | null;
     is_vip: boolean;
     waiting_manual_document_verification: boolean;
+    currency_investment: string | null;
+    currency_symbol: string | null;
 }
 
 

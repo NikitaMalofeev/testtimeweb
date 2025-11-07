@@ -23,25 +23,6 @@ interface Props {
     min_deposit_value: number;
 }
 
-/** Формат/парс как в SecondRiskProfile (для инпута) */
-const formatMoneyInput = (num: number) =>
-    num ? String(num).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' ₽' : '';
-
-const parseMoneyStringToNumber = (str: string) => {
-    const raw = str.replace(/\s/g, '').replace('₽', '').trim();
-    const val = parseInt(raw, 10);
-    return isNaN(val) ? 0 : val;
-};
-
-/** Формат для вывода результатов: 10 000 ₽, 400 000 ₽, 2 000 345 ₽ */
-const formatMoneyOut = (value: number | string | null | undefined) => {
-    if (value === null || value === undefined) return '';
-    const n = typeof value === 'number'
-        ? Math.round(value)
-        : Math.round(Number(String(value).replace(/[^\d.-]/g, '')));
-    if (!isFinite(n)) return '';
-    return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' ₽';
-};
 
 const MAX_DEPOSIT = 100_000_000;
 const DEFAULT_STEP = 10_000;
@@ -58,10 +39,30 @@ export const TariffCalculator: React.FC<Props> = ({ tariff_key, min_deposit_valu
     const stepScrollAmount = useSelector(
         (s: RootState) => s.riskProfile.stepScrollAmount
     );
+    const currencySymbol = useSelector((s: RootState) => s.user.userPersonalAccountInfo?.currency_symbol) || '₽';
 
     // Используем значение из сервера или дефолтное
     // Сервер возвращает объект {"step_scroll_amount": 10000}
     const STEP = stepScrollAmount?.step_scroll_amount || DEFAULT_STEP;
+
+    // Функции форматирования с динамической валютой
+    const formatMoneyInput = useCallback((num: number) =>
+        num ? String(num).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' ' + currencySymbol : '', [currencySymbol]);
+
+    const parseMoneyStringToNumber = useCallback((str: string) => {
+        const raw = str.replace(/\s/g, '').replace(currencySymbol, '').trim();
+        const val = parseInt(raw, 10);
+        return isNaN(val) ? 0 : val;
+    }, [currencySymbol]);
+
+    const formatMoneyOut = useCallback((value: number | string | null | undefined) => {
+        if (value === null || value === undefined) return '';
+        const n = typeof value === 'number'
+            ? Math.round(value)
+            : Math.round(Number(String(value).replace(/[^\d.-]/g, '')));
+        if (!isFinite(n)) return '';
+        return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' ' + currencySymbol;
+    }, [currencySymbol]);
 
     const roundToStep = useCallback((v: number) => Math.round(v / STEP) * STEP, [STEP]);
     const clamp = useCallback(
@@ -153,7 +154,7 @@ export const TariffCalculator: React.FC<Props> = ({ tariff_key, min_deposit_valu
                     <Input
                         name="deposit"
                         type="swiper"
-                        placeholder="Депозит, ₽"
+                        placeholder={`Депозит, ${currencySymbol}`}
                         min={min_deposit_value}
                         max={MAX_DEPOSIT}
                         step={STEP}

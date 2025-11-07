@@ -95,9 +95,10 @@ const PersonalAccountMenu: React.FC = () => {
 
 
     const handleLogout = () => {
-        localStorage.removeItem("savedToken");
-        localStorage.removeItem("lastExit");
-        localStorage.removeItem("lastExitSignature");
+        const APP_PREFIX = import.meta.env.VITE_RANKS_APP_PREFIX as string || 'ranks_autopilot_';
+        localStorage.removeItem(`${APP_PREFIX}savedToken`);
+        localStorage.removeItem(`${APP_PREFIX}lastExit`);
+        localStorage.removeItem(`${APP_PREFIX}lastExitSignature`);
         dispatch(setUserToken(""));
         navigate("/");
         window.scrollTo({ top: 0, behavior: "smooth" });

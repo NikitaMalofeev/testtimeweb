@@ -219,10 +219,13 @@ export const logoutUser = createAsyncThunk<
 >(
     "user/logoutUser",
     async (_, { dispatch }) => {
+        // Получаем префикс из переменной окружения
+        const APP_PREFIX = import.meta.env.VITE_RANKS_APP_PREFIX as string || 'ranks_autopilot_';
+
         // Очищаем localStorage
-        localStorage.removeItem("savedToken");
-        localStorage.removeItem("lastExit");
-        localStorage.removeItem("lastExitSignature");
+        localStorage.removeItem(`${APP_PREFIX}savedToken`);
+        localStorage.removeItem(`${APP_PREFIX}lastExit`);
+        localStorage.removeItem(`${APP_PREFIX}lastExitSignature`);
 
         // Сбрасываем токен
         dispatch(setUserToken(""));

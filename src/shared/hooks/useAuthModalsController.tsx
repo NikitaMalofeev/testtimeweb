@@ -8,7 +8,8 @@ import { useLocation } from 'react-router-dom';
 export const useAuthModalsController = () => {
     const dispatch = useAppDispatch();
     const token = useSelector((state: RootState) => state.user.token);
-    const tokenLS = localStorage.getItem('savedToken');
+    const APP_PREFIX = import.meta.env.VITE_RANKS_APP_PREFIX as string || 'ranks_autopilot_';
+    const tokenLS = localStorage.getItem(`${APP_PREFIX}savedToken`);
 
     useEffect(() => {
         if (!token && !tokenLS) {

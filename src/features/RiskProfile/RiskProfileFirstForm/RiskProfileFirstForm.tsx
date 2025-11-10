@@ -14,6 +14,7 @@ import {
     fetchSymbolsCurrencies,
     fetchActiveCurrencies,
 } from "entities/RiskProfile/slice/riskProfileSlice";
+import { getUserPersonalAccountInfoThunk } from "entities/User/slice/userSlice";
 import * as Yup from "yup";
 import styles from "./styles.module.scss";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
@@ -226,7 +227,7 @@ export const RiskProfileFirstForm: React.FC = () => {
         } else {
             // activeCurrencies - объект типа {"RUR":"Российский рубль (RUB)","USD":"Американский доллар (USD)"}
             return Object.entries(activeCurrencies).map(([currencyCode, currencyLabel]) => ({
-                label: currencyLabel,
+                label: String(currencyLabel),
                 value: currencyCode
             }));
         }
@@ -312,11 +313,19 @@ export const RiskProfileFirstForm: React.FC = () => {
     };
 
     // ========================= 9. Навигация =========================
-    const goNext = () => {
+    const goNext = async () => {
         if (isLastStep) {
-            dispatch(postFirstRiskProfileForm(formik.values));
-            dispatch(updateUserAllData({ gender: String(formik.values.gender) }));
-            dispatch(setStepAdditionalMenuUI(1));
+            try {
+                // Сначала отправляем форму риск-профиля
+                await dispatch(postFirstRiskProfileForm(formik.values)).unwrap();
+                // После успешной отправки обновляем данные пользователя (валюты и др.)
+                await dispatch(getUserPersonalAccountInfoThunk()).unwrap();
+                // Обновляем gender и переходим на следующий шаг
+                dispatch(updateUserAllData({ gender: String(formik.values.gender) }));
+                dispatch(setStepAdditionalMenuUI(1));
+            } catch (error) {
+                console.error('Ошибка при отправке формы:', error);
+            }
         } else {
             dispatch(updateRiskProfileForm(formik.values));
             dispatch(nextRiskProfileStep());

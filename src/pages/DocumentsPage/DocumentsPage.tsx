@@ -50,7 +50,6 @@ import { Checkbox } from "shared/ui/Checkbox/Checkbox";
 import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { BulkSignModal } from "features/Documents/BulkSignModal/BulkSignModal";
 import { ConfirmCustomDocUserModal } from "features/RiskProfile/ConfirmCustomDocUserModal/ConfirmCustomDocUserModal";
-import { SuccessModal } from "features/RiskProfile/SuccessModal/SuccessModal";
 import { ConfirmAllDocsOneCodeModal } from "features/RiskProfile/ConfirmAllDocsOneCode/ConfirmAllDocsOneCode";
 
 const DocumentsPage: React.FC = () => {
@@ -121,20 +120,6 @@ const DocumentsPage: React.FC = () => {
             ? ["type_doc_agreement_investment_advisor_app_1"]
             : []
     ];
-
-    /** обработчик успешного подписания кастомного документа */
-    const handleSuccessCustomDoc = () => {
-        dispatch(
-            openModal({
-                type: ModalType.SUCCESS,
-                size: ModalSize.MC,
-                animation: ModalAnimation.BOTTOM,
-            })
-        );
-        dispatch(closeModal(ModalType.CONFIRM_CUSTOM_DOCS));
-        // Обновляем список кастомных документов
-        dispatch(getAllCustomDocumentUserThunk());
-    };
 
     /** обработчик подписания всех документов - автоматически выбираются все документы */
     const handleSignAllDocs = () => {
@@ -1392,14 +1377,6 @@ const DocumentsPage: React.FC = () => {
                 isOpen={modalState.confirmCustomDocsModal.isOpen}
                 onClose={() => dispatch(closeModal(ModalType.CONFIRM_CUSTOM_DOCS))}
                 documentId={currentCustomDocUser?.id || ''}
-                openSuccessModal={handleSuccessCustomDoc}
-            />
-            <SuccessModal
-                isOpen={modalState.success.isOpen}
-                onClose={() => dispatch(closeModal(ModalType.SUCCESS))}
-                title="Успешно"
-                description={<>Документ успешно подписан</>}
-                action={() => dispatch(closeModal(ModalType.SUCCESS))}
             />
         </div>
     );

@@ -394,47 +394,34 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                     </span>
                                 </div>
 
+                                <div className={styles.detailed__actions}>
+                                    <Select
+                                        items={brokersItems}
+                                        value={formik.values.broker_id}
+                                        onChange={(val) => {
+                                            formik.setFieldValue('broker_id', val);
+                                        }}
+                                        noMargin
+                                        needValue
+                                        hideArrow
+                                        title="Выберите брокера для подключения тарифа"
+                                        label="Брокерский счёт для подключения тарифа"
+                                    />
+
+                                    <Button
+                                        disabled={!isAnotherBroker ? !formik.values.broker_id : false}
+                                        theme={ButtonTheme.BLUE}
+                                        className={styles.button}
+                                        padding="10px 25px"
+                                        onClick={handleSetTariff}
+                                    >
+                                        Подключить
+                                    </Button>
+                                </div>
                             </>
                         )}
                     </motion.div>
                 ))}
-            </AnimatePresence>
-
-            <AnimatePresence>
-                {currentOrderId && (
-                    <motion.div
-                        className={styles.detailed__actions}
-                        initial={{ y: 100, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        exit={{ y: 100, opacity: 0 }}
-                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                    >
-                        <Select
-                            items={brokersItems}
-                            value={formik.values.broker_id}
-                            onChange={(val) => {
-                                formik.setFieldValue('broker_id', val);
-                            }}
-                            noMargin
-                            needValue
-                            hideArrow
-                            title="Выберите брокера для подключения тарифа"
-                            label="Брокерский счёт для подключения тарифа"
-                        />
-
-
-
-                        <Button
-                            disabled={!isAnotherBroker ? !formik.values.broker_id : false}
-                            theme={ButtonTheme.BLUE}
-                            className={styles.button}
-                            padding="10px 25px"
-                            onClick={handleSetTariff}
-                        >
-                            Подключить
-                        </Button>
-                    </motion.div>
-                )}
             </AnimatePresence>
         </>
     );

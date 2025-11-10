@@ -220,11 +220,18 @@ box-shadow: 0px 4px 13.4px -4px rgba(0, 0, 0, 0.16);
 
 .card__wrapper {
  height: 100%;
- 
+ width: 100%;
 }
 
     .disclaimer {
       color: #989898;
+      font-size: 12px;
+    }
+
+    .disclaimer_top {
+      color: #989898;
+      display: block;
+      margin: 16px 0;
       font-size: 12px;
     }
 

@@ -376,6 +376,11 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                             onMore={() => handleOpenDetails(t.id)}  // ✨ ИЗМЕНЕНО: открываем модал
                             paidFor={isPaidAndActive(t.title) || false}
                         />
+                        {currentOrderId && (
+                            <span className={styles.disclaimer_top}>
+                                Все суммы, рассчитанные в других валютах, оплачиваются в рублях по курсу ЦБ на банковский счет Инвестиционного Советника на момент оплаты, согласно выставленному счету Инвестиционного Советника. НДС не облагается в соответствии со статьей 346.11 НК РФ.
+                            </span>
+                        )}
 
                         {currentOrderId && (
                             <>
@@ -388,6 +393,7 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                                         Указанная доходность носит исключительно справочный характер и не является гарантированной
                                     </span>
                                 </div>
+
                             </>
                         )}
                     </motion.div>
@@ -642,8 +648,8 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
 
     return (
         <div className={styles.list}>
-            {!isConfirming ? listPart : confirmPart}
-
+            {/* {!isConfirming ? listPart : confirmPart} */}
+            {listPart}
             {/* ✨ Модальное окно «Подробнее о тарифе» */}
             {detailsModal}
 

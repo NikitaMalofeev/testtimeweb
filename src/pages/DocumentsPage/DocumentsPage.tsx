@@ -381,22 +381,49 @@ const DocumentsPage: React.FC = () => {
                 break
             }
             case 'type_doc_agreement_investment_advisor_app_1': {
-                if (isVip) return;
+                console.group('🔵 Клик на Приложение 1 - handleSignDocument');
+                console.log('isVip:', isVip);
+
+                if (isVip) {
+                    console.log('❌ Выход: пользователь VIP');
+                    console.groupEnd();
+                    return;
+                }
 
                 // Проверяем, подписан ли документ
                 const advisorDoc = userDocuments.find(d => d.key === "type_doc_agreement_investment_advisor_app_1");
                 const isDocSigned = !!advisorDoc?.date_last_confirmed;
+
+                console.log('advisorDoc:', advisorDoc);
+                console.log('isDocSigned:', isDocSigned);
+                console.log('paidTariffKeys:', paidTariffKeys);
+                console.log('Object.keys(paidTariffKeys).length:', Object.keys(paidTariffKeys).length);
+                console.log('isAnotherBroker:', isAnotherBroker);
+                console.log('hasTariff:', hasTariff);
+                console.log('activeTariffs.length:', activeTariffs.length);
+                console.log('isTariffSigned:', isTariffSigned);
+
                 if (Object.keys(paidTariffKeys).length > 0) {
+                    console.log('➡️ Действие: navigate(\'/payments/loading\')');
+                    console.groupEnd();
                     navigate('/payments/loading')
                 } else if (isDocSigned && !hasTariff && activeTariffs.length > 0) {
+                    console.log('➡️ Действие: navigate(\'/payments\') - документ подписан, но тариф не оплачен');
+                    console.groupEnd();
                     // Документ подписан, но тариф не оплачен - переходим к оплате
                     navigate('/payments');
                 } else if (isAnotherBroker && !hasTariff) {
+                    console.log('➡️ Действие: navigate(\'/payments\') - другой брокер и нет тарифа');
+                    console.groupEnd();
                     navigate('/payments');
                     return
                 } else if (isTariffSigned) {
+                    console.log('➡️ Действие: navigate(\'/payments\') - тариф подписан');
+                    console.groupEnd();
                     navigate('/payments');
                 } else if (hasTariff) {
+                    console.log('➡️ Действие: открытие модала подписания - тариф есть');
+                    console.groupEnd();
                     // Тариф есть - подписываем документ
                     dispatch(setCurrentConfirmableDoc(docId));
                     dispatch(setStepAdditionalMenuUI(4));
@@ -408,6 +435,8 @@ const DocumentsPage: React.FC = () => {
                         })
                     );
                 } else if (!hasTariff && activeTariffs.length > 0) {
+                    console.log('➡️ Действие: открытие модала подписания - тариф не активен, но есть оплаченные');
+                    console.groupEnd();
                     // Тариф не активен, но есть оплаченные тарифы - подписываем документ
                     dispatch(setCurrentConfirmableDoc(docId));
                     dispatch(setStepAdditionalMenuUI(4));
@@ -419,6 +448,8 @@ const DocumentsPage: React.FC = () => {
                         })
                     );
                 } else {
+                    console.log('➡️ Действие: navigate(\'/payments\') - тарифа нет');
+                    console.groupEnd();
                     // Тарифа нет - переходим к оплате
                     navigate('/payments');
                 }
@@ -694,19 +725,29 @@ const DocumentsPage: React.FC = () => {
 
     // Проверяем подписанность тарифа для Приложения 1Ghjcv
     useEffect(() => {
+        console.group('🔍 Проверка подписанности тарифа');
+        console.log('currentUserTariffIdForPayments:', currentUserTariffIdForPayments);
+
         if (currentUserTariffIdForPayments) {
             dispatch(isSignedTariffThunk({ tariff_id: currentUserTariffIdForPayments }))
                 .then((result) => {
+                    console.log('📥 Ответ от isSignedTariffThunk:', result);
                     if (result.payload && result.payload.is_confirmed_type_doc_agreement_investment_advisor_app_1) {
+                        console.log('✅ Тариф подписан: setIsTariffSigned(true)');
                         setIsTariffSigned(true);
                     } else {
+                        console.log('❌ Тариф НЕ подписан: setIsTariffSigned(false)');
                         setIsTariffSigned(false);
                     }
                 })
-                .catch(() => {
+                .catch((error) => {
+                    console.error('❌ Ошибка при проверке тарифа:', error);
                     setIsTariffSigned(false);
                 });
+        } else {
+            console.log('⚠️ currentUserTariffIdForPayments отсутствует');
         }
+        console.groupEnd();
     }, [currentUserTariffIdForPayments, dispatch]);
 
     const handleOpenPreview = (docId: string) => {
@@ -979,31 +1020,50 @@ const DocumentsPage: React.FC = () => {
                         } else if (doc.id === "type_doc_RP_questionnairy") {
                             buttonText = filledRiskProfileChapters.is_risk_profile_complete_final ? "Подписать" : "Заполнить";
                         } else if (isAdvisorAgreement) {
+                            console.group('🔍 Договор ИС: Приложение 1 - определение текста кнопки');
+                            console.log('isAnotherBroker:', isAnotherBroker);
+                            console.log('hasTariffAttempt:', hasTariffAttempt);
+                            console.log('isTariffSigned:', isTariffSigned);
+                            console.log('hasTariff:', hasTariff);
+                            console.log('activeTariffs.length:', activeTariffs.length);
+                            console.log('activeTariffs:', activeTariffs);
+                            console.log('hasPassport:', hasPassport);
+                            console.log('hasBroker:', hasBroker);
+
                             if (isAnotherBroker) {
+                                console.log('➡️ Ветка: isAnotherBroker === true');
                                 if (hasTariffAttempt) {
                                     buttonText = 'Оплатить';
+                                    console.log('✅ Результат: Оплатить (hasTariffAttempt === true)');
                                 } else if (isTariffSigned) {
                                     // Если тариф уже подписан - показываем "Оплатить"
                                     buttonText = 'Оплатить';
+                                    console.log('✅ Результат: Оплатить (isTariffSigned === true)');
                                 } else {
                                     buttonText =
                                         !hasTariff
                                             ? 'Подключить'
                                             : 'Подписать';
+                                    console.log('✅ Результат:', buttonText, `(!hasTariff = ${!hasTariff})`);
                                 }
                             } else {
+                                console.log('➡️ Ветка: isAnotherBroker === false (обычный режим)');
                                 if (hasTariffAttempt) {
                                     buttonText = 'Оплатить';
+                                    console.log('✅ Результат: Оплатить (hasTariffAttempt === true)');
                                 } else if (isTariffSigned) {
                                     // Если тариф уже подписан - показываем "Оплатить"
                                     buttonText = 'Оплатить';
+                                    console.log('✅ Результат: Оплатить (isTariffSigned === true)');
                                 } else {
                                     buttonText =
                                         !hasTariff && activeTariffs.length > 0
                                             ? 'Подписать'
                                             : 'Подключить';
+                                    console.log('✅ Результат:', buttonText, `(!hasTariff && activeTariffs.length > 0 = ${!hasTariff && activeTariffs.length > 0})`);
                                 }
                             }
+                            console.groupEnd();
 
                         }
 
@@ -1149,7 +1209,7 @@ const DocumentsPage: React.FC = () => {
                                             </div>
 
                                             <div className={styles.document__info__flex} style={doc.status !== 'signed' ? { flexDirection: 'column', alignItems: 'end', justifyContent: 'end' } : {}}>
-                                                <div className={styles.document__status} style={{ display: 'flex' }}>
+                                                <div className={styles.document__status} style={{ display: 'flex', justifyContent: 'end' }}>
 
                                                     {doc.isPayment && (
                                                         <Button

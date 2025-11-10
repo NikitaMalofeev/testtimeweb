@@ -88,6 +88,7 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
                 >
                     <span>{subtitle}</span>
                 </div>
+
             </div>
 
             {activePaidTariffs.map((t) => (
@@ -99,6 +100,7 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
                         </span>
                         <span className={styles.status__cardTitle}>{t.title}</span>
                     </div>
+
                 </div>
             ))}
 
@@ -150,6 +152,7 @@ export const PaymentsStatus: React.FC<PaymentsStatusProps> = ({ status, paymentI
                     exit={{ opacity: 0, y: 20 }}
                     transition={{ duration: 0.5 }}
                 >
+
                     <div className={styles.status__buttons}>
                         <Button
                             theme={ButtonTheme.BLUE}

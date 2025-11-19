@@ -40,7 +40,13 @@ import {
     postTrustedPersonInfoApi,
     getStepScrollAmount,
     getSymbolsCurrencies,
-    getActiveCurrencies
+    getActiveCurrencies,
+    firstSelectBroker,
+    getNotSignedBrokerGetDoc,
+    secondSigningDocuments,
+    checkBrokerConfirmationCode,
+    thirdSetBrokerToken,
+    getSignedBrokerGetDoc
 } from "entities/RiskProfile/api/riskProfileApi";
 import { setUserId, setUserIsActive, setUserToken, updateUserAllData, logoutUser } from "entities/User/slice/userSlice";
 import { setConfirmationEmailSuccess, setConfirmationPhoneSuccess, setConfirmationStatusSuccess, setConfirmationWhatsappSuccess, setTooltipActive, setWarning } from "entities/ui/Ui/slice/uiSlice";
@@ -814,6 +820,154 @@ export const fetchActiveCurrencies = createAsyncThunk<
             return rejectWithValue(
                 error.response?.data?.message || "Ошибка при загрузке активных валют"
             );
+        }
+    }
+);
+
+// ==============================================
+// BROKER ASYNC THUNKS
+// ==============================================
+
+export const firstSelectBrokerThunk = createAsyncThunk<
+    any,
+    { broker: string; onSuccess?: (data: any) => void; onError?: (error: any) => void },
+    { rejectValue: string; state: RootState }
+>(
+    "riskProfile/firstSelectBroker",
+    async ({ broker, onSuccess, onError }, { rejectWithValue, getState, dispatch }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+            const response = await firstSelectBroker({ broker }, token);
+            onSuccess?.(response);
+            return response;
+        } catch (error: any) {
+            const errorMsg = error.response?.data?.errorText || error.response?.data?.message || "Ошибка при выборе брокера";
+            dispatch(setError(errorMsg));
+            onError?.(error);
+            return rejectWithValue(errorMsg);
+        }
+    }
+);
+
+export const getNotSignedBrokerGetDocThunk = createAsyncThunk<
+    any,
+    { broker_id: string; type_document: string; onSuccess?: (data: any) => void; onError?: (error: any) => void },
+    { rejectValue: string; state: RootState }
+>(
+    "riskProfile/getNotSignedBrokerGetDoc",
+    async ({ broker_id, type_document, onSuccess, onError }, { rejectWithValue, getState, dispatch }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+            const response = await getNotSignedBrokerGetDoc({ broker_id, type_document }, token);
+            onSuccess?.(response);
+            return response;
+        } catch (error: any) {
+            const errorMsg = error.response?.data?.errorText || error.response?.data?.message || "Ошибка при получении документа брокера";
+            dispatch(setError(errorMsg));
+            onError?.(error);
+            return rejectWithValue(errorMsg);
+        }
+    }
+);
+
+export const secondSigningDocumentsThunk = createAsyncThunk<
+    any,
+    { broker_id: string; is_agree: boolean; type_document: string; onSuccess?: (data: any) => void; onError?: (error: any) => void },
+    { rejectValue: string; state: RootState }
+>(
+    "riskProfile/secondSigningDocuments",
+    async ({ broker_id, is_agree, type_document, onSuccess, onError }, { rejectWithValue, getState, dispatch }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+            const response = await secondSigningDocuments({ broker_id, is_agree, type_document }, token);
+            onSuccess?.(response);
+            return response;
+        } catch (error: any) {
+            const errorMsg = error.response?.data?.errorText || error.response?.data?.message || "Ошибка при подписании документов";
+            dispatch(setError(errorMsg));
+            onError?.(error);
+            return rejectWithValue(errorMsg);
+        }
+    }
+);
+
+export const checkBrokerConfirmationCodeThunk = createAsyncThunk<
+    any,
+    { broker_id: string; type_document: string; code: string; onSuccess?: (data: any) => void; onError?: (error: any) => void },
+    { rejectValue: string; state: RootState }
+>(
+    "riskProfile/checkBrokerConfirmationCode",
+    async ({ broker_id, type_document, code, onSuccess, onError }, { rejectWithValue, getState, dispatch }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+            const response = await checkBrokerConfirmationCode({ broker_id, type_document, code }, token);
+            onSuccess?.(response);
+            return response;
+        } catch (error: any) {
+            const errorMsg = error.response?.data?.errorText || error.response?.data?.message || "Ошибка при проверке кода подтверждения";
+            dispatch(setError(errorMsg));
+            onError?.(error);
+            return rejectWithValue(errorMsg);
+        }
+    }
+);
+
+export const thirdSetBrokerTokenThunk = createAsyncThunk<
+    any,
+    { broker_id: string; token: string; onSuccess?: (data: any) => void; onError?: (error: any) => void },
+    { rejectValue: string; state: RootState }
+>(
+    "riskProfile/thirdSetBrokerToken",
+    async ({ broker_id, token: brokerToken, onSuccess, onError }, { rejectWithValue, getState, dispatch }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+            const response = await thirdSetBrokerToken({ broker_id, token: brokerToken }, token);
+            onSuccess?.(response);
+            return response;
+        } catch (error: any) {
+            const errorMsg = error.response?.data?.errorText || error.response?.data?.message || "Ошибка при установке токена брокера";
+            dispatch(setError(errorMsg));
+            onError?.(error);
+            return rejectWithValue(errorMsg);
+        }
+    }
+);
+
+export const getSignedBrokerGetDocThunk = createAsyncThunk<
+    any,
+    { broker_id: string; type_document: string; onSuccess?: (data: any) => void; onError?: (error: any) => void },
+    { rejectValue: string; state: RootState }
+>(
+    "riskProfile/getSignedBrokerGetDoc",
+    async ({ broker_id, type_document, onSuccess, onError }, { rejectWithValue, getState, dispatch }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+            const response = await getSignedBrokerGetDoc({ broker_id, type_document }, token);
+            onSuccess?.(response);
+            return response;
+        } catch (error: any) {
+            const errorMsg = error.response?.data?.errorText || error.response?.data?.message || "Ошибка при получении подписанного документа";
+            dispatch(setError(errorMsg));
+            onError?.(error);
+            return rejectWithValue(errorMsg);
         }
     }
 );

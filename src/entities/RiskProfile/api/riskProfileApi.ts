@@ -316,3 +316,73 @@ export const getActiveCurrencies = async (token: string) => {
     return response.data;
 };
 
+// ==============================================
+// BROKER API FUNCTIONS
+// ==============================================
+
+export const firstSelectBroker = async (data: { broker: string }, token: string) => {
+    const response = await axios.post(`${apiUrl}brokers_user/first_select_broker/`, data, {
+        headers: {
+            "Accept-Language": "ru",
+            "Content-Type": "application/json",
+            "Authorization": `Token ${token}`,
+        },
+    });
+    return response.data;
+};
+
+export const getNotSignedBrokerGetDoc = async (data: { broker_id: string; type_document: string }, token: string) => {
+    const response = await axios.post(`${apiUrl}brokers_user/get_not_signed_broker_get_doc/`, data, {
+        headers: {
+            "Accept-Language": "ru",
+            "Content-Type": "application/json",
+            "Authorization": `Token ${token}`,
+        },
+    });
+    return response.data;
+};
+
+export const secondSigningDocuments = async (data: { broker_id: string; is_agree: boolean; type_document: string }, token: string) => {
+    const response = await axios.post(`${apiUrl}brokers_user/second_signing_documents/`, data, {
+        headers: {
+            "Accept-Language": "ru",
+            "Content-Type": "application/json",
+            "Authorization": `Token ${token}`,
+        },
+    });
+    return response.data;
+};
+
+export const checkBrokerConfirmationCode = async (data: { broker_id: string; type_document: string; code: string }, token: string) => {
+    const response = await axios.post(`${apiUrl}brokers_user/check_broker_confirmation_code/`, data, {
+        headers: {
+            "Accept-Language": "ru",
+            "Content-Type": "application/json",
+            "Authorization": `Token ${token}`,
+        },
+    });
+    return response.data;
+};
+
+export const thirdSetBrokerToken = async (data: { broker_id: string; token: string }, token: string) => {
+    const response = await axios.post(`${apiUrl}brokers_user/third_set_broker_token/`, data, {
+        headers: {
+            "Accept-Language": "ru",
+            "Content-Type": "application/json",
+            "Authorization": `Token ${token}`,
+        },
+    });
+    return response.data;
+};
+
+export const getSignedBrokerGetDoc = async (data: { broker_id: string; type_document: string }, token: string) => {
+    const response = await axios.post(`${apiUrl}brokers_user/get_signed_broker_get_doc/`, data, {
+        headers: {
+            "Accept-Language": "ru",
+            "Content-Type": "application/json",
+            "Authorization": `Token ${token}`,
+        },
+    });
+    return response.data;
+};
+

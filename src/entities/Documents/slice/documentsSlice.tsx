@@ -108,6 +108,8 @@ export interface BrokerData {
     broker: string;
     date_last_confirmed_type_doc_agreement_transfer_broker: string | null;
     is_confirmed_type_doc_agreement_transfer_broker: boolean;
+    date_last_confirmed_type_doc_agreement_account_maintenance: string | null;
+    is_confirmed_type_doc_agreement_account_maintenance: boolean;
     is_waiting_manual_verification_broker: boolean;
     is_confirmed_and_with_key: boolean;
     is_exist_key: boolean;

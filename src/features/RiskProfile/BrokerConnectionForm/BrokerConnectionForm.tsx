@@ -23,7 +23,7 @@ import { DocumentPreviewModal } from 'features/Documents/DocumentsPreviewModal/D
 import { closeModal, openModal } from 'entities/ui/Modal/slice/modalSlice';
 import { ModalAnimation, ModalSize, ModalType } from 'entities/ui/Modal/model/modalTypes';
 import BrokerInstruction from 'shared/assets/documents/brokerInstruction.pdf'
-import { postBrokerApiTokenThunk, firstSelectBrokerThunk, thirdSetBrokerTokenThunk } from 'entities/RiskProfile/slice/riskProfileSlice';
+import { postBrokerApiTokenThunk, firstSelectBrokerThunk, thirdSetBrokerTokenThunk, setIsBrokerTokenSent } from 'entities/RiskProfile/slice/riskProfileSlice';
 import { useSelector as useReduxSelector } from 'react-redux';
 import { ProblemsCodeModal } from '../ProblemsCodeModal/ProblemsCodeModal';
 import { ProblemsModal } from '../ProblemsModal/ProblemsModal';
@@ -136,6 +136,25 @@ export const BrokerConnectionForm: React.FC = () => {
         // Проверяем, какой документ сейчас открыт
         const isAgreementAccountMaintenance = currentConfirmableDoc === 'type_doc_agreement_account_maintenance';
         const isBrokerApiToken = currentConfirmableDoc === 'type_doc_agreement_transfer_broker';
+
+        // Для Тинькофф при вводе токена (isTinkoffTokenEntry) - отправляем thirdSetBrokerToken и переходим к подписанию
+        if (isTinkoffTokenEntry && firstBrokerSelect?.broker_id) {
+            dispatch(thirdSetBrokerTokenThunk({
+                broker_id: firstBrokerSelect.broker_id,
+                token: formik.values.token,
+                onSuccess: () => {
+                    // Устанавливаем флаг что токен отправлен
+                    dispatch(setIsBrokerTokenSent(true));
+                    // После успешной отправки токена переходим к подписанию документа
+                    dispatch(setCurrentConfirmableDoc('type_doc_agreement_transfer_broker'));
+                    dispatch(setStepAdditionalMenuUI(4));
+                },
+                onError: (error) => {
+                    console.error('Error setting broker token:', error);
+                }
+            }));
+            return;
+        }
 
         if (isAgreementAccountMaintenance) {
             // Если брокер уже выбран (firstBrokerSelect существует), сразу переходим к подписанию

@@ -97,6 +97,7 @@ interface RiskProfileFormState {
     isAnotherBroker: boolean;
     selectedBrokerData: BrokerData | null;
     firstBrokerSelect: FirstBrokerSelectData | null;
+    isBrokerTokenSent: boolean;
     stepScrollAmount: StepScrollAmountData | null;
     symbolsCurrencies: Record<string, string> | null;
     activeCurrencies: any;
@@ -149,6 +150,7 @@ const initialState: RiskProfileFormState = {
     isAnotherBroker: false,
     selectedBrokerData: null,
     firstBrokerSelect: null,
+    isBrokerTokenSent: false,
     stepScrollAmount: null,
     symbolsCurrencies: null,
     activeCurrencies: null
@@ -885,10 +887,10 @@ export const getNotSignedBrokerGetDocThunk = createAsyncThunk<
             const response = await getNotSignedBrokerGetDoc({ broker_id, type_document }, token);
 
             // Сохраняем HTML в state для отображения
-            if (response && response.not_signed_document_html) {
-                dispatch(setNotSignedDocumentsHtmls({
-                    htmlMap: { [type_document]: response.not_signed_document_html }
-                }));
+            // API может вернуть not_signed_document_html или not_signed_doc
+            const htmlContent = response?.not_signed_document_html || response?.not_signed_doc;
+            if (htmlContent) {
+                dispatch(setNotSignedDocumentsHtmls({ [type_document]: htmlContent }));
             }
 
             onSuccess?.(response);
@@ -952,7 +954,7 @@ export const checkBrokerConfirmationCodeThunk = createAsyncThunk<
 
 export const thirdSetBrokerTokenThunk = createAsyncThunk<
     any,
-    { broker_id: string; token: string; onSuccess?: (data: any) => void; onError?: (error: any) => void },
+    { broker_id: string; token?: string; onSuccess?: (data: any) => void; onError?: (error: any) => void },
     { rejectValue: string; state: RootState }
 >(
     "riskProfile/thirdSetBrokerToken",
@@ -962,7 +964,9 @@ export const thirdSetBrokerTokenThunk = createAsyncThunk<
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");
             }
-            const response = await thirdSetBrokerToken({ broker_id, token: brokerToken }, token);
+            // Если brokerToken не передан, отправляем только broker_id
+            const data = brokerToken ? { broker_id, token: brokerToken } : { broker_id };
+            const response = await thirdSetBrokerToken(data as { broker_id: string; token: string }, token);
             onSuccess?.(response);
             return response;
         } catch (error: any) {
@@ -1066,6 +1070,9 @@ const riskProfileSlice = createSlice({
         },
         setFirstBrokerSelect: (state, action: PayloadAction<FirstBrokerSelectData | null>) => {
             state.firstBrokerSelect = action.payload;
+        },
+        setIsBrokerTokenSent: (state, action: PayloadAction<boolean>) => {
+            state.isBrokerTokenSent = action.payload;
         },
         resetRiskProfile: (state) => {
             return {
@@ -1244,6 +1251,7 @@ export const {
     setIsAnotherBroker,
     setSelectedBrokerData,
     setFirstBrokerSelect,
+    setIsBrokerTokenSent,
     resetRiskProfile
 } = riskProfileSlice.actions;
 export default riskProfileSlice.reducer;

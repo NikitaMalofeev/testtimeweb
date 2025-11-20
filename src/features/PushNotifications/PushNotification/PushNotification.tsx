@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { setStepAdditionalMenuUI } from "entities/ui/Ui/slice/uiSlice";
 import { openModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
+import { setCurrentConfirmableDoc } from "entities/Documents/slice/documentsSlice";
 
 interface PushNotificationProps {
     pushNotifications: PushNotificationItem[]
@@ -49,6 +50,10 @@ export const PushNotification = ({ pushNotifications, activePush }: PushNotifica
                 setTimeout(() => { activePush.route && navigate(activePush.route) }, 1000)
                 if (activePush.uiStep !== undefined && activePush.uiStep !== null) {
                     if (activePush.route) navigate(activePush.route)
+                    // Если это подпись паспорта (uiStep === 2), сбрасываем currentConfirmableDoc
+                    if (activePush.uiStep === 2) {
+                        dispatch(setCurrentConfirmableDoc(""));
+                    }
                     dispatch(setStepAdditionalMenuUI(activePush.uiStep));
                     dispatch(openModal({
                         type: ModalType.IDENTIFICATION,

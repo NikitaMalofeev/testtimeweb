@@ -87,7 +87,9 @@ const DocumentsPage: React.FC = () => {
     const brokerConfirmation = userDocuments.find(
         d => d.is_confirmed_type_doc_agreement_transfer_broker === true,
     );
-    const isBrokerSigned = !!brokerDoc?.date_last_confirmed_type_doc_agreement_transfer_broker;
+    // Проверяем подписан ли документ API ключа через данные из brokers
+    const signedBrokerForApiKey = brokers.find(b => b.is_confirmed_type_doc_agreement_transfer_broker);
+    const isBrokerSigned = !!signedBrokerForApiKey?.date_last_confirmed_type_doc_agreement_transfer_broker;
 
     const isIp = !!user?.is_individual_entrepreneur;
 
@@ -299,6 +301,12 @@ const DocumentsPage: React.FC = () => {
                 // Проверяем, подписан ли паспорт (есть ли дата подтверждения)
                 const passportDocInfo = userDocuments.find((doc) => doc.key === "type_doc_passport");
                 const isPassportSigned = !!passportDocInfo?.date_last_confirmed;
+
+                // Сбрасываем currentConfirmableDoc для нового аккаунта
+                // Если паспорт не подписан - это новый аккаунт, сбрасываем состояние
+                if (!isPassportSigned) {
+                    dispatch(setCurrentConfirmableDoc(""));
+                }
 
                 if (!isIdentityDataComplete || !isPassportSigned) {
                     dispatch(setCurrentConfirmableDoc("type_doc_passport"));
@@ -549,11 +557,6 @@ const DocumentsPage: React.FC = () => {
                 isIdentityScanExist ? 'signed' :
                     date ? 'signed' : 'signable';
         }
-        if (type === "type_doc_agreement_transfer_broker") {
-            if (isBrokerSigned) {
-                status = "signed";
-            }
-        }
         return {
             id: type,
             title: docTypeLabels[type],
@@ -649,6 +652,12 @@ const DocumentsPage: React.FC = () => {
 
         const documentsBeforeBroker = docOrder.slice(0, brokerIndex);
         return documentsBeforeBroker.every(docId => {
+            // Для доверенности проверяем в brokers
+            if (docId === "type_doc_agreement_account_maintenance") {
+                const signedBroker = brokers.find(b => b.is_confirmed_type_doc_agreement_account_maintenance);
+                return !!signedBroker?.date_last_confirmed_type_doc_agreement_account_maintenance;
+            }
+            // Для остальных документов проверяем в userDocuments
             const docInfo = userDocuments.find(doc => doc.key === docId);
             return docInfo?.date_last_confirmed !== null;
         });
@@ -718,7 +727,7 @@ const DocumentsPage: React.FC = () => {
         else if (isMaintenanceAgree) {
             if (brokerIds.length === 0 && !firstBrokerSelect?.broker_id) {
                 colorClass = styles.button__gray;
-                additionalMessages = 'Для подписания подключите брокерский счёт';
+                additionalMessages = 'Для подписания выберите брокера';
             }
         }
 
@@ -1237,16 +1246,22 @@ const DocumentsPage: React.FC = () => {
                                                 {doc.isPayment ? (
                                                     <div className={styles.document__paymentStatus}>Оплачено</div>
                                                 ) : showSuccess ? (
-                                                    <div className={styles.document__button_success}>
-                                                        <Icon Svg={SuccessBlueIcon} width={24} height={24} />
-                                                        <span>
-                                                            {isPassport
-                                                                ? "Подтверждено"
-                                                                : isBroker && brokerIds[0] && isIdentityScanExist
+                                                    <>
+                                                        {/* Spacer для паспорта чтобы кнопка Просмотр была выровнена */}
+                                                        {isPassport && (
+                                                            <div style={{ width: '33px', height: '33px' }}></div>
+                                                        )}
+                                                        <div className={styles.document__button_success}>
+                                                            <Icon Svg={SuccessBlueIcon} width={24} height={24} />
+                                                            <span>
+                                                                {isPassport
                                                                     ? "Подтверждено"
-                                                                    : "Подписано"}
-                                                        </span>
-                                                    </div>
+                                                                    : isBroker && brokerIds[0] && isIdentityScanExist
+                                                                        ? "Подтверждено"
+                                                                        : "Подписано"}
+                                                            </span>
+                                                        </div>
+                                                    </>
                                                 ) : shouldShowButton ? (
                                                     <Button
                                                         onClick={() => handleSignDocument(doc.id)}
@@ -1336,16 +1351,22 @@ const DocumentsPage: React.FC = () => {
                                                 {doc.isPayment ? (
                                                     <div className={styles.document__paymentStatus}>Оплачено</div>
                                                 ) : showSuccess ? (
-                                                    <div className={styles.document__button_success}>
-                                                        <Icon Svg={SuccessBlueIcon} width={24} height={24} />
-                                                        <span>
-                                                            {isPassport
-                                                                ? "Подтверждено"
-                                                                : isBroker && brokerIds[0] && isIdentityScanExist
+                                                    <>
+                                                        {/* Spacer для паспорта чтобы кнопка Просмотр была выровнена */}
+                                                        {isPassport && (
+                                                            <div style={{ width: '33px', height: '33px' }}></div>
+                                                        )}
+                                                        <div className={styles.document__button_success}>
+                                                            <Icon Svg={SuccessBlueIcon} width={24} height={24} />
+                                                            <span>
+                                                                {isPassport
                                                                     ? "Подтверждено"
-                                                                    : "Подписано"}
-                                                        </span>
-                                                    </div>
+                                                                    : isBroker && brokerIds[0] && isIdentityScanExist
+                                                                        ? "Подтверждено"
+                                                                        : "Подписано"}
+                                                            </span>
+                                                        </div>
+                                                    </>
                                                 ) : shouldShowButton ? (
                                                     <Button
                                                         onClick={() => handleSignDocument(doc.id)}

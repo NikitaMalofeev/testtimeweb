@@ -4,7 +4,7 @@ import { sendProblemsRequest, sendProblemsRequestNotAuth, setPersonType } from "
 import { getAllCountryCodes, getAllUserInfo, getUserPersonalAccountInfo, userLogin } from "../api/userApi";
 import { setError } from "entities/Error/slice/errorSlice";
 import { RootState } from "app/providers/store/config/store";
-import { setIsWaitingDocumentsVerification } from "entities/Documents/slice/documentsSlice";
+import { setIsWaitingDocumentsVerification, setCurrentConfirmableDoc } from "entities/Documents/slice/documentsSlice";
 import { resetRiskProfile } from "entities/RiskProfile/slice/riskProfileSlice";
 
 interface UserState {

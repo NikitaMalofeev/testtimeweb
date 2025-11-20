@@ -227,7 +227,7 @@ export const ConfirmDocsModal = memo(
                             }))
                         }
                     }))
-                } if (docsType === 'type_doc_agreement_investment_advisor_app_1' && confirmationPurpose != 'payments') {
+                } else if (docsType === 'type_doc_agreement_investment_advisor_app_1' && confirmationPurpose != 'payments') {
                     dispatch(checkConfirmationCodeTariffThunk({
                         tariff_id: paymentsTariffId,
                         code,

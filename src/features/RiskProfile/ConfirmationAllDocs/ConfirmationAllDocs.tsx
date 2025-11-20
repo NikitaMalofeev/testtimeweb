@@ -66,7 +66,7 @@ export const ConfirmAllDocs: React.FC = () => {
         (state: RootState) =>
             state.documents.filledRiskProfileChapters.is_risk_profile_complete_final
     );
-    const { filledRiskProfileChapters, brokerIds } = useSelector(
+    const { filledRiskProfileChapters, brokerIds, brokers } = useSelector(
         (state: RootState) => state.documents
     );
 
@@ -90,6 +90,7 @@ export const ConfirmAllDocs: React.FC = () => {
     const isAnotherBroker = useSelector((s: RootState) => s.riskProfile.isAnotherBroker);
     const selectedBrokerData = useSelector((s: RootState) => s.riskProfile.selectedBrokerData);
     const firstBrokerSelect = useSelector((s: RootState) => s.riskProfile.firstBrokerSelect);
+    const isBrokerTokenSent = useSelector((s: RootState) => s.riskProfile.isBrokerTokenSent);
 
     // Если выбран другой брокер, используем его broker_id
     // Если есть firstBrokerSelect (после first_select), используем его
@@ -280,45 +281,96 @@ export const ConfirmAllDocs: React.FC = () => {
                 }
 
                 // Проверяем какой брокер был выбран - Тинькофф или другой
-                const isTinkoff = firstBrokerSelect?.broker_value === 'tinkoff_brokers';
+                // Сначала проверяем firstBrokerSelect, если нет - ищем в brokers по effectiveBrokerId
+                const brokerFromList = brokers.find(b => b.id === effectiveBrokerId);
+                const isTinkoff = firstBrokerSelect?.broker_value === 'tinkoff_brokers' || brokerFromList?.broker === 'tinkoff_brokers';
 
-                if (!isTinkoff) {
-                    // Для другого брокера (не Тинькофф): сначала third_set_broker_token, потом second_signing_documents
-                    dispatch(
-                        thirdSetBrokerTokenThunk({
-                            broker_id: effectiveBrokerId,
-                            token: '', // Пустой токен для не-Тинькофф брокеров
-                            onSuccess: () => {
-                                // После успешного third_set_broker_token вызываем second_signing_documents
-                                dispatch(
-                                    secondSigningDocumentsThunk({
-                                        broker_id: effectiveBrokerId,
-                                        is_agree: formik.values.is_agree,
-                                        type_document: currentTypeDoc,
-                                        onSuccess: () => {
-                                            dispatch(startDocTimeout({ docKey: currentTypeDoc }));
-                                            dispatch(
-                                                openModal({
-                                                    type: ModalType.CONFIRM_DOCS,
-                                                    size: ModalSize.MIDDLE,
-                                                    animation: ModalAnimation.LEFT,
-                                                })
-                                            );
-                                        },
-                                        onError: (error) => {
-                                            console.error('Error signing broker_api_token:', error);
-                                        }
-                                    })
-                                );
-                            },
-                            onError: (error) => {
-                                console.error('Error setting broker token:', error);
-                            }
-                        })
-                    );
+                if (isTinkoff) {
+                    // Для Тинькофф: проверяем был ли уже отправлен токен
+                    if (isBrokerTokenSent) {
+                        // Токен уже отправлен - сразу подписываем документ
+                        dispatch(
+                            secondSigningDocumentsThunk({
+                                broker_id: effectiveBrokerId,
+                                is_agree: formik.values.is_agree,
+                                type_document: currentTypeDoc,
+                                onSuccess: () => {
+                                    dispatch(startDocTimeout({ docKey: currentTypeDoc }));
+                                    dispatch(
+                                        openModal({
+                                            type: ModalType.CONFIRM_DOCS,
+                                            size: ModalSize.MIDDLE,
+                                            animation: ModalAnimation.LEFT,
+                                        })
+                                    );
+                                },
+                                onError: (error) => {
+                                    console.error('Error signing broker_api_token:', error);
+                                }
+                            })
+                        );
+                    } else {
+                        // Токен еще не отправлен - показываем UI 5 для ввода токена
+                        dispatch(setStepAdditionalMenuUI(5));
+                    }
                 } else {
-                    // Для Тинькофф: переводим на шаг ввода токена брокера
-                    dispatch(setStepAdditionalMenuUI(5));
+                    // Для другого брокера (isAnotherBroker): проверяем статус проверки брокера
+                    const isWaitingVerification = brokerFromList?.is_waiting_manual_verification_broker;
+
+                    if (isWaitingVerification) {
+                        // Брокер на проверке - нельзя подписать, показываем сообщение
+                        // TODO: показать уведомление что брокер на проверке
+                        console.log('Брокер на проверке, подписание недоступно');
+                        return;
+                    }
+
+                    // Проверяем, был ли уже отправлен запрос на подключение брокера (is_exist_key)
+                    const brokerAlreadyConnected = brokerFromList?.is_exist_key || brokerFromList?.is_confirmed_and_with_key;
+
+                    if (brokerAlreadyConnected) {
+                        // Брокер уже подключен - сразу подписываем документ
+                        dispatch(
+                            secondSigningDocumentsThunk({
+                                broker_id: effectiveBrokerId,
+                                is_agree: formik.values.is_agree,
+                                type_document: currentTypeDoc,
+                                onSuccess: () => {
+                                    dispatch(startDocTimeout({ docKey: currentTypeDoc }));
+                                    dispatch(
+                                        openModal({
+                                            type: ModalType.CONFIRM_DOCS,
+                                            size: ModalSize.MIDDLE,
+                                            animation: ModalAnimation.LEFT,
+                                        })
+                                    );
+                                },
+                                onError: (error) => {
+                                    console.error('Error signing broker_api_token:', error);
+                                }
+                            })
+                        );
+                    } else {
+                        // Брокер еще не подключен - отправляем third_set_broker_token
+                        // После этого брокер уйдет на проверку
+                        dispatch(
+                            thirdSetBrokerTokenThunk({
+                                broker_id: effectiveBrokerId,
+                                onSuccess: () => {
+                                    // После подключения брокера обновляем данные и показываем что брокер на проверке
+                                    dispatch(getAllBrokersThunk({
+                                        is_confirmed_type_doc_agreement_transfer_broker: true,
+                                        onSuccess: () => {
+                                            // Показываем success modal что брокер отправлен на проверку
+                                            openSuccessModal(currentTypeDoc);
+                                        }
+                                    }));
+                                },
+                                onError: (error) => {
+                                    console.error('Error setting broker token:', error);
+                                }
+                            })
+                        );
+                    }
                 }
             } else if (currentTypeDoc === "type_doc_agreement_investment_advisor_app_1") {
                 currentOrderId &&
@@ -478,6 +530,7 @@ export const ConfirmAllDocs: React.FC = () => {
                                 onClick={handleOpenPreview}
                                 theme={ButtonTheme.UNDERLINE}
                                 className={styles.button_preview}
+                                disabled={(currentTypeDoc === "type_doc_agreement_account_maintenance" || currentTypeDoc === "type_doc_agreement_transfer_broker") && !effectiveBrokerId}
                             >
                                 Просмотр
                             </Button>

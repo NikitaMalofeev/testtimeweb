@@ -56,19 +56,15 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
         console.log('=== DocumentPreviewModal Debug ===')
         console.log('docId:', docId)
         console.log('isSignedDoc:', isSignedDoc)
+        console.log('loading:', loading)
+        console.log('allDocumentsHtml keys:', allDocumentsHtml ? Object.keys(allDocumentsHtml) : 'null')
+        console.log('has docId in allDocumentsHtml:', allDocumentsHtml?.hasOwnProperty(docId || ''))
+        console.log('htmlContent length:', docId && allDocumentsHtml?.[docId] ? allDocumentsHtml[docId].length : 0)
         console.log('hasCurrentSighedDocument:', hasCurrentSighedDocument)
         console.log('isContentReady:', isContentReady)
-        console.log('loading:', loading)
-
-        if (docId === "type_doc_agreement_investment_advisor_app_1") {
-            console.log('App1 specific check:')
-            console.log('- hasCurrentSighedDocument.type:', hasCurrentSighedDocument?.type)
-            console.log('- document length:', hasCurrentSighedDocument?.document?.length)
-            console.log('- type starts with tariff_:', hasCurrentSighedDocument?.type?.startsWith('tariff_'))
-        }
         console.log('==================================')
 
-    }, [docId, isContentReady, hasCurrentSighedDocument, isSignedDoc, loading])
+    }, [docId, isContentReady, hasCurrentSighedDocument, isSignedDoc, loading, allDocumentsHtml])
 
     useEffect(() => {
 
@@ -96,6 +92,7 @@ export const DocumentPreviewModal: React.FC<PreviewModalProps> = ({
                 setTimeout(() => {
                     setIsContentReady(true);
                 }, 1000);
+                return;
             }
             // Если документ подписан – проверяем наличие бинарных данных
             if (isSignedDoc && hasCurrentSighedDocument && hasCurrentSighedDocument.document) {

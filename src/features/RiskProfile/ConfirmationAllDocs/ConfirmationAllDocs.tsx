@@ -360,8 +360,9 @@ export const ConfirmAllDocs: React.FC = () => {
                                     dispatch(getAllBrokersThunk({
                                         is_confirmed_type_doc_agreement_transfer_broker: true,
                                         onSuccess: () => {
-                                            // Показываем success modal что брокер отправлен на проверку
-                                            openSuccessModal(currentTypeDoc);
+                                            // Закрываем модал и переходим в личный кабинет
+                                            dispatch(closeModal(ModalType.IDENTIFICATION));
+                                            navigate('/documents');
                                         }
                                     }));
                                 },

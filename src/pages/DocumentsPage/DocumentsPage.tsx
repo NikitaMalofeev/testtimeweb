@@ -688,8 +688,8 @@ const DocumentsPage: React.FC = () => {
                 ? !hasPassport || !hasTariff
                 : !(hasPassport && hasBroker && hasTariff)                         // «Приложение 1»
             : isBroker
-                ? isAnotherBroker && !isBrokerConfirmedWithKey && !isBrokerExistKey
-                    ? true  // Для другого брокера без ключа показываем скелет
+                ? brokers.some(b => b.is_waiting_manual_verification_broker) || (isAnotherBroker && !isBrokerConfirmedWithKey && !isBrokerExistKey)
+                    ? true  // Брокер на проверке или для другого брокера без ключа
                     : !hasPassport || !areAllDocumentsBeforeBrokerSigned()  // брокер: нужен паспорт И все документы до брокера подписаны
                 : isPassport
                     ? false                                                     // паспорт всегда активен
@@ -698,6 +698,7 @@ const DocumentsPage: React.FC = () => {
         /* ───────── цвет и сообщения ───────── */
         let colorClass = styles.button__gray;
         let additionalMessages = '';
+        let isVerificationMessage = false;
 
         /* 1) Приложение 1 (логика без изменений) */
         if (isAdvisorAgreement) {
@@ -714,7 +715,14 @@ const DocumentsPage: React.FC = () => {
 
         /* 2) Брокерский токен */
         else if (isBroker) {
-            if (brokerIds.length === 0 && !firstBrokerSelect?.broker_id) {
+            // Проверяем, находится ли брокер на проверке
+            const brokerWaitingVerification = brokers.some(b => b.is_waiting_manual_verification_broker);
+
+            if (brokerWaitingVerification) {
+                colorClass = styles.button__gray;
+                additionalMessages = 'Брокерский счёт на проверке';
+                isVerificationMessage = true;
+            } else if (brokerIds.length === 0 && !firstBrokerSelect?.broker_id) {
                 colorClass = styles.button__gray;
                 additionalMessages = 'Для подписания подключите брокерский счёт';
             } else {
@@ -757,6 +765,7 @@ const DocumentsPage: React.FC = () => {
             ...doc,
             colorClass,
             additionalMessages,
+            isVerificationMessage,
             isDisabled,                 // кидаем внутрь, чтобы в JSX взять напрямую
         };
     });
@@ -1078,6 +1087,9 @@ const DocumentsPage: React.FC = () => {
                         const isPassport = doc.id === "type_doc_passport";
                         const isBroker = doc.id === "type_doc_agreement_transfer_broker";
 
+                        // Проверяем, находится ли брокер на проверке (только для API ключа)
+                        const brokerOnVerification = isBroker && brokers.some(b => b.is_waiting_manual_verification_broker);
+
                         // Вынесем логику определения отображения кнопки/статуса
                         const isSignedApp1 = hasTariffAttempt && !hasTariff;
                         // НОВАЯ ЛОГИКА: также считаем app_1 подписанным если есть активный тариф
@@ -1092,7 +1104,7 @@ const DocumentsPage: React.FC = () => {
                                 ? !hasPassport || !hasTariff
                                 : !(hasPassport && hasBroker && hasTariff)
                             : isBroker
-                                ? !hasPassport || !areAllDocumentsBeforeBrokerSigned()
+                                ? brokerOnVerification || !hasPassport || !areAllDocumentsBeforeBrokerSigned()
                                 : isPassport
                                     ? false
                                     : doc.id !== firstNotConfirmed || !hasPassport;
@@ -1218,7 +1230,7 @@ const DocumentsPage: React.FC = () => {
                                                         )}
                                                         {doc.additionalMessages && (
                                                             <div className={styles.documents__warning}>
-                                                                <Icon Svg={WarningIcon} width={16} height={16} />
+                                                                <Icon Svg={doc.isVerificationMessage ? SuccessBlueIcon : WarningIcon} width={doc.isVerificationMessage ? 24 : 16} height={doc.isVerificationMessage ? 24 : 16} />
                                                                 <span >{doc.additionalMessages}</span>
                                                             </div>
                                                         )}

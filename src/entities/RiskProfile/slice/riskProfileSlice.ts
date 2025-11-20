@@ -54,7 +54,7 @@ import { setError } from "entities/Error/slice/errorSlice";
 import { RootState } from "app/providers/store/config/store";
 import { PasportScanData } from "features/RiskProfile/PassportScanForm/PassportScanForm";
 import { omit } from "lodash";
-import { setBrokerSuccessResponseInfo } from "entities/Documents/slice/documentsSlice";
+import { setBrokerSuccessResponseInfo, setCurrentSignedDocuments, setNotSignedDocumentsHtmls } from "entities/Documents/slice/documentsSlice";
 import { EMPTY_LEGAL_FORM } from "../constants/constansRiskProfile";
 import { closeModal, openModal } from "entities/ui/Modal/slice/modalSlice";
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
@@ -63,6 +63,12 @@ interface BrokerData {
     broker_id: string;
     broker_name: string;
     broker_value: string;
+}
+
+interface FirstBrokerSelectData {
+    broker_id: string;
+    broker_name?: string;
+    broker_value?: string;
 }
 
 interface StepScrollAmountData {
@@ -90,6 +96,7 @@ interface RiskProfileFormState {
     pasportScanProgress: number;
     isAnotherBroker: boolean;
     selectedBrokerData: BrokerData | null;
+    firstBrokerSelect: FirstBrokerSelectData | null;
     stepScrollAmount: StepScrollAmountData | null;
     symbolsCurrencies: Record<string, string> | null;
     activeCurrencies: any;
@@ -141,6 +148,7 @@ const initialState: RiskProfileFormState = {
     pasportScanProgress: 0,
     isAnotherBroker: false,
     selectedBrokerData: null,
+    firstBrokerSelect: null,
     stepScrollAmount: null,
     symbolsCurrencies: null,
     activeCurrencies: null
@@ -841,6 +849,16 @@ export const firstSelectBrokerThunk = createAsyncThunk<
                 return rejectWithValue("Отсутствует токен авторизации");
             }
             const response = await firstSelectBroker({ broker }, token);
+
+            // Сохраняем данные выбранного брокера в state
+            if (response && response.broker_id) {
+                dispatch(setFirstBrokerSelect({
+                    broker_id: response.broker_id,
+                    broker_name: response.broker_name,
+                    broker_value: broker
+                }));
+            }
+
             onSuccess?.(response);
             return response;
         } catch (error: any) {
@@ -865,6 +883,14 @@ export const getNotSignedBrokerGetDocThunk = createAsyncThunk<
                 return rejectWithValue("Отсутствует токен авторизации");
             }
             const response = await getNotSignedBrokerGetDoc({ broker_id, type_document }, token);
+
+            // Сохраняем HTML в state для отображения
+            if (response && response.not_signed_document_html) {
+                dispatch(setNotSignedDocumentsHtmls({
+                    htmlMap: { [type_document]: response.not_signed_document_html }
+                }));
+            }
+
             onSuccess?.(response);
             return response;
         } catch (error: any) {
@@ -960,9 +986,14 @@ export const getSignedBrokerGetDocThunk = createAsyncThunk<
             if (!token) {
                 return rejectWithValue("Отсутствует токен авторизации");
             }
-            const response = await getSignedBrokerGetDoc({ broker_id, type_document }, token);
-            onSuccess?.(response);
-            return response;
+            const arrayBuffer = await getSignedBrokerGetDoc({ broker_id, type_document }, token);
+            const pdfBytes = new Uint8Array(arrayBuffer);
+
+            // Сохраняем PDF в state для отображения
+            dispatch(setCurrentSignedDocuments({ type: type_document, document: pdfBytes }));
+
+            onSuccess?.(pdfBytes);
+            return pdfBytes;
         } catch (error: any) {
             const errorMsg = error.response?.data?.errorText || error.response?.data?.message || "Ошибка при получении подписанного документа";
             dispatch(setError(errorMsg));
@@ -1032,6 +1063,9 @@ const riskProfileSlice = createSlice({
         },
         setSelectedBrokerData: (state, action: PayloadAction<BrokerData | null>) => {
             state.selectedBrokerData = action.payload;
+        },
+        setFirstBrokerSelect: (state, action: PayloadAction<FirstBrokerSelectData | null>) => {
+            state.firstBrokerSelect = action.payload;
         },
         resetRiskProfile: (state) => {
             return {
@@ -1209,6 +1243,7 @@ export const {
     updateLegalFormData,
     setIsAnotherBroker,
     setSelectedBrokerData,
+    setFirstBrokerSelect,
     resetRiskProfile
 } = riskProfileSlice.actions;
 export default riskProfileSlice.reducer;

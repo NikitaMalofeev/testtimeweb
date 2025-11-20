@@ -54,7 +54,7 @@ export const docTimeoutMap: Record<string, number> = {
     type_doc_agreement_personal_data_policy: 7,
     type_doc_investment_profile_certificate: 7,
     type_doc_agreement_account_maintenance: 12,
-    type_doc_broker_api_token: 10,
+    type_doc_agreement_transfer_broker: 10,
     type_doc_agreement_investment_advisor_app_1: 7,
 };
 
@@ -126,7 +126,7 @@ export const docTypes = [
     "type_doc_agreement_personal_data_policy",
     "type_doc_investment_profile_certificate",
     "type_doc_agreement_account_maintenance",
-    "type_doc_broker_api_token",
+    "type_doc_agreement_transfer_broker",
     "type_doc_agreement_investment_advisor_app_1",
 ];
 
@@ -140,7 +140,7 @@ export const docTypeLabels: Record<string, string> = {
     type_doc_agreement_personal_data_policy: "Политика персональных данных",
     type_doc_investment_profile_certificate: "Справка Инвестиционного профиля",
     type_doc_agreement_account_maintenance: "Доверенность на управление счетом",
-    type_doc_broker_api_token: "Согласие на передачу API ключа к брокерскому счету",
+    type_doc_agreement_transfer_broker: "Согласие на передачу API ключа к брокерскому счету",
     type_doc_agreement_investment_advisor_app_1: "Договор ИС: Приложение 1",
 };
 
@@ -318,7 +318,7 @@ export const confirmDocsRequestThunk = createAsyncThunk<
             const currentBrokerId = getState().documents.brokerIds[0];
             if (!token) return rejectWithValue("Отсутствует токен авторизации");
 
-            if (currentConfirmableDoc === "type_doc_broker_api_token") {
+            if (currentConfirmableDoc === "type_doc_agreement_transfer_broker") {
                 const responseDocs = await confirmBrokerDocsRequest({ type_message, is_agree, broker_id: currentBrokerId }, token);
                 const duration = docTimeoutMap[currentConfirmableDoc] || 5;
                 dispatch(startDocTimeout({ docKey: currentConfirmableDoc, duration }));
@@ -328,7 +328,7 @@ export const confirmDocsRequestThunk = createAsyncThunk<
                     dispatch(openUploadDocWebsocketThunk({ docId: currentConfirmableDoc, socketId }));
                 }
                 return responseDocs as any;
-            } else if (currentConfirmableDoc !== "type_doc_broker_api_token" && type_document && type_message) {
+            } else if (currentConfirmableDoc !== "type_doc_agreement_transfer_broker" && type_document && type_message) {
                 const responseDocs = await confirmDocsRequest({ type_message, type_document, is_agree }, token);
                 const duration = docTimeoutMap[currentConfirmableDoc] || 5;
                 dispatch(startDocTimeout({ docKey: currentConfirmableDoc, duration }));
@@ -415,7 +415,7 @@ export const sendDocsConfirmationCode = createAsyncThunk<
             const broker_id = getState().documents.brokerIds[0];
             if (!token) return rejectWithValue("Отсутствует токен авторизации");
 
-            if (codeFirst && currentConfirmableDoc === "type_doc_broker_api_token") {
+            if (codeFirst && currentConfirmableDoc === "type_doc_agreement_transfer_broker") {
                 const responseDocs = await postBrokerConfirmationDocsCode({ code: codeFirst, broker_id }, token);
                 dispatch(getUserDocumentsStateThunk());
                 dispatch(getAllBrokersThunk({ is_confirmed_type_doc_agreement_transfer_broker: true, onSuccess: () => { } }));
@@ -553,7 +553,7 @@ export const getUserDocumentsStateThunk = createAsyncThunk<
         if (confirmedBrokers.length) {
             const broker = confirmedBrokers[0];
             mergedDocs.push({
-                key: "type_doc_broker_api_token",
+                key: "type_doc_agreement_transfer_broker",
                 date_last_confirmed_type_doc_agreement_transfer_broker: broker.modified ?? broker.modified,
                 timeoutPending: 0,
             });
@@ -692,7 +692,7 @@ export const getBrokerDocumentsSignedThunk = createAsyncThunk<
             const arrayBuffer = await getBrokerDocumentsSigned(broker_id, token);
             const pdfBytes = new Uint8Array(arrayBuffer);
 
-            dispatch(setCurrentSignedDocuments({ type: "type_doc_broker_api_token", document: pdfBytes }));
+            dispatch(setCurrentSignedDocuments({ type: "type_doc_agreement_transfer_broker", document: pdfBytes }));
             if (purpose === "download") onSuccess();
             return pdfBytes;
         } catch (error: any) {
@@ -870,7 +870,7 @@ export const documentsSlice = createSlice({
         ) {
             state.brokerIds.push(action.payload.brokerId);
             if (!state.allNotSignedDocumentsHtml) state.allNotSignedDocumentsHtml = {};
-            state.allNotSignedDocumentsHtml["type_doc_broker_api_token"] = action.payload.notSignedDocBroker;
+            state.allNotSignedDocumentsHtml["type_doc_agreement_transfer_broker"] = action.payload.notSignedDocBroker;
         },
         setBrokerIds(state, action: PayloadAction<{ brokerId: string; count: number }>) {
             state.brokerIds = [action.payload.brokerId];

@@ -48,6 +48,7 @@ import {
 } from "entities/Payments/slice/paymentsSlice";
 import { useDevice } from "shared/hooks/useDevice";
 import CloseIcon from "shared/assets/svg/close.svg";
+import { secondSigningDocumentsThunk, thirdSetBrokerTokenThunk, getNotSignedBrokerGetDocThunk } from "entities/RiskProfile/slice/riskProfileSlice";
 
 export const ConfirmAllDocs: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -88,11 +89,14 @@ export const ConfirmAllDocs: React.FC = () => {
     const brokerId = useSelector((s: RootState) => s.documents.brokerIds[0]);
     const isAnotherBroker = useSelector((s: RootState) => s.riskProfile.isAnotherBroker);
     const selectedBrokerData = useSelector((s: RootState) => s.riskProfile.selectedBrokerData);
+    const firstBrokerSelect = useSelector((s: RootState) => s.riskProfile.firstBrokerSelect);
 
-    // Если выбран другой брокер, используем его broker_id, иначе стандартный brokerId
+    // Если выбран другой брокер, используем его broker_id
+    // Если есть firstBrokerSelect (после first_select), используем его
+    // Иначе стандартный brokerId
     const effectiveBrokerId = isAnotherBroker && selectedBrokerData
         ? selectedBrokerData.broker_id
-        : brokerId;
+        : firstBrokerSelect?.broker_id || brokerId;
     const currentTypeDoc = useSelector(
         (state: RootState) => state.documents.currentConfirmableDoc
     );
@@ -165,10 +169,32 @@ export const ConfirmAllDocs: React.FC = () => {
         const tariffId = currentTariffId || currentUserTariffIdForPayments;
         const previewId = `tariff_${tariffId}`;
 
-        if (currentTypeDoc === "type_doc_broker_api_token" && brokerIds.length === 0) {
+        if (currentTypeDoc === "type_doc_agreement_transfer_broker" && brokerIds.length === 0) {
             dispatch(setStepAdditionalMenuUI(5));
         }
-        if (currentTypeDoc === "type_doc_agreement_investment_advisor_app_1") {
+
+        // Для брокерских документов используем специальный API
+        if (currentTypeDoc === "type_doc_agreement_account_maintenance" || currentTypeDoc === "type_doc_agreement_transfer_broker") {
+            if (!effectiveBrokerId) {
+                console.error('No broker_id available for document preview');
+                return;
+            }
+
+            dispatch(getNotSignedBrokerGetDocThunk({
+                broker_id: effectiveBrokerId,
+                type_document: currentTypeDoc,
+                onSuccess: () => {
+                    dispatch(
+                        openModal({
+                            type: ModalType.DOCUMENTS_PREVIEW,
+                            size: ModalSize.FULL,
+                            animation: ModalAnimation.LEFT,
+                            docId: currentTypeDoc,
+                        })
+                    );
+                }
+            }));
+        } else if (currentTypeDoc === "type_doc_agreement_investment_advisor_app_1") {
             await dispatch(getNotSignedTariffDocThunk({ tariff_id: tariffId }));
 
             dispatch(
@@ -213,10 +239,87 @@ export const ConfirmAllDocs: React.FC = () => {
                     dispatch(setStepAdditionalMenuUI(4));
                 }
             } else if (
-                currentTypeDoc === "type_doc_broker_api_token" &&
+                currentTypeDoc === "type_doc_agreement_transfer_broker" &&
                 brokerIds.length === 0
             ) {
                 dispatch(setStepAdditionalMenuUI(5));
+            } else if (currentTypeDoc === "type_doc_agreement_account_maintenance") {
+                // Проверяем есть ли выбранный брокер
+                if (!effectiveBrokerId) {
+                    // Если брокера нет, переводим на шаг подключения брокера
+                    dispatch(setStepAdditionalMenuUI(5));
+                    return;
+                }
+                // Для доверенности используем secondSigningDocumentsThunk
+                dispatch(
+                    secondSigningDocumentsThunk({
+                        broker_id: effectiveBrokerId,
+                        is_agree: formik.values.is_agree,
+                        type_document: currentTypeDoc,
+                        onSuccess: () => {
+                            dispatch(startDocTimeout({ docKey: currentTypeDoc }));
+                            dispatch(
+                                openModal({
+                                    type: ModalType.CONFIRM_DOCS,
+                                    size: ModalSize.MIDDLE,
+                                    animation: ModalAnimation.LEFT,
+                                })
+                            );
+                        },
+                        onError: (error) => {
+                            console.error('Error signing agreement_account_maintenance:', error);
+                        }
+                    })
+                );
+            } else if (currentTypeDoc === "type_doc_agreement_transfer_broker") {
+                // Проверяем есть ли выбранный брокер
+                if (!effectiveBrokerId) {
+                    // Если брокера нет, переводим на шаг подключения брокера
+                    dispatch(setStepAdditionalMenuUI(5));
+                    return;
+                }
+
+                // Проверяем какой брокер был выбран - Тинькофф или другой
+                const isTinkoff = firstBrokerSelect?.broker_value === 'tinkoff_brokers';
+
+                if (!isTinkoff) {
+                    // Для другого брокера (не Тинькофф): сначала third_set_broker_token, потом second_signing_documents
+                    dispatch(
+                        thirdSetBrokerTokenThunk({
+                            broker_id: effectiveBrokerId,
+                            token: '', // Пустой токен для не-Тинькофф брокеров
+                            onSuccess: () => {
+                                // После успешного third_set_broker_token вызываем second_signing_documents
+                                dispatch(
+                                    secondSigningDocumentsThunk({
+                                        broker_id: effectiveBrokerId,
+                                        is_agree: formik.values.is_agree,
+                                        type_document: currentTypeDoc,
+                                        onSuccess: () => {
+                                            dispatch(startDocTimeout({ docKey: currentTypeDoc }));
+                                            dispatch(
+                                                openModal({
+                                                    type: ModalType.CONFIRM_DOCS,
+                                                    size: ModalSize.MIDDLE,
+                                                    animation: ModalAnimation.LEFT,
+                                                })
+                                            );
+                                        },
+                                        onError: (error) => {
+                                            console.error('Error signing broker_api_token:', error);
+                                        }
+                                    })
+                                );
+                            },
+                            onError: (error) => {
+                                console.error('Error setting broker token:', error);
+                            }
+                        })
+                    );
+                } else {
+                    // Для Тинькофф: переводим на шаг ввода токена брокера
+                    dispatch(setStepAdditionalMenuUI(5));
+                }
             } else if (currentTypeDoc === "type_doc_agreement_investment_advisor_app_1") {
                 currentOrderId &&
                     dispatch(
@@ -287,7 +390,7 @@ export const ConfirmAllDocs: React.FC = () => {
             case "type_doc_agreement_personal_data_policy":
             case "type_doc_investment_profile_certificate":
             case "type_doc_agreement_account_maintenance":
-            case "type_doc_broker_api_token":
+            case "type_doc_agreement_transfer_broker":
             case "type_doc_agreement_investment_advisor_app_1":
                 return docTypeLabels[currentTypeDoc];
             default:
@@ -471,7 +574,7 @@ export const ConfirmAllDocs: React.FC = () => {
 
 
                     if (
-                        currentTypeDoc === "type_doc_broker_api_token" &&
+                        currentTypeDoc === "type_doc_agreement_transfer_broker" &&
                         brokerIds.length === 0
                     ) {
                         dispatch(setStepAdditionalMenuUI(5));

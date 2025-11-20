@@ -51,6 +51,7 @@ import { CheckboxGroup } from "shared/ui/CheckboxGroup/CheckboxGroup";
 import { BulkSignModal } from "features/Documents/BulkSignModal/BulkSignModal";
 import { ConfirmCustomDocUserModal } from "features/RiskProfile/ConfirmCustomDocUserModal/ConfirmCustomDocUserModal";
 import { ConfirmAllDocsOneCodeModal } from "features/RiskProfile/ConfirmAllDocsOneCode/ConfirmAllDocsOneCode";
+import { getNotSignedBrokerGetDocThunk, getSignedBrokerGetDocThunk } from "entities/RiskProfile/slice/riskProfileSlice";
 
 const DocumentsPage: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -60,7 +61,7 @@ const DocumentsPage: React.FC = () => {
     const { documentsPreview, documentsPreviewSigned } = modalState;
 
     const { userDocuments, loading, filledRiskProfileChapters, brokerIds, brokersCount, brokers, customDocumentsUser } = useSelector((state: RootState) => state.documents);
-    const { isAnotherBroker } = useSelector((state: RootState) => state.riskProfile);
+    const { isAnotherBroker, firstBrokerSelect } = useSelector((state: RootState) => state.riskProfile);
     const currentCustomDocUser = useSelector((state: RootState) => state.documents.currentCustomDocUser);
 
     // Проверяем, есть ли брокер с is_confirmed_and_with_key: true
@@ -82,7 +83,7 @@ const DocumentsPage: React.FC = () => {
     const currentUserTariffIdForPayments = useSelector((s: RootState) => s.payments.currentUserTariffIdForPayments);
     const targetTariffId = currentUserTariffIdForPayments || '';
     const isBulkEnabled = !!user?.is_confirm_all_documents_one_code;
-    const brokerDoc = userDocuments.find(d => d.key === "type_doc_broker_api_token");
+    const brokerDoc = userDocuments.find(d => d.key === "type_doc_agreement_transfer_broker");
     const brokerConfirmation = userDocuments.find(
         d => d.is_confirmed_type_doc_agreement_transfer_broker === true,
     );
@@ -110,7 +111,7 @@ const DocumentsPage: React.FC = () => {
 
     /** документы, недоступные для массовой подписи */
     const EXCLUDED_BULK = [
-        "type_doc_broker_api_token", // исключаем брокера из массового выбора
+        "type_doc_agreement_transfer_broker", // исключаем брокера из массового выбора
         "type_doc_passport", // исключаем паспорт из массового выбора
         // Приложение 1 исключается:
         // - Для VIP (если не another broker)
@@ -191,7 +192,7 @@ const DocumentsPage: React.FC = () => {
             "type_doc_agreement_personal_data_policy",
             "type_doc_investment_profile_certificate",
             "type_doc_agreement_account_maintenance",
-            "type_doc_broker_api_token",
+            "type_doc_agreement_transfer_broker",
             "type_doc_agreement_investment_advisor_app_1", // ← будет удалён для VIP
         ];
 
@@ -224,7 +225,7 @@ const DocumentsPage: React.FC = () => {
         ------------------------------------------------------------------ */
         const head: string[] = [
             "type_doc_passport",
-            "type_doc_broker_api_token",
+            "type_doc_agreement_transfer_broker",
         ];
 
         const tail: string[] = vipFiltered.filter((id) => !head.includes(id));
@@ -249,7 +250,7 @@ const DocumentsPage: React.FC = () => {
         type_doc_agreement_personal_data_policy: "Политика персональных данных",
         type_doc_investment_profile_certificate: "Справка Инвестиционного профиля",
         type_doc_agreement_account_maintenance: "Доверенность на управление счётом",
-        type_doc_broker_api_token: "Согласие на передачу API-ключа к брокерскому счёту",
+        type_doc_agreement_transfer_broker: "Согласие на передачу API-ключа к брокерскому счёту",
         type_doc_agreement_investment_advisor_app_1: "Договор ИС: Приложение 1",
     };
 
@@ -333,17 +334,18 @@ const DocumentsPage: React.FC = () => {
 
                 break;
             }
-            case "type_doc_broker_api_token": {
+            case "type_doc_agreement_transfer_broker": {
                 // Если выбран другой брокер и нет ключа, не позволяем подписывать документ
                 if (isAnotherBroker && !isBrokerExistKey) {
                     return;
                 }
 
                 const firstBroker = brokerIds[0];
-                const isBrokerFilled = firstBroker !== null && firstBroker !== undefined;
+                const isBrokerFilled = (firstBroker !== null && firstBroker !== undefined) || !!firstBrokerSelect?.broker_id;
 
+                // Для API ключа брокера всегда открываем подписание, если брокер выбран
                 if (isBrokerFilled) {
-                    dispatch(setCurrentConfirmableDoc("type_doc_broker_api_token"));
+                    dispatch(setCurrentConfirmableDoc("type_doc_agreement_transfer_broker"));
                     dispatch(setStepAdditionalMenuUI(4));
                     dispatch(
                         openModal({
@@ -352,8 +354,9 @@ const DocumentsPage: React.FC = () => {
                             animation: ModalAnimation.LEFT,
                         })
                     );
-                }
-                else {
+                } else {
+                    // Если брокер не выбран, переводим на шаг подключения брокера
+                    dispatch(setCurrentConfirmableDoc("type_doc_agreement_transfer_broker"));
                     dispatch(setStepAdditionalMenuUI(5));
                     dispatch(
                         openModal({
@@ -366,10 +369,25 @@ const DocumentsPage: React.FC = () => {
                 break;
             }
             case "type_doc_agreement_account_maintenance": {
-                // if (activePaidTariffs.length > 0) {
-                if (true) {
+                // Проверяем, выбран ли брокер (либо из brokerIds, либо из firstBrokerSelect)
+                const firstBroker = brokerIds[0];
+                const isBrokerFilled = (firstBroker !== null && firstBroker !== undefined) || !!firstBrokerSelect?.broker_id;
+
+                if (isBrokerFilled) {
+                    // Если брокер выбран, открываем подписание документа
                     dispatch(setCurrentConfirmableDoc(docId));
                     dispatch(setStepAdditionalMenuUI(4));
+                    dispatch(
+                        openModal({
+                            type: ModalType.IDENTIFICATION,
+                            size: ModalSize.FULL,
+                            animation: ModalAnimation.LEFT,
+                        })
+                    );
+                } else {
+                    // Если брокер НЕ выбран, переводим на шаг подключения брокера (step 5)
+                    dispatch(setCurrentConfirmableDoc(docId));
+                    dispatch(setStepAdditionalMenuUI(5));
                     dispatch(
                         openModal({
                             type: ModalType.IDENTIFICATION,
@@ -506,10 +524,20 @@ const DocumentsPage: React.FC = () => {
         // Ищем документ с key===type в userDocuments
         const docInfo = userDocuments.find((doc) => doc.key === type);
 
-        const date =
-            type === "type_doc_broker_api_token"
-                ? docInfo?.date_last_confirmed_type_doc_agreement_transfer_broker ?? null
-                : docInfo?.date_last_confirmed ?? null;
+        // Для брокерских документов берём дату из confirmed_brokers
+        let date: string | null = null;
+        if (type === "type_doc_agreement_transfer_broker") {
+            // Ищем брокера с подписанным type_doc_agreement_transfer_broker
+            const signedBroker = brokers.find(b => b.is_confirmed_type_doc_agreement_transfer_broker);
+            date = signedBroker?.date_last_confirmed_type_doc_agreement_transfer_broker ?? null;
+        } else if (type === "type_doc_agreement_account_maintenance") {
+            // Ищем брокера с подписанным type_doc_agreement_account_maintenance
+            const signedBroker = brokers.find(b => b.is_confirmed_type_doc_agreement_account_maintenance);
+            date = signedBroker?.date_last_confirmed_type_doc_agreement_account_maintenance ?? null;
+        } else {
+            date = docInfo?.date_last_confirmed ?? null;
+        }
+
         let status = date ? "signed" : "signable"; // если нет даты => значит не подписан
 
         // Обработка исключений для EDS и брокерского документа
@@ -521,7 +549,7 @@ const DocumentsPage: React.FC = () => {
                 isIdentityScanExist ? 'signed' :
                     date ? 'signed' : 'signable';
         }
-        if (type === "type_doc_broker_api_token") {
+        if (type === "type_doc_agreement_transfer_broker") {
             if (isBrokerSigned) {
                 status = "signed";
             }
@@ -603,7 +631,7 @@ const DocumentsPage: React.FC = () => {
         const signableDocs = documents.filter((doc) => doc.status === "signable");
 
         // Проверяем есть ли брокер среди неподписанных
-        const brokerDoc = signableDocs.find(doc => doc.id === "type_doc_broker_api_token");
+        const brokerDoc = signableDocs.find(doc => doc.id === "type_doc_agreement_transfer_broker");
 
         // Если есть неподписанный брокер и пользователь VIP или another broker, брокер идет первым
         if (brokerDoc && (isVip || isAnotherBroker)) {
@@ -616,7 +644,7 @@ const DocumentsPage: React.FC = () => {
 
     // Функция для проверки, что все документы до брокера подписаны
     const areAllDocumentsBeforeBrokerSigned = () => {
-        const brokerIndex = docOrder.findIndex(docId => docId === "type_doc_broker_api_token");
+        const brokerIndex = docOrder.findIndex(docId => docId === "type_doc_agreement_transfer_broker");
         if (brokerIndex === -1) return true; // если брокер не найден, не блокируем
 
         const documentsBeforeBroker = docOrder.slice(0, brokerIndex);
@@ -638,7 +666,7 @@ const DocumentsPage: React.FC = () => {
 
     const renderedDocuments = allDocuments.map((doc) => {
         /* ───────── базовые флаги ───────── */
-        const isBroker = doc.id === "type_doc_broker_api_token";
+        const isBroker = doc.id === "type_doc_agreement_transfer_broker";
         const isPassport = doc.id === "type_doc_passport";
         const isAdvisorAgreement = doc.id === "type_doc_agreement_investment_advisor_app_1";
         const isMaintenanceAgree = doc.id === "type_doc_agreement_account_maintenance";
@@ -677,7 +705,7 @@ const DocumentsPage: React.FC = () => {
 
         /* 2) Брокерский токен */
         else if (isBroker) {
-            if (brokerIds.length === 0) {
+            if (brokerIds.length === 0 && !firstBrokerSelect?.broker_id) {
                 colorClass = styles.button__gray;
                 additionalMessages = 'Для подписания подключите брокерский счёт';
             } else {
@@ -687,6 +715,14 @@ const DocumentsPage: React.FC = () => {
         }
 
         /* 3) Доверенность на управление счётом */
+        else if (isMaintenanceAgree) {
+            if (brokerIds.length === 0 && !firstBrokerSelect?.broker_id) {
+                colorClass = styles.button__gray;
+                additionalMessages = 'Для подписания подключите брокерский счёт';
+            }
+        }
+
+        /* 4) Закомментированная логика */
         // else if (isMaintenanceAgree) {
         //     if (activePaidTariffs.length > 0) {
         //         colorClass = styles.button__gray;
@@ -810,17 +846,56 @@ const DocumentsPage: React.FC = () => {
                     docId
                 })
             );
-        } else if (docId === "type_doc_broker_api_token") {
+        } else if (docId === "type_doc_agreement_account_maintenance" || docId === "type_doc_agreement_transfer_broker") {
+            // Для брокерских документов используем специальные API с broker_id
+            const effectiveBrokerId = firstBrokerSelect?.broker_id || brokerIds[0];
+
+            if (!effectiveBrokerId) {
+                console.error('No broker_id available for document preview');
+                return;
+            }
+
             setSelectedDocId(docId);
-            dispatch(getBrokerDocumentsSignedThunk({ purpose: "download", onSuccess: () => { } }));
-            dispatch(
-                openModal({
-                    type: ModalType.DOCUMENTS_PREVIEW_SIGNED,
-                    animation: ModalAnimation.LEFT,
-                    size: ModalSize.FULL,
-                    docId,
-                })
-            );
+
+            // Проверяем подписан ли документ
+            const docInfo = userDocuments.find(d => d.key === docId);
+            const isSigned = docId === "type_doc_agreement_transfer_broker"
+                ? docInfo?.date_last_confirmed_type_doc_agreement_transfer_broker
+                : docInfo?.date_last_confirmed;
+
+            if (isSigned) {
+                // Документ подписан - используем getSignedBrokerGetDocThunk
+                dispatch(getSignedBrokerGetDocThunk({
+                    broker_id: effectiveBrokerId,
+                    type_document: docId,
+                    onSuccess: () => {
+                        dispatch(
+                            openModal({
+                                type: ModalType.DOCUMENTS_PREVIEW_SIGNED,
+                                animation: ModalAnimation.LEFT,
+                                size: ModalSize.FULL,
+                                docId,
+                            })
+                        );
+                    }
+                }));
+            } else {
+                // Документ не подписан - используем getNotSignedBrokerGetDocThunk
+                dispatch(getNotSignedBrokerGetDocThunk({
+                    broker_id: effectiveBrokerId,
+                    type_document: docId,
+                    onSuccess: () => {
+                        dispatch(
+                            openModal({
+                                type: ModalType.DOCUMENTS_PREVIEW,
+                                animation: ModalAnimation.LEFT,
+                                size: ModalSize.FULL,
+                                docId,
+                            })
+                        );
+                    }
+                }));
+            }
         } else if (docId.startsWith('payment_')) {
             const tariffId = docId.split('_')[1];          // "payment_123" → 123
             const isPaid = payments.find(p => p.user_tariff_id === tariffId)?.order.paid;
@@ -906,7 +981,7 @@ const DocumentsPage: React.FC = () => {
     const handleDownloadPdf = async (docId: string) => {
         try {
             // 1) Брокерский токен
-            if (docId === "type_doc_broker_api_token") {
+            if (docId === "type_doc_agreement_transfer_broker") {
 
                 const pdfBytes: Uint8Array = await dispatch(
                     getBrokerDocumentsSignedThunk({
@@ -992,7 +1067,7 @@ const DocumentsPage: React.FC = () => {
 
                         const isAdvisorAgreement = doc.id === 'type_doc_agreement_investment_advisor_app_1';
                         const isPassport = doc.id === "type_doc_passport";
-                        const isBroker = doc.id === "type_doc_broker_api_token";
+                        const isBroker = doc.id === "type_doc_agreement_transfer_broker";
 
                         // Вынесем логику определения отображения кнопки/статуса
                         const isSignedApp1 = hasTariffAttempt && !hasTariff;

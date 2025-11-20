@@ -127,7 +127,7 @@ const initialState: PushState = {
         },
 
         {
-            id: "type_doc_broker_api_token_fill",
+            id: "type_doc_agreement_transfer_broker_fill",
             title: "Подключить брокера",
             description: "Подключите брокера для дальнейшей работы",
             active: false,
@@ -136,7 +136,7 @@ const initialState: PushState = {
             uiStep: 5
         },
         {
-            id: "type_doc_broker_api_token_sign",
+            id: "type_doc_agreement_transfer_broker_sign",
             title: "Подпишите согласие на передачу API ключа",
             description: "Подпишите согласие на передачу API ключа брокера в разделе \n\"Документы\"\n Личного Кабинета",
             active: false,
@@ -242,9 +242,9 @@ export const checkPushNotificationsThunk = createAsyncThunk<void, void, { state:
             } else {
                 // 3) Подключение брокера
                 if (brokerIds.length === 0) {
-                    nextId = 'type_doc_broker_api_token_fill';
+                    nextId = 'type_doc_agreement_transfer_broker_fill';
                 } else if (brokerIds.length > 0 && brokersCount === 0 && !isAnotherBroker) {
-                    nextId = 'type_doc_broker_api_token_sign';
+                    nextId = 'type_doc_agreement_transfer_broker_sign';
                 } else if (waiting_manual_document_verification.type_doc_agreement_transfer_broker) {
                     // логика у тебя такая — оставляю как есть
                     nextId = 'startWork';

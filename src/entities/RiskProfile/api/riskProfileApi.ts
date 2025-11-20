@@ -382,6 +382,7 @@ export const getSignedBrokerGetDoc = async (data: { broker_id: string; type_docu
             "Content-Type": "application/json",
             "Authorization": `Token ${token}`,
         },
+        responseType: 'arraybuffer',
     });
     return response.data;
 };

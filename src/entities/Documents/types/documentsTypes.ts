@@ -21,7 +21,7 @@ export interface ConfirmAllDocsPayload {
     is_agree_type_doc_investment_profile_certificate: boolean;
     /** Соглашение на обслуживание счета */
     is_agree_type_doc_agreement_account_maintenance: boolean;
-    type_doc_broker_api_token?: boolean;
+    type_doc_agreement_transfer_broker?: boolean;
     broker_id: string;
 }
 

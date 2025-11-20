@@ -87,7 +87,11 @@ export const PasportDataForm: React.FC = () => {
         },
     });
 
-    const handleValidationFailure = () => {
+    const handleValidationFailure = (errors: any) => {
+        console.group('❌ PasportDataForm - Validation Failed');
+        console.log('Errors:', errors);
+        console.log('Form values:', formik.values);
+        console.groupEnd();
         dispatch(setError("Не все поля заполнены корректно"));
         setCaptchaVerified(false);
         formik.setFieldValue("g_recaptcha", "");
@@ -96,11 +100,19 @@ export const PasportDataForm: React.FC = () => {
 
     const handleSubmitWrapper = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        console.group('🔵 PasportDataForm - Submit Attempt');
+        console.log('Current form values:', formik.values);
         const errors = await formik.validateForm();
+        console.log('Validation errors:', errors);
+        console.log('Number of errors:', Object.keys(errors).length);
         formik.setTouched(Object.keys(formik.values).reduce((acc, key) => ({ ...acc, [key]: true }), {}));
         if (Object.keys(errors).length > 0) {
-            handleValidationFailure();
+            console.log('❌ Validation failed, calling handleValidationFailure');
+            console.groupEnd();
+            handleValidationFailure(errors);
         } else {
+            console.log('✅ Validation passed, submitting form');
+            console.groupEnd();
             formik.handleSubmit();
         }
     };

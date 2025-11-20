@@ -125,8 +125,8 @@ export const BulkSignModal: React.FC<Props> = ({ docs, onClose }) => {
 
                 <ul className={styles.list}>
                     {docs.map((d) => {
-                        // Для another broker документ type_doc_broker_api_token показываем как "Документ брокера"
-                        const displayTitle = (d.id === "type_doc_broker_api_token" && isAnotherBroker)
+                        // Для another broker документ type_doc_agreement_transfer_broker показываем как "Документ брокера"
+                        const displayTitle = (d.id === "type_doc_agreement_transfer_broker" && isAnotherBroker)
                             ? "Документ брокера"
                             : d.title;
 

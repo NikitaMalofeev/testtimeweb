@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { Tooltip } from "shared/ui/Tooltip/Tooltip";
 import { Button, ButtonTheme } from "shared/ui/Button/Button";
 import { useAppDispatch } from "shared/hooks/useAppDispatch";
-import { resendConfirmationCode } from "entities/RiskProfile/slice/riskProfileSlice";
+import { resendConfirmationCode, checkBrokerConfirmationCodeThunk } from "entities/RiskProfile/slice/riskProfileSlice";
 import { RootState } from "app/providers/store/config/store";
 import {
     closeAllModals,
@@ -40,6 +40,8 @@ export const ConfirmDocsModal = memo(
         const { confirmationMethod } = useSelector((state: RootState) => state.documents);
         const confirmOneCode = useSelector((state: RootState) => state.user.userPersonalAccountInfo?.is_confirm_all_documents_one_code);
         const docsSuccess = useSelector((state: RootState) => state.ui.confirmationDocs);
+        const firstBrokerSelect = useSelector((state: RootState) => state.riskProfile.firstBrokerSelect);
+        const brokerIds = useSelector((state: RootState) => state.documents.brokerIds);
         const isRPFilled = useSelector((state: RootState) => state.documents.filledRiskProfileChapters.is_risk_profile_complete);
         const isRPFinalFilled = useSelector((state: RootState) => state.documents.filledRiskProfileChapters.is_risk_profile_complete);
         const hasNoTryPhoneConfirm = docsSuccess === "не определено";
@@ -251,6 +253,56 @@ export const ConfirmDocsModal = memo(
                             }))
                         }
                     }))
+                } else if (docsType === 'type_doc_agreement_account_maintenance' || docsType === 'type_doc_agreement_transfer_broker') {
+                    // Для брокерских документов используем checkBrokerConfirmationCodeThunk
+                    const effectiveBrokerId = firstBrokerSelect?.broker_id || brokerIds[0];
+                    dispatch(
+                        checkBrokerConfirmationCodeThunk({
+                            broker_id: effectiveBrokerId,
+                            type_document: docsType,
+                            code,
+                            onSuccess: (data: any) => {
+                                dispatch(getUserDocumentsStateThunk());
+
+                                // Определяем следующий документ
+                                if (docsType === 'type_doc_agreement_account_maintenance') {
+                                    // После доверенности переходим к API ключу
+                                    if (data && data.next_document) {
+                                        dispatch(setCurrentConfirmableDoc(data.next_document));
+                                        dispatch(startDocTimeout({ docKey: data.next_document, duration: docTimeoutMap[data.next_document] || 5 }));
+                                    } else {
+                                        const nextDoc = 'type_doc_agreement_transfer_broker';
+                                        dispatch(setCurrentConfirmableDoc(nextDoc));
+                                        dispatch(startDocTimeout({ docKey: nextDoc, duration: docTimeoutMap[nextDoc] || 5 }));
+                                    }
+                                } else if (docsType === 'type_doc_agreement_transfer_broker') {
+                                    // После API ключа переходим к Приложению 1
+                                    const nextDoc = 'type_doc_agreement_investment_advisor_app_1';
+                                    dispatch(setCurrentConfirmableDoc(nextDoc));
+                                    dispatch(startDocTimeout({ docKey: nextDoc, duration: docTimeoutMap[nextDoc] || 5 }));
+
+                                    // Закрываем все модалки
+                                    dispatch(closeAllModals());
+                                    document.body.style.overflow = '';
+                                    document.body.style.position = '';
+                                    document.body.style.width = '';
+                                    document.documentElement.style.overflow = '';
+                                }
+
+                                setSmsCodeFirst(Array(codeLength).fill(""));
+
+                                if (openSuccessModal) {
+                                    dispatch(closeModal(ModalType.CONFIRM_DOCS))
+                                    openSuccessModal(docsType);
+                                } else {
+                                    onClose();
+                                }
+                            },
+                            onError: () => {
+                                dispatch(setConfirmationDocsSuccess("не пройдено"));
+                            }
+                        })
+                    );
                 } else {
                     // // console.log('отправляю код' + code)
                     dispatch(
@@ -269,18 +321,14 @@ export const ConfirmDocsModal = memo(
                             onSuccess: (data: any) => {
 
                                 // переход к следующему документу и запуск таймера
-                                if (docsType === 'type_doc_agreement_account_maintenance') {
-                                    const nextDoc = 'type_doc_broker_api_token';
-                                    dispatch(setCurrentConfirmableDoc(nextDoc));
-                                    dispatch(startDocTimeout({ docKey: nextDoc, duration: docTimeoutMap[nextDoc] || 5 }));
-                                }
-                                if (docsType === 'type_doc_broker_api_token') {
-                                    const nextDoc = 'type_doc_agreement_investment_advisor_app_1';
+                                if (docsType === 'type_doc_investment_profile_certificate') {
+                                    // После справки инвестиционного профиля переходим к доверенности
+                                    const nextDoc = 'type_doc_agreement_account_maintenance';
                                     dispatch(setCurrentConfirmableDoc(nextDoc));
                                     dispatch(startDocTimeout({ docKey: nextDoc, duration: docTimeoutMap[nextDoc] || 5 }));
                                 }
                                 // для остальных документов используем логику с data.next_document
-                                if (data && data.next_document && data.next_document !== docsType) {
+                                if (data && data.next_document && data.next_document !== docsType && docsType !== 'type_doc_investment_profile_certificate') {
                                     dispatch(setCurrentConfirmableDoc(data.next_document));
                                     dispatch(startDocTimeout({ docKey: data.next_document, duration: docTimeoutMap[data.next_document] || 5 }));
                                 }
@@ -297,13 +345,6 @@ export const ConfirmDocsModal = memo(
 
                                 if (docsType === 'type_doc_EDS_agreement' && (isRPFilled && isRPFinalFilled)) {
                                     dispatch(setStepAdditionalMenuUI(4));
-                                }
-                                if (docsType === 'type_doc_broker_api_token') {
-                                    dispatch(closeAllModals());
-                                    document.body.style.overflow = '';
-                                    document.body.style.position = '';
-                                    document.body.style.width = '';
-                                    document.documentElement.style.overflow = '';
                                 }
                                 setSmsCodeFirst(Array(codeLength).fill(""));
 

@@ -538,6 +538,18 @@ const DocumentsPage: React.FC = () => {
             // Ищем брокера с подписанным type_doc_agreement_transfer_broker
             const signedBroker = brokers.find(b => b.is_confirmed_type_doc_agreement_transfer_broker);
             date = signedBroker?.date_last_confirmed_type_doc_agreement_transfer_broker ?? null;
+
+            // Для isAnotherBroker: если брокер подтверждён с ключом и не на проверке - считаем подписанным
+            if (!date && isAnotherBroker) {
+                const confirmedWithKey = brokers.find(b =>
+                    b.is_exist_key &&
+                    b.is_confirmed_and_with_key &&
+                    !b.is_waiting_manual_verification_broker
+                );
+                if (confirmedWithKey) {
+                    date = confirmedWithKey.modified || confirmedWithKey.created;
+                }
+            }
         } else if (type === "type_doc_agreement_account_maintenance") {
             // Ищем брокера с подписанным type_doc_agreement_account_maintenance
             const signedBroker = brokers.find(b => b.is_confirmed_type_doc_agreement_account_maintenance);

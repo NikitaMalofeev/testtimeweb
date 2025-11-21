@@ -356,13 +356,12 @@ export const ConfirmAllDocs: React.FC = () => {
                             thirdSetBrokerTokenThunk({
                                 broker_id: effectiveBrokerId,
                                 onSuccess: () => {
-                                    // После подключения брокера обновляем данные и показываем что брокер на проверке
+                                    // После подключения брокера обновляем данные
                                     dispatch(getAllBrokersThunk({
-                                        is_confirmed_type_doc_agreement_transfer_broker: true,
                                         onSuccess: () => {
-                                            // Закрываем модал и переходим в личный кабинет
-                                            dispatch(closeModal(ModalType.IDENTIFICATION));
-                                            navigate('/documents');
+                                            // Закрываем все модалки и переходим в личный кабинет
+                                            dispatch(closeAllModals());
+                                            navigate('/personalAccount');
                                         }
                                     }));
                                 },

@@ -721,7 +721,7 @@ const DocumentsPage: React.FC = () => {
                     : `Для подписания${!hasPassport ? ' заполните паспорт' : ''}${!hasPassport && !hasBroker ? ',' : ''}${!hasBroker ? ' подключите брокерский счет' : ''}${!hasTariff ? ' и тариф' : ''}`.replace(/,\s*$/, '');
             } else if (!hasTariff) {                 // всё есть, кроме тарифа → красная
                 colorClass = styles.button__gray;
-                additionalMessages = 'Оплатите тариф';
+                additionalMessages = 'Выберите и оплатите тариф';
             }
         }
 
@@ -887,11 +887,15 @@ const DocumentsPage: React.FC = () => {
 
             setSelectedDocId(docId);
 
-            // Проверяем подписан ли документ
-            const docInfo = userDocuments.find(d => d.key === docId);
+            // Проверяем подписан ли документ через данные из brokers
+            const signedBroker = brokers.find(b =>
+                docId === "type_doc_agreement_transfer_broker"
+                    ? b.is_confirmed_type_doc_agreement_transfer_broker
+                    : b.is_confirmed_type_doc_agreement_account_maintenance
+            );
             const isSigned = docId === "type_doc_agreement_transfer_broker"
-                ? docInfo?.date_last_confirmed_type_doc_agreement_transfer_broker
-                : docInfo?.date_last_confirmed;
+                ? signedBroker?.date_last_confirmed_type_doc_agreement_transfer_broker
+                : signedBroker?.date_last_confirmed_type_doc_agreement_account_maintenance;
 
             if (isSigned) {
                 // Документ подписан - используем getSignedBrokerGetDocThunk
@@ -1010,12 +1014,19 @@ const DocumentsPage: React.FC = () => {
 
     const handleDownloadPdf = async (docId: string) => {
         try {
-            // 1) Брокерский токен
-            if (docId === "type_doc_agreement_transfer_broker") {
+            // 1) Брокерские документы
+            if (docId === "type_doc_agreement_transfer_broker" || docId === "type_doc_agreement_account_maintenance") {
+                const effectiveBrokerId = firstBrokerSelect?.broker_id || brokerIds[0];
+
+                if (!effectiveBrokerId) {
+                    console.error('No broker_id available for document download');
+                    return;
+                }
 
                 const pdfBytes: Uint8Array = await dispatch(
-                    getBrokerDocumentsSignedThunk({
-                        purpose: "download",
+                    getSignedBrokerGetDocThunk({
+                        broker_id: effectiveBrokerId,
+                        type_document: docId,
                         onSuccess: () => { },
                     })
                 ).unwrap();
@@ -1273,7 +1284,7 @@ const DocumentsPage: React.FC = () => {
                                                     <>
                                                         {/* Spacer для паспорта чтобы кнопка Просмотр была выровнена */}
                                                         {isPassport && (
-                                                            <div style={{ width: '33px', height: '33px' }}></div>
+                                                            <div style={{ width: '64px', height: '33px' }}></div>
                                                         )}
                                                         <div className={styles.document__button_success}>
                                                             <Icon Svg={SuccessBlueIcon} width={24} height={24} />
@@ -1378,7 +1389,7 @@ const DocumentsPage: React.FC = () => {
                                                     <>
                                                         {/* Spacer для паспорта чтобы кнопка Просмотр была выровнена */}
                                                         {isPassport && (
-                                                            <div style={{ width: '33px', height: '33px' }}></div>
+                                                            <div style={{ width: '64px', height: '33px' }}></div>
                                                         )}
                                                         <div className={styles.document__button_success}>
                                                             <Icon Svg={SuccessBlueIcon} width={24} height={24} />

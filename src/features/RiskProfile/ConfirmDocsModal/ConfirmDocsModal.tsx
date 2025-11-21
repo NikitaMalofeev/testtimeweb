@@ -263,6 +263,8 @@ export const ConfirmDocsModal = memo(
                             code,
                             onSuccess: (data: any) => {
                                 dispatch(getUserDocumentsStateThunk());
+                                // Обновляем данные брокеров для корректного отображения статуса подписи
+                                dispatch(getAllBrokersThunk({}));
 
                                 // Определяем следующий документ
                                 if (docsType === 'type_doc_agreement_account_maintenance') {

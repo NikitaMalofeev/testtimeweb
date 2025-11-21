@@ -174,12 +174,25 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         dispatch(getAllTariffsThunk());
     }, [dispatch]);
 
+    // Получаем данные брокеров из Redux state
+    const brokers = useSelector((s: RootState) => s.documents.brokers || []);
+
     // ===== Запрос баланса по первому брокеру (если есть) ✨ ДОБАВЛЕНО
     useEffect(() => {
         if (brokerIds?.length > 0 && brokerIds[0] && !isAnotherBroker) {
-            dispatch(getBrokerBalanceThunk({ broker_id: brokerIds[0] }));
+            // Проверяем, не находится ли брокер на проверке
+            const currentBroker = brokers.find(b => b.id === brokerIds[0]);
+            const isWaitingVerification = currentBroker?.is_waiting_manual_verification_broker;
+
+            if (!isWaitingVerification) {
+                dispatch(getBrokerBalanceThunk({ broker_id: brokerIds[0] }));
+            }
         }
-    }, [brokerIds, dispatch]);
+    }, [brokerIds, brokers, dispatch, isAnotherBroker]);
+
+    // Проверяем, находится ли текущий брокер на проверке
+    const currentBroker = brokers.find(b => b.id === brokerIds?.[0]);
+    const isWaitingBrokerVerification = currentBroker?.is_waiting_manual_verification_broker;
 
     // Маппинг кодов брокеров на человекочитаемые названия
     const brokerNameMap: Record<string, string> = {
@@ -191,9 +204,6 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
         'vtb_broker': 'ВТБ',
         'sberbank_broker': 'Сбербанк'
     };
-
-    // Получаем данные брокеров из Redux state
-    const brokers = useSelector((s: RootState) => s.documents.brokers || []);
 
     const brokersItems = brokers.length > 0
         ? brokers.map(broker => ({
@@ -583,7 +593,10 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                             <div>
                                 <div style={{ fontSize: 13, opacity: 0.7, marginBottom: 4 }}>Ваш текущий баланс</div>
                                 <div style={{ fontSize: 20, fontWeight: 700 }}>
-                                    {balance?.all_total ? balance.all_total : <Loader size={LoaderSize.MEDIUM} />} {currencySymbol}
+                                    {isWaitingBrokerVerification
+                                        ? <span style={{ fontSize: 14, fontWeight: 400, opacity: 0.7 }}>Баланс будет подтвержден после проверки брокера</span>
+                                        : <>{balance?.all_total ? balance.all_total : <Loader size={LoaderSize.MEDIUM} />} {currencySymbol}</>
+                                    }
                                 </div>
                             </div>
 

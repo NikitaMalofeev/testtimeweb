@@ -184,7 +184,10 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
             const currentBroker = brokers.find(b => b.id === brokerIds[0]);
             const isWaitingVerification = currentBroker?.is_waiting_manual_verification_broker;
 
-            if (!isWaitingVerification) {
+            // Дополнительная проверка: если брокер не Тинькофф, не запрашиваем баланс
+            const isTinkoffBroker = currentBroker?.broker === 'tinkoff_brokers';
+
+            if (!isWaitingVerification && isTinkoffBroker) {
                 dispatch(getBrokerBalanceThunk({ broker_id: brokerIds[0] }));
             }
         }
@@ -593,9 +596,11 @@ export const Payments: React.FC<PaymentsProps> = ({ isPaid }) => {
                             <div>
                                 <div style={{ fontSize: 13, opacity: 0.7, marginBottom: 4 }}>Ваш текущий баланс</div>
                                 <div style={{ fontSize: 20, fontWeight: 700 }}>
-                                    {isWaitingBrokerVerification
-                                        ? <span style={{ fontSize: 14, fontWeight: 400, opacity: 0.7 }}>Баланс будет подтвержден после проверки брокера</span>
-                                        : <>{balance?.all_total ? balance.all_total : <Loader size={LoaderSize.MEDIUM} />} {currencySymbol}</>
+                                    {isAnotherBroker || (currentBroker && currentBroker.broker !== 'tinkoff_brokers')
+                                        ? <span style={{ fontSize: 14, fontWeight: 400, opacity: 0.7 }}>Баланс недоступен для данного типа брокера</span>
+                                        : isWaitingBrokerVerification
+                                            ? <span style={{ fontSize: 14, fontWeight: 400, opacity: 0.7 }}>Баланс будет подтвержден после проверки брокера</span>
+                                            : <>{balance?.all_total ? balance.all_total : <Loader size={LoaderSize.MEDIUM} />} {currencySymbol}</>
                                     }
                                 </div>
                             </div>

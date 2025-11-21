@@ -24,7 +24,7 @@ const BalancePage = () => {
         if (brokerIds.length > 0 && !isAnotherBroker) {
             dispatch(getBrokerBalanceThunk({ broker_id: brokerIds[0] }));
         }
-    }, [brokerIds])
+    }, [brokerIds, isAnotherBroker, dispatch])
     return (
         <div className={styles.page}>
             { }

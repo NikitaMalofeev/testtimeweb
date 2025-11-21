@@ -732,6 +732,7 @@ export const getAllBrokersThunk = createAsyncThunk<
             if (response.data.length > 0) {
                 dispatch(setBrokerIds({ brokerId: response.data[0].id, count: response.count }));
             }
+            onSuccess();
         } catch (error: any) {
             const msg = error.response?.data?.errorText || "Ошибка при получении подписанного документа";
             return rejectWithValue(msg);

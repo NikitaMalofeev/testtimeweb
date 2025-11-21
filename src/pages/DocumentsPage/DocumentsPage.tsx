@@ -709,7 +709,7 @@ const DocumentsPage: React.FC = () => {
 
         /* ───────── цвет и сообщения ───────── */
         let colorClass = styles.button__gray;
-        let additionalMessages = '';
+        let additionalMessages: React.ReactNode = '';
         let isVerificationMessage = false;
 
         /* 1) Приложение 1 (логика без изменений) */
@@ -721,7 +721,11 @@ const DocumentsPage: React.FC = () => {
                     : `Для подписания${!hasPassport ? ' заполните паспорт' : ''}${!hasPassport && !hasBroker ? ',' : ''}${!hasBroker ? ' подключите брокерский счет' : ''}${!hasTariff ? ' и тариф' : ''}`.replace(/,\s*$/, '');
             } else if (!hasTariff) {                 // всё есть, кроме тарифа → красная
                 colorClass = styles.button__gray;
-                additionalMessages = 'Выберите и оплатите тариф';
+                additionalMessages = (
+                    <>
+                        Выберите и <span onClick={() => navigate('/payments')} style={{ color: '#007AFF', cursor: 'pointer' }}>оплатите тариф</span>
+                    </>
+                );
             }
         }
 

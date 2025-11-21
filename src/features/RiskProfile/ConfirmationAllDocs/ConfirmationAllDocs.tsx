@@ -356,15 +356,9 @@ export const ConfirmAllDocs: React.FC = () => {
                             thirdSetBrokerTokenThunk({
                                 broker_id: effectiveBrokerId,
                                 onSuccess: () => {
-                                    // После подключения брокера обновляем данные
-                                    dispatch(getAllBrokersThunk({
-                                        is_confirmed_type_doc_agreement_transfer_broker: true,
-                                        onSuccess: () => {
-                                            // Закрываем все модалки и переходим в личный кабинет
-                                            dispatch(closeAllModals());
-                                            navigate('/personalAccount');
-                                        }
-                                    }));
+                                    // Закрываем все модалки и переходим в личный кабинет
+                                    dispatch(closeAllModals());
+                                    navigate('/lk');
                                 },
                                 onError: (error) => {
                                     console.error('Error setting broker token:', error);

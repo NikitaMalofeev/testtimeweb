@@ -356,7 +356,8 @@ export const ConfirmAllDocs: React.FC = () => {
                             thirdSetBrokerTokenThunk({
                                 broker_id: effectiveBrokerId,
                                 onSuccess: () => {
-                                    // Закрываем все модалки и переходим в личный кабинет
+                                    // Обновляем статус документов и переходим в личный кабинет
+                                    dispatch(getUserDocumentsStateThunk());
                                     dispatch(closeAllModals());
                                     navigate('/lk');
                                 },

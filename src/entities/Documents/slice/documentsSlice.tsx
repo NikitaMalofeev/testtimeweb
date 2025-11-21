@@ -554,11 +554,22 @@ export const getUserDocumentsStateThunk = createAsyncThunk<
 
         if (confirmedBrokers.length) {
             const broker = confirmedBrokers[0];
-            mergedDocs.push({
-                key: "type_doc_agreement_transfer_broker",
-                date_last_confirmed_type_doc_agreement_transfer_broker: broker.modified ?? broker.modified,
-                timeoutPending: 0,
-            });
+            // Добавляем доверенность на управление счетом если подписана
+            if (broker.is_confirmed_type_doc_agreement_account_maintenance) {
+                mergedDocs.push({
+                    key: "type_doc_agreement_account_maintenance",
+                    date_last_confirmed: broker.date_last_confirmed_type_doc_agreement_account_maintenance,
+                    timeoutPending: 0,
+                });
+            }
+            // Добавляем согласие на передачу API ключа если подписано
+            if (broker.is_confirmed_type_doc_agreement_transfer_broker) {
+                mergedDocs.push({
+                    key: "type_doc_agreement_transfer_broker",
+                    date_last_confirmed_type_doc_agreement_transfer_broker: broker.modified ?? broker.modified,
+                    timeoutPending: 0,
+                });
+            }
         }
 
         currentBrokerIds[0] &&

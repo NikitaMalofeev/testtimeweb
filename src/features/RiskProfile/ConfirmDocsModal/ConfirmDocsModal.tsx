@@ -17,7 +17,7 @@ import {
 import { ModalAnimation, ModalSize, ModalType } from "entities/ui/Modal/model/modalTypes";
 import { selectModalState } from "entities/ui/Modal/selectors/selectorsModals";
 import { setTooltipActive, setConfirmationDocsSuccess, setStepAdditionalMenuUI, nextStep } from "entities/ui/Ui/slice/uiSlice";
-import { confirmDocsRequestThunk, getUserDocumentsStateThunk, sendDocsConfirmationCode, setCurrentConfirmableDoc, startDocTimeout, docTypes, docTimeoutMap } from "entities/Documents/slice/documentsSlice";
+import { confirmDocsRequestThunk, getUserDocumentsStateThunk, sendDocsConfirmationCode, setCurrentConfirmableDoc, startDocTimeout, docTypes, docTimeoutMap, getAllBrokersThunk } from "entities/Documents/slice/documentsSlice";
 import { ConfirmDocsPayload } from "entities/Documents/types/documentsTypes";
 import { checkConfirmationCodeTariffThunk, setCurrentOrderStatus, createOrderThunk } from "entities/Payments/slice/paymentsSlice";
 import { useNavigate } from "react-router-dom";
@@ -264,7 +264,7 @@ export const ConfirmDocsModal = memo(
                             onSuccess: (data: any) => {
                                 dispatch(getUserDocumentsStateThunk());
                                 // Обновляем данные брокеров для корректного отображения статуса подписи
-                                dispatch(getAllBrokersThunk({}));
+                                dispatch(getAllBrokersThunk({ is_confirmed_type_doc_agreement_transfer_broker: true, onSuccess: () => {} }));
 
                                 // Определяем следующий документ
                                 if (docsType === 'type_doc_agreement_account_maintenance') {

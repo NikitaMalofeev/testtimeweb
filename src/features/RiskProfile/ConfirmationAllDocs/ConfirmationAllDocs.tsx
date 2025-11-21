@@ -358,6 +358,7 @@ export const ConfirmAllDocs: React.FC = () => {
                                 onSuccess: () => {
                                     // После подключения брокера обновляем данные
                                     dispatch(getAllBrokersThunk({
+                                        is_confirmed_type_doc_agreement_transfer_broker: true,
                                         onSuccess: () => {
                                             // Закрываем все модалки и переходим в личный кабинет
                                             dispatch(closeAllModals());

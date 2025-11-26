@@ -1265,17 +1265,6 @@ const DocumentsPage: React.FC = () => {
                                                                 <span >{doc.additionalMessages}</span>
                                                             </div>
                                                         )}
-                                                        {/* Для доверенности без брокера - затемнённая кнопка и подсказка */}
-                                                        {isMaintenanceWithoutBroker && (
-                                                            <>
-                                                                <span className={styles.document__preview_disabled}>
-                                                                    Просмотр
-                                                                </span>
-                                                                <div className={styles.documents__broker_hint}>
-                                                                    <span>Перед просмотром доверенности на управление счётом подключите брокера</span>
-                                                                </div>
-                                                            </>
-                                                        )}
 
                                                     </div>
                                                 </div>

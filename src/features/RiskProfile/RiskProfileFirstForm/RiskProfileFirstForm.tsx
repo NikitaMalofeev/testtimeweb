@@ -210,8 +210,22 @@ export const RiskProfileFirstForm: React.FC = () => {
 
         /* 3. Дополнительные «ручные» вопросы */
         // Получаем текст для trusted_person из сервера или используем дефолтный
+        // Функция для парсинга HTML в читаемый текст
+        const parseHtmlToText = (html: string): string => {
+            return html
+                .replace(/<\/?br\s*\/?>/gi, '\n')        // <br>, </br>, <br/>, <br /> -> перенос строки
+                .replace(/<\/li>/gi, '\n')               // </li> -> перенос строки
+                .replace(/<li>/gi, '• ')                 // <li> -> буллет
+                .replace(/<\/?ul>/gi, '')                // убираем <ul> и </ul>
+                .replace(/<\/?ol>/gi, '')                // убираем <ol> и </ol>
+                .replace(/<\/?p>/gi, '\n')               // <p> -> перенос строки
+                .replace(/<[^>]*>/gi, '')                // убираем остальные HTML теги
+                .replace(/\n{3,}/g, '\n\n')              // убираем лишние переносы
+                .trim();
+        };
+
         const trustedPersonLabel = questionsData?.trusted_person
-            ? questionsData.trusted_person.replace(/<br\s*\/?>/gi, '\n').replace(/<\/?ul>/gi, '').replace(/<li>/gi, '• ').replace(/<\/li>/gi, '')
+            ? parseHtmlToText(questionsData.trusted_person)
             : `Доверенное лицо. \nУкажите, пожалуйста, при наличии:\n• ФИО\n• Контактные данные`;
 
         const qualifiedInvestorLabel = questionsData?.is_qualified_investor_status

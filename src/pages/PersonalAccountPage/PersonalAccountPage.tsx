@@ -74,6 +74,9 @@ const PersonalAccountMenu: React.FC = () => {
     const hasIdentityDocs = isIdentityDataComplete && isIdentityScanExist;
     // Проверяем есть ли у брокера ключ (is_exist_key)
     const isBrokerExistKey = brokers.some(broker => broker.is_exist_key);
+    // Проверяем подписан ли документ брокера (как в DocumentsPage)
+    const signedBrokerForApiKey = brokers.find(b => b.is_confirmed_type_doc_agreement_transfer_broker);
+    const isBrokerDocSigned = !!signedBrokerForApiKey?.date_last_confirmed_type_doc_agreement_transfer_broker;
     // Теперь чат-уведомления включены в notifications, поэтому не нужно дублировать
     const allNotificationsCount = notifications.filter((item) => !item.is_read).length;
     useEffect(() => {
@@ -236,7 +239,7 @@ const PersonalAccountMenu: React.FC = () => {
                     }
                 }
             },
-            message: brokers.some((broker) => broker.is_confirmed_type_doc_agreement_transfer_broker || (isAnotherBroker && broker.is_confirmed_and_with_key && !broker.is_waiting_manual_verification_broker)) && 'Подключен',
+            message: (isBrokerDocSigned || (isAnotherBroker && brokers.some(broker => broker.is_confirmed_and_with_key && !broker.is_waiting_manual_verification_broker))) && 'Подключен',
             iconWidth: 28,
             iconHeight: 28,
             warningMessage: (!hasActiveTariff

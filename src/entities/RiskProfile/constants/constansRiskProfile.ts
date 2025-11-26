@@ -20,7 +20,7 @@ export const EMPTY_LEGAL_FORM: LegalFormData = {
     first_name: "",
     last_name: "",
     patronymic: "",
-    type_message: "SMS",
+    type_message: "EMAIL",
 
     company_inn: "",
     company_kpp: "",

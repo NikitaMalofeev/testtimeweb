@@ -125,8 +125,24 @@ export interface SecondRiskProfileFinalPayload {
     risk_profiling_final?: string
 }
 
+export interface RiskProfileSelectorsQuestions {
+    countries: string;
+    trusted_person: string;
+    is_qualified_investor_status: string;
+    currency_investment: string;
+    person_natural: Record<string, string>;
+    person_legal?: Record<string, string>;
+}
+
 export interface RiskProfileSelectors {
-    [key: string]: Record<string, string>;
+    answers: {
+        countries: Record<string, string>;
+        currency_investment: Record<string, string>;
+        person_natural: Record<string, Record<string, string>>;
+        person_legal?: Record<string, Record<string, string>>;
+        [key: string]: Record<string, string> | Record<string, Record<string, string>> | undefined;
+    };
+    questions: RiskProfileSelectorsQuestions;
 }
 
 export interface ThirdRiskProfileResponse {

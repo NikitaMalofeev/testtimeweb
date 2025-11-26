@@ -135,6 +135,30 @@ justify-content: start;
     color: #797979;
 }
 
+.document__preview_disabled {
+    padding: 7px 16px;
+    max-width: max-content;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 16.94px;
+    letter-spacing: 0%;
+    text-align: center;
+    color: #AEAEAE;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.documents__broker_hint {
+    display: flex;
+    font-weight: 400;
+    font-size: 12px;
+    gap: 4px;
+    line-height: 14.52px;
+    letter-spacing: 0%;
+    align-items: center;
+    color: #5A5A5A;
+}
+
 .documents__timer {
     font-weight: 400;
     font-size: 12px;

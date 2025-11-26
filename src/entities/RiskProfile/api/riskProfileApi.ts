@@ -387,3 +387,13 @@ export const getSignedBrokerGetDoc = async (data: { broker_id: string; type_docu
     return response.data;
 };
 
+export const getListBrokers = async (token: string) => {
+    const response = await axios.get(`${apiUrl}brokers_user/get_list_brokers/`, {
+        headers: {
+            "Accept-Language": "ru",
+            "Authorization": `Token ${token}`,
+        },
+    });
+    return response.data;
+};
+

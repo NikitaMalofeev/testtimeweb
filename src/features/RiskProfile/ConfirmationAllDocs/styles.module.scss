@@ -70,6 +70,14 @@ position: relative;
         text-align: left;
         line-height: 14.52px;
         color: #989898;
+
+        &_dark {
+            font-size: 12px;
+            font-weight: 400;
+            text-align: left;
+            line-height: 14.52px;
+            color: #5A5A5A;
+        }
     }
 
     &__checkbox {

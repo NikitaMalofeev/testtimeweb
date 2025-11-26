@@ -46,7 +46,8 @@ import {
     secondSigningDocuments,
     checkBrokerConfirmationCode,
     thirdSetBrokerToken,
-    getSignedBrokerGetDoc
+    getSignedBrokerGetDoc,
+    getListBrokers
 } from "entities/RiskProfile/api/riskProfileApi";
 import { setUserId, setUserIsActive, setUserToken, updateUserAllData, logoutUser } from "entities/User/slice/userSlice";
 import { setConfirmationEmailSuccess, setConfirmationPhoneSuccess, setConfirmationStatusSuccess, setConfirmationWhatsappSuccess, setTooltipActive, setWarning } from "entities/ui/Ui/slice/uiSlice";
@@ -63,6 +64,11 @@ interface BrokerData {
     broker_id: string;
     broker_name: string;
     broker_value: string;
+}
+
+export interface BrokerListItem {
+    value: string;
+    label: string;
 }
 
 interface FirstBrokerSelectData {
@@ -101,6 +107,7 @@ interface RiskProfileFormState {
     stepScrollAmount: StepScrollAmountData | null;
     symbolsCurrencies: Record<string, string> | null;
     activeCurrencies: any;
+    brokersList: BrokerListItem[];
 }
 
 const initialState: RiskProfileFormState = {
@@ -153,7 +160,8 @@ const initialState: RiskProfileFormState = {
     isBrokerTokenSent: false,
     stepScrollAmount: null,
     symbolsCurrencies: null,
-    activeCurrencies: null
+    activeCurrencies: null,
+    brokersList: []
 };
 
 export const createRiskProfile = createAsyncThunk<
@@ -834,6 +842,43 @@ export const fetchActiveCurrencies = createAsyncThunk<
     }
 );
 
+export const fetchBrokersListThunk = createAsyncThunk<
+    BrokerListItem[],
+    void,
+    { rejectValue: string; state: RootState }
+>(
+    "riskProfile/fetchBrokersList",
+    async (_, { rejectWithValue, getState }) => {
+        try {
+            const token = getState().user.token;
+            if (!token) {
+                return rejectWithValue("Отсутствует токен авторизации");
+            }
+            const response = await getListBrokers(token);
+            // Формат ответа: { "broker_key": { "name": "Broker Name" }, ... }
+            // Преобразуем в массив { value, label }
+            if (response && typeof response === 'object' && !Array.isArray(response)) {
+                return Object.entries(response).map(([key, val]: [string, any]) => ({
+                    value: key,
+                    label: val?.name || key
+                }));
+            }
+            // Если вдруг массив - обрабатываем как раньше
+            if (Array.isArray(response)) {
+                return response.map((item: any) => ({
+                    value: item.value || item.broker || item.key,
+                    label: item.label || item.name || item.title
+                }));
+            }
+            return [];
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message || "Ошибка при загрузке списка брокеров"
+            );
+        }
+    }
+);
+
 // ==============================================
 // BROKER ASYNC THUNKS
 // ==============================================
@@ -1227,6 +1272,18 @@ const riskProfileSlice = createSlice({
                 state.activeCurrencies = action.payload;
             })
             .addCase(fetchActiveCurrencies.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
+            .addCase(fetchBrokersListThunk.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchBrokersListThunk.fulfilled, (state, action) => {
+                state.loading = false;
+                state.brokersList = action.payload;
+            })
+            .addCase(fetchBrokersListThunk.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
             })

@@ -519,7 +519,15 @@ export const ConfirmAllDocs: React.FC = () => {
 
                 <div className={styles.page__container}>
                     <div className={styles.page__preview}>
-                        <span className={styles.page__notice}>Просьба внимательно ознакомиться с документом</span>
+                        <span className={
+                            currentTypeDoc === "type_doc_agreement_account_maintenance" && !effectiveBrokerId
+                                ? styles.page__notice_dark
+                                : styles.page__notice
+                        }>
+                            {currentTypeDoc === "type_doc_agreement_account_maintenance" && !effectiveBrokerId
+                                ? "Перед просмотром доверенности на управление счётом подключите брокера"
+                                : "Просьба внимательно ознакомиться с документом"}
+                        </span>
                         <div className={styles.page__preview__row}>
                             <span className={styles.page__doctype}>{renderDocLabel()}</span>
                             <Button

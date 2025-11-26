@@ -113,7 +113,31 @@ export const RiskProfileFirstForm: React.FC = () => {
 
     // ========================= 4. Вспомогательная функция для меток вопросов =========================
     const getLabelByKey = (key: string) => {
-        const map: Record<string, string> = {
+        // Сначала пробуем получить текст из ответа сервера
+        if (riskProfileSelectors?.questions) {
+            const { questions } = riskProfileSelectors;
+
+            // Проверяем в person_natural
+            if (questions.person_natural && questions.person_natural[key]) {
+                return questions.person_natural[key];
+            }
+
+            // Проверяем в person_legal
+            if (questions.person_legal && questions.person_legal[key]) {
+                return questions.person_legal[key];
+            }
+
+            // Проверяем общие вопросы
+            if (key === 'countries' && questions.countries) {
+                return questions.countries;
+            }
+            if (key === 'currency_investment' && questions.currency_investment) {
+                return questions.currency_investment;
+            }
+        }
+
+        // Фоллбэк на статические значения
+        const fallbackMap: Record<string, string> = {
             age_parameters: "Ваш возраст",
             currency_investment: "Валюта инвестиций",
             current_loans: "Ваши текущие кредиты",
@@ -132,7 +156,7 @@ export const RiskProfileFirstForm: React.FC = () => {
             risk_profiling_int: "Результирующий риск-профиль",
             savings_level: "Информация о наличии и сумме сбережений",
         };
-        return map[key] || key;
+        return fallbackMap[key] || key;
     };
 
     // ========================= 5. Построение вопросов =========================
@@ -140,57 +164,63 @@ export const RiskProfileFirstForm: React.FC = () => {
     const questions: Question[] = React.useMemo(() => {
         if (!riskProfileSelectors) return [];
 
-        /* 1. Гражданство (оставляем как было) */
+        // Получаем answers из новой структуры (или используем старую структуру для совместимости)
+        const answers = riskProfileSelectors.answers || riskProfileSelectors;
+        const questionsData = riskProfileSelectors.questions;
+
+        /* 1. Гражданство */
+        const countriesOptions = answers.countries || (riskProfileSelectors as any).countries;
         const citizenshipQuestion: Question = {
             name: "citizenship",
-            label: "Гражданство, в том числе ВНЖ",
+            label: questionsData?.countries || "Гражданство, в том числе ВНЖ",
             placeholder: "Выберите страну",
             fieldType: "customSelect",
-            options: riskProfileSelectors.countries,
+            options: countriesOptions,
         };
 
-        /* 2. Список вопросов, пришедших от сервера
-         *    ─ теперь разворачиваем весь объект person_natural,
-         *      игнорируя person_legal и countries
-         */
+        /* 2. Список вопросов, пришедших от сервера */
         const serverQuestions: Question[] = [];
 
-        Object.entries(riskProfileSelectors).forEach(([key, value]) => {
-            // countries обрабатываем отдельно (см. citizenshipQuestion)
-            if (key === "countries") return;
+        // Получаем person_natural из answers
+        const personNatural = answers.person_natural || (riskProfileSelectors as any).person_natural;
 
-            // person_natural содержит ВСЕ нужные вопросы
-            if (key === "person_natural" && value && typeof value === "object") {
-                //@ts-ignore
-                Object.entries(value as Record<string, Record<string, string>>).forEach(
-                    ([innerKey, innerVal]) => {
-                        serverQuestions.push({
-                            name: innerKey,
-                            label: getLabelByKey(innerKey),
-                            options: innerVal,
-                            fieldType: "checkboxGroup",
-                        });
-                    }
-                );
-                return; // дальше ничего не делаем
-            }
+        if (personNatural && typeof personNatural === "object") {
+            Object.entries(personNatural as Record<string, Record<string, string>>).forEach(
+                ([innerKey, innerVal]) => {
+                    serverQuestions.push({
+                        name: innerKey,
+                        label: getLabelByKey(innerKey),
+                        options: innerVal,
+                        fieldType: "checkboxGroup",
+                    });
+                }
+            );
+        }
 
-            // всё остальное (currency_investment и т.п.)
-            if (key !== "person_legal") {
-                serverQuestions.push({
-                    name: key,
-                    label: getLabelByKey(key),
-                    options: value as Record<string, string>,
-                    fieldType: "checkboxGroup",
-                });
-            }
-        });
+        // Обрабатываем currency_investment отдельно, если есть
+        const currencyInvestment = answers.currency_investment || (riskProfileSelectors as any).currency_investment;
+        if (currencyInvestment) {
+            serverQuestions.unshift({
+                name: "currency_investment",
+                label: getLabelByKey("currency_investment"),
+                options: currencyInvestment,
+                fieldType: "checkboxGroup",
+            });
+        }
 
         /* 3. Дополнительные «ручные» вопросы */
+        // Получаем текст для trusted_person из сервера или используем дефолтный
+        const trustedPersonLabel = questionsData?.trusted_person
+            ? questionsData.trusted_person.replace(/<br\s*\/?>/gi, '\n').replace(/<\/?ul>/gi, '').replace(/<li>/gi, '• ').replace(/<\/li>/gi, '')
+            : `Доверенное лицо. \nУкажите, пожалуйста, при наличии:\n• ФИО\n• Контактные данные`;
+
+        const qualifiedInvestorLabel = questionsData?.is_qualified_investor_status
+            || "Есть ли у Вас статус квалифицированного инвестора?";
+
         const extraTextQuestions: Question[] = [
             {
                 name: "trusted_person",
-                label: `Доверенное лицо. \nУкажите, пожалуйста, при наличии:\n• ФИО\n• Контактные данные`,
+                label: trustedPersonLabel,
                 needTextField: true,
                 placeholder: "Ответ",
                 fieldType: "textarea",
@@ -198,7 +228,7 @@ export const RiskProfileFirstForm: React.FC = () => {
             },
             {
                 name: "is_qualified_investor_status",
-                label: "Есть ли у Вас статус квалифицированного инвестора?",
+                label: qualifiedInvestorLabel,
                 fieldType: "checkboxGroup",
                 options: { true: "Да", false: "Нет" },
             },

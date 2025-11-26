@@ -91,6 +91,7 @@ const persistConfig = getPersistConfig({
         'riskProfile.isBrokerTokenSent',
         'riskProfile.firstBrokerSelect',
         'riskProfile.isAnotherBroker',
+        'riskProfile.brokersList',
 
         // 'payments.tariffs',
         // 'payments.currentUserTariffIdForPayments',

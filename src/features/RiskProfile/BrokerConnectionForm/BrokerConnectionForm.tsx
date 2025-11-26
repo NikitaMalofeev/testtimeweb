@@ -23,7 +23,7 @@ import { DocumentPreviewModal } from 'features/Documents/DocumentsPreviewModal/D
 import { closeModal, openModal } from 'entities/ui/Modal/slice/modalSlice';
 import { ModalAnimation, ModalSize, ModalType } from 'entities/ui/Modal/model/modalTypes';
 import BrokerInstruction from 'shared/assets/documents/brokerInstruction.pdf'
-import { postBrokerApiTokenThunk, firstSelectBrokerThunk, thirdSetBrokerTokenThunk, setIsBrokerTokenSent } from 'entities/RiskProfile/slice/riskProfileSlice';
+import { postBrokerApiTokenThunk, firstSelectBrokerThunk, thirdSetBrokerTokenThunk, setIsBrokerTokenSent, fetchBrokersListThunk } from 'entities/RiskProfile/slice/riskProfileSlice';
 import { useSelector as useReduxSelector } from 'react-redux';
 import { ProblemsCodeModal } from '../ProblemsCodeModal/ProblemsCodeModal';
 import { ProblemsModal } from '../ProblemsModal/ProblemsModal';
@@ -35,6 +35,18 @@ import brokerInstructionPDF from 'shared/assets/documents/brokerInstruction.pdf'
 import { useDevice } from 'shared/hooks/useDevice';
 import { DocumentsPreviewPdfModal } from 'features/Documents/DocumentsPreviewPdfModal/DocumentsPreviewPdfModal';
 
+// Фоллбэк список брокеров на случай если сервер не вернул данные
+const DEFAULT_BROKERS_ITEMS = [
+    { value: 'tinkoff_brokers', label: 'Т-инвестиции' },
+    { value: 'finam_broker', label: 'Финам' },
+    { value: 'alfa_broker', label: 'Альфа' },
+    { value: 'bks_broker', label: 'БКС' },
+    { value: 'tradernet_ff', label: 'Трейдернет' },
+    { value: 'vtb_broker', label: 'ВТБ' },
+    { value: 'sberbank_broker', label: 'Сбербанк' },
+    { value: 'other', label: 'Другой брокер' }
+];
+
 export const BrokerConnectionForm: React.FC = () => {
     const dispatch = useAppDispatch();
     const modalState = useSelector((state: RootState) => state.modal)
@@ -43,41 +55,17 @@ export const BrokerConnectionForm: React.FC = () => {
     const device = useDevice()
     const isBulk = useSelector((s: RootState) => s.user.userPersonalAccountInfo?.is_confirm_all_documents_one_code)
     const firstBrokerSelect = useSelector((s: RootState) => s.riskProfile.firstBrokerSelect)
+    const brokersListFromServer = useSelector((s: RootState) => s.riskProfile.brokersList)
 
-    const brokersItems = [
-        {
-            value: 'tinkoff_brokers',
-            label: 'Т-инвестиции'
-        },
-        {
-            value: 'finam_broker',
-            label: 'Финам'
-        },
-        {
-            value: 'alfa_broker',
-            label: 'Альфа'
-        },
-        {
-            value: 'bks_broker',
-            label: 'БКС'
-        },
-        {
-            value: "tradernet_ff",
-            label: 'Трейдернет'
-        },
-        {
-            value: 'vtb_broker',
-            label: 'ВТБ'
-        },
-        {
-            value: 'sberbank_broker',
-            label: 'Сбербанк'
-        },
-        {
-            value: 'other',
-            label: 'Другой брокер'
-        }
-    ]
+    // Загружаем список брокеров при монтировании компонента
+    useEffect(() => {
+        dispatch(fetchBrokersListThunk());
+    }, [dispatch]);
+
+    // Используем данные с сервера или фоллбэк
+    const brokersItems = brokersListFromServer && brokersListFromServer.length > 0
+        ? brokersListFromServer
+        : DEFAULT_BROKERS_ITEMS;
 
     // Проверяем тип документа для определения режима формы
     const isFirstSelect = currentConfirmableDoc === 'type_doc_agreement_account_maintenance';

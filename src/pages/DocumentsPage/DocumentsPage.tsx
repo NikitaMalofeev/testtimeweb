@@ -1113,6 +1113,7 @@ const DocumentsPage: React.FC = () => {
                         const isAdvisorAgreement = doc.id === 'type_doc_agreement_investment_advisor_app_1';
                         const isPassport = doc.id === "type_doc_passport";
                         const isBroker = doc.id === "type_doc_agreement_transfer_broker";
+                        const isMaintenanceAgree = doc.id === "type_doc_agreement_account_maintenance";
 
                         // Проверяем, находится ли брокер на проверке (только для API ключа)
                         const brokerOnVerification = isBroker && brokers.some(b => b.is_waiting_manual_verification_broker);
@@ -1204,6 +1205,9 @@ const DocumentsPage: React.FC = () => {
                         // Показываем кнопку просмотра для подписанных документов
                         const shouldShowViewButton = isSigned && !doc.isPayment;
 
+                        // Проверка для доверенности на управление счётом - брокер не подключен
+                        const isMaintenanceWithoutBroker = isMaintenanceAgree && !isSigned && (brokerIds.length === 0 && !firstBrokerSelect?.broker_id);
+
                         const showCheckbox = false; // убираем все чекбоксы
 
                         return (
@@ -1261,6 +1265,17 @@ const DocumentsPage: React.FC = () => {
                                                                 <span >{doc.additionalMessages}</span>
                                                             </div>
                                                         )}
+                                                        {/* Для доверенности без брокера - затемнённая кнопка и подсказка */}
+                                                        {isMaintenanceWithoutBroker && (
+                                                            <>
+                                                                <span className={styles.document__preview_disabled}>
+                                                                    Просмотр
+                                                                </span>
+                                                                <div className={styles.documents__broker_hint}>
+                                                                    <span>Перед просмотром доверенности на управление счётом подключите брокера</span>
+                                                                </div>
+                                                            </>
+                                                        )}
 
                                                     </div>
                                                 </div>
@@ -1286,10 +1301,6 @@ const DocumentsPage: React.FC = () => {
                                                     <div className={styles.document__paymentStatus}>Оплачено</div>
                                                 ) : showSuccess ? (
                                                     <>
-                                                        {/* Spacer для паспорта чтобы кнопка Просмотр была выровнена */}
-                                                        {isPassport && (
-                                                            <div style={{ width: '64px', height: '33px' }}></div>
-                                                        )}
                                                         <div className={styles.document__button_success}>
                                                             <Icon Svg={SuccessBlueIcon} width={24} height={24} />
                                                             <span>
@@ -1383,6 +1394,17 @@ const DocumentsPage: React.FC = () => {
                                                             <Icon Svg={WarningIcon} width={16} height={16} />
                                                             <span >{doc.additionalMessages}</span>
                                                         </div>
+                                                    )}
+                                                    {/* Для доверенности без брокера - затемнённая кнопка и подсказка */}
+                                                    {isMaintenanceWithoutBroker && (
+                                                        <>
+                                                            <span className={styles.document__preview_disabled}>
+                                                                Просмотр
+                                                            </span>
+                                                            <div className={styles.documents__broker_hint}>
+                                                                <span>Перед просмотром доверенности на управление счётом подключите брокера</span>
+                                                            </div>
+                                                        </>
                                                     )}
 
                                                 </div>
